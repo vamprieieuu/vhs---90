@@ -12,6 +12,7 @@
 #include "VHS90ChromaShiftEngine.h"
 #include "VHS90TemporalEngine.h"
 #include "VHS90WaveformEngine.h"
+#include "VHS90DropoutEngine.h"
 #include "VHS90RingingEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
@@ -48,6 +49,8 @@ struct CompositeParams {
     RfInstabilityParams rfInstability{};
     bool impulseNoiseEnabled = false;
     ImpulseNoiseParams impulseNoise{};
+    bool dropoutEnabled = false;
+    DropoutParams dropouts{};
     bool multipathEchoEnabled = false;
     MultipathEchoParams multipathEcho{};
     bool receiverInstabilityEnabled = false;
