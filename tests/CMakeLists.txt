@@ -22,6 +22,8 @@ target_link_libraries(vhs90_engine_integration_smoke PRIVATE
     vhs90_analog_signal
     vhs90_tape_surface
     vhs90_image_degradation
+    vhs90_bloom
+    vhs90_tape_physics
 )
 add_test(NAME vhs90_engine_integration_smoke COMMAND vhs90_engine_integration_smoke)
 
