@@ -54,6 +54,13 @@ int main() {
     rf.rfInstabilityEnabled=true;rf.rfInstability.drift=.65f;rf.rfInstability.hum=.4f;rf.rfInstability.amNonlinearity=.7f;
     assert(processCompositeRoundTrip(si,rfOnlyView,rf));assert(rfOnly!=src);
 
+    // Barash horizontal luma downsample/upsample stage runs in the shared pipeline.
+    std::vector<float> detailOnly(src.size());
+    ImageView detailOnlyView{detailOnly.data(),w,h,w*4};
+    CompositeParams detail=p;detail.compositeSignalStrength=0.0f;detail.inputBandwidthEnabled=false;detail.outputBandwidthEnabled=false;
+    detail.tapeDetailEnabled=true;detail.tapeDetail.detail=.35f;detail.tapeDetail.minimumWidth=1;
+    assert(processCompositeRoundTrip(si,detailOnlyView,detail));assert(detailOnly!=src);
+
     // Barash-derived edge/fade/grade/vignette/flicker stage is wired to the shared pipeline.
     std::vector<float> gradeOnly(src.size());
     ImageView gradeOnlyView{gradeOnly.data(),w,h,w*4};
