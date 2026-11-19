@@ -334,6 +334,8 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.headCondition.wear=0.35f*a; p.headCondition.dirt=0.65f*a;
                 p.headCondition.buildup=0.8f*a; p.headCondition.mismatch=0.25f*a;
                 p.headCondition.grease=0.3f*a;
+                p.headCondition.usePhysicalTapeSamples=true;
+                p.headCondition.tapeSurface=p.tapeSurface;
             }
             if(s.chromaShift>0) { p.chromaChannelShiftEnabled=true; p.chromaChannelShift.shiftPixels=s.chromaShift; } p.compositeSignalStrength=clamp01(s.composite/100.0f); p.frame=s.frame;
             p.inputBandwidthEnabled=(s.composite>0);
@@ -434,6 +436,10 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.tapeSurface.surfaceRoughness=0.03f*a;
                 p.tapeSurface.pinholeAmount=0.25f*a; p.tapeSurface.flakeAmount=0.35f*a;
                 p.tapeSurface.moldAmount=0.45f*a; p.tapeSurface.vaselineAmount=0.30f*a;
+            }
+            if(p.tapeTransportEnabled) {
+                p.tapeTransport.usePhysicalControlTrackMap=true;
+                p.tapeTransport.controlTrackTape=p.tapeSurface;
             }
             if(s.chromaSubsample>0) {
                 p.chromaSubsampleEnabled=true; p.chromaSubsample.amount=clamp01(s.chromaSubsample/100.0f);
