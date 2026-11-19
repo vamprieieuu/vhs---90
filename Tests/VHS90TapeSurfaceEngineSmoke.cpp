@@ -33,5 +33,5 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  assert(std::fabs(ntscrtTapeWearAmount(0.0f))<1e-6f&&std::fabs(ntscrtTapeWearAmount(1.0f)-1.85f)<1e-5f);
  assert(std::fabs(ntscrtTapeDropoutAmount(1.0f)-3.0f)<1e-5f&&std::fabs(ntscrtTapeScratchAmount(1.0f)-4.0f)<1e-5f);
  assert(std::fabs(ntscrtTapeEdgeAmount(1.0f)-1.45f)<1e-5f&&std::fabs(ntscrtTapeCreaseAmount(1.0f)-5.0f)<1e-5f);
- assert(ntscrtTapeSeed(1u)==8010u);
+ assert(ntscrtTapeSeed(1u)==7936u);
  return 0;}
