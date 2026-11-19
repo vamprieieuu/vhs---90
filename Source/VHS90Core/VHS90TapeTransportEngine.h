@@ -13,6 +13,10 @@ struct TapeTransportParams {
     float lineJitterPixels=0.25f;
     float trackingOffsetPixels=0.0f;
     float trackingSlopePixels=0.0f;
+    float servoJitterPixels=0.0f;
+    float edgeWavePixels=0.0f;
+    float horizontalScale=1.0f;
+    float verticalScale=1.0f;
     std::uint32_t seed=1;
     std::int64_t frame=0;
 };
