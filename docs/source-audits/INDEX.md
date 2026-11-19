@@ -43,6 +43,8 @@ These reports are based on the supplied vhs.zip archive and the linked VHS-90 re
 - 32-vhs90-sync-collapse-engine.md — procedural sync tears, time-base instability and vertical roll.
 - 33-vhs90-ae-host-adapter.md — initial SmartFX/legacy host adapter, PiPL flags, parameter mapping and Windows build gate.
 
+- 41-ntscrt-expanded-audit.md — current 359-file NTSCRT upstream inventory checkpoint, physical tape/receiver source review and new VHS-90 adjacent-track read port. Audit remains partial; CI 26/26.
+
 ## Current project status
 
 See docs/PROJECT_STATUS.md for the current build/integration boundary. The repository now contains an initial AE host adapter and optional AEX build target, but Windows/MSVC compilation and AE runtime validation are still pending; do not describe it as a test-ready AEX.
