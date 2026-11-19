@@ -50,21 +50,30 @@ License: Apache-2.0 (Copyright 2026 SKBv0). The project credits ntscQT and compo
 | Head switching | shared `RegionEngine` head-switch region |
 | VHS luma/chroma bandwidth and vertical chroma blending | tape-speed IIR profiles, chroma subsampling and vertical chroma blend |
 | Seven-tap luma ringing and asymmetric edge echoes | New `VHS90RingingEngine`, integrated before composite modulation; AE controls `Ringing` and `Ringing Power` |
-| VHS edge-wave per-row motion | Not yet a dedicated C++ port; candidate for next migration step |
-| Black pedestal lift | Not yet exposed as a separate control; candidate for next migration step |
+| Two-stage luma ghost and I/Q chroma delay | New `VHS90SignalGhostEngine`, integrated after RF multipath; AE controls `Signal Ghost` and `Chroma Delay` |
+| Sparse dropout bands and luma-only speckles | New `VHS90DropoutEngine`, deterministic per frame/seed, alpha-aware; AE control `Dropouts` |
+| Thresholded channel-weighted analog glow | New `VHS90AnalogGlowEngine`, integrated post-scanline; AE control `Analog Glow` |
+| Frame and row-dependent chroma rotation | `VHS90ReceiverInstabilityEngine::chromaColorDrift`; AE control `Color Drift` |
+| Vertical roll | `VHS90AnalogGeometryEngine::verticalRoll`; AE control `Vertical Roll` |
+| VHS edge-wave per-row motion | `VHS90AnalogGeometryEngine` now has deterministic epoch-crossfaded per-row edge-wave profiles; AE control `VHS Edge Wave` |
+| Black pedestal lift | `VHS90ImageGradeEngine::blackLift`; AE control `Black Lift`, white-level preserving pedestal curve |
 | Preview server, CUDA device manager, ComfyUI widget and browser panel | Excluded as host-specific infrastructure |
 
 ## New C++ port in this pass
 
-- `Source/VHS90Core/VHS90RingingEngine.h/.cpp`: extracts luma, applies a separable Gaussian edge baseline, seven-tap horizontal ringing kernel, and asymmetric forward/back edge echoes. Uses width-scaled radii, deterministic math, premultiplied-alpha handling and exact zero-strength bypass.
-- `Tests/VHS90RingingEngineSmoke.cpp`: verifies identity bypass, deterministic output, changed edge response and alpha preservation.
-- `VHS90CompositeEngine`: ringing is inserted before composite modulation, so it behaves as a signal-stage effect rather than a post-render overlay.
-- `Source/VHS90Effect.cpp`: adds `Ringing` and `Ringing Power` controls and wires them to the shared pipeline.
-- Existing Comfy-derived luma smear, servo epoch profile and fidelity-test ideas are retained as documented earlier ports.
+- `VHS90RingingEngine`, `VHS90DropoutEngine`, `VHS90SignalGhostEngine` and `VHS90AnalogGlowEngine` were added and registered in the core build with standalone smoke tests.
+- `VHS90RingingEngine`: luma edge extraction, separable Gaussian baseline, seven-tap horizontal ring and asymmetric echoes; integrated before composite modulation.
+- `VHS90DropoutEngine`: seeded sparse horizontal bands and luma speckles, with I/Q attenuation and alpha preservation.
+- `VHS90SignalGhostEngine`: two delayed luma echoes and weighted I/Q chroma delay, separate from previous-frame temporal ghost.
+- `VHS90AnalogGlowEngine`: thresholded, channel-weighted glow with alpha-safe compositing.
+- `VHS90AnalogGeometryEngine`: deterministic edge-wave profile with temporal epoch crossfade, plus vertical roll; exposed as `VHS Edge Wave` and `Vertical Roll`.
+- `VHS90ImageGradeEngine`: now includes black-pedestal lift that preserves white level.
+- `VHS90ReceiverInstabilityEngine`: row-dependent color drift and phase rotation.
+- All these modules are connected to the shared composite pipeline and their AE controls are wired. Existing Comfy-derived luma smear, servo epoch profile, tracking warp and fidelity-test ideas are retained as documented earlier ports.
 
 ## Verification boundary
 
-- The latest core CI run before this ringing addition passed 20/20 CTest tests at run `44602045505`, including waveform, temporal and tape-detail tests.
-- Ringing's standalone smoke test passed in its own build/test workflow; the combined CMake/composite/AE-control change is awaiting the latest CI result.
-- Static parameter count must be rechecked after UI additions; it does not substitute for a Windows/MSVC AE SDK build or live After Effects/MFR validation.
-- The ComfyUI RetroTape source inventory is complete. Algorithm migration is not complete until the edge-wave profile and black-lift pedestal are ported or explicitly rejected after visual comparison.
+- GitHub Actions run `44604160794` passed 24/24 CTest tests, including standalone Ringing, Dropout, Signal Ghost and Analog Glow tests.
+- The later edge-wave/servo profile changes have additional tests and CI runs; verify the latest run after the final test additions before claiming that final combined state passes.
+- Static AE parameter count after the ComfyUI-derived controls: 77 real parameter slots and 77 `PF_ADD_*` calls. This does not substitute for a Windows/MSVC AE SDK build or live After Effects/MFR validation.
+- The 25-file ComfyUI RetroTape source inventory is complete. Most portable image/signal algorithms are now represented in VHS-90; remaining candidate is the stochastic per-scanline chroma-loss mask and detailed CPU/GPU statistical parity (GPU path is intentionally not imported into CPU-first AE).
