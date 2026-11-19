@@ -32,6 +32,8 @@ struct CompositeParams {
     TapeTransportParams tapeTransport{};
     bool tapeSurfaceEnabled = false;
     TapeSurfaceParams tapeSurface{};
+    bool chromaSubsampleEnabled = false;
+    ChromaSubsampleParams chromaSubsample{};
     bool verticalChromaBlendEnabled = false;
     float verticalChromaBlendAmount = 0.5f;
     bool lumaSmearEnabled = false;
