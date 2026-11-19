@@ -142,6 +142,10 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
                 const std::size_t idx=std::size_t(row)*w+x;
                 const float alpha=input.rgba[row*input.rowStrideFloats+x*4+3];
                 RGB rgb=yiqToRgb({decodedY[idx],i[idx],q[idx]});
+                const RGB original=readStraight(input,x,row,p.premultipliedAlpha);
+                rgb.r=original.r+(rgb.r-original.r)*compositeStrength;
+                rgb.g=original.g+(rgb.g-original.g)*compositeStrength;
+                rgb.b=original.b+(rgb.b-original.b)*compositeStrength;
                 if(p.premultipliedAlpha) { rgb.r*=alpha; rgb.g*=alpha; rgb.b*=alpha; }
                 float* out=decoded.data()+idx*4;
                 out[0]=rgb.r; out[1]=rgb.g; out[2]=rgb.b; out[3]=alpha;
