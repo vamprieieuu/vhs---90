@@ -4,6 +4,7 @@
 #include "../src/engines/shared/vhs90_image_degradation.hpp"
 #include "../src/engines/shared/vhs90_bloom.hpp"
 #include "../src/engines/shared/vhs90_tape_physics.hpp"
+#include "../src/engines/shared/vhs90_temporal_effects.hpp"
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -44,6 +45,11 @@ int main() {
     vhs90::TapeTransportParams transport;transport.seed=sp.seed;transport.frameIndex=sp.frameIndex;
     transport.lineJitterPixels=0.8f;transport.flutterPixels=0.25f;
     vhs90::applyTapeTransportWarp(va,transport);vhs90::applyTapeTransportWarp(vb,transport);
+    std::vector<float> previous(a.size(),0.18f);
+    for(size_t i=3;i<previous.size();i+=4)previous[i]=0.63f;
+    vhs90::FloatRgbaView pv{previous.data(),w,h,w*4};
+    vhs90::TemporalGhostParams ghost;ghost.enabled=true;ghost.amount=0.12f;ghost.offsetXPixels=1.0f;
+    vhs90::applyTemporalGhost(va,pv,ghost);vhs90::applyTemporalGhost(vb,pv,ghost);
     if(a!=b)return 1;
     float sum=0.0f;
     for(size_t i=0;i<a.size();i+=4) {
@@ -51,6 +57,6 @@ int main() {
         if(std::abs(a[i+3]-0.63f)>1e-6f)return 2;
     }
     if(sum<1.0f)return 3;
-    std::cout<<"PASS shared VHS chain deterministic; alpha preserved; all nine stages composed\n";
+    std::cout<<"PASS shared VHS chain deterministic; alpha preserved; all ten stages composed\n";
     return 0;
 }
