@@ -65,6 +65,13 @@ int main() {
     assert(processYiqBandwidth(vsi,vdi,vp));assert(verticalDst!=verticalSrc);
     for(size_t k=3;k<verticalDst.size();k+=4)assert(verticalDst[k]==1.0f);
 
+    const auto sp=makeVhsTapeBandwidth(VHS90TapeSpeed::SP);
+    const auto lp=makeVhsTapeBandwidth(VHS90TapeSpeed::LP);
+    const auto ep=makeVhsTapeBandwidth(VHS90TapeSpeed::EP);
+    assert(sp.lumaCutoffHz==2400000.0f&&sp.iCutoffHz==320000.0f&&sp.iDelaySamples==9);
+    assert(lp.lumaCutoffHz==1900000.0f&&lp.iCutoffHz==300000.0f&&lp.iDelaySamples==12);
+    assert(ep.lumaCutoffHz==1400000.0f&&ep.iCutoffHz==280000.0f&&ep.iDelaySamples==14);
+
     YiqBandwidthParams butter=p; butter.design=IIRFilterDesign::Butterworth2;
     std::vector<float> butterOut(src.size()); ImageView bo{butterOut.data(),w,h,w*4};
     assert(processYiqBandwidth(si,bo,butter));
