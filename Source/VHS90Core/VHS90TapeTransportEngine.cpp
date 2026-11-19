@@ -95,7 +95,8 @@ bool processTapeTransportWarp(ConstImageView src,ImageView dst,const TapeTranspo
  try {
   const int w=src.width,h=src.height;std::vector<float>copy(size_t(w)*h*4);
   for(int y=0;y<h;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,w*4,copy.data()+size_t(y)*w*4);
-  const float fps=std::max(p.framesPerSecond,1.0f),time=float(p.frame)/fps;\n  const float controlServo=controlTrackServoOffset(p);
+  const float fps=std::max(p.framesPerSecond,1.0f),time=float(p.frame)/fps;
+  const float controlServo=controlTrackServoOffset(p);
   const int epochFrames=4,epoch=int(p.frame/epochFrames);const float epochMix=float(p.frame%epochFrames)/float(epochFrames);
   std::vector<float> servo,servoNext;
   if(p.servoJitterPixels>0){servo=slowProfile(p.seed^0x51A7u,epoch,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);servoNext=slowProfile(p.seed^0x51A7u,epoch+1,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);}
