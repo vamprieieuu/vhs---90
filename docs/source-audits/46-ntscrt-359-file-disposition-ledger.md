@@ -199,13 +199,13 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/engine/src/crop.rs` | 8433 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `port/engine/src/downscale.wgsl` | 4980 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `port/engine/src/export.rs` | 5501 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/src/glitch/deck.rs` | 6898 | content-reviewed | Read during this audit pass |
+| `port/engine/src/glitch/deck.rs` | 6898 | content-reviewed | Full core source reviewed and cross-checked against Swift reference; selective C++ adaptation documented in report 45 |
 | `port/engine/src/glitch/glitch.wgsl` | 11347 | content-reviewed | Read during this audit pass |
 | `port/engine/src/glitch/mod.rs` | 634 | content-reviewed | Read during this audit pass |
 | `port/engine/src/glitch/params.rs` | 25256 | content-reviewed | Read during this audit pass |
 | `port/engine/src/glitch/receiver.rs` | 43912 | content-reviewed | Read during this audit pass |
 | `port/engine/src/glitch/stage.rs` | 25145 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/src/glitch/tape.rs` | 24899 | content-reviewed | Read during this audit pass |
+| `port/engine/src/glitch/tape.rs` | 24899 | content-reviewed | Full core source reviewed and cross-checked against Swift reference; selective C++ adaptation documented in report 45 |
 | `port/engine/src/glitch/transport.rs` | 14511 | content-reviewed | Read during this audit pass |
 | `port/engine/src/glitch/vcr.rs` | 19408 | content-reviewed | Read during this audit pass |
 | `port/engine/src/glitch/vcr.wgsl` | 29726 | content-reviewed | Read during this audit pass |
