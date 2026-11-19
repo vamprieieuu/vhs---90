@@ -1,0 +1,54 @@
+#include "VHS90ImageGradeEngine.h"
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+namespace vhs90 {
+namespace {
+constexpr float kPi=3.14159265358979323846f;
+inline bool valid(ConstImageView s,ImageView d) noexcept {
+ return s.rgba&&d.rgba&&s.width>0&&s.height>0&&d.width==s.width&&d.height==s.height&&
+ s.rowStrideFloats>=s.width*4&&d.rowStrideFloats>=d.width*4&&s.rgba!=d.rgba;
+}
+inline RGB straightAt(ConstImageView s,int x,int y,bool premul) noexcept {
+ x=std::clamp(x,0,s.width-1);y=std::clamp(y,0,s.height-1);
+ const float*p=s.rgba+y*s.rowStrideFloats+x*4;RGB c{p[0],p[1],p[2]};
+ if(premul&&p[3]>1.0e-6f){c.r/=p[3];c.g/=p[3];c.b/=p[3];}return c;
+}
+inline float clamp01(float v) noexcept{return std::clamp(v,0.0f,1.0f);}
+}
+bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p) noexcept {
+ if(!valid(src,dst)||!std::isfinite(p.edgeEnhancement)||!std::isfinite(p.fade)||
+    !std::isfinite(p.contrast)||!std::isfinite(p.brightness)||!std::isfinite(p.saturation)||
+    !std::isfinite(p.vignette)||!std::isfinite(p.flicker))return false;
+ const float edge=clamp01(p.edgeEnhancement),fade=clamp01(p.fade),contrast=std::clamp(p.contrast,0.0f,3.0f);
+ const float sat=std::clamp(p.saturation,0.0f,3.0f),vignette=clamp01(p.vignette),flicker=clamp01(p.flicker);
+ if(edge==0&&fade==0&&contrast==1&&p.brightness==0&&sat==1&&vignette==0&&flicker==0){
+  for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
+ }
+ const float flickerValue=std::sin(float(p.frame)*0.73f)*flicker*0.10f+
+   (hash01(0u,0u,p.seed,p.frame)*2.0f-1.0f)*flicker*0.20f;
+ const float fadeLuma=1.0f-0.15f*fade,fadeLift=0.09f*fade,fadeSat=1.0f-0.25f*fade;
+ const float cx=std::max(1.0f,float(src.width-1)*0.5f),cy=std::max(1.0f,float(src.height-1)*0.5f);
+ const float maxD=std::sqrt(2.0f);
+ for(int y=0;y<src.height;++y){float*dr=dst.rgba+y*dst.rowStrideFloats;
+  for(int x=0;x<src.width;++x){const float*px=src.rgba+y*src.rowStrideFloats+x*4;const float a=px[3];float*out=dr+x*4;
+   if(a<=1.0e-6f){std::copy_n(px,4,out);continue;}
+   RGB rgb=straightAt(src,x,y,p.premultipliedAlpha);YIQ yiq=rgbToYiq(rgb);
+   if(edge>0){const float l=rgbToYiq(straightAt(src,x-1,y,p.premultipliedAlpha)).y;
+    const float r=rgbToYiq(straightAt(src,x+1,y,p.premultipliedAlpha)).y;
+    const float blur=(l+yiq.y+r)/3.0f;yiq.y+=edge*0.70f*(yiq.y-blur);}
+   yiq.y=yiq.y*fadeLuma+fadeLift;
+   yiq.i*=fadeSat;yiq.q*=fadeSat;
+   yiq.y=(yiq.y-0.5f)*contrast+0.5f+p.brightness;
+   yiq.i*=sat*fadeSat;yiq.q*=sat*fadeSat;
+   const float dx=(float(x)-cx)/cx,dy=(float(y)-cy)/cy;
+   const float d=std::sqrt(dx*dx+dy*dy)/maxD;
+   const float vig=1.0f-std::min(0.80f,vignette*0.70f)*d*d;
+   yiq.y=yiq.y*vig+flickerValue/255.0f;
+   rgb=yiqToRgb(yiq);if(p.premultipliedAlpha){rgb.r*=a;rgb.g*=a;rgb.b*=a;}
+   out[0]=rgb.r;out[1]=rgb.g;out[2]=rgb.b;out[3]=a;
+  }
+ }
+ return true;
+}
+} // namespace vhs90
