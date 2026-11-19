@@ -7,3 +7,4 @@ target_include_directories(vhs90_region_effects PUBLIC
 target_compile_features(vhs90_region_effects PUBLIC cxx_std_17)
 add_subdirectory(analog_signal)
 add_subdirectory(tape_surface)
+add_subdirectory(image_degradation)
