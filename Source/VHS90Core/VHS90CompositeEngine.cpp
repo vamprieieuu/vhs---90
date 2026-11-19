@@ -158,6 +158,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         ConstImageView decodedView{decoded.data(),w,h,w*4};
+        std::vector<float> multipathProcessed;
+        if(p.multipathEchoEnabled) {
+            multipathProcessed.resize(count*4);
+            ImageView multipathView{multipathProcessed.data(),w,h,w*4};
+            MultipathEchoParams mp=p.multipathEcho;
+            mp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processMultipathEcho(decodedView,multipathView,mp)) return false;
+            decodedView={multipathProcessed.data(),w,h,w*4};
+        }
         std::vector<float> impulseProcessed;
         if(p.impulseNoiseEnabled) {
             impulseProcessed.resize(count*4);
