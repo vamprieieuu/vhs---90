@@ -69,7 +69,8 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             const std::size_t base=std::size_t(row)*w;
             for(int x=0;x<w;++x) {
                 const int phase=(x+xi)&3;
-                y[base+x]+=i[base+x]*kIMult[phase]+q[base+x]*kQMult[phase];
+                const float palSign=(p.palMode&&p.palSwitch&&(row&1))?-1.0f:1.0f;
+                y[base+x]+=i[base+x]*kIMult[phase]+q[base+x]*palSign*kQMult[phase];
             }
         }
 
@@ -108,6 +109,8 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
                     demodulateChroma(chroma,x,xi,i.data()+base,q.data()+base,w);
                 }
             }
+            if(p.palMode&&p.palSwitch&&(row&1))
+                for(int x=0;x<w;++x) q[base+x]=-q[base+x];
         }
 
         std::vector<float> decoded(count*4);
