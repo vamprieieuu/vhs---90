@@ -17,6 +17,7 @@ Updated: 2026-11-19
 - Audited all 15 supplied font files for metadata, cmap coverage and Arabic OpenType shaping features.
 - Audited the VHS camera before/after references and available processed audio stream.
 - Added source-matched RGB↔YIQ conversion, YIQ IIR bandwidth filtering, four-phase NTSC composite encode/decode, procedural static patterns, generalized multi-region Tracking Noise / Head Switching and a procedural sync-collapse/time-base engine.
+- Added a deterministic correlated 1D value-noise kernel adapted from the Lost Signal VHS shader's smooth-noise method; line-wobble now supports a configurable row-correlation length. Added smoke assertions for determinism and local continuity. The new commits are recorded in `docs/source-audits/35-github-repositories-batch-1.md`.
 - Added an initial AE SmartFX/legacy host adapter with ARGB32/64/128 conversion and basic UI controls for Composite Signal, Sync Collapse, Static, Tracking Noise and Head Switching.
 - Added an optional Windows x64/MSVC AEX target, PiPL resource generation and PowerShell build script. The target searches the local AE SDK tree for PiPLtool.
 
@@ -47,5 +48,6 @@ Updated: 2026-11-19
 5. Continue porting the high-value source algorithms: full composite sync/burst/AFC/PLL, dropout/blackout/hold, tape-surface defects, OSD/font shaping and Blue Screen mode.
 6. Complete the remaining source/reference audits and connect the modules to unified presets and the final UI.
 7. Compare actual AE renders against the supplied reference clips/stills before marking visual matching complete.
+8. Complete the full audit of all 15 bundled GitHub repositories; current batch-1 audit is explicitly incomplete.
 
 Do not call VHS-90 test-ready until the Windows build and in-host validation gates pass.
