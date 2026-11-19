@@ -4,6 +4,7 @@ namespace vhs90 {
 struct ImageGradeParams {
     float edgeEnhancement=0.0f;
     float fade=0.0f;
+    float blackLift=0.0f;
     float contrast=1.0f;
     float brightness=0.0f;
     float saturation=1.0f;
