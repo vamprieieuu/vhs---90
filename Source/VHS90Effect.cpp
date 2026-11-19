@@ -555,6 +555,11 @@ static PF_Err SmartRender(PF_InData* in_data,PF_OutData* out_data,PF_SmartRender
         err=suite->PF_GetPixelFormat(inWorld,&inFmt);
         if(err==PF_Err_NONE) err=suite->PF_GetPixelFormat(outWorld,&outFmt);
         if(err==PF_Err_NONE&&inFmt!=outFmt) err=PF_Err_UNRECOGNIZED_PARAM_TYPE;
+        if(err==PF_Err_NONE&&previousChecked&&previousWorld) {
+            PF_PixelFormat previousFmt=PF_PixelFormat_INVALID;
+            const PF_Err previousFmtErr=suite->PF_GetPixelFormat(previousWorld,&previousFmt);
+            if(previousFmtErr!=PF_Err_NONE||previousFmt!=inFmt) previousWorld=nullptr;
+        }
         if(err==PF_Err_NONE) err=RenderWorld(*s,inWorld,outWorld,inFmt,previousWorld);
     }
     if(previousChecked) {
