@@ -416,7 +416,13 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.tapeTransport.drumFlutterPixels=1.2f*a; p.tapeTransport.flutterPixels=0.5f*a;
                 p.tapeTransport.stickSlipPixels=0.35f*a; p.tapeTransport.lineJitterPixels=0.2f*a;
                 p.tapeTransport.slowDriftPixelsPerSecond=0.08f*a;
-                p.tapeTransport.servoJitterPixels=(s.trackingAmount>0)?s.trackingServo*0.12f:0.0f;
+                p.tapeTransport.servoJitterPixels=0.0f;
+                p.tapeTransport.controlTrackServoAmount=(s.trackingAmount>0)?clamp01(s.trackingServo/100.0f):0.0f;
+                p.tapeTransport.controlTrackPulseStrength=1.0f;
+                p.tapeTransport.controlTrackPulseDropout=clamp01(s.dropouts/100.0f*0.35f);
+                p.tapeTransport.controlTrackFalsePulseChance=clamp01(s.headAmount/100.0f*0.08f);
+                p.tapeTransport.pictureSearchSpeed=1.0f;
+                p.tapeTransport.trackingTargetPixels=(s.trackingX-50.0f)*0.02f;
                 p.tapeTransport.verticalScale=std::max(0.1f,float(h)/480.0f);
             }
             if(s.tapeSurface>0) {
