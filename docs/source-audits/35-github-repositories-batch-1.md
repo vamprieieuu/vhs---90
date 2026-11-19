@@ -9,7 +9,7 @@ All tree requests below returned complete recursive Git trees (`truncated=false`
 
 | Archive folder | Matched upstream | Tree entries | Files | Directories | Status |
 |---|---|---:|---:|---:|---|
-| `Analog-NTSC-master` | `kdkd/Analog-NTSC` | 42 | 31 | 11 | Full 31-file inventory and effect-source audit recorded in `36-analog-ntsc-deep-audit.md`; RF drift/hum/AM/AGC, impulse, multipath, AFC, chroma flutter, Y/C crosstalk and sync/burst raster adaptations integrated and tested (16/16). Fixed-raster raw waveform encode/decode/DC restoration remains a separate unported mode, not claimed complete. |
+| `Analog-NTSC-master` | `kdkd/Analog-NTSC` | 42 | 31 | 11 | **31/31 files audited.** Raster-space RF/receiver adaptations plus the full 525-line/910-sample NTSC waveform engine are integrated; AE exposes Raster vs Full Waveform NTSC. CI 20/20. Remaining limits: 8-bit 720×480 internal waveform, NTSC-only, profile HD/4K and verify against reference renders. See `36-analog-ntsc-deep-audit.md`. |
 | `BarashNTSC-0.1.2` | `LittleBlabbit763/BarashNTSC` | 11 | 10 | 1 | Complete 10-file inventory and algorithm mapping in `37-barash-ntsc-deep-audit.md`. Tape detail, Cr/Cb shift, phase drift, interlace, grade/fade and temporal ghost are adapted to C++ and connected to the shared pipeline; run `44601192626` passed 19/19 CTest. Previous-frame checkout remains pending in the AE adapter. |
 | `ComfyUI_RetroTape-main` | `SKBv0/ComfyUI_RetroTape` | 29 | 25 | 4 | Tree + CPU/GPU cores inspected |
 | `NTSC-CRT-v.2.3.2` | `LMP88959/NTSC-CRT` | 33 | 32 | 1 | Tree + NTSC/VHS/core C source inspected |
