@@ -230,6 +230,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processImpulseNoise(decodedView,impulseView,ip)) return false;
             decodedView={impulseProcessed.data(),w,h,w*4};
         }
+        std::vector<float> dropoutProcessed;
+        if(p.dropoutEnabled) {
+            dropoutProcessed.resize(count*4);
+            ImageView dropoutView{dropoutProcessed.data(),w,h,w*4};
+            DropoutParams dp=p.dropouts;
+            dp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processDropouts(decodedView,dropoutView,dp)) return false;
+            decodedView={dropoutProcessed.data(),w,h,w*4};
+        }
         std::vector<float> analogNoisy;
         if(p.analogNoiseEnabled) {
             analogNoisy.resize(count*4);
