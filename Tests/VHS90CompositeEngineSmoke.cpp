@@ -83,6 +83,13 @@ int main() {
     grade.imageGrade.contrast=1.15f;grade.imageGrade.saturation=.85f;grade.imageGrade.vignette=.4f;grade.imageGrade.flicker=.2f;
     assert(processCompositeRoundTrip(si,gradeOnlyView,grade));assert(gradeOnly!=src);
 
+    // ComfyUI delayed luma echoes and I/Q chroma delay are connected to the shared pipeline.
+    std::vector<float> signalGhostOnly(src.size());
+    ImageView signalGhostOnlyView{signalGhostOnly.data(),w,h,w*4};
+    CompositeParams signalGhost=p;signalGhost.compositeSignalStrength=0.0f;signalGhost.inputBandwidthEnabled=false;signalGhost.outputBandwidthEnabled=false;
+    signalGhost.signalGhostEnabled=true;signalGhost.signalGhost.amount=.65f;signalGhost.signalGhost.chromaDelayPixels=5.0f;
+    assert(processCompositeRoundTrip(si,signalGhostOnlyView,signalGhost));assert(signalGhostOnly!=src);
+
     // ComfyUI dropout bands and sparse luma speckles are integrated after receiver decode.
     std::vector<float> dropoutOnly(src.size());
     ImageView dropoutOnlyView{dropoutOnly.data(),w,h,w*4};
