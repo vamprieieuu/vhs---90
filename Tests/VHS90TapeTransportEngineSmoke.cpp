@@ -12,4 +12,12 @@ int main(){using namespace vhs90;constexpr int w=32,h=16;std::vector<float>s(w*h
     TapeTransportParams slow;slow.servoJitterPixels=1.8f;slow.seed=99;slow.frame=3;
     std::vector<float> slowA(s.size()),slowB(s.size());ImageView slowAView{slowA.data(),w,h,w*4},slowBView{slowB.data(),w,h,w*4};
     assert(processTapeTransportWarp(si,slowAView,slow));assert(processTapeTransportWarp(si,slowBView,slow));assert(slowA==slowB&&slowA!=s);
+    TapeTransportParams pi;pi.seed=0x91u;pi.frame=180;pi.controlTrackServoAmount=1.0f;
+    pi.controlTrackPulseStrength=1.0f;pi.trackingTargetPixels=2.0f;
+    std::vector<float> piA(s.size()),piB(s.size());ImageView piAView{piA.data(),w,h,w*4},piBView{piB.data(),w,h,w*4};
+    assert(processTapeTransportWarp(si,piAView,pi));assert(processTapeTransportWarp(si,piBView,pi));assert(piA==piB);
+    pi.controlTrackPulseDropout=1.0f;std::vector<float> lost(s.size());ImageView lostView{lost.data(),w,h,w*4};
+    assert(processTapeTransportWarp(si,lostView,pi));assert(lost!=piA);
+    pi.controlTrackPulseDropout=0.0f;pi.pictureSearchSpeed=4.0f;std::vector<float> search(s.size());ImageView searchView{search.data(),w,h,w*4};
+    assert(processTapeTransportWarp(si,searchView,pi));assert(search!=piA);
  return 0;}
