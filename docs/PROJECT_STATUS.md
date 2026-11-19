@@ -17,7 +17,8 @@ Updated: 2026-11-19
 - Audited all 15 supplied font files for metadata, cmap coverage and Arabic OpenType shaping features.
 - Audited the VHS camera before/after references and available processed audio stream.
 - Added source-matched RGB↔YIQ conversion, YIQ IIR bandwidth filtering, four-phase NTSC composite encode/decode, procedural static patterns, generalized multi-region Tracking Noise / Head Switching and a procedural sync-collapse/time-base engine.
-- Added a deterministic correlated 1D value-noise kernel adapted from the Lost Signal VHS shader's smooth-noise method; line-wobble now supports a configurable row-correlation length. Added smoke assertions for determinism and local continuity. The new commits are recorded in `docs/source-audits/35-github-repositories-batch-1.md`.
+- Added a deterministic correlated 1D value-noise kernel adapted from the Lost Signal VHS shader's smooth-noise method; line-wobble now supports a configurable row-correlation length.
+- Added `processLumaSmear`, a C++ CPU port of the URP VHS shader's four-tap exponential horizontal smear concept. It smears luma while retaining I/Q chroma and handles premultiplied alpha. Smoke assertions cover deterministic noise continuity, smear output and alpha preservation. The source audits and commits are recorded in `docs/source-audits/35-github-repositories-batch-1.md`.
 - Added an initial AE SmartFX/legacy host adapter with ARGB32/64/128 conversion and basic UI controls for Composite Signal, Sync Collapse, Static, Tracking Noise and Head Switching.
 - Added an optional Windows x64/MSVC AEX target, PiPL resource generation and PowerShell build script. The target searches the local AE SDK tree for PiPLtool.
 
