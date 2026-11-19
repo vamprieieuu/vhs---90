@@ -138,6 +138,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         std::vector<float> verticalBlended;
+        std::vector<float> chromaSubsampled;
         std::vector<float> smeared;
         ConstImageView decodedView{decoded.data(),w,h,w*4};
         if(p.verticalChromaBlendEnabled && p.verticalChromaBlendAmount>0.0f) {
@@ -148,6 +149,14 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             vp.premultipliedAlpha=p.premultipliedAlpha;
             if(!processVerticalChromaBlend(decodedView,verticalView,vp)) return false;
             decodedView={verticalBlended.data(),w,h,w*4};
+        }
+        if(p.chromaSubsampleEnabled && p.chromaSubsample.amount>0.0f) {
+            chromaSubsampled.resize(count*4);
+            ImageView chromaView{chromaSubsampled.data(),w,h,w*4};
+            ChromaSubsampleParams cp=p.chromaSubsample;
+            cp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processChromaSubsample(decodedView,chromaView,cp)) return false;
+            decodedView={chromaSubsampled.data(),w,h,w*4};
         }
         if(p.lumaSmearEnabled && p.lumaSmear.strength>0.0f) {
             smeared.resize(count*4);
