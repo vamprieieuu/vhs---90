@@ -21,6 +21,13 @@ struct ImageView {
     std::ptrdiff_t rowStrideFloats = 0;
 };
 
+struct LumaSmearParams {
+    float strength = 0.0f;
+    float decay = 0.3f;
+    float offsetPx = 1.0f;
+    bool premultipliedAlpha = true;
+};
+
 struct SignalParams {
     float chromaShiftPx = 2.5f;
     float chromaBleedPx = 3.0f;
@@ -50,6 +57,8 @@ float hash01(std::uint32_t x, std::uint32_t y, std::uint32_t seed, std::int64_t 
 float valueNoise1D(float coordinate, std::uint32_t seed, std::int64_t frame) noexcept;
 
 // CPU reference kernels. Source and destination must be distinct buffers.
+bool processLumaSmear(ConstImageView src, ImageView dst,
+                       const LumaSmearParams& params) noexcept;
 // These routines preserve the input alpha channel.
 bool processCompositeVhs(ConstImageView src, ImageView dst, const SignalParams& p) noexcept;
 bool processYiqChromaBlur(ConstImageView src, ImageView dst, float chromaShiftPx,
