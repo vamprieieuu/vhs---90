@@ -76,7 +76,7 @@ bool processYiqChromaBlur(ConstImageView src,ImageView dst,float shift,float ble
 bool processCompositeVhs(ConstImageView src,ImageView dst,const SignalParams& p) noexcept {
     if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||dst.width!=src.width||dst.height!=src.height||
        src.rowStrideFloats<src.width*4||dst.rowStrideFloats<dst.width*4) return false;
-    const float invW=1.0f/float(src.width), invH=1.0f/float(src.height);
+    const float invH=1.0f/float(src.height);
     const float framePulse=1.0f-p.flicker*hash01(0u,1u,p.seed,p.frame);
     for(int y=0;y<src.height;++y) {
         const float row=float(y)*invH;
