@@ -57,6 +57,7 @@ struct RenderSettings {
     float headAmount=0, headY=100, headHeight=4, headShift=24;
     std::int64_t frame=0;
     double timeSeconds=0;
+    float frameRate=29.97f;
 };
 inline float clamp01(float x) noexcept { return std::max(0.0f,std::min(1.0f,x)); }
 static void DeletePreRenderData(void* data) { delete static_cast<RenderSettings*>(data); }
@@ -149,6 +150,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
 #undef READ_FLOAT
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
+    s.frameRate=(in_data->time_step>0&&in_data->time_scale>0)?float(in_data->time_scale)/float(in_data->time_step):29.97f;
     return PF_Err_NONE;
 }
 
@@ -232,6 +234,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             if(s.tapeTransport>0) {
                 const float a=clamp01(s.tapeTransport/100.0f*master);
                 p.tapeTransportEnabled=true; p.tapeTransport.seed=0x90A11A6Eu; p.tapeTransport.frame=s.frame;
+                p.tapeTransport.framesPerSecond=s.frameRate; p.tapeTransport.fieldRateHz=s.frameRate*2.0f;
                 p.tapeTransport.drumFlutterPixels=1.2f*a; p.tapeTransport.flutterPixels=0.5f*a;
                 p.tapeTransport.stickSlipPixels=0.35f*a; p.tapeTransport.lineJitterPixels=0.2f*a;
                 p.tapeTransport.slowDriftPixelsPerSecond=0.08f*a;
@@ -389,6 +392,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.headShift=float(params[PARAM_HEAD_SHIFT]->u.fs_d.value);
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
+    s.frameRate=(in_data->time_step>0&&in_data->time_scale>0)?float(in_data->time_scale)/float(in_data->time_step):29.97f;
     PF_EffectWorld* inWorld=&params[PARAM_INPUT]->u.ld; PF_EffectWorld* outWorld=output;
     AEFX_SuiteScoper<PF_WorldSuite2> suite(in_data,kPFWorldSuite,kPFWorldSuiteVersion2,out_data);
     PF_PixelFormat inFmt=PF_PixelFormat_INVALID,outFmt=PF_PixelFormat_INVALID;
