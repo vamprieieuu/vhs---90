@@ -207,8 +207,8 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/engine/src/glitch/stage.rs` | 25145 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `port/engine/src/glitch/tape.rs` | 24899 | content-reviewed | Full core source reviewed and cross-checked against Swift reference; selective C++ adaptation documented in report 45 |
 | `port/engine/src/glitch/transport.rs` | 14511 | content-reviewed | Read during this audit pass |
-| `port/engine/src/glitch/vcr.rs` | 19408 | content-reviewed | Read during this audit pass |
-| `port/engine/src/glitch/vcr.wgsl` | 29726 | content-reviewed | Read during this audit pass |
+| `port/engine/src/glitch/vcr.rs` | 19408 | content-reviewed | VCR RF/FM/color-under kernels and coefficient generation reviewed; reusable CPU coefficient layer ported, complete record/play pipeline remains open |
+| `port/engine/src/glitch/vcr.wgsl` | 29726 | content-reviewed | VCR RF/FM/color-under kernels and coefficient generation reviewed; reusable CPU coefficient layer ported, complete record/play pipeline remains open |
 | `port/engine/src/howl/feedback.rs` | 23060 | content-reviewed | Read during this audit pass |
 | `port/engine/src/howl/howl.wgsl` | 4593 | content-reviewed | Read during this audit pass |
 | `port/engine/src/howl/mod.rs` | 29409 | content-reviewed | Read during this audit pass |
