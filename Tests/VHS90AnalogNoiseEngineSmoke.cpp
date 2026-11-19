@@ -12,4 +12,7 @@ int main(){using namespace vhs90;constexpr int w=48,h=24;std::vector<float>s(w*h
  std::vector<float>semi=s,semiOut(s.size());for(size_t i=0;i<semi.size();i+=4){semi[i]*=.3f;semi[i+1]*=.3f;semi[i+2]*=.3f;semi[i+3]=.3f;}
  ConstImageView ssi{semi.data(),w,h,w*4};ImageView so{semiOut.data(),w,h,w*4};p.premultipliedAlpha=true;assert(processAnalogNoise(ssi,so,p));
  for(size_t i=3;i<semiOut.size();i+=4)assert(std::fabs(semiOut[i]-.3f)<1e-6f);
+    AnalogNoiseParams loss;loss.chromaLoss=5000;loss.seed=91;loss.frame=4;
+    std::vector<float> lossA(s.size()),lossB(s.size());ImageView lossAView{lossA.data(),w,h,w*4},lossBView{lossB.data(),w,h,w*4};
+    assert(processAnalogNoise(si,lossAView,loss));assert(processAnalogNoise(si,lossBView,loss));assert(lossA==lossB&&lossA!=s);
  return 0;}
