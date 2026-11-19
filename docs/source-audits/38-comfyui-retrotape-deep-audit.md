@@ -77,6 +77,6 @@ License: Apache-2.0 (Copyright 2026 SKBv0). The project credits ntscQT and compo
 
 - GitHub Actions run `44604160794` passed 24/24 CTest tests, including standalone Ringing, Dropout, Signal Ghost and Analog Glow tests.
 - GitHub Actions run `44605444389` passed **24/24 CTest tests** after consolidating chroma loss into the existing `VHS90AnalogNoiseEngine` (avoids duplicate per-pixel YIQ conversion); run `44604361498` also passed 24/24 for edge-wave/servo geometry.
-- Later AE parameter wiring and the servo-only activation fix have newer runs; verify the latest run before claiming the combined adapter source state is validated.
+- GitHub Actions run `44605607911` passed **24/24 CTest tests** after the final chroma-loss consolidation, analog-glow memory optimization and signal-ghost buffer reduction. Static AE parameter count is 78/78. This remains a core/CI validation only; the AE SDK plugin build and live MFR session are not covered.
 - Static AE parameter count after the ComfyUI-derived controls: **78 real parameter slots and 78 `PF_ADD_*` calls**, with exactly one `Chroma Loss` registration. This does not substitute for a Windows/MSVC AE SDK build or live After Effects/MFR validation.
 - The 25-file ComfyUI RetroTape source inventory is complete. All identified portable image/signal algorithms are now represented in VHS-90, including per-scanline chroma loss. Exact OpenCV/PyTorch statistical parity remains a separate fidelity task; the GPU path is intentionally not imported into the CPU-first AE plugin.
