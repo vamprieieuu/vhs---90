@@ -22,7 +22,7 @@
 namespace {
 enum ParamIndex {
     PARAM_INPUT=0, PARAM_MASTER, PARAM_SIGNAL_TOPIC, PARAM_COMPOSITE_AMOUNT,
-    PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_TAPE_SPEED, PARAM_TAPE_DETAIL, PARAM_CHROMA_SHIFT, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
+    PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_SIGNAL_MODEL, PARAM_TAPE_SPEED, PARAM_TAPE_DETAIL, PARAM_CHROMA_SHIFT, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
     PARAM_LUMA_NOISE, PARAM_CHROMA_NOISE, PARAM_COMPOSITE_NOISE, PARAM_NOISE_HUE,
     PARAM_RF_DRIFT, PARAM_RF_HUM, PARAM_RF_AM, PARAM_AGC_PUMP, PARAM_IMPULSE_NOISE,
     PARAM_MULTIPATH_GAIN, PARAM_MULTIPATH_DELAY, PARAM_MULTIPATH_ENSEMBLE,
@@ -40,7 +40,7 @@ enum ParamIndex {
     PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_COUNT
 };
 enum ParamDiskID {
-    ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_CHROMA_SHIFT,
+    ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_CHROMA_SHIFT,
     ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_NOISE, ID_CHROMA_NOISE, ID_COMPOSITE_NOISE, ID_NOISE_HUE, ID_RF_DRIFT, ID_RF_HUM, ID_RF_AM, ID_AGC_PUMP, ID_IMPULSE_NOISE,
     ID_MULTIPATH_GAIN, ID_MULTIPATH_DELAY, ID_MULTIPATH_ENSEMBLE,
     ID_AFC_HUNT, ID_CHROMA_FLUTTER, ID_YC_CROSSTALK, ID_COLOR_PHASE_DRIFT,
@@ -58,10 +58,11 @@ constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
+static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
 
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35;
-    A_long colorSystem=1, tapeSpeed=1;
+    A_long colorSystem=1, signalModel=1, tapeSpeed=1;
     float tapeDetail=100.0f, chromaShift=0.0f;
     float chromaSubsample=0, verticalChroma=0, verticalLuma=0;
     float lumaNoise=0, chromaNoise=0, compositeNoise=0, noiseHue=0;
@@ -101,6 +102,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sync Collapse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Color System",2,1,kColorSystemChoices,ID_PAL_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Signal Model",2,1,kSignalModelChoices,ID_SIGNAL_MODEL);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tape Speed",3,1,kTapeSpeedChoices,ID_TAPE_SPEED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Detail",6,100,6,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DETAIL);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",0,20,0,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
@@ -188,6 +190,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_MASTER,master); READ_FLOAT(PARAM_COMPOSITE_AMOUNT,composite);
     READ_FLOAT(PARAM_SYNC_AMOUNT,sync);
     err=CheckoutPopup(in_data,PARAM_PAL_MODE,s.colorSystem); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_SIGNAL_MODEL,s.signalModel); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TAPE_SPEED,s.tapeSpeed); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
     READ_FLOAT(PARAM_CHROMA_SUBSAMPLE,chromaSubsample); READ_FLOAT(PARAM_VERTICAL_CHROMA,verticalChroma);
@@ -301,6 +304,27 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             p.outputBandwidthEnabled=(s.composite>0||s.verticalLuma>0);
             if(s.composite<=0) { p.outputBandwidth.iCutoffHz=0.0f; p.outputBandwidth.qCutoffHz=0.0f; p.outputBandwidth.lumaCutoffHz=0.0f; }
             p.palMode=(s.colorSystem==2);
+            // The full raw-waveform simulator currently models NTSC 525/60 only.
+            p.waveformCompositeEnabled=(s.signalModel==2 && s.colorSystem==1);
+            if(p.waveformCompositeEnabled) {
+                auto& e=p.waveformComposite.effects;
+                e.random_seed=0x90A11E5Eu;
+                e.rf_drift=clamp01(s.rfDrift/100.0f);
+                e.hum=clamp01(s.rfHum/100.0f);
+                e.am_nonlinearity=clamp01(s.rfAm/100.0f);
+                e.agc_pump=clamp01(s.agcPump/100.0f);
+                e.impulse_noise=clamp01(s.impulseNoise/100.0f);
+                e.multipath_gain=clamp01(s.multipathGain/100.0f)*0.45f;
+                e.multipath_delay_samples=static_cast<std::uint32_t>(std::max(1.0f,s.multipathDelay*1.05f));
+                e.multipath_ensemble=clamp01(s.multipathEnsemble/100.0f);
+                e.afc_hunt=clamp01(s.afcHunt/100.0f);
+                e.chroma_flutter=clamp01(s.chromaFlutter/100.0f);
+                e.yc_crosstalk=clamp01(s.ycCrosstalk/100.0f);
+                e.h_sync_noise_ire=clamp01(s.hsyncNoise/100.0f)*5.0f;
+                e.v_sync_noise_ire=clamp01(s.vsyncNoise/100.0f)*5.0f;
+                e.burst_noise_ire=clamp01(s.burstNoise/100.0f)*5.0f;
+                e.noise_stddev_ire=clamp01(s.compositeNoise/100.0f)*4.0f;
+            }
             if(s.composite>0) {
                 const float lumaCut=(s.tapeSpeed==1)?2400000.0f:((s.tapeSpeed==2)?1900000.0f:1400000.0f);
                 const float chromaCut=(s.tapeSpeed==1)?320000.0f:((s.tapeSpeed==2)?300000.0f:280000.0f);
@@ -502,6 +526,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.composite=float(params[PARAM_COMPOSITE_AMOUNT]->u.fs_d.value);
     s.sync=float(params[PARAM_SYNC_AMOUNT]->u.fs_d.value);
     s.colorSystem=params[PARAM_PAL_MODE]->u.pd.value;
+    s.signalModel=params[PARAM_SIGNAL_MODEL]->u.pd.value;
     s.tapeSpeed=params[PARAM_TAPE_SPEED]->u.pd.value;
     s.tapeDetail=float(params[PARAM_TAPE_DETAIL]->u.fs_d.value);
     s.chromaShift=float(params[PARAM_CHROMA_SHIFT]->u.fs_d.value);
