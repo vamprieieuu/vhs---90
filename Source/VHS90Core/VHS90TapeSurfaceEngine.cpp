@@ -94,7 +94,7 @@ float oldAmount(TapeDamageControl c,float k) noexcept {
 }
 }
 float ntscrtTapeAmount(TapeDamageControl c,float k) noexcept {
- if(const float*curve=tapeCurve(c))return curve11(k,*reinterpret_cast<const float(*)[11]>(curve));
+ if(const float*curve=tapeCurve(c)){const float x=std::clamp(k,0.0f,1.0f)*10.0f;const int i=std::min(9,int(x));return curve[i]+(curve[i+1]-curve[i])*(x-float(i));}
  return topEndAmount(k,4.0f);
 }
 float ntscrtTapeKnobForAmount(TapeDamageControl c,float amount) noexcept {
