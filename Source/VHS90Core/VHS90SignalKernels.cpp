@@ -88,6 +88,55 @@ bool processYiqChromaBlur(ConstImageView src,ImageView dst,float shift,float ble
     return true;
 }
 
+bool processVerticalChromaBlend(ConstImageView src,ImageView dst,
+                                const VerticalChromaBlendParams& p) noexcept {
+    if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||
+       dst.width!=src.width||dst.height!=src.height||
+       src.rowStrideFloats<src.width*4||dst.rowStrideFloats<dst.width*4||
+       src.rgba==dst.rgba||!std::isfinite(p.amount)||p.amount<0.0f)
+        return false;
+    const float amount=std::min(1.0f,p.amount);
+    for(int y=0;y<src.height;++y) {
+        const float* srcRow=src.rgba+y*src.rowStrideFloats;
+        float* dstRow=dst.rgba+y*dst.rowStrideFloats;
+        const bool hasPreviousFieldLine=y>=2;
+        const float* prevRow=hasPreviousFieldLine
+            ? src.rgba+(y-2)*src.rowStrideFloats : nullptr;
+        for(int x=0;x<src.width;++x) {
+            const float* px=srcRow+x*4;
+            float* out=dstRow+x*4;
+            const float alpha=px[3];
+            if(amount<=0.0f||!hasPreviousFieldLine||alpha<=1.0e-6f) {
+                std::copy_n(px,4,out);
+                continue;
+            }
+            const float* prev=prevRow+x*4;
+            const float prevAlpha=prev[3];
+            RGB current{px[0],px[1],px[2]};
+            RGB previous{prev[0],prev[1],prev[2]};
+            if(p.premultipliedAlpha) {
+                current.r/=alpha; current.g/=alpha; current.b/=alpha;
+                if(prevAlpha>1.0e-6f) {
+                    previous.r/=prevAlpha; previous.g/=prevAlpha; previous.b/=prevAlpha;
+                } else {
+                    previous=current;
+                }
+            }
+            const YIQ cur=rgbToYiq(current);
+            const YIQ prv=rgbToYiq(previous);
+            const float blend=amount*0.5f;
+            RGB result=yiqToRgb({cur.y,
+                                 cur.i+(prv.i-cur.i)*blend,
+                                 cur.q+(prv.q-cur.q)*blend});
+            if(p.premultipliedAlpha) {
+                result.r*=alpha; result.g*=alpha; result.b*=alpha;
+            }
+            out[0]=result.r; out[1]=result.g; out[2]=result.b; out[3]=alpha;
+        }
+    }
+    return true;
+}
+
 bool processLumaSmear(ConstImageView src,ImageView dst,const LumaSmearParams& p) noexcept {
     if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||
        dst.width!=src.width||dst.height!=src.height||
