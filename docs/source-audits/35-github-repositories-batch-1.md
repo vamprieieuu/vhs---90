@@ -50,7 +50,7 @@ Inspected `ntsc_core.py` (1,738 lines), `ntsc_gpu.py` (38 KB), `tests/test_fidel
 - CPU core is an adapted NTSC-QT pipeline; source itself documents the upstream attribution.
 - Useful concepts include separate YIQ processing, fixed reference raster scaling, slow temporal state epochs, ringing taps, black-lift pedestal and explicit CPU/GPU parity testing.
 - GPU module is CUDA/PyTorch and cannot be dropped into a CPU-first AE plugin.
-- Core contains separate kernels for row low-pass/resampling, YIQ conversion, chroma bleed/delay/drift, ringing, composite artifacts, luma/chroma noise, luma smear, reference-line scaling, servo profile, tracking warp, interlace roll, comb filtering, dropouts, ghosting, scanlines, analog glow, edge wave and head switching.
+- Core contains separate kernels for row low-pass/resampling, YIQ conversion, chroma bleed/delay/drift, ringing, composite artifacts, luma/chroma noise, luma smear, reference-line scaling, servo profile, tracking warp, interlace roll, comb filtering, dropouts, ghosting, scanlines, analog glow, edge wave and head switching. Its luma-smear kernel is more advanced than the Unity four-tap source: a variable-length causal exponential kernel plus a separate highlight-only glow trail. Keep this as the next upgrade reference for `processLumaSmear`.
 - Tests cover preview/render fidelity, frame offsets, temporal transport stability, resolution scaling, bit depth, interlace pitch, and cache budgets. This is useful validation design for VHS-90.
 - Best use: port selected mathematical kernels and tests, not Python/ComfyUI/Torch infrastructure. Verify the source license and required attribution before copying code.
 
@@ -65,10 +65,11 @@ Inspected `crt_core.c`, `crt_ntsc.c`, and `crt_ntscvhs.c`.
 
 ### 5. NTSC-VHS-Renderer
 
-Inspected `FramesProcessor.py` and the full tree.
+Inspected `FramesProcessor.py`, `bloom/bloom.pyx` (1,843 lines), and the full tree.
 
 - Python GUI/video renderer, with frame buffering, multiprocessing and an optional Cython bloom module.
 - Bundles FFmpeg binaries and a font; these are not VHS-90 runtime dependencies.
+- `bloom.pyx` includes 5×5 blur kernels, threshold-based bloom masks, fast/slow multiscale bloom paths, and masked filtering for RGB/RGBA. Its pixel kernels are Cython and use NumPy memoryviews; the actual convolution math can be ported to C++ later. Apache-2.0 source license; preserve notices.
 - Main value is visual workflow and effect staging, not a self-contained native processing kernel.
 
 ### 6. NTSCRT 0.26.0
