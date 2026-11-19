@@ -47,6 +47,15 @@ int main() {
     assert(processCompositeRoundTrip(si,d2,pp));
     assert(one!=two);
 
+    std::vector<float> palOutput(src.size()),palNoSwitch(src.size());
+    ImageView palView{palOutput.data(),w,h,w*4},palNoView{palNoSwitch.data(),w,h,w*4};
+    CompositeParams pal=p; pal.palMode=true; pal.palSwitch=true;
+    assert(processCompositeRoundTrip(si,palView,pal));
+    pal.palSwitch=false;
+    assert(processCompositeRoundTrip(si,palNoView,pal));
+    assert(palOutput!=boxOut);
+    assert(palNoSwitch==boxOut);
+
     std::vector<float> vhsVertical(src.size()),vhsSmear(src.size()),vhsCombined(src.size());
     ImageView vv{vhsVertical.data(),w,h,w*4}, sv{vhsSmear.data(),w,h,w*4}, cv{vhsCombined.data(),w,h,w*4};
     CompositeParams vhs=p; vhs.verticalChromaBlendEnabled=true; vhs.verticalChromaBlendAmount=1.0f;
