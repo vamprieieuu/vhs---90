@@ -94,6 +94,12 @@ int main() {
     assert(processDamageRegions(csi,cdo,pChroma));
     const size_t mid=(24*w+32)*4;
     assert(chromaOut[mid]>chromaSrc[mid]);
-    assert(chromaOut[mid+2]<chromaSrc[mid+2]);
+    assert(chromaOut[mid+2]>chromaSrc[mid+2]);
+    std::vector<float> positiveChroma(src.size(),0.0f);
+    ImageView positiveView{positiveChroma.data(),w,h,w*4};
+    signedChroma.chromaShiftPx=2.0f;
+    assert(processDamageRegions(csi,positiveView,pChroma));
+    assert(positiveChroma[mid]<chromaSrc[mid]);
+    assert(positiveChroma[mid+2]<chromaSrc[mid+2]);
     return 0;
 }
