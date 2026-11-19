@@ -2,7 +2,7 @@
 
 Date: 2026-11-19
 Input: `vhs/vhs damage lap/` from the supplied `vhs.zip`.
-Inventory: 40 files: 21 written implementation prompts, 13 video references and 6 still-image references. The three subfolders are `Procedural Pattern Engine/`, `Tear & Chroma Burst/` and `Tracking noise_/`.
+Inventory: 40 files: 20 written implementation prompts, 1 additional user note, 13 video references and 6 still-image references. The three subfolders are `Procedural Pattern Engine/`, `Tear & Chroma Burst/` and `Tracking noise_/`.
 
 This audit records the actual reference media metadata and the written requirements. The media are visual references only; VHS-90 effects must be generated procedurally and must not use the reference videos/images as runtime overlays.
 
@@ -75,7 +75,7 @@ These measurements are computed from the supplied encoded clips, not from the wr
 - Keep damage primarily horizontal; do not add unrelated global vertical roll, rotation or diagonal shear.
 - Suggested starting values in the prompt: band count 2–3, tear ~75%, thickness ~15%, chroma smear ~65%, dropout/flicker ~60%, base softness ~40%, grain ~35%.
 
-## 3. Tracking noise_ — 5 prompts / 3 still references
+## 3. Tracking noise_ — 4 prompts + 1 user note / 3 still references
 
 ### A. Tracking Noise Research, Reconstruction & Preset Collection
 - Requires separate source-inspired looks rather than superficial color variants.
@@ -92,7 +92,10 @@ These measurements are computed from the supplied encoded clips, not from the wr
 - Keep background Noise Intensity separate from Snow and Tracking Noise.
 - Investigate the source-specific control called “Snow Inspiratory” rather than guessing its purpose.
 
-### C. Ultimate Tracking Noise / Tracking Damage / Signal Noise Engine
+### C. User note (not a separate prompt document)
+The plain-text note in this folder adds context about the four-edge Tracking Noise reference and points to IMG_4636.JPG. It is counted as the additional note, not as a fifth implementation prompt.
+
+### D. Spectral Chroma Smear & Lower Tear — still IMG_4654.JPG
 - Preserve the supplied VHS6RIFT implementation as a dedicated behavior/preset and preserve the original source folder.
 - Improve its Tracking Noise to reach full-frame coverage without destroying the original clustered style.
 - Preserve the existing Tracking Damage Size behavior, which already expands to full-frame coverage.
@@ -100,8 +103,8 @@ These measurements are computed from the supplied encoded clips, not from the wr
 - Research Grain, Signal Noise Intensity, Signal Noise Frequency and Detail and combine their actual behavior into a separate unified Signal Noise engine.
 - Keep Tracking Noise, Tracking Damage, Snow/Static, Grain, Signal Noise, Chroma Noise and Luma Noise independently adjustable.
 
-### D. Spectral Chroma Smear & Lower Tear — still IMG_4654.JPG
-- Image size: 550×412.
+### E. Upper Static Band & Cyan-Green Wash — still IMG_4655.JPG
+- Image size: 639×480.
 - Upper/mid-frame highly saturated spectral chroma smear and color displacement.
 - Lower full-width tracking-interference band occupies approximately 35–40% of frame height.
 - Lower band contains horizontal tearing, scanline fragmentation, RGB displacement, colored noise and localized dropouts.
