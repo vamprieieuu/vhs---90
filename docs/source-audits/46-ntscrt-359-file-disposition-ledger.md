@@ -178,27 +178,27 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/app/src/update.rs` | 15767 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `port/app/src/vcr_panel.rs` | 2315 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `port/app/src/worker.rs` | 18843 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/codec/.gitignore` | 11 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/Cargo.toml` | 351 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/examples/parity.rs` | 11546 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/ref/build.sh` | 873 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/ref/cases.json` | 7400 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/ref/main.swift` | 9034 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/codec.rs` | 34249 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/lib.rs` | 2871 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/params.rs` | 23724 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/renderer.rs` | 41691 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/resample.rs` | 8792 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/tables.rs` | 4606 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/tests/digital_video.rs` | 27316 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/tests/mod.rs` | 228 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/tests/port.rs` | 3527 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/tests/video1.rs` | 5478 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/codec/src/video1.rs` | 15002 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/Cargo.toml` | 734 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/src/crop.rs` | 8433 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/src/downscale.wgsl` | 4980 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/src/export.rs` | 5501 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `port/codec/.gitignore` | 11 | content-reviewed | Reviewed; build-ignore metadata only, no implementation. |
+| `port/codec/Cargo.toml` | 351 | content-reviewed | Reviewed Rust codec crate manifest and dependencies (serde/rayon); no native VHS behavior. |
+| `port/codec/examples/parity.rs` | 11546 | content-reviewed | Reviewed parity harness comparing Rust codec output to Swift reference fixtures; test tooling only. |
+| `port/codec/ref/build.sh` | 873 | content-reviewed | Reviewed script that builds the Swift reference codec for parity tests; not a shipping effect. |
+| `port/codec/ref/cases.json` | 7400 | content-reviewed | Reviewed digital codec parity case manifest; fixtures only. |
+| `port/codec/ref/main.swift` | 9034 | content-reviewed | Reviewed Swift reference implementation for the separate digital codec; not analog tape and not directly portable to AE. |
+| `port/codec/src/codec.rs` | 34249 | content-reviewed | Reviewed 8×8 DCT/IDCT, intra/inter prediction, motion search, quantization, residual reconstruction, dropped-keyframe propagation and deblocking. Separate digital block codec; do not merge into analog tape engine. |
+| `port/codec/src/lib.rs` | 2871 | content-reviewed | Reviewed module exports and public digital codec API; no additional analog algorithms. |
+| `port/codec/src/params.rs` | 23724 | content-reviewed | Reviewed digital codec settings, codec selection and quality/bitrate/loss parameter mapping; independent digital stage. |
+| `port/codec/src/renderer.rs` | 41691 | content-reviewed | Reviewed digital camera capture (CCD/exposure/noise), frame/keyframe progression, history/checkpoints, codec execution, deblocking and YCbCr reconstruction. Optional digital capture subsystem, not VHS tape. |
+| `port/codec/src/resample.rs` | 8792 | content-reviewed | Reviewed portable Lanczos/area resampling implementation; generic resize utility, not tape signal processing. |
+| `port/codec/src/tables.rs` | 4606 | content-reviewed | Reviewed DCT basis and codec quantization tables; digital codec-only constants. |
+| `port/codec/src/tests/digital_video.rs` | 27316 | content-reviewed | Reviewed digital codec integration tests for keyframe loss, data loss, codec settings and temporal reconstruction; test-only. |
+| `port/codec/src/tests/mod.rs` | 228 | content-reviewed | Reviewed test module declarations only. |
+| `port/codec/src/tests/port.rs` | 3527 | content-reviewed | Reviewed Rust/Swift parity and codec port regression tests; test-only. |
+| `port/codec/src/tests/video1.rs` | 5478 | content-reviewed | Reviewed Video 1 block-mode and palette quantization tests; test-only. |
+| `port/codec/src/video1.rs` | 15002 | content-reviewed | Reviewed Microsoft Video 1 4×4 block codec, skip/fill/two/eight-color modes and loss propagation. Separate digital codec; no analog tape port. |
+| `port/engine/Cargo.toml` | 734 | content-reviewed | Reviewed WGPU/Rust engine manifest and feature dependencies; host renderer build metadata, not C++ AE source. |
+| `port/engine/src/crop.rs` | 8433 | content-reviewed | Reviewed crop/aspect/position rectangle math and image copy; generic source geometry utility. |
+| `port/engine/src/downscale.wgsl` | 4980 | content-reviewed | Reviewed nearest, bilinear, bicubic, Lanczos and area GPU downscale kernels; generic WGPU utility, no VHS tape behavior. |
+| `port/engine/src/export.rs` | 5501 | content-reviewed | Reviewed output dimension, supersample and bitrate policy; application export sizing only. |
 | `port/engine/src/glitch/deck.rs` | 6898 | content-reviewed | Full core source reviewed and cross-checked against Swift reference; selective C++ adaptation documented in report 45 |
 | `port/engine/src/glitch/glitch.wgsl` | 11347 | content-reviewed | Receiver GPU shader reviewed: signal line locator, sync/VBI generation, gate/burst accumulation, chroma PLL/ACC/killer and YIQ compose/snow/ghost/brightness. Requires CPU/MFR-compatible port; not copied as WGSL into native AE. |
 | `port/engine/src/glitch/mod.rs` | 634 | content-reviewed | Read during this audit pass |
@@ -213,11 +213,11 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/engine/src/howl/howl.wgsl` | 4593 | content-reviewed | Read during this audit pass |
 | `port/engine/src/howl/mod.rs` | 29409 | content-reviewed | Read during this audit pass |
 | `port/engine/src/howl/pad.rs` | 8614 | content-reviewed | Read during this audit pass |
-| `port/engine/src/lib.rs` | 47008 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/src/look.rs` | 20571 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/src/ntsc_ui.rs` | 8599 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/src/preview.rs` | 7456 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `port/engine/src/timeline.rs` | 9204 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `port/engine/src/lib.rs` | 47008 | content-reviewed | Reviewed WGPU engine facade: image import, optional CPU digital stage, crop, NTSC C API, downscale, shader-chain and readback. This is the desktop still-image pipeline, not a native AE effect engine. |
+| `port/engine/src/look.rs` | 20571 | content-reviewed | Reviewed JSON look import/export, version upgrades, legacy tape→VCR migration and Screen Loop distinction. Useful preset-schema reference; no direct port yet. |
+| `port/engine/src/ntsc_ui.rs` | 8599 | content-reviewed | Reviewed NTSC parameter descriptor, labels/defaults and UI metadata from ntsc-rs; existing VHS-90 AnalogNTSC wrapper is separate. |
+| `port/engine/src/preview.rs` | 7456 | content-reviewed | Reviewed WGPU preview surface/pipeline and texture upload/readback; preview-only host infrastructure. |
+| `port/engine/src/timeline.rs` | 9204 | content-reviewed | Reviewed keyframe sorting, segment lookup, easing and typed parameter interpolation. AE host animation replaces this app timeline in the plugin. |
 | `port/engine/tests/digital.rs` | 7713 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
 | `port/engine/tests/fixtures/glitch/dub.args` | 69 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
 | `port/engine/tests/fixtures/glitch/dub.json` | 128086 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
