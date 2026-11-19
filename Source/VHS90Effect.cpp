@@ -429,12 +429,15 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             }
             if(s.tapeSurface>0) {
                 const float a=clamp01(s.tapeSurface/100.0f);
-                p.tapeSurfaceEnabled=true; p.tapeSurface.seed=0x90A115FAu; p.tapeSurface.frame=s.frame;
-                p.tapeSurface.defectDensity=a; p.tapeSurface.oxideLoss=0.65f;
-                p.tapeSurface.scratchDensity=0.12f; p.tapeSurface.creaseStrength=0.35f;
-                p.tapeSurface.debrisAmount=0.18f; p.tapeSurface.edgeLift=0.12f*a;
-                p.tapeSurface.surfaceRoughness=0.03f*a;
-                p.tapeSurface.pinholeAmount=0.25f*a; p.tapeSurface.flakeAmount=0.35f*a;
+                p.tapeSurfaceEnabled=true; p.tapeSurface.seed=ntscrtTapeSeed(0x90A115FAu); p.tapeSurface.frame=s.frame;
+                p.tapeSurface.defectDensity=ntscrtTapeDropoutAmount(a);
+                p.tapeSurface.oxideLoss=ntscrtTapeWearAmount(a);
+                p.tapeSurface.scratchDensity=ntscrtTapeScratchAmount(a);
+                p.tapeSurface.creaseStrength=ntscrtTapeCreaseAmount(a);
+                p.tapeSurface.debrisAmount=0.18f*a;
+                p.tapeSurface.edgeLift=ntscrtTapeEdgeAmount(a);
+                p.tapeSurface.surfaceRoughness=0.0f;
+                p.tapeSurface.pinholeAmount=0.0f; p.tapeSurface.flakeAmount=0.0f;
                 p.tapeSurface.moldAmount=0.45f*a; p.tapeSurface.vaselineAmount=0.30f*a;
             }
             p.tapeSurface.tapeSpeed=static_cast<std::uint32_t>(std::clamp(int(s.tapeSpeed)-1,0,2));
