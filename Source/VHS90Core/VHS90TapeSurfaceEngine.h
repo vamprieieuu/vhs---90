@@ -21,6 +21,12 @@ struct TapeSurfaceSample {
 };
 // NTSCRT physical tape coordinates: x is millimetres along the tape and y
 // is millimetres across its 12.65 mm width. Deterministic across render order.
+float ntscrtTapeWearAmount(float knob) noexcept;
+float ntscrtTapeDropoutAmount(float knob) noexcept;
+float ntscrtTapeScratchAmount(float knob) noexcept;
+float ntscrtTapeEdgeAmount(float knob) noexcept;
+float ntscrtTapeCreaseAmount(float knob) noexcept;
+std::uint32_t ntscrtTapeSeed(std::uint32_t tapeSeed) noexcept;
 TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm, float yMm, const TapeSurfaceParams& params, bool detail=true, bool flakes=true) noexcept;
 TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams& params) noexcept;
 bool processTapeSurface(ConstImageView src,ImageView dst,const TapeSurfaceParams& params) noexcept;
