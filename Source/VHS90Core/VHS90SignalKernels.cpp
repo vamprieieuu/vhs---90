@@ -88,6 +88,47 @@ bool processYiqChromaBlur(ConstImageView src,ImageView dst,float shift,float ble
     return true;
 }
 
+bool processLumaSmear(ConstImageView src,ImageView dst,const LumaSmearParams& p) noexcept {
+    if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||
+       dst.width!=src.width||dst.height!=src.height||
+       src.rowStrideFloats<src.width*4||dst.rowStrideFloats<dst.width*4||
+       src.rgba==dst.rgba||!std::isfinite(p.strength)||
+       !std::isfinite(p.decay)||!std::isfinite(p.offsetPx)||
+       p.strength<0.0f||p.decay<0.0f||p.offsetPx<0.0f) return false;
+    const float strength=std::min(1.0f,p.strength);
+    if(strength<=0.0f) {
+        for(int y=0;y<src.height;++y)
+            std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);
+        return true;
+    }
+    for(int y=0;y<src.height;++y) for(int x=0;x<src.width;++x) {
+        const float alpha=sampleChannel(src,float(x),y,3);
+        if(alpha<=1.0e-6f) { write(dst,x,y,{0.0f,0.0f,0.0f},alpha); continue; }
+        auto straightAt=[&](float sx) noexcept {
+            RGB c{sampleChannel(src,sx,y,0),sampleChannel(src,sx,y,1),sampleChannel(src,sx,y,2)};
+            const float a=sampleChannel(src,sx,y,3);
+            if(p.premultipliedAlpha) {
+                if(a>1.0e-6f) { c.r/=a; c.g/=a; c.b/=a; }
+                else c={0.0f,0.0f,0.0f};
+            }
+            return rgbToYiq(c);
+        };
+        const YIQ center=straightAt(float(x));
+        float sum=center.y,energy=1.0f;
+        for(int tap=1;tap<=4;++tap) {
+            const float weight=std::exp(-p.decay*float(tap));
+            sum+=straightAt(float(x)-p.offsetPx*float(tap)).y*weight;
+            energy+=weight;
+        }
+        const float blurred=sum/energy;
+        const float outY=center.y+(blurred-center.y)*strength;
+        RGB out=yiqToRgb({outY,center.i,center.q});
+        if(p.premultipliedAlpha) { out.r*=alpha; out.g*=alpha; out.b*=alpha; }
+        write(dst,x,y,out,alpha);
+    }
+    return true;
+}
+
 bool processCompositeVhs(ConstImageView src,ImageView dst,const SignalParams& p) noexcept {
     if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||dst.width!=src.width||dst.height!=src.height||
        src.rowStrideFloats<src.width*4||dst.rowStrideFloats<dst.width*4) return false;
