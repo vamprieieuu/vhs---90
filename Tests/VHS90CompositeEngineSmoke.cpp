@@ -83,6 +83,13 @@ int main() {
     grade.imageGrade.contrast=1.15f;grade.imageGrade.saturation=.85f;grade.imageGrade.vignette=.4f;grade.imageGrade.flicker=.2f;
     assert(processCompositeRoundTrip(si,gradeOnlyView,grade));assert(gradeOnly!=src);
 
+    // ComfyUI dropout bands and sparse luma speckles are integrated after receiver decode.
+    std::vector<float> dropoutOnly(src.size());
+    ImageView dropoutOnlyView{dropoutOnly.data(),w,h,w*4};
+    CompositeParams dropout=p;dropout.compositeSignalStrength=0.0f;dropout.inputBandwidthEnabled=false;dropout.outputBandwidthEnabled=false;
+    dropout.dropoutEnabled=true;dropout.dropouts.amount=.8f;dropout.dropouts.seed=77;dropout.dropouts.frame=5;
+    assert(processCompositeRoundTrip(si,dropoutOnlyView,dropout));assert(dropoutOnly!=src);
+
     // Full waveform composite model uses the 525x910 signal path when explicitly selected.
     std::vector<float> waveformOnly(src.size()),waveformRepeat(src.size());
     ImageView waveformOnlyView{waveformOnly.data(),w,h,w*4},waveformRepeatView{waveformRepeat.data(),w,h,w*4};
