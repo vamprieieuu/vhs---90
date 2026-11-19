@@ -27,6 +27,7 @@ struct DamageRegion {
 
     float centerX = 0.5f;
     float centerY = 0.5f;
+    float angleRadians = 0.0f;
     float width = 1.0f;
     float height = 0.08f;
     float feather = 0.01f;
@@ -66,7 +67,7 @@ struct RegionEngineParams {
 };
 
 // Applies any number of independent Tracking Noise / Head Switching regions.
-// Regions can be horizontal, vertical, or arbitrary rectangles and may overlap.
+// Regions can be horizontal, vertical, or rotated rectangles and may overlap.
 // Source and destination must be distinct buffers. Input alpha is preserved.
 bool processDamageRegions(ConstImageView src, ImageView dst,
                           const RegionEngineParams& params) noexcept;
