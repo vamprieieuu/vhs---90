@@ -19,6 +19,7 @@
 #include "VHS90RingingEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TrackReadEngine.h"
+#include "VHS90HeadConditionEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
 
@@ -91,6 +92,8 @@ struct CompositeParams {
     TapeSurfaceParams tapeSurface{};
     bool trackReadEnabled = false;
     TrackReadParams trackRead{};
+    bool headConditionEnabled = false;
+    HeadConditionParams headCondition{};
     bool chromaSubsampleEnabled = false;
     ChromaSubsampleParams chromaSubsample{};
     bool verticalChromaBlendEnabled = false;
