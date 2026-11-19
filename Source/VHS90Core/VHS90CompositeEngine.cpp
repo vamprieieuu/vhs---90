@@ -204,7 +204,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         std::vector<float> receiverProcessed;
-        if(p.receiverInstabilityEnabled) {
+        if(!p.waveformCompositeEnabled && p.receiverInstabilityEnabled) {
             receiverProcessed.resize(count*4);
             ImageView receiverView{receiverProcessed.data(),w,h,w*4};
             ReceiverInstabilityParams rp=p.receiverInstability;
@@ -213,7 +213,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             decodedView={receiverProcessed.data(),w,h,w*4};
         }
         std::vector<float> multipathProcessed;
-        if(p.multipathEchoEnabled) {
+        if(!p.waveformCompositeEnabled && p.multipathEchoEnabled) {
             multipathProcessed.resize(count*4);
             ImageView multipathView{multipathProcessed.data(),w,h,w*4};
             MultipathEchoParams mp=p.multipathEcho;
@@ -222,7 +222,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             decodedView={multipathProcessed.data(),w,h,w*4};
         }
         std::vector<float> impulseProcessed;
-        if(p.impulseNoiseEnabled) {
+        if(!p.waveformCompositeEnabled && p.impulseNoiseEnabled) {
             impulseProcessed.resize(count*4);
             ImageView impulseView{impulseProcessed.data(),w,h,w*4};
             ImpulseNoiseParams ip=p.impulseNoise;
@@ -240,7 +240,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             decodedView={analogNoisy.data(),w,h,w*4};
         }
         std::vector<float> rfProcessed;
-        if(p.rfInstabilityEnabled) {
+        if(!p.waveformCompositeEnabled && p.rfInstabilityEnabled) {
             rfProcessed.resize(count*4);
             ImageView rfView{rfProcessed.data(),w,h,w*4};
             RfInstabilityParams rp=p.rfInstability;
