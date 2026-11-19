@@ -17,7 +17,8 @@ See [Source Audit Index](docs/source-audits/INDEX.md) for the audits of the supp
 - `Source/VHS90Core/VHS90SignalKernels.h/.cpp` — YIQ conversion, chroma blur and initial composite/VHS reference kernels.
 - `Source/VHS90Core/VHS90RegionEngine.h/.cpp` — arbitrary horizontal/vertical/rectangular Tracking Noise and Head Switching regions, deterministic events and alpha-aware compositing.
 - `Source/VHS90Core/VHS90StaticEngine.h/.cpp` — generated static/snow patterns, top/bottom weighting, split-band chroma, and static-to-blackout events.
-- `Tests/` — standalone C++ smoke tests for the host-independent kernels (3 CTest targets).
+- `Source/VHS90Core/VHS90IIRFilter.h/.cpp` — constant-K and Butterworth YIQ bandwidth filtering.
+- `Tests/` — standalone C++ smoke tests for the host-independent kernels (4 CTest targets).
 
 ## Build status
 
