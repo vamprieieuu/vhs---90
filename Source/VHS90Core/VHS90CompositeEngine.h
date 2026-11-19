@@ -10,6 +10,7 @@
 #include "VHS90ImageGradeEngine.h"
 #include "VHS90TapeDetailEngine.h"
 #include "VHS90ChromaShiftEngine.h"
+#include "VHS90TemporalEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
@@ -55,6 +56,9 @@ struct CompositeParams {
     TapeDetailParams tapeDetail{};
     bool chromaChannelShiftEnabled = false;
     ChromaChannelShiftParams chromaChannelShift{};
+    bool temporalGhostEnabled = false;
+    ConstImageView previousProcessedFrame{};
+    TemporalGhostParams temporalGhost{};
     bool geometryEnabled = false;
     AnalogGeometryParams geometry{};
     bool scanlinesEnabled = false;
