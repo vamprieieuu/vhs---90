@@ -2,7 +2,7 @@
 
 Native C++ Adobe After Effects VHS / analog signal processing plugin project.
 
-**Current state:** the host-independent C++ engine has six passing smoke tests, and an initial native AE host adapter, PiPL resource, optional Windows AEX CMake target and PowerShell build script are now in the repository. The Windows/MSVC build and After Effects runtime are not yet verified; there is no test-ready AEX artifact yet.
+**Current state:** the host-independent C++ engine has 27 passing smoke tests, and an initial native AE host adapter, PiPL resource, optional Windows AEX CMake target and PowerShell build script are now in the repository. The Windows/MSVC build and After Effects runtime are not yet verified; there is no test-ready AEX artifact yet.
 
 ## Engineering status
 
@@ -20,6 +20,9 @@ See [Source Audit Index](docs/source-audits/INDEX.md) for scoped audits of the s
 - `Source/VHS90Core/VHS90IIRFilter.h/.cpp` — constant-K and Butterworth YIQ bandwidth filtering.
 - `Source/VHS90Core/VHS90CompositeEngine.h/.cpp` — four-phase NTSC composite encode/decode with Box, One-Line Comb and Two-Line Comb demodulators.
 - `Source/VHS90Core/VHS90SyncEngine.h/.cpp` — procedural time-base instability, tracking tears, tracking line and sync vertical roll.
+- `Source/VHS90Core/VHS90TapeTransportEngine.h/.cpp` — deterministic tape transport warp with a render-local replay of control-track PI servo, pulse dropout/false-pulse handling and search mode.
+- `Source/VHS90Core/VHS90TrackReadEngine.h/.cpp` — three-track read overlap and frequency-dependent opposite-azimuth cancellation.
+- `Source/VHS90Core/VHS90HeadConditionEngine.h/.cpp` — two-head field alternation with deterministic debris/grease accumulation and head wear/gap response.
 
 ## Initial AE host adapter
 
@@ -35,7 +38,7 @@ cmake --build build --config Release
 ctest --test-dir build -C Release --output-on-failure
 ```
 
-The six CTest targets pass in Release and in Debug with AddressSanitizer + UndefinedBehaviorSanitizer.
+The current 27 CTest targets pass in the latest hosted Linux core CI run. This is not a Windows/MSVC or After Effects runtime test.
 
 ## Windows AEX build
 
