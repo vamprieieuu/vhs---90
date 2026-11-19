@@ -45,11 +45,13 @@ Inspected the 66 KB main script, including `VHSProcessor.process` (lines 309–4
 
 ### 3. ComfyUI RetroTape — CPU/GPU VHS implementation
 
-Inspected `ntsc_core.py` (58 KB), `ntsc_gpu.py` (38 KB), and repository tree.
+Inspected `ntsc_core.py` (1,738 lines), `ntsc_gpu.py` (38 KB), `tests/test_fidelity.py` (308 lines), and repository tree.
 
 - CPU core is an adapted NTSC-QT pipeline; source itself documents the upstream attribution.
 - Useful concepts include separate YIQ processing, fixed reference raster scaling, slow temporal state epochs, ringing taps, black-lift pedestal and explicit CPU/GPU parity testing.
 - GPU module is CUDA/PyTorch and cannot be dropped into a CPU-first AE plugin.
+- Core contains separate kernels for row low-pass/resampling, YIQ conversion, chroma bleed/delay/drift, ringing, composite artifacts, luma/chroma noise, luma smear, reference-line scaling, servo profile, tracking warp, interlace roll, comb filtering, dropouts, ghosting, scanlines, analog glow, edge wave and head switching.
+- Tests cover preview/render fidelity, frame offsets, temporal transport stability, resolution scaling, bit depth, interlace pitch, and cache budgets. This is useful validation design for VHS-90.
 - Best use: port selected mathematical kernels and tests, not Python/ComfyUI/Torch infrastructure. Verify the source license and required attribution before copying code.
 
 ### 4. NTSC-CRT — integer C NTSC/VHS signal emulation
@@ -115,7 +117,7 @@ Inspected `analog_color.glsl` and `composite.fsh` (about 30 KB).
 
 1. Verify the upstream identity and exact source snapshot for `vhs-main` from the original ZIP metadata.
 2. Inspect the remaining files and subfolders of every repository, not just recursive tree inventories.
-3. Finish `ntscqt` source review (especially renderer, templates and filters); its core VHS methods and preset JSON have now been inspected.
+3. Finish `ntscqt` source review of remaining UI/packaging/assets and tests; its main renderer, core VHS methods and preset JSON have now been inspected.
 4. Inspect all Unity shader/renderer source files in URP VHS Retro Effects.
 5. Inspect remaining `vhs_task.py`, preset/config files and test/self-test paths in VHS Effect Add-on.
 6. Inspect remaining NTSC-CRT functions and full Composite Video Simulator math; Analog-NTSC's processor, effects, encoder, decoder, signal and AE adapter have now been reviewed at source level.
