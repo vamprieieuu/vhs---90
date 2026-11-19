@@ -18,7 +18,7 @@ inline void sincos14(int n,int&sn,int&cs) noexcept {
 }
 inline int coefficient(int cutoffHz) noexcept {
  constexpr int sampleRate=14318182;
- int sn=0,cs=0;sincos14((kPi14*cutoffHz)/sampleRate,sn,cs);
+ int sn=0,cs=0;sincos14(int((std::int64_t(kPi14)*cutoffHz)/sampleRate),sn,cs);
  return 4*sn; // Q16 coefficient for 2*sin(pi*fc/fs)
 }
 struct BandFilter {
