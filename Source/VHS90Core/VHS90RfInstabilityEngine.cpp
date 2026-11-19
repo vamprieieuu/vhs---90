@@ -35,7 +35,7 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
   const float lineGain=globalGain+0.075f*drift*std::sin(framePhase*0.61f+0.031f*paired);
   const float lineBias=globalBias+3.5f*drift*std::sin(framePhase*0.43f+0.024f*paired);
   const float wanderPhase=framePhase*0.47f+0.13f*paired+1.2f;
-  const float humLinePhase=humPhase+paired*(0.8f+4.2f*hum)*(kTwoPi/std::max(1.0f,float(src.height)));
+  const float humLinePhase=humPhase+paired*(0.8f+4.2f*hum)*((2.0f*kPi)/std::max(1.0f,float(src.height)));
   const float humOffset=(0.5f+8.8f*hum)*std::sin(humLinePhase+0.2f)+
                         (0.2f+4.6f*hum)*std::sin(2.0f*humLinePhase+1.7f);
   const float humGain=1.0f+(0.003f+0.042f*hum)*std::sin(humLinePhase+0.9f);
