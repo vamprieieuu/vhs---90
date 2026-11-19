@@ -54,6 +54,13 @@ int main() {
     rf.rfInstabilityEnabled=true;rf.rfInstability.drift=.65f;rf.rfInstability.hum=.4f;rf.rfInstability.amNonlinearity=.7f;
     assert(processCompositeRoundTrip(si,rfOnlyView,rf));assert(rfOnly!=src);
 
+    // NTSC-CRT fixed-point three-band equalizer runs as a post-demodulation stage.
+    std::vector<float> eqOnly(src.size());
+    ImageView eqOnlyView{eqOnly.data(),w,h,w*4};
+    CompositeParams eq=p;eq.compositeSignalStrength=0.0f;eq.inputBandwidthEnabled=false;eq.outputBandwidthEnabled=false;
+    eq.crtEqualizerEnabled=true;eq.crtEqualizer.amount=1.0f;
+    assert(processCompositeRoundTrip(si,eqOnlyView,eq));assert(eqOnly!=src);
+
     // Barash-style independent Cr/Cb displacement is applied before composite encoding.
     std::vector<float> chromaShiftOnly(src.size());
     ImageView chromaShiftOnlyView{chromaShiftOnly.data(),w,h,w*4};
