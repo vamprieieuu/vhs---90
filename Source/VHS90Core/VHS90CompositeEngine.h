@@ -5,6 +5,7 @@
 #include "VHS90AnalogNoiseEngine.h"
 #include "VHS90RfInstabilityEngine.h"
 #include "VHS90ImpulseNoiseEngine.h"
+#include "VHS90MultipathEchoEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
@@ -40,6 +41,8 @@ struct CompositeParams {
     RfInstabilityParams rfInstability{};
     bool impulseNoiseEnabled = false;
     ImpulseNoiseParams impulseNoise{};
+    bool multipathEchoEnabled = false;
+    MultipathEchoParams multipathEcho{};
     bool geometryEnabled = false;
     AnalogGeometryParams geometry{};
     bool scanlinesEnabled = false;
