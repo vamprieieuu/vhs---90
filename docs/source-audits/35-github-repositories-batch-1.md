@@ -23,7 +23,7 @@ All tree requests below returned complete recursive Git trees (`truncated=false`
 | `vhs-phys-main` | `allthemalware/vhs-phys` | 225 | 202 | 23 | Detailed scoped source audit: see `34-vhs-phys-rust-simulator.md` |
 | `vaporwave-master` | previously audited | — | — | — | Existing scoped audit: `26-vaporwave-image-stylizer.md` |
 | `vhs.py-main` | `torrober/vhs.py` | 15 | 10 | 5 | Existing scoped audit: `27-vhs-py-processor.md` |
-| `vhs-main` | **upstream match not yet verified** | — | — | — | Must resolve from original archive metadata before source audit |
+| `vhs-main` | archive folder confirmed; upstream remote URL not present in recovered conversation context | 28 | 28 | — | Detailed source audit already recorded in `14-vhs-main-ofx-metal.md` and `23-vhs-main-ofx-kernel.md`; includes C++/Metal kernel, OSD, preset parser, five presets and LUT |
 
 ## Direct code findings
 
@@ -103,22 +103,33 @@ Inspected `analog_color.glsl` and `composite.fsh` (about 30 KB).
 - Correlated smooth value noise rather than independent per-line hashes, useful for continuous time-base error. Its interpolation pattern was adapted into VHS-90's C++ `valueNoise1D` helper and line-wobble correlation control.
 - Shader depends on Minecraft shaderpack uniforms, depth buffers, camera matrices and persistent render targets; only independent equations are candidates for a C++ port.
 
+### 11. `vhs-main` — native OFX / Metal VHS engine
+
+The archive folder is confirmed as `vhs/github repos/vhs-main/`, with a 28-file inventory. Its full kernel/OSD/preset findings are recorded in `docs/source-audits/14-vhs-main-ofx-metal.md` and `docs/source-audits/23-vhs-main-ofx-kernel.md`. It contains a shared C++/Metal-oriented kernel, OSD renderer, preset parser, five preset files and a LUT. The source uses an OFX host and Metal textures; its Windows CUDA backend is a stub and there is no native CPU render backend. The useful signal math and OSD stage ordering are port candidates, but its Metal/OFX wrappers and module-global render textures are not suitable for AE MFR.
+
+## Additional local C++ candidates discovered during repository audit
+
+The destination repository already contains an unbuilt `src/engines/shared/` collection: `vhs90_signal_pipeline`, `vhs90_region_effects`, `vhs90_tape_physics`, `vhs90_image_degradation`, `vhs90_bloom`, `vhs90_tape_surface`, and `vhs90_temporal_effects`. The root `CMakeLists.txt` did not include these modules, so their presence alone did not prove they were part of the tested plugin core. They are being audited individually and only suitable algorithms are being migrated into the canonical `Source/VHS90Core` path.
+
+The `vhs90_tape_surface` candidate implements a deterministic defect field in persistent tape coordinates, separating oxide/magnetization loss, scratches, longitudinal creases, debris/head-spacing lift, edge lift and surface roughness. A corrected canonical C++ module was added as `VHS90TapeSurfaceEngine.{h,cpp}` with explicit premultiplied-alpha handling and a seven-test CTest suite. This is an adaptation of the already-present C++ port candidate, informed by the `vhs-phys` tape-coordinate defect model.
+
 ## Code transfer ledger
 
 - New code files copied verbatim into VHS-90 in this batch: **0**.
+- New canonical module migrated from an unbuilt local C++ candidate: `Source/VHS90Core/VHS90TapeSurfaceEngine.{h,cpp}`. It adds deterministic tape-coordinate oxide voids, scratches, creases, debris/head-spacing loss, edge lift and roughness with alpha/premultiplication handling.
 - Adapted C++ code added: `valueNoise1D` in `VHS90SignalKernels.cpp`, declared in the matching header, and wired into line-wobble generation using a new correlation-length parameter. This adapts the correlated smooth value-noise method inspected in Lost Signal VHS's `analog_color.glsl` / `composite.fsh`; it is a native C++ implementation, not a raw GLSL copy.
 - Adapted C++ code added: `processLumaSmear` in `VHS90SignalKernels.cpp`, declared in the matching header. It now uses a configurable 2–64 tap causal exponential kernel and a separate highlight-only glow trail, based on the more complete ComfyUI RetroTape implementation; it keeps I/Q chroma separate and preserves alpha/premultiplication.
 - Adapted C++ code added: Tracking Noise servo drift now uses deterministic row-correlated profiles crossfaded between temporal epochs, adapting the ComfyUI RetroTape servo-profile interpolation model. Added a configurable epoch length and a continuity smoke test.
 - Adapted C++ code added: `processVerticalChromaBlend` ports the composite-video simulator's field-line chroma delay line. It blends I/Q from the preceding same-field line while retaining current-line luma and alpha.
-- Tests added in `Tests/VHS90SignalKernelsSmoke.cpp`: deterministic repeatability/local continuity for `valueNoise1D`; variable-tap luma-smear/highlight trail output and alpha preservation for `processLumaSmear`; vertical chroma blend output with current-line luma and alpha preservation. `Tests/VHS90RegionEngineSmoke.cpp` now checks temporal continuity of Tracking Noise servo drift across adjacent frames.
+- Tests added in `Tests/VHS90SignalKernelsSmoke.cpp`: deterministic repeatability/local continuity for `valueNoise1D`; variable-tap luma-smear/highlight trail output and alpha preservation for `processLumaSmear`; vertical chroma blend output with current-line luma and alpha preservation. `Tests/VHS90RegionEngineSmoke.cpp` now checks temporal continuity of Tracking Noise servo drift across adjacent frames. `Tests/VHS90TapeSurfaceEngineSmoke.cpp` checks deterministic tape-coordinate defects, frame evolution, exact inactive bypass, premultiplied-alpha preservation and finite output.
 - Commits: value-noise header/source/test `41ee8ee` / `7ef93f2` / `a270b41`; luma-smear header/source/test `4844c3b` / `98f9e06` / `bbd0651`; regression fixes `4eddefd` / `730833e`.
-- Validation: the first hosted run exposed two failures (RegionEngine signed-chroma expectation and StaticEngine zero-density identity). Corrected the test's signed chroma expectation and added an exact zero-density identity bypass. GitHub Actions run `44591429056` on `730833e` passed 6/6 CTest. The subsequent variable-smear and temporal-servo changes also passed GitHub Actions run `44592423967` on commit `9e1b5b8`.
+- Validation: the first hosted run exposed two failures (RegionEngine signed-chroma expectation and StaticEngine zero-density identity). Corrected the test's signed chroma expectation and added an exact zero-density identity bypass. GitHub Actions run `44591429056` on `730833e` passed 6/6 CTest. The subsequent variable-smear and temporal-servo changes also passed run `44592423967` on `9e1b5b8`. The first vertical-chroma test used an unrealistically strict RGB↔YIQ round-trip tolerance; corrected to a 0.01 tolerance. The tape-surface module builds and GitHub Actions run `44593216735` on `4f7e34f` passed 7/7 CTest.
 - New algorithms identified for C++ port: deterministic tape-coordinate defect map; lateral track-overlap model; stateful temporal replay/checkpoint model; selected fixed-point NTSC math; selected signal-domain effect kernels (multipath, line jitter, burst/sync instability, chroma phase drift).
 - Reason for zero copy in this batch: the reviewed files are coupled to Python, Swift/Metal, CUDA, FFmpeg, Unity or repository-specific data structures. A verbatim copy would introduce non-compiling dependencies or incorrect host/runtime assumptions. Existing VHS-90 modules already implement some overlapping YIQ/IIR/composite/region behavior, so each candidate must be compared and tested before duplication.
 
 ## What remains before this 15-repository audit is complete
 
-1. Verify the upstream identity and exact source snapshot for `vhs-main` from the original ZIP metadata. Conversation history confirms the destination repo `vamprieieuu/vhs---90`, but does not contain a separate upstream URL for this bundled folder.
+1. Recover/verify the upstream remote URL and exact source snapshot for `vhs-main` if its Git metadata or archive origin data can be retrieved. The bundled folder and 28-file inventory are confirmed; the separate remote URL was not present in the recovered conversation history.
 2. Inspect the remaining files and subfolders of every repository, not just recursive tree inventories.
 3. Finish `ntscqt` source review of remaining UI/packaging/assets and tests; its main renderer, core VHS methods and preset JSON have now been inspected.
 4. Inspect all Unity shader/renderer source files in URP VHS Retro Effects.
