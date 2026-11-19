@@ -83,6 +83,13 @@ int main() {
     grade.imageGrade.contrast=1.15f;grade.imageGrade.saturation=.85f;grade.imageGrade.vignette=.4f;grade.imageGrade.flicker=.2f;
     assert(processCompositeRoundTrip(si,gradeOnlyView,grade));assert(gradeOnly!=src);
 
+    // Analog RGB glow is applied after scanlines and temporal echo, before final mix.
+    std::vector<float> glowOnly(src.size());
+    ImageView glowOnlyView{glowOnly.data(),w,h,w*4};
+    CompositeParams glow=p;glow.compositeSignalStrength=0.0f;glow.inputBandwidthEnabled=false;glow.outputBandwidthEnabled=false;
+    glow.analogGlowEnabled=true;glow.analogGlow.amount=.7f;
+    assert(processCompositeRoundTrip(si,glowOnlyView,glow));assert(glowOnly!=src);
+
     // ComfyUI delayed luma echoes and I/Q chroma delay are connected to the shared pipeline.
     std::vector<float> signalGhostOnly(src.size());
     ImageView signalGhostOnlyView{signalGhostOnly.data(),w,h,w*4};
