@@ -441,6 +441,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.tapeSurface.moldAmount=0.45f*a; p.tapeSurface.vaselineAmount=0.30f*a;
             }
             p.tapeSurface.tapeSpeed=static_cast<std::uint32_t>(std::clamp(int(s.tapeSpeed)-1,0,2));
+            p.tapeSurface.trackingOffsetTracks=p.trackRead.trackingOffset;
             if(p.tapeTransportEnabled) {
                 p.tapeTransport.usePhysicalControlTrackMap=true;
                 p.tapeTransport.controlTrackTape=p.tapeSurface;
