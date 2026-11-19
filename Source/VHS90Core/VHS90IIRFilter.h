@@ -4,6 +4,8 @@
 
 namespace vhs90 {
 
+enum class VHS90TapeSpeed : std::uint8_t { SP=0, LP=1, EP=2 };
+
 enum class IIRFilterDesign : std::uint8_t {
     ConstantKTriple = 0,
     Butterworth2 = 1
@@ -28,6 +30,8 @@ struct YiqBandwidthParams {
     IIRInitialCondition initial = IIRInitialCondition::Zero;
     bool premultipliedAlpha = true;
 };
+
+YiqBandwidthParams makeVhsTapeBandwidth(VHS90TapeSpeed speed) noexcept;
 
 // Applies independent I/Q low-pass filters in the YIQ domain, based on the
 // ntsc-rs constant-K / Butterworth transfer-function implementation.
