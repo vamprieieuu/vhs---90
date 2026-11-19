@@ -26,8 +26,17 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90ImageGradeEngine.cpp
     Source/VHS90Core/VHS90TapeDetailEngine.cpp
     Source/VHS90Core/VHS90ChromaShiftEngine.cpp
+    ThirdParty/AnalogNTSC/src/ntsc_signal.cpp
+    ThirdParty/AnalogNTSC/src/ntsc_params.cpp
+    ThirdParty/AnalogNTSC/src/ntsc_effects.cpp
+    ThirdParty/AnalogNTSC/src/ntsc_decoder.cpp
+    ThirdParty/AnalogNTSC/src/ntsc_encoder.cpp
+    ThirdParty/AnalogNTSC/src/ntsc_processor.cpp
 )
-target_include_directories(VHS90Core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core)
+target_include_directories(VHS90Core PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core
+    ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AnalogNTSC/include
+)
 target_compile_features(VHS90Core PUBLIC cxx_std_17)
 if(MSVC)
     target_compile_options(VHS90Core PRIVATE /W4 /permissive-)
