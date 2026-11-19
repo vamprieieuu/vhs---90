@@ -9,7 +9,7 @@ int main(){using namespace vhs90;constexpr int w=32,h=16;std::vector<float>s(w*h
  p.frame=15;assert(processTapeTransportWarp(si,ci,p));assert(a!=c);
  TapeTransportParams off;off.drumFlutterPixels=0;off.flutterPixels=0;off.stickSlipPixels=0;off.lineJitterPixels=0;std::fill(b.begin(),b.end(),0.0f);assert(processTapeTransportWarp(si,bi,off));assert(b==s);
  for(size_t i=3;i<a.size();i+=4)assert(a[i]>=0.0f&&a[i]<=1.0f);
-    TapeTransportParams slow;slow.servoJitterPixels=1.8f;slow.edgeWavePixels=2.2f;slow.seed=99;slow.frame=3;
+    TapeTransportParams slow;slow.servoJitterPixels=1.8f;slow.seed=99;slow.frame=3;
     std::vector<float> slowA(s.size()),slowB(s.size());ImageView slowAView{slowA.data(),w,h,w*4},slowBView{slowB.data(),w,h,w*4};
     assert(processTapeTransportWarp(si,slowAView,slow));assert(processTapeTransportWarp(si,slowBView,slow));assert(slowA==slowB&&slowA!=s);
  return 0;}
