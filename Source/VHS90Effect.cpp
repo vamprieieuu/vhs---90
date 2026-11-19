@@ -346,9 +346,9 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 const std::uint32_t frameSeed=0x90A11E5Eu+std::uint32_t(s.frame)*0x9E3779B9u;
                 e.random_seed=frameSeed;
                 d.random_seed=frameSeed^0x85EBCA6Bu;
-                const float speedLuma=(s.tapeSpeed==1)?4.2e6f:((s.tapeSpeed==2)?3.0e6f:2.0e6f);
-                const float speedI=(s.tapeSpeed==1)?1.1e6f:((s.tapeSpeed==2)?0.8e6f:0.6e6f);
-                const float speedQ=(s.tapeSpeed==1)?0.45e6f:((s.tapeSpeed==2)?0.35e6f:0.25e6f);
+                const float speedLuma=(s.tapeSpeed==1)?3.0e6f:((s.tapeSpeed==2)?2.4e6f:2.0e6f);
+                const float speedI=(s.tapeSpeed==1)?627000.0f:((s.tapeSpeed==2)?400000.0f:370000.0f);
+                const float speedQ=(s.tapeSpeed==1)?627000.0f:((s.tapeSpeed==2)?400000.0f:370000.0f);
                 p.waveformComposite.signal.luma_cutoff_hz=speedLuma;
                 p.waveformComposite.signal.i_cutoff_hz=speedI;
                 p.waveformComposite.signal.q_cutoff_hz=speedQ;
@@ -373,8 +373,8 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 e.noise_stddev_ire=clamp01(s.compositeNoise/100.0f)*4.0f;
             }
             if(s.composite>0) {
-                const float lumaCut=(s.tapeSpeed==1)?2400000.0f:((s.tapeSpeed==2)?1900000.0f:1400000.0f);
-                const float chromaCut=(s.tapeSpeed==1)?320000.0f:((s.tapeSpeed==2)?300000.0f:280000.0f);
+                const float lumaCut=(s.tapeSpeed==1)?3000000.0f:((s.tapeSpeed==2)?2400000.0f:2000000.0f);
+                const float chromaCut=(s.tapeSpeed==1)?627000.0f:((s.tapeSpeed==2)?400000.0f:370000.0f);
                 const int chromaDelay=(s.tapeSpeed==1)?9:((s.tapeSpeed==2)?12:14);
                 p.inputBandwidth.lumaCutoffHz=lumaCut;p.outputBandwidth.lumaCutoffHz=lumaCut;
                 p.inputBandwidth.iCutoffHz=chromaCut;p.inputBandwidth.qCutoffHz=chromaCut;
