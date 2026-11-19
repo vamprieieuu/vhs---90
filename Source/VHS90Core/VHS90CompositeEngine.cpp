@@ -221,15 +221,6 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processMultipathEcho(decodedView,multipathView,mp)) return false;
             decodedView={multipathProcessed.data(),w,h,w*4};
         }
-        std::vector<float> chromaLossProcessed;
-        if(p.chromaLossEnabled && p.chromaLoss.amount>0.0f) {
-            chromaLossProcessed.resize(count*4);
-            ImageView chromaLossView{chromaLossProcessed.data(),w,h,w*4};
-            ChromaLossParams clp=p.chromaLoss;
-            clp.premultipliedAlpha=p.premultipliedAlpha;
-            if(!processChromaLoss(decodedView,chromaLossView,clp)) return false;
-            decodedView={chromaLossProcessed.data(),w,h,w*4};
-        }
         std::vector<float> signalGhosted;
         if(p.signalGhostEnabled) {
             signalGhosted.resize(count*4);
