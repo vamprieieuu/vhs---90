@@ -47,6 +47,16 @@ int main() {
     assert(processCompositeRoundTrip(si,d2,pp));
     assert(one!=two);
 
+    std::vector<float> geometryComposite(src.size()),scanlineComposite(src.size());
+    ImageView geometryCompositeView{geometryComposite.data(),w,h,w*4},scanlineCompositeView{scanlineComposite.data(),w,h,w*4};
+    CompositeParams geometryStage=p;geometryStage.geometryEnabled=true;geometryStage.geometry.lineJitterPixels=1.0f;
+    geometryStage.geometry.topSkewPixels=2.0f;geometryStage.geometry.frame=5;
+    assert(processCompositeRoundTrip(si,geometryCompositeView,geometryStage));
+    CompositeParams scanStage=p;scanStage.scanlinesEnabled=true;scanStage.scanlines.amount=.5f;
+    scanStage.scanlines.frequency=.5f;
+    assert(processCompositeRoundTrip(si,scanlineCompositeView,scanStage));
+    assert(geometryComposite!=boxOut && scanlineComposite!=boxOut);
+
     std::vector<float> bloomComposite(src.size());
     ImageView bloomCompositeView{bloomComposite.data(),w,h,w*4};
     CompositeParams bloomStage=p;bloomStage.bloomEnabled=true;bloomStage.bloom.threshold=.1f;
