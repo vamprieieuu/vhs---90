@@ -75,6 +75,13 @@ int main() {
     ring.ringingEnabled=true;ring.ringing.strength=.7f;ring.ringing.power=2.0f;
     assert(processCompositeRoundTrip(si,ringOnlyView,ring));assert(ringOnly!=src);
 
+    // NTSCRT three-track head overlap/azimuth read model is integrated before composite encoding.
+    std::vector<float> trackReadOnly(src.size());
+    ImageView trackReadView{trackReadOnly.data(),w,h,w*4};
+    CompositeParams trackRead=p;trackRead.compositeSignalStrength=0.0f;trackRead.inputBandwidthEnabled=false;trackRead.outputBandwidthEnabled=false;
+    trackRead.trackReadEnabled=true;trackRead.trackRead.amount=1.0f;trackRead.trackRead.trackingOffset=.65f;trackRead.trackRead.speed=2;
+    assert(processCompositeRoundTrip(si,trackReadView,trackRead));assert(trackReadOnly!=src);
+
     // Barash horizontal luma downsample/upsample stage runs in the shared pipeline.
     std::vector<float> detailOnly(src.size());
     ImageView detailOnlyView{detailOnly.data(),w,h,w*4};
