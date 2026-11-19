@@ -68,11 +68,12 @@ The original RF code assumes 525-line NTSC sampled at 910 samples/line, with syn
 ## C++ ports now added to VHS-90
 
 New host-independent C++17 kernels:
-- `VHS90RfInstabilityEngine.{h,cpp}`: deterministic RF drift, hum and AM-style luma compression adapted to raster-space; alpha-aware and frame-seeded.
+- `VHS90RfInstabilityEngine.{h,cpp}`: deterministic RF drift, hum, AM-style luma compression and content-driven AGC pumping adapted to raster-space; alpha-aware and frame-seeded.
 - `VHS90ImpulseNoiseEngine.{h,cpp}`: sparse horizontal impulse bursts with signed decaying amplitude and correlated walk, deterministic by seed/frame.
 - `VHS90MultipathEchoEngine.{h,cpp}`: three delayed, signed echo taps and ensemble gain; separate from previous-frame temporal ghosting.
+- `VHS90ReceiverInstabilityEngine.{h,cpp}`: AFC Hunt with sync-edge decay/cycle slips, line-correlated chroma flutter and high-frequency Y/C crosstalk.
 
-They are registered in CMake, have standalone smoke tests, and are connected as stages of the shared `VHS90CompositeEngine`. The AE adapter now exposes RF Drift, Mains Hum, AM Nonlinearity, Impulse Noise, RF Ghost Gain, RF Ghost Delay and RF Ghost Ensemble controls.
+They are registered in CMake, have standalone smoke tests, and are connected as stages of the shared `VHS90CompositeEngine`. The AE adapter now exposes RF Drift, Mains Hum, AM Nonlinearity, AGC Pump, Impulse Noise, RF Ghost Gain, RF Ghost Delay, RF Ghost Ensemble, AFC Hunt, Chroma Flutter and Y/C Crosstalk controls.
 
 Previously integrated from this source family or equivalent inspected sources:
 - line jitter / geometry and tape transport via `VHS90AnalogGeometryEngine` and `VHS90TapeTransportEngine`;
@@ -83,18 +84,16 @@ Previously integrated from this source family or equivalent inspected sources:
 ## Remaining Analog-NTSC candidates — not marked complete
 
 These require separate adaptation and regression tests before this repository can be marked fully ported:
-1. AFC hunt's decaying sync-edge shift and occasional cycle slips.
-2. Chroma flutter's line-dependent phase/amplitude jitter and correlated chroma injection.
-3. Y/C crosstalk's high-frequency edge/carrier modulation.
-4. Sync and burst noise coupling into receiver lock behavior.
-5. Sync-gated DC restoration and receiver AGC response around weak/overlapping sync.
-6. Group-delay and multipath interactions should be compared against the raw composite reference, not only the current raster approximation.
+1. Dedicated H-sync, V-sync and burst-noise controls with explicit receiver lock coupling.
+2. Sync-gated DC restoration and receiver AGC response around weak/overlapping sync.
+3. Group-delay and multipath interactions should be compared against the raw composite reference, not only the current raster approximation.
+4. The current AFC/chroma/Y-C ports are raster-space adaptations; waveform-level validation is still needed before calling them numerically identical to the original raw-sample implementation.
 
 The 525/910 sample waveform encoder/decoder itself remains a separate, potentially valuable engine-level upgrade, but must be designed for arbitrary AE frame dimensions, float/HDR, premultiplied alpha, MFR determinism and CPU performance rather than copying the fixed 720×480 RGB24 implementation.
 
 ## Validation status
 
-- The new RF-instability and impulse-noise standalone tests passed their individual GitHub Actions runs.
-- Multipath engine source and standalone smoke test were added; its integration run is in progress/awaiting the latest pipeline CI result.
-- Composite pipeline integration and AE parameter wiring are committed; the most recent complete run must be checked before claiming the whole combined set passes.
+- GitHub Actions run `44598799885` passed 16/16 CTest tests after integrating AFC Hunt, Chroma Flutter and Y/C Crosstalk into the composite pipeline.
+- GitHub Actions run `44598604938` passed 15/15 CTest tests after adding RF Drift, Mains Hum, AM Nonlinearity, Impulse Noise and Multipath Echo, with all corresponding AE controls wired.
+- A further AGC content-drive refinement was committed after those runs; its newest CI run must be checked before claiming that refinement passed.
 - No Windows/MSVC AE build or AE runtime test is claimed.
