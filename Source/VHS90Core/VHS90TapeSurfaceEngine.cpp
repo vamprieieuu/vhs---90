@@ -144,7 +144,7 @@ TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams&p) n
  const double origin=double(p.frame*2)*fieldAdvance+double(along*std::cos(kTrackAngle));
  const float centerY=1.0f+along*std::sin(kTrackAngle);
  const float headWidthMm=p.tapeSpeed==0?0.058f:0.026f;
- const float trackPitchMm=0.556f/float(p.tapeSpeed+1u)*std::sin(kTrackAngle);
+ const float trackPitchMm=float(kAdvancePerFieldMm/double(p.tapeSpeed+1u)*std::sin(kTrackAngle));
  TapeSurfaceSample out{};out.magnetization=0.0f;
  for(int k=0;k<4;++k){
   const float across=-p.trackingOffsetTracks*trackPitchMm+(float(k)-1.5f)*0.25f*headWidthMm;
