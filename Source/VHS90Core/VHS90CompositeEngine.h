@@ -20,6 +20,8 @@ struct CompositeParams {
     float strength = 1.0f;
     CompositePhase phase = CompositePhase::Quadrature90;
     int phaseOffset = 0;
+    bool palMode = false;
+    bool palSwitch = true;
     CompositeDemodulator demodulator = CompositeDemodulator::Box;
     std::int64_t frame = 0;
     bool inputBandwidthEnabled = false;
