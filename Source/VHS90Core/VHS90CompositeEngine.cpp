@@ -120,8 +120,27 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             out[0]=rgb.r; out[1]=rgb.g; out[2]=rgb.b; out[3]=alpha;
         }
 
-        std::vector<float> filtered;
+        std::vector<float> verticalBlended;
+        std::vector<float> smeared;
         ConstImageView decodedView{decoded.data(),w,h,w*4};
+        if(p.verticalChromaBlendEnabled && p.verticalChromaBlendAmount>0.0f) {
+            verticalBlended.resize(count*4);
+            ImageView verticalView{verticalBlended.data(),w,h,w*4};
+            VerticalChromaBlendParams vp;
+            vp.amount=p.verticalChromaBlendAmount;
+            vp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processVerticalChromaBlend(decodedView,verticalView,vp)) return false;
+            decodedView={verticalBlended.data(),w,h,w*4};
+        }
+        if(p.lumaSmearEnabled && p.lumaSmear.strength>0.0f) {
+            smeared.resize(count*4);
+            ImageView smearView{smeared.data(),w,h,w*4};
+            LumaSmearParams lp=p.lumaSmear;
+            lp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processLumaSmear(decodedView,smearView,lp)) return false;
+            decodedView={smeared.data(),w,h,w*4};
+        }
+        std::vector<float> filtered;
         if(p.outputBandwidthEnabled) {
             filtered.resize(count*4);
             ImageView filteredView{filtered.data(),w,h,w*4};
