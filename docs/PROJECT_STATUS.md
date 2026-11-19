@@ -5,42 +5,45 @@ Updated: 2026-11-19
 ## Current state
 
 - Plugin name: VHS-90.
-- The current repository contains source-audit documents and host-independent C++ signal/region kernels.
-- A root CMake project now builds the host-independent CPU core and two smoke tests. No complete Adobe After Effects plugin target exists yet: no build.ps1, no PiPL resource, no AE EffectMain implementation and no AEX build workflow.
-- Therefore there is no test-ready AEX artifact and no claim of AE load/render success.
+- The repository contains scoped audits of the supplied source archive and six host-independent C++ processing modules.
+- An initial native AE host adapter now exists in `Source/VHS90Effect.cpp`, with PiPL identity/flags, an optional Windows/MSVC CMake target, a PiPL generation script and `build.ps1`.
+- The host adapter has not yet been compiled with MSVC against a local AE SDK or loaded in After Effects. There is no verified AEX artifact and no claim of AE load/render success.
 
 ## Work completed in this pass
 
-- Inventoried all 15 bundled GitHub source repositories and wrote scoped source audits for their relevant VHS/NTSC engines.
-- Audited the seven supplied AEX references and their available Ghidra decompilation/metadata.
-- Audited the VHS6RIFT native base, its AE SDK declarations, build scripts, PiPL, tests and documentation drift.
-- Audited all 20 VHS Damage Lab prompt documents and all 19 associated visual references.
-- Audited the supplied font pack metadata and Arabic glyph/shaping coverage.
-- Audited the VHS camera before/after references and the available processed audio stream.
-- Added host-independent C++ signal kernels, generalized multi-region Tracking Noise / Head Switching, procedural static patterns, a YIQ IIR bandwidth filter and a four-phase NTSC composite modem plus a procedural sync-collapse/time-base engine.
+- Inventoried the supplied archive and wrote scoped audits for the supplied C++/C/Rust/GLSL/WGSL repositories and AEX references.
+- Audited the VHS6RIFT native base against the bundled AE SDK declarations, including EffectMain ABI, PF_InData time fields and PiPL/global flag mismatches.
+- Audited all 20 VHS Damage Lab prompt documents and 19 associated visual references.
+- Audited all 15 supplied font files for metadata, cmap coverage and Arabic OpenType shaping features.
+- Audited the VHS camera before/after references and available processed audio stream.
+- Added source-matched RGB↔YIQ conversion, YIQ IIR bandwidth filtering, four-phase NTSC composite encode/decode, procedural static patterns, generalized multi-region Tracking Noise / Head Switching and a procedural sync-collapse/time-base engine.
+- Added an initial AE SmartFX/legacy host adapter with ARGB32/64/128 conversion and basic UI controls for Composite Signal, Sync Collapse, Static, Tracking Noise and Head Switching.
+- Added an optional Windows x64/MSVC AEX target, PiPL resource generation and PowerShell build script. The target searches the local AE SDK tree for PiPLtool.
 
 ## Important VHS6RIFT findings
 
-- VHS6RIFT provides useful YIQ/composite, deterministic-noise and AE build architecture references, but its current source has conflicting exported function declarations, invalid PF_InData time member accesses and PiPL/global flag mismatches.
-- Its fallback PF_* structs do not match the bundled SDK ABI.
+- VHS6RIFT provides useful YIQ/composite, deterministic-noise and AE build architecture references, but its supplied source has conflicting exported function declarations, invalid PF_InData time member accesses and PiPL/global flag mismatches.
+- Its fallback PF_* structs do not match the bundled SDK ABI and must not be used for production compilation.
 - Its three Python scripts pass, but they are static/model checks; the native render harness is not invoked by the build workflow and fails to compile against the fallback declarations.
 - Several documentation files describe later source revisions (112/135/192 parameter slots, NTSC-RS bridge, overlays and CRT modules) that are not present in the supplied 83-slot source snapshot.
 
 ## C++ tests run
 
 - CMake configure/build: PASS for the host-independent VHS90Core static library and all six smoke-test executables.
-- CTest: 6/6 PASS in Release and ASan/UBSan Debug builds.
-- VHS90SignalKernelsSmoke, VHS90RegionEngineSmoke, VHS90StaticEngineSmoke, VHS90IIRFilterSmoke and VHS90CompositeEngineSmoke and VHS90SyncEngineSmoke: PASS under g++ C++17 with ASan/UBSan.
+- CTest: 6/6 PASS in Release and Debug with AddressSanitizer + UndefinedBehaviorSanitizer.
+- Signal-kernel, region, static, IIR, composite-modem and sync-collapse smoke tests all pass under g++ C++17.
 - VHS6RIFT static validator, parameter occurrence audit and Python 14-gate model tests: PASS.
 - VHS6RIFT native harness compile attempt: FAIL, with SDK fallback/ABI/API declaration errors.
 - No Windows/MSVC build or After Effects runtime test has been performed.
 
 ## Next engineering gates
 
-1. Finish the deeper source and reference audits, keeping each source's algorithms and limitations separate.
-2. Build a clean VHS-90 native AE project using exact SDK declarations and verified PiPL flags; do not copy VHS6RIFT's ABI mistakes.
-3. Integrate the signal, region and static kernels into a shared normalized pixel pipeline.
-4. Add 8/16/32-bit adapters, SmartFX checkout, alpha/premultiplication policy and MFR-safe immutable frame context.
-5. Port the highest-value algorithms from Analog NTSC, ntsc-rs, RetroTape, NTSCRT, vhs-phys and Lost Signal in isolated modules.
-6. Build with Windows/MSVC 2022, then validate load/apply/render inside AE 23.2.1.
+1. Compile the new AE host adapter on Windows x64 with MSVC 2022 and the exact AE SDK; fix every compiler/linker/PiPL error.
+2. Verify AE 23.2.1 loads the AEX, applies it, previews, renders, changes parameter values and survives repeated renders/MFR.
+3. Verify SmartFX full-frame checkout and output-region cropping at full resolution, downsampled previews, non-zero origins and cropped/tiled renders.
+4. Verify ARGB32, ARGB64 and ARGB128 output, premultiplied alpha, transparent edges and HDR float values.
+5. Continue porting the high-value source algorithms: full composite sync/burst/AFC/PLL, dropout/blackout/hold, tape-surface defects, OSD/font shaping and Blue Screen mode.
+6. Complete the remaining source/reference audits and connect the modules to unified presets and the final UI.
 7. Compare actual AE renders against the supplied reference clips/stills before marking visual matching complete.
+
+Do not call VHS-90 test-ready until the Windows build and in-host validation gates pass.
