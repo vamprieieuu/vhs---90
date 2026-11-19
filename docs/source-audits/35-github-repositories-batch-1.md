@@ -9,7 +9,7 @@ All tree requests below returned complete recursive Git trees (`truncated=false`
 
 | Archive folder | Matched upstream | Tree entries | Files | Directories | Status |
 |---|---|---:|---:|---:|---|
-| `Analog-NTSC-master` | `kdkd/Analog-NTSC` | 42 | 31 | 11 | Tree + key C++ source inspected |
+| `Analog-NTSC-master` | `kdkd/Analog-NTSC` | 42 | 31 | 11 | Full 31-file inventory and effect-source audit recorded in `36-analog-ntsc-deep-audit.md`; RF drift/hum/AM/AGC, impulse, multipath, AFC, chroma flutter, Y/C crosstalk and sync/burst raster adaptations integrated and tested (16/16). Fixed-raster raw waveform encode/decode/DC restoration remains a separate unported mode, not claimed complete. |
 | `BarashNTSC-0.1.2` | `LittleBlabbit763/BarashNTSC` | 11 | 10 | 1 | Tree + main Python file inspected |
 | `ComfyUI_RetroTape-main` | `SKBv0/ComfyUI_RetroTape` | 29 | 25 | 4 | Tree + CPU/GPU cores inspected |
 | `NTSC-CRT-v.2.3.2` | `LMP88959/NTSC-CRT` | 33 | 32 | 1 | Tree + NTSC/VHS/core C source inspected |
