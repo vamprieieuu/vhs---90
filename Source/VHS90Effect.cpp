@@ -28,6 +28,8 @@ enum ParamIndex {
     PARAM_MULTIPATH_GAIN, PARAM_MULTIPATH_DELAY, PARAM_MULTIPATH_ENSEMBLE,
     PARAM_AFC_HUNT, PARAM_CHROMA_FLUTTER, PARAM_YC_CROSSTALK,
     PARAM_HSYNC_NOISE, PARAM_VSYNC_NOISE, PARAM_BURST_NOISE,
+    PARAM_EDGE_ENHANCE, PARAM_TAPE_FADE, PARAM_GRADE_CONTRAST, PARAM_GRADE_BRIGHTNESS,
+    PARAM_GRADE_SATURATION, PARAM_VIGNETTE, PARAM_FLICKER,
     PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT,
     PARAM_GEOMETRY, PARAM_SCANLINES, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
     PARAM_STATIC_DENSITY, PARAM_STATIC_END, PARAM_TRACKING_TOPIC, PARAM_TRACKING_AMOUNT,
@@ -42,7 +44,9 @@ enum ParamDiskID {
     ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_NOISE, ID_CHROMA_NOISE, ID_COMPOSITE_NOISE, ID_NOISE_HUE, ID_RF_DRIFT, ID_RF_HUM, ID_RF_AM, ID_AGC_PUMP, ID_IMPULSE_NOISE,
     ID_MULTIPATH_GAIN, ID_MULTIPATH_DELAY, ID_MULTIPATH_ENSEMBLE,
     ID_AFC_HUNT, ID_CHROMA_FLUTTER, ID_YC_CROSSTALK,
-    ID_HSYNC_NOISE, ID_VSYNC_NOISE, ID_BURST_NOISE, ID_LUMA_SMEAR, ID_BLOOM,
+    ID_HSYNC_NOISE, ID_VSYNC_NOISE, ID_BURST_NOISE,
+    ID_EDGE_ENHANCE, ID_TAPE_FADE, ID_GRADE_CONTRAST, ID_GRADE_BRIGHTNESS,
+    ID_GRADE_SATURATION, ID_VIGNETTE, ID_FLICKER, ID_LUMA_SMEAR, ID_BLOOM,
     ID_TAPE_SURFACE, ID_TAPE_TRANSPORT, ID_GEOMETRY, ID_SCANLINES, ID_STATIC_TOPIC,
     ID_STATIC_AMOUNT, ID_STATIC_DENSITY, ID_TRACKING_TOPIC, ID_TRACKING_AMOUNT,
     ID_TRACKING_SHAPE, ID_TRACKING_X, ID_TRACKING_Y, ID_TRACKING_WIDTH,
@@ -63,7 +67,9 @@ struct RenderSettings {
     float rfDrift=0, rfHum=0, rfAm=0, agcPump=0, impulseNoise=0;
     float multipathGain=0, multipathDelay=24, multipathEnsemble=0;
     float afcHunt=0, chromaFlutter=0, ycCrosstalk=0;
-    float hsyncNoise=0, vsyncNoise=0, burstNoise=0, lumaSmear=0, bloom=0;
+    float hsyncNoise=0, vsyncNoise=0, burstNoise=0;
+    float edgeEnhance=0, tapeFade=0, gradeContrast=100, gradeBrightness=0, gradeSaturation=100, vignette=0, flicker=0;
+    float lumaSmear=0, bloom=0;
     float tapeSurface=0, tapeTransport=0, geometry=0, scanlines=0;
     float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
@@ -116,6 +122,13 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("H Sync Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_HSYNC_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("V Sync Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VSYNC_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Burst Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BURST_NOISE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Edge Enhancement",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_EDGE_ENHANCE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Fade",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_FADE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Contrast",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_CONTRAST);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Brightness",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_GRADE_BRIGHTNESS);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vignette",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VIGNETTE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Flicker",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FLICKER);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Smear",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_SMEAR);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Bloom / Glow",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BLOOM);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Surface Defects",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE);
@@ -184,6 +197,9 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_YC_CROSSTALK,ycCrosstalk);
     READ_FLOAT(PARAM_HSYNC_NOISE,hsyncNoise); READ_FLOAT(PARAM_VSYNC_NOISE,vsyncNoise);
     READ_FLOAT(PARAM_BURST_NOISE,burstNoise);
+    READ_FLOAT(PARAM_EDGE_ENHANCE,edgeEnhance); READ_FLOAT(PARAM_TAPE_FADE,tapeFade);
+    READ_FLOAT(PARAM_GRADE_CONTRAST,gradeContrast); READ_FLOAT(PARAM_GRADE_BRIGHTNESS,gradeBrightness);
+    READ_FLOAT(PARAM_GRADE_SATURATION,gradeSaturation); READ_FLOAT(PARAM_VIGNETTE,vignette); READ_FLOAT(PARAM_FLICKER,flicker);
     READ_FLOAT(PARAM_LUMA_SMEAR,lumaSmear); READ_FLOAT(PARAM_BLOOM,bloom);
     READ_FLOAT(PARAM_TAPE_SURFACE,tapeSurface); READ_FLOAT(PARAM_TAPE_TRANSPORT,tapeTransport);
     READ_FLOAT(PARAM_GEOMETRY,geometry); READ_FLOAT(PARAM_SCANLINES,scanlines);
@@ -264,7 +280,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool compositeStages=s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.multipathGain>0||s.multipathEnsemble>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
+        const bool compositeStages=s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.multipathGain>0||s.multipathEnsemble>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
         if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
@@ -320,6 +336,16 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             if(s.verticalLuma>0) {
                 p.outputBandwidth.verticalLumaRadiusRows=std::max(1,int(std::lround(s.verticalLuma/100.0f*4.0f)));
                 p.outputBandwidth.verticalLumaSigmaRows=0.6f+s.verticalLuma/100.0f*1.4f;
+            }
+            if(s.edgeEnhance>0||s.tapeFade>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0) {
+                p.imageGradeEnabled=true; p.imageGrade.seed=0x90A11E5Eu; p.imageGrade.frame=s.frame;
+                p.imageGrade.edgeEnhancement=clamp01(s.edgeEnhance/100.0f);
+                p.imageGrade.fade=clamp01(s.tapeFade/100.0f);
+                p.imageGrade.contrast=s.gradeContrast/100.0f;
+                p.imageGrade.brightness=s.gradeBrightness/255.0f;
+                p.imageGrade.saturation=s.gradeSaturation/100.0f;
+                p.imageGrade.vignette=clamp01(s.vignette/100.0f);
+                p.imageGrade.flicker=clamp01(s.flicker/100.0f);
             }
             if(s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0) {
                 p.receiverInstabilityEnabled=true; p.receiverInstability.seed=0x90A11E5Eu; p.receiverInstability.frame=s.frame;
@@ -487,6 +513,13 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.hsyncNoise=float(params[PARAM_HSYNC_NOISE]->u.fs_d.value);
     s.vsyncNoise=float(params[PARAM_VSYNC_NOISE]->u.fs_d.value);
     s.burstNoise=float(params[PARAM_BURST_NOISE]->u.fs_d.value);
+    s.edgeEnhance=float(params[PARAM_EDGE_ENHANCE]->u.fs_d.value);
+    s.tapeFade=float(params[PARAM_TAPE_FADE]->u.fs_d.value);
+    s.gradeContrast=float(params[PARAM_GRADE_CONTRAST]->u.fs_d.value);
+    s.gradeBrightness=float(params[PARAM_GRADE_BRIGHTNESS]->u.fs_d.value);
+    s.gradeSaturation=float(params[PARAM_GRADE_SATURATION]->u.fs_d.value);
+    s.vignette=float(params[PARAM_VIGNETTE]->u.fs_d.value);
+    s.flicker=float(params[PARAM_FLICKER]->u.fs_d.value);
     s.noiseHue=float(params[PARAM_NOISE_HUE]->u.fs_d.value);
     s.lumaSmear=float(params[PARAM_LUMA_SMEAR]->u.fs_d.value);
     s.bloom=float(params[PARAM_BLOOM]->u.fs_d.value);
