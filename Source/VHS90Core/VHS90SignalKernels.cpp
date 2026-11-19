@@ -107,7 +107,7 @@ bool processChromaSubsample(ConstImageView src,ImageView dst,
         return true;
     }
     try {
-        std::vector<float> lowI(std::size_t(cw)*ch,0.0f),lowQ(lowI.size(),0.0f),coverage(lowI.size(),0.0f);
+        std::vector<float> lowI(std::size_t(cw)*ch,0.0f),lowQ(lowI.size(),0.0f);
         for(int cy=0;cy<ch;++cy) for(int cx=0;cx<cw;++cx) {
             float si=0.0f,sq=0.0f,sa=0.0f;
             for(int yy=cy*sy;yy<std::min(h,(cy+1)*sy);++yy) {
@@ -122,7 +122,6 @@ bool processChromaSubsample(ConstImageView src,ImageView dst,
                 }
             }
             const std::size_t k=std::size_t(cy)*cw+cx;
-            coverage[k]=sa;
             if(sa>1.0e-6f) { lowI[k]=si/sa;lowQ[k]=sq/sa; }
         }
         const int radius=std::clamp(int(std::ceil(p.blurRadius)),0,24);
