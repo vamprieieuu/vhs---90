@@ -15,6 +15,7 @@ Files added:
 - Arbitrary X/Y placement, width/height, feather, intensity, motion vector and speed.
 - Row-correlated horizontal tracking jitter, wave displacement and head-switch tearing.
 - Independent noise density, noise amplitude, dropout probability/amount and chroma shift.
+- Smooth deterministic servo drift interpolated along scanlines, plus independently controlled segmented tracking tears and tear displacement.
 - Deterministic per-region random streams using seed, region index, frame and cell coordinates.
 - Full-frame HeadSwitch coverage by setting region width/height to 1.0 and feather as desired.
 - Preserved alpha with a premultiplied-alpha path that re-associates displaced RGB to the destination pixel's alpha.
