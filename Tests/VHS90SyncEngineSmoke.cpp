@@ -25,6 +25,12 @@ int main() {
     roll.enableTrackingLine=false; roll.syncEventProbability=1.0f; roll.syncRollStrength=0.4f;
     std::vector<float> rolled(src.size()); ImageView dr{rolled.data(),w,h,w*4};
     assert(processSyncCollapse(si,dr,roll)); assert(rolled!=src);
+    // The rolled raster wraps: the bottom row must sample near the top,
+    // not clamp to and smear the source's final row.
+    const float wrappedTop=rolled[(0*w+24)*4+1];
+    const float wrappedBottom=rolled[((h-1)*w+24)*4+1];
+    assert(wrappedTop>0.05f && wrappedTop<0.20f);
+    assert(wrappedBottom>0.04f && wrappedBottom<0.18f);
     std::vector<float> semi=src,semiOut(src.size());
     for(size_t i=0;i<semi.size();i+=4) { semi[i]*=0.3f; semi[i+1]*=0.3f; semi[i+2]*=0.3f; semi[i+3]=0.3f; }
     ConstImageView ssi{semi.data(),w,h,w*4}; ImageView sso{semiOut.data(),w,h,w*4};
