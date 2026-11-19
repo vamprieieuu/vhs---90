@@ -315,7 +315,8 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             p.waveformCompositeEnabled=(s.signalModel==2 && s.colorSystem==1);
             if(!previousPixels.empty() && s.temporalGhost>0) {
                 p.temporalGhostEnabled=true;
-                p.previousProcessedFrame={previousPixels.data(),w,h,w*4};
+                p.previousFrame={previousPixels.data(),w,h,w*4};
+                p.previousFrameIndex=s.frame-1;
                 p.temporalGhost.amount=clamp01(s.temporalGhost/100.0f)*0.35f;
                 p.temporalGhost.lumaAmount=1.0f;
                 p.temporalGhost.chromaAmount=0.8f;
@@ -400,7 +401,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.outputBandwidth.verticalLumaRadiusRows=std::max(1,int(std::lround(s.verticalLuma/100.0f*4.0f)));
                 p.outputBandwidth.verticalLumaSigmaRows=0.6f+s.verticalLuma/100.0f*1.4f;
             }
-            if(s.edgeEnhance>0||s.tapeFade>0||s.temporalGhost>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0) {
+            if(s.edgeEnhance>0||s.tapeFade>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0) {
                 p.imageGradeEnabled=true; p.imageGrade.seed=0x90A11E5Eu; p.imageGrade.frame=s.frame;
                 p.imageGrade.edgeEnhancement=clamp01(s.edgeEnhance/100.0f);
                 p.imageGrade.fade=clamp01(s.tapeFade/100.0f);
