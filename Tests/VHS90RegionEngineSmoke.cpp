@@ -78,7 +78,14 @@ int main() {
 
     // Servo drift profiles crossfade between deterministic epochs instead of
     // re-randomizing the entire row profile on every frame.
-    DamageRegion servo=full;
+    std::vector<float> servoSource(src.size(),0.0f);
+    for(int yy=0;yy<h;++yy) for(int xx=0;xx<w;++xx) {
+        const size_t ii=(yy*w+xx)*4;
+        servoSource[ii]=float(xx)/float(w-1); servoSource[ii+1]=0.25f;
+        servoSource[ii+2]=1.0f-float(xx)/float(w-1); servoSource[ii+3]=1.0f;
+    }
+    ConstImageView servoInput{servoSource.data(),w,h,w*4};
+    DamageRegion servo=full; servo.kind=RegionKind::TrackingNoise;
     servo.maxShiftPx=0.0f; servo.waveAmplitudePx=0.0f; servo.servoDriftPx=18.0f;
     servo.servoSmoothnessPx=10.0f; servo.servoEpochFrames=8;
     servo.tearProbability=0.0f; servo.dropoutProbability=0.0f;
@@ -88,10 +95,11 @@ int main() {
     RegionEngineParams servoB=servoA; servoB.frame=21;
     std::vector<float> servoOutA(src.size(),0.0f),servoOutB(src.size(),0.0f);
     ImageView servoViewA{servoOutA.data(),w,h,w*4},servoViewB{servoOutB.data(),w,h,w*4};
-    assert(processDamageRegions(si,servoViewA,servoA));
-    assert(processDamageRegions(si,servoViewB,servoB));
+    assert(processDamageRegions(servoInput,servoViewA,servoA));
+    assert(processDamageRegions(servoInput,servoViewB,servoB));
     float servoDelta=0.0f;
     for(size_t i=0;i<servoOutA.size();i+=4) servoDelta+=std::fabs(servoOutA[i]-servoOutB[i]);
+    assert(servoDelta>0.0f);
     assert(servoDelta<static_cast<float>(w*h)*0.20f);
 
     // Signed chroma displacement must work in both directions.
