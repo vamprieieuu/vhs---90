@@ -70,7 +70,7 @@ bool processStaticPattern(ConstImageView src,ImageView dst,
             const RGB srcPixel=readSource(src,x,y);
             RGB out=srcPixel;
             if(alpha>0.0f) {
-                if(intensity<=0.0f || (weight<=0.0f && sourceMix>=1.0f && !blackout)) {
+                if(intensity<=0.0f || ((weight<=0.0f || p.density<=0.0f) && sourceMix>=1.0f && !blackout)) {
                     float* dstPixel=dst.rgba+y*dst.rowStrideFloats+x*4;
                     dstPixel[0]=srcPixel.r; dstPixel[1]=srcPixel.g; dstPixel[2]=srcPixel.b; dstPixel[3]=alpha;
                     continue;
