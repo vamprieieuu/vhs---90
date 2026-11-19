@@ -25,4 +25,9 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  assert(physicalA.magnetization!=physicalC.magnetization||physicalA.spacingLift!=physicalC.spacingLift||physicalA.film!=physicalC.film);
  const auto spSample=sampleTapeSurface(.31f,.42f,p);TapeSurfaceParams ep=p;ep.tapeSpeed=2;const auto epSample=sampleTapeSurface(.31f,.42f,ep);
  assert(spSample.magnetization!=epSample.magnetization||spSample.spacingLift!=epSample.spacingLift||spSample.film!=epSample.film);
+ TapeSurfaceParams detailParams=p;detailParams.pinholeAmount=1.0f;detailParams.scratchDensity=4.0f;detailParams.flakeAmount=1.0f;
+ bool detailChanges=false,flakeChanges=false;
+ for(int n=0;n<400&&!detailChanges;++n){const double xx=double(n)*0.37;const auto full=sampleTapeSurfaceAtMm(xx,4.25f,detailParams,true,true),coarse=sampleTapeSurfaceAtMm(xx,4.25f,detailParams,false,true);detailChanges=full.magnetization!=coarse.magnetization||full.spacingLift!=coarse.spacingLift;}
+ for(int n=0;n<400&&!flakeChanges;++n){const double xx=double(n)*0.37;const auto full=sampleTapeSurfaceAtMm(xx,4.25f,detailParams,false,true),noFlakes=sampleTapeSurfaceAtMm(xx,4.25f,detailParams,false,false);flakeChanges=full.shed!=noFlakes.shed||full.magnetization!=noFlakes.magnetization;}
+ assert(detailChanges&&flakeChanges);
  return 0;}
