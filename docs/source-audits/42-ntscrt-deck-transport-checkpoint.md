@@ -43,5 +43,5 @@ Likewise, `VHS90TapeTransportEngine` is a row-warp approximation and does not ye
 ## Validation
 
 - New smoke test added for deterministic output, zero-amount bypass, and alpha preservation.
-- GitHub Actions Core CI was triggered by the integration commit; its result must be checked before this checkpoint is treated as validated.
+- GitHub Actions Core CI run `44618422359` completed successfully: Windows-independent Linux core build succeeded and **27/27 CTest tests passed**, including `VHS90HeadConditionEngineSmoke`.
 - No Windows/MSVC AE SDK build or live After Effects runtime/MFR test is claimed.
