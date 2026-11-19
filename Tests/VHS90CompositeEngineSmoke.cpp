@@ -61,6 +61,13 @@ int main() {
     chromaShift.chromaChannelShiftEnabled=true;chromaShift.chromaChannelShift.shiftPixels=3.0f;
     assert(processCompositeRoundTrip(si,chromaShiftOnlyView,chromaShift));assert(chromaShiftOnly!=src);
 
+    // Per-scanline chroma loss is an independent post-decode stage.
+    std::vector<float> chromaLossOnly(src.size());
+    ImageView chromaLossOnlyView{chromaLossOnly.data(),w,h,w*4};
+    CompositeParams cl=p;cl.compositeSignalStrength=0.0f;cl.inputBandwidthEnabled=false;cl.outputBandwidthEnabled=false;
+    cl.chromaLossEnabled=true;cl.chromaLoss.amount=1.0f;cl.chromaLoss.seed=31;cl.chromaLoss.frame=8;
+    assert(processCompositeRoundTrip(si,chromaLossOnlyView,cl));assert(chromaLossOnly!=src);
+
     // ComfyUI RetroTape ringing is integrated before composite modulation.
     std::vector<float> ringOnly(src.size());
     ImageView ringOnlyView{ringOnly.data(),w,h,w*4};
