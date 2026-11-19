@@ -1,0 +1,156 @@
+#include "VHS90StaticEngine.h"
+#include <algorithm>
+#include <cmath>
+
+namespace vhs90 {
+namespace {
+inline float clamp01(float v) noexcept { return std::max(0.0f, std::min(1.0f, v)); }
+inline float smooth01(float t) noexcept { t=clamp01(t); return t*t*(3.0f-2.0f*t); }
+inline float lerp(float a,float b,float t) noexcept { return a+(b-a)*t; }
+inline float hashCell(int x,int y,std::uint32_t seed,std::int64_t tick) noexcept {
+    return hash01(static_cast<std::uint32_t>(x),static_cast<std::uint32_t>(y),seed,tick);
+}
+inline RGB readSource(ConstImageView src,int x,int y) noexcept {
+    const float* p=src.rgba+y*src.rowStrideFloats+x*4;
+    return {p[0],p[1],p[2]};
+}
+inline float readAlpha(ConstImageView src,int x,int y) noexcept {
+    return src.rgba[y*src.rowStrideFloats+x*4+3];
+}
+inline float patternWeight(const StaticParams& p,float v) noexcept {
+    switch(p.mode) {
+        case StaticPatternMode::TopStrip: {
+            const float h=clamp01(p.topBandHeight);
+            if(h<=0.0f) return 0.0f;
+            return 1.0f-smooth01((v-h)/std::max(0.0001f,h*0.12f));
+        }
+        case StaticPatternMode::BottomWeightedStreaks:
+            return std::pow(clamp01(v),std::max(0.1f,p.bottomExponent));
+        case StaticPatternMode::SplitBandChromatic:
+            return 1.0f;
+        default: return 1.0f;
+    }
+}
+inline float horizontalSignal(int cellX,int cellY,const StaticParams& p,std::int64_t tick) noexcept {
+    const float rowEvent=hashCell(0,cellY,p.seed+0x68bc21ebu,tick);
+    const float cellEvent=hashCell(cellX,cellY,p.seed,tick);
+    const float rowValue=(hashCell(0,cellY+31,p.seed+0x85ebca6bu,tick)-0.5f)*2.0f;
+    const float fragment=(hashCell(cellX+17,cellY+73,p.seed+0xc2b2ae35u,tick)-0.5f)*2.0f;
+    if(rowEvent<clamp01(p.density)*0.18f) return rowValue;
+    if(cellEvent<clamp01(p.density)) return fragment;
+    return 0.0f;
+}
+}
+
+bool processStaticPattern(ConstImageView src,ImageView dst,
+                          const StaticParams& p) noexcept {
+    if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||
+       dst.width!=src.width||dst.height!=src.height||
+       src.rowStrideFloats<src.width*4||dst.rowStrideFloats<dst.width*4||
+       src.rgba==dst.rgba) return false;
+
+    const std::int64_t tick=p.animated
+        ? static_cast<std::int64_t>(std::floor(static_cast<double>(p.frame)*std::max(0.0f,p.animationSpeed)))
+        : 0;
+    const int cell=std::max(1,static_cast<int>(std::lround(std::max(0.25f,p.cellSizePx))));
+    const int streak=std::max(1,static_cast<int>(std::lround(std::max(1.0f,p.streakLengthPx))));
+    const int blackoutFrames=std::max(1,p.blackoutDurationFrames);
+    const std::int64_t blackoutTick=p.animated ? p.frame/blackoutFrames : 0;
+    const bool blackout=p.mode==StaticPatternMode::StaticToBlackout &&
+        hashCell(static_cast<int>(blackoutTick),0,p.seed+0x27d4eb2fu,0)<clamp01(p.blackoutProbability);
+    const float frameFlicker=1.0f-clamp01(p.flicker)*hashCell(0,0,p.seed+0x165667b1u,tick);
+    const float sourceMix=clamp01(p.sourceMix);
+    const float intensity=clamp01(p.intensity);
+
+    for(int y=0;y<src.height;++y) {
+        const float v=(float(y)+0.5f)/float(src.height);
+        const float weight=patternWeight(p,v);
+        for(int x=0;x<src.width;++x) {
+            const float alpha=readAlpha(src,x,y);
+            const RGB srcPixel=readSource(src,x,y);
+            RGB out=srcPixel;
+            if(alpha>0.0f) {
+                if(intensity<=0.0f && !blackout) {
+                    float* dstPixel=dst.rgba+y*dst.rowStrideFloats+x*4;
+                    dstPixel[0]=srcPixel.r; dstPixel[1]=srcPixel.g; dstPixel[2]=srcPixel.b; dstPixel[3]=alpha;
+                    continue;
+                }
+                const int cx=x/cell;
+                const int cy=y/cell;
+                const float horizontal=horizontalSignal(x/streak,cy,p,tick);
+                const float speckle=hashCell(cx,cy,p.seed+0x9e3779b9u,tick)<clamp01(p.density)
+                    ? (hashCell(cx+19,cy+11,p.seed+0x85ebca6bu,tick)-0.5f)*2.0f : 0.0f;
+                float lumaNoise=0.0f;
+                float chromaI=0.0f;
+                float chromaQ=0.0f;
+
+                switch(p.mode) {
+                    case StaticPatternMode::DarkFieldSpeckles:
+                        lumaNoise=speckle*p.lumaAmount;
+                        chromaI=(hashCell(cx+7,cy+3,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*2.0f;
+                        chromaQ=(hashCell(cx+13,cy+5,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*2.0f;
+                        break;
+                    case StaticPatternMode::MonochromeStreaks:
+                        lumaNoise=horizontal*p.lumaAmount;
+                        break;
+                    case StaticPatternMode::SplitBandChromatic:
+                        if(v<p.splitPosition) {
+                            lumaNoise=horizontal*p.lumaAmount;
+                            chromaI=(hashCell(cx+3,cy+9,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*2.0f;
+                            chromaQ=(hashCell(cx+17,cy+5,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*2.0f;
+                        } else {
+                            const int column=x/cell;
+                            const int segment=y/streak;
+                            const float verticalEvent=hashCell(column,segment,p.seed+0x243f6a88u,tick);
+                            if(verticalEvent<clamp01(p.density)) {
+                                lumaNoise=(hashCell(column+5,segment+13,p.seed+0xb7e15162u,tick)-0.5f)*p.lumaAmount*2.0f;
+                                chromaI=(hashCell(column+11,segment+3,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*2.0f;
+                                chromaQ=(hashCell(column+19,segment+7,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*2.0f;
+                            }
+                        }
+                        break;
+                    case StaticPatternMode::TopStrip:
+                    case StaticPatternMode::BottomWeightedStreaks:
+                    case StaticPatternMode::FullFrameHorizontal:
+                    case StaticPatternMode::StaticToBlackout:
+                    default:
+                        lumaNoise=horizontal*p.lumaAmount;
+                        chromaI=(hashCell(cx+23,cy+2,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*2.0f;
+                        chromaQ=(hashCell(cx+29,cy+4,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*2.0f;
+                        break;
+                }
+
+                const RGB generatedBase{p.baseLuma,p.baseLuma,p.baseLuma};
+                RGB straightSource=srcPixel;
+                if(p.premultipliedAlpha && alpha>1.0e-6f) {
+                    straightSource.r/=alpha; straightSource.g/=alpha; straightSource.b/=alpha;
+                }
+                RGB base{lerp(generatedBase.r,straightSource.r,sourceMix),
+                         lerp(generatedBase.g,straightSource.g,sourceMix),
+                         lerp(generatedBase.b,straightSource.b,sourceMix)};
+                const float noiseWeight=weight*intensity*frameFlicker;
+                if(noiseWeight>0.0f) {
+                    YIQ q=rgbToYiq(base);
+                    q.y+=lumaNoise*noiseWeight;
+                    q.i+=chromaI*noiseWeight;
+                    q.q+=chromaQ*noiseWeight;
+                    out=yiqToRgb(q);
+                } else {
+                    out=base;
+                }
+
+                if(blackout) {
+                    out.r=0.0f; out.g=0.0f; out.b=0.0f;
+                }
+                if(p.premultipliedAlpha) {
+                    out.r*=alpha; out.g*=alpha; out.b*=alpha;
+                }
+            }
+            float* dstPixel=dst.rgba+y*dst.rowStrideFloats+x*4;
+            dstPixel[0]=out.r; dstPixel[1]=out.g; dstPixel[2]=out.b; dstPixel[3]=alpha;
+        }
+    }
+    return true;
+}
+
+} // namespace vhs90
