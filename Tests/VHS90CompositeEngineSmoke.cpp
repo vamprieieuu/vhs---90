@@ -47,6 +47,15 @@ int main() {
     assert(processCompositeRoundTrip(si,d2,pp));
     assert(one!=two);
 
+    std::vector<float> chromaComposite(src.size());
+    ImageView chromaCompositeView{chromaComposite.data(),w,h,w*4};
+    CompositeParams chromaStage=p;chromaStage.chromaSubsampleEnabled=true;
+    chromaStage.chromaSubsample.horizontalFactor=2;chromaStage.chromaSubsample.verticalFactor=2;
+    chromaStage.chromaSubsample.amount=1.0f;chromaStage.chromaSubsample.blurRadius=1.5f;
+    assert(processCompositeRoundTrip(si,chromaCompositeView,chromaStage));
+    assert(chromaComposite!=boxOut);
+    for(size_t i=3;i<chromaComposite.size();i+=4)assert(std::fabs(chromaComposite[i]-1.0f)<1e-6f);
+
     std::vector<float> transportComposite(src.size()),surfaceComposite(src.size()),bothComposite(src.size());
     ImageView tcv{transportComposite.data(),w,h,w*4}, scv{surfaceComposite.data(),w,h,w*4}, bcv{bothComposite.data(),w,h,w*4};
     CompositeParams physical=p; physical.tapeTransportEnabled=true; physical.tapeTransport.frame=4;
