@@ -20,4 +20,12 @@ See [Source Audit Index](docs/source-audits/INDEX.md) for the audits of the supp
 
 ## Build status
 
-No root CMake project, PiPL resource, AE entry point or Windows build workflow exists yet. Do not treat the standalone C++ smoke tests as an AE plugin build or runtime test.
+Build and run the host-independent CPU tests:
+
+```powershell
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+ctest --test-dir build -C Release --output-on-failure
+```
+
+Root CMake currently builds the host-independent CPU core and smoke tests only. It does not yet build an AEX: PiPL, AE entry point and Windows plugin target are still pending. Do not treat the standalone C++ tests as an AE plugin build or runtime test.
