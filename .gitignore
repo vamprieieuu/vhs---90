@@ -11,3 +11,6 @@ out/
 CMakeFiles/
 CMakeCache.txt
 Testing/
+
+# Native build output
+dist/
