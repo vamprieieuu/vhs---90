@@ -49,6 +49,7 @@ Additional edits connect these engines to `VHS90CompositeEngine`, add their smok
 ## Verification boundary
 
 - At commit `419f4adbea2638643085737416b562f6aea6ffe8`, GitHub Actions run `44600396446` built the core and passed **18/18 CTest tests**, including composite integration of Tape Detail and the standalone detail test.
-- Core CI run `44602045505` passed 20/20 tests, including the tape-detail and waveform paths; this run does not compile the AE adapter.
-- Latest static AE parameter audit after adding the previous-frame ghost control: 67 real parameter slots and 67 `PF_ADD_*` calls.
-- The Barash repository inventory and portable algorithm migration are complete at source level. Previous-frame ghost SmartFX checkout is wired, but it remains unverified in a Windows/MSVC build and live AE/MFR session.
+- Core CI run `44602045505` passed 20/20 tests, including the tape-detail and waveform paths.
+- GitHub Actions run `44602823951` at commit `fdeb1df2c5b7af7a568710e15e9530df1ab1cf6b` passed **20/20 CTest tests** after connecting previous-frame ghosting to the recursive composite pipeline.
+- Static AE parameter audit: **67 real parameter slots and 67 `PF_ADD_*` calls**.
+- Previous-frame ghost uses a second SmartFX checkout ID, explicit previous-time checkout and per-render pixel checkout/checkin. No global frame cache is used. The previous frame is run through the same composite pipeline before ghost mixing. Windows/MSVC AE build and live AE/MFR validation remain unverified.
