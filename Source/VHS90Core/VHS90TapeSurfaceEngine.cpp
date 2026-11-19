@@ -59,17 +59,17 @@ inline bool valid(ConstImageView s,ImageView d) noexcept {
 }
 inline bool inactive(const TapeSurfaceParams&p) noexcept { return p.defectDensity<=0.0f&&p.edgeLift<=0.0f&&p.surfaceRoughness<=0.0f&&p.oxideLoss<=0.0f&&p.scratchDensity<=0.0f&&p.creaseStrength<=0.0f&&p.moldAmount<=0.0f&&p.vaselineAmount<=0.0f&&p.pinholeAmount<=0.0f&&p.flakeAmount<=0.0f; }
 }
-TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfaceParams&p) noexcept {
+TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfaceParams&p,bool detail,bool flakes) noexcept {
  const PhysicalPosition pos=makePosition(xMm,y);const std::uint32_t s=p.seed;
  const float wear=std::clamp(p.oxideLoss,0.0f,1.85f),drop=std::clamp(p.defectDensity,0.0f,3.0f);
  const float scratches=std::clamp(p.scratchDensity,0.0f,4.0f),creases=std::clamp(p.creaseStrength,0.0f,5.0f);
  const float edge=std::clamp(p.edgeLift,0.0f,1.45f),mold=std::clamp(p.moldAmount,0.0f,1.0f);
  const float vas=std::clamp(p.vaselineAmount,0.0f,1.0f),sticky=std::clamp(p.debrisAmount,0.0f,1.0f);
- TapeSurfaceSample o;o.magnetization=std::pow(10.0f,-wear*10.0f/20.0f);o.roughness=0.015f+0.1f*wear;o.shed=0.02f*wear+0.9f*sticky*sticky;
+ TapeSurfaceSample o;o.magnetization=std::pow(10.0f,-wear*10.0f/20.0f);o.roughness=0.015f+0.1f*wear;o.spacingLift=o.roughness;o.shed=0.02f*wear+0.9f*sticky*sticky;
  const auto [c5,f5]=cell(pos,5);const float yy=y*10.0f;const auto cy=static_cast<std::int32_t>(std::floor(yy));
  o.magnetization*=1.0f+(0.04f+0.1f*wear)*(2.0f*noise2(s,1,c5,f5,cy,yy-float(cy))-1.0f);
  const float pin=std::clamp(p.pinholeAmount>0?p.pinholeAmount:(0.05f+6.0f*drop+2.0f*wear)*0.01f,0.0f,1.0f);
- if(pin>0){const auto [cx,fx]=cell(pos,1);(void)fx;const auto py=static_cast<std::int32_t>(std::floor(y*10.0f));
+ if(detail&&pin>0){const auto [cx,fx]=cell(pos,1);(void)fx;const auto py=static_cast<std::int32_t>(std::floor(y*10.0f));
   for(int j=-1;j<=1;++j)for(int i=-1;i<=1;++i){const auto ci=cx+i,cj=py+j;if(uni(s,11,ci,cj)>=pin)continue;
    const float ddx=dx(pos,ci,1,uni(s,12,ci,cj))*0.1f,ddy=(float(cj)+uni(s,13,ci,cj))*0.1f-y;
    const float r=0.003f*std::pow(15.0f,uni(s,14,ci,cj)*uni(s,14,ci,cj)),d=std::sqrt(ddx*ddx+ddy*ddy);
@@ -77,7 +77,7 @@ TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfacePara
   }
  }
  const float flake=std::clamp(p.flakeAmount>0?p.flakeAmount:0.001f+0.6f*drop*drop+0.06f*wear+0.06f*mold,0.0f,1.0f);
- if(flake>0){const auto [cx,fx]=cell(pos,10);(void)fx;const auto py=static_cast<std::int32_t>(std::floor(y));
+ if(flakes&&flake>0){const auto [cx,fx]=cell(pos,10);(void)fx;const auto py=static_cast<std::int32_t>(std::floor(y));
   for(int j=-1;j<=1;++j)for(int i=-1;i<=1;++i){const auto ci=cx+i,cj=py+j;if(uni(s,21,ci,cj)>=flake)continue;
    const float ddx=dx(pos,ci,10,uni(s,22,ci,cj))*0.1f,ddy=float(cj)+uni(s,23,ci,cj)-y,u=uni(s,24,ci,cj);
    const float r=0.04f*std::pow(8.0f,u*u)*(1.0f+0.6f*std::max(0.0f,drop-1.0f));
@@ -85,7 +85,7 @@ TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfacePara
    if(d<r*1.5f){o.magnetization*=smoothstep(r*0.8f,r,d);o.shed+=0.5f*(1.0f-smoothstep(r,r*1.5f,d));o.spacingLift+=0.15f*(1.0f-smoothstep(r,r*1.5f,d));}
   }
  }
- if(scratches>0){const auto lane=static_cast<std::int32_t>(std::floor(y*4.0f));const auto [sx,fx]=cell(pos,3000);const auto [c80,f80]=cell(pos,80);const auto [c15,f15]=cell(pos,15);const auto [c200,f200]=cell(pos,200);const auto [c120,f120]=cell(pos,120);
+ if(detail&&scratches>0){const auto lane=static_cast<std::int32_t>(std::floor(y*4.0f));const auto [sx,fx]=cell(pos,3000);const auto [c80,f80]=cell(pos,80);const auto [c15,f15]=cell(pos,15);const auto [c200,f200]=cell(pos,200);const auto [c120,f120]=cell(pos,120);
   for(int l=-1;l<=1;++l){const auto li=lane+l;if(uni(s,31,li,sx)>=scratches*0.3f)continue;const float a=uni(s,32,li,sx),b=uni(s,33,li,sx);if(fx<std::min(a,b)*0.6f||fx>0.4f+std::max(a,b)*0.6f)continue;
    const auto ss=s^std::uint32_t(li)*0x9E3779B9u^std::uint32_t(sx)*0x85EBCA6Bu;
    const float weave=0.03f*(2*noise1(ss,37,c80,f80)-1)+0.012f*(2*noise1(ss,38,c15,f15)-1);
@@ -125,18 +125,21 @@ TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfacePara
 TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams&p) noexcept {
  // Raster rows advance along the helical track; horizontal samples move
  // through the recorded NTSC line. This is TapeGeometry::along_track/point.
- const float along=v*kTrackLengthMm+((kActiveStartUs+u*kActiveLengthUs)/kLinePeriodUs)*kLineLengthMm;
+ const float totalLines=float(std::max(1,p.rasterActiveLines+p.rasterVbiLines));
+ const float fieldLine=(float(p.rasterVbiLines)+v*float(std::max(1,p.rasterActiveLines)))/totalLines;
+ const float along=fieldLine*kTrackLengthMm+((kActiveStartUs+u*kActiveLengthUs)/kLinePeriodUs)*kLineLengthMm;
  const double fieldAdvance=kAdvancePerFieldMm/double(p.tapeSpeed+1u);
  const double x=double(p.frame*2)*fieldAdvance+double(along*std::cos(kTrackAngle));
  const float y=1.0f+along*std::sin(kTrackAngle);
- return sampleTapeSurfaceAtMm(x,y,p);
+ return sampleTapeSurfaceAtMm(x,y,p,true,true);
 }
 bool processTapeSurface(ConstImageView src,ImageView dst,const TapeSurfaceParams&p) noexcept {
  if(!valid(src,dst))return false;
  if(inactive(p)){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
+ TapeSurfaceParams mapParams=p;mapParams.rasterActiveLines=src.height;mapParams.rasterVbiLines=std::max(12,int(std::lround(float(src.height)*20.0f/242.5f)));
  for(int y=0;y<src.height;++y){const float v=(float(y)+0.5f)/float(src.height);const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
   for(int x=0;x<src.width;++x){const float*px=sr+x*4;float*out=dr+x*4;const float a=px[3];if(a<=1e-6f){std::copy_n(px,4,out);continue;}
-   const float u=(float(x)+0.5f)/float(src.width);const auto d=sampleTapeSurface(u,v,p);
+   const float u=(float(x)+0.5f)/float(src.width);const auto d=sampleTapeSurface(u,v,mapParams);
    RGB rgb{px[0],px[1],px[2]};if(p.premultipliedAlpha){rgb.r/=a;rgb.g/=a;rgb.b/=a;}
    YIQ q=rgbToYiq(rgb);const float mag=d.magnetization*(1.0f-std::clamp(d.creaseLoss,0.0f,1.0f));
    const float spacingUm=std::clamp(d.spacingLift+d.film,0.0f,8.0f),headGapUm=1.0f,writingSpeed=5.8f;
