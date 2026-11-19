@@ -20,12 +20,12 @@ Default NTSC-style parameters: sample rate 14.3181818 MHz, I cutoff 1.3 MHz, Q c
 
 ## YIQ matrix correction
 
-During filter tests, the earlier YIQ conversion was found to be the transpose of the standard YIQ transform. Round-trip-only testing had not exposed this because the two transposed matrices were mutual inverses. Corrected rgbToYiq/yiqToRgb to the standard matrix and added a neutral-gray assertion (Y=gray, I=0, Q=0).
+During filter tests, the earlier YIQ conversion was found to be the transpose of the standard YIQ transform. Round-trip-only testing had not exposed this because the two transposed matrices were mutual inverses. Corrected rgbToYiq/yiqToRgb to the ntsc-rs column-major YIQ matrix coefficients (0.299/0.587/0.114 luma; 0.5959/-0.2746/-0.3213 I; 0.2115/-0.5227/0.3112 Q) and its matching inverse coefficients. Added a neutral-gray assertion (Y=gray, I=0, Q=0).
 
 ## Local C++ verification
 
 - CMake configure/build: PASS.
-- CTest: 4/4 PASS (signal kernels, region engine, static engine, YIQ IIR filter).
+- CTest: 4/4 PASS in both Release and ASan/UBSan Debug builds (signal kernels, region engine, static engine, YIQ IIR filter).
 - YIQ IIR test under AddressSanitizer and UndefinedBehaviorSanitizer: PASS.
 - Alternating red/blue high-frequency chroma is attenuated by the I/Q low-pass filters.
 - Grayscale remains neutral; constant input remains stable with FirstSample initialization.
