@@ -5,6 +5,7 @@ struct AnalogNoiseParams {
     float lumaAmount=0.0f;
     float chromaAmount=0.0f;
     float compositeAmount=0.0f;
+    float chromaLoss=0.0f;
     float hueBiasDegrees=0.0f;
     int lumaCellWidth=2,lumaCellHeight=2;
     int chromaCellWidth=4,chromaCellHeight=4;
