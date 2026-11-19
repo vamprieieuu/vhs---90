@@ -23,6 +23,7 @@ namespace {
 enum ParamIndex {
     PARAM_INPUT=0, PARAM_MASTER, PARAM_SIGNAL_TOPIC, PARAM_COMPOSITE_AMOUNT,
     PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
+    PARAM_LUMA_NOISE, PARAM_CHROMA_NOISE, PARAM_COMPOSITE_NOISE, PARAM_NOISE_HUE,
     PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT,
     PARAM_GEOMETRY, PARAM_SCANLINES, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
     PARAM_STATIC_DENSITY, PARAM_STATIC_END, PARAM_TRACKING_TOPIC, PARAM_TRACKING_AMOUNT,
@@ -34,7 +35,7 @@ enum ParamIndex {
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE,
-    ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_SMEAR, ID_BLOOM,
+    ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_NOISE, ID_CHROMA_NOISE, ID_COMPOSITE_NOISE, ID_NOISE_HUE, ID_LUMA_SMEAR, ID_BLOOM,
     ID_TAPE_SURFACE, ID_TAPE_TRANSPORT, ID_GEOMETRY, ID_SCANLINES, ID_STATIC_TOPIC,
     ID_STATIC_AMOUNT, ID_STATIC_DENSITY, ID_TRACKING_TOPIC, ID_TRACKING_AMOUNT,
     ID_TRACKING_SHAPE, ID_TRACKING_X, ID_TRACKING_Y, ID_TRACKING_WIDTH,
@@ -49,7 +50,8 @@ static char kColorSystemChoices[]="NTSC|PAL";
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35;
     A_long colorSystem=1;
-    float chromaSubsample=0, verticalChroma=0, verticalLuma=0, lumaSmear=0, bloom=0;
+    float chromaSubsample=0, verticalChroma=0, verticalLuma=0;
+    float lumaNoise=0, chromaNoise=0, compositeNoise=0, noiseHue=0, lumaSmear=0, bloom=0;
     float tapeSurface=0, tapeTransport=0, geometry=0, scanlines=0;
     float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
@@ -82,6 +84,10 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Subsample / Bleed",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_SUBSAMPLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Chroma Delay",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_CHROMA);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Luma Blur",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_LUMA);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_NOISE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_NOISE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE_NOISE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Noise Hue Bias",-180,180,-180,180,0,1,PF_ValueDisplayFlag_NONE,0,ID_NOISE_HUE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Smear",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_SMEAR);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Bloom / Glow",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BLOOM);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Surface Defects",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE);
@@ -138,6 +144,8 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_PAL_MODE,s.colorSystem); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_CHROMA_SUBSAMPLE,chromaSubsample); READ_FLOAT(PARAM_VERTICAL_CHROMA,verticalChroma);
     READ_FLOAT(PARAM_VERTICAL_LUMA,verticalLuma);
+    READ_FLOAT(PARAM_LUMA_NOISE,lumaNoise); READ_FLOAT(PARAM_CHROMA_NOISE,chromaNoise);
+    READ_FLOAT(PARAM_COMPOSITE_NOISE,compositeNoise); READ_FLOAT(PARAM_NOISE_HUE,noiseHue);
     READ_FLOAT(PARAM_LUMA_SMEAR,lumaSmear); READ_FLOAT(PARAM_BLOOM,bloom);
     READ_FLOAT(PARAM_TAPE_SURFACE,tapeSurface); READ_FLOAT(PARAM_TAPE_TRANSPORT,tapeTransport);
     READ_FLOAT(PARAM_GEOMETRY,geometry); READ_FLOAT(PARAM_SCANLINES,scanlines);
@@ -218,7 +226,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool compositeStages=s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
+        const bool compositeStages=s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
         if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
@@ -226,8 +234,10 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         working=source; scratch.resize(source.size());
         if(compositeStages) {
             CompositeParams p;
-            const float compositeMix=std::max({s.composite,s.chromaSubsample,s.verticalChroma,s.verticalLuma,s.lumaSmear,s.bloom,s.tapeSurface,s.tapeTransport,s.geometry,s.scanlines});
-            p.strength=clamp01(compositeMix/100.0f*master); p.frame=s.frame;
+            const float compositeMix=p.strength=master; p.compositeSignalStrength=clamp01(s.composite/100.0f); p.frame=s.frame;
+            p.inputBandwidthEnabled=(s.composite>0);
+            p.outputBandwidthEnabled=(s.composite>0||s.verticalLuma>0);
+            if(s.composite<=0) { p.outputBandwidth.iCutoffHz=0.0f; p.outputBandwidth.qCutoffHz=0.0f; p.outputBandwidth.lumaCutoffHz=0.0f; }
             p.palMode=(s.colorSystem==2);
             if(s.geometry>0) {
                 p.geometryEnabled=true; p.geometry.seed=0x90A1106Eu; p.geometry.frame=s.frame;
@@ -236,7 +246,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.geometry.edgePincushionPixels=s.geometry/100.0f*1.2f;
             }
             if(s.tapeTransport>0) {
-                const float a=clamp01(s.tapeTransport/100.0f*master);
+                const float a=clamp01(s.tapeTransport/100.0f);
                 p.tapeTransportEnabled=true; p.tapeTransport.seed=0x90A11A6Eu; p.tapeTransport.frame=s.frame;
                 p.tapeTransport.framesPerSecond=s.frameRate; p.tapeTransport.fieldRateHz=s.frameRate*2.0f;
                 p.tapeTransport.drumFlutterPixels=1.2f*a; p.tapeTransport.flutterPixels=0.5f*a;
@@ -244,7 +254,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.tapeTransport.slowDriftPixelsPerSecond=0.08f*a;
             }
             if(s.tapeSurface>0) {
-                const float a=clamp01(s.tapeSurface/100.0f*master);
+                const float a=clamp01(s.tapeSurface/100.0f);
                 p.tapeSurfaceEnabled=true; p.tapeSurface.seed=0x90A115FAu; p.tapeSurface.frame=s.frame;
                 p.tapeSurface.defectDensity=a; p.tapeSurface.oxideLoss=0.65f*a;
                 p.tapeSurface.scratchDensity=0.12f*a; p.tapeSurface.creaseStrength=0.35f*a;
@@ -252,28 +262,35 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.tapeSurface.surfaceRoughness=0.03f*a;
             }
             if(s.chromaSubsample>0) {
-                p.chromaSubsampleEnabled=true; p.chromaSubsample.amount=clamp01(s.chromaSubsample/100.0f*master);
+                p.chromaSubsampleEnabled=true; p.chromaSubsample.amount=clamp01(s.chromaSubsample/100.0f);
                 p.chromaSubsample.horizontalFactor=2; p.chromaSubsample.verticalFactor=2;
                 p.chromaSubsample.blurRadius=2.0f;
             }
             if(s.verticalChroma>0) {
-                p.verticalChromaBlendEnabled=true; p.verticalChromaBlendAmount=clamp01(s.verticalChroma/100.0f*master);
+                p.verticalChromaBlendEnabled=true; p.verticalChromaBlendAmount=clamp01(s.verticalChroma/100.0f);
             }
             if(s.verticalLuma>0) {
                 p.outputBandwidth.verticalLumaRadiusRows=std::max(1,int(std::lround(s.verticalLuma/100.0f*4.0f)));
                 p.outputBandwidth.verticalLumaSigmaRows=0.6f+s.verticalLuma/100.0f*1.4f;
             }
+            if(s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0) {
+                p.analogNoiseEnabled=true; p.analogNoise.seed=0x90A11E5Eu; p.analogNoise.frame=s.frame;
+                p.analogNoise.lumaAmount=clamp01(s.lumaNoise/100.0f);
+                p.analogNoise.chromaAmount=clamp01(s.chromaNoise/100.0f);
+                p.analogNoise.compositeAmount=clamp01(s.compositeNoise/100.0f);
+                p.analogNoise.hueBiasDegrees=s.noiseHue;
+            }
             if(s.lumaSmear>0) {
-                p.lumaSmearEnabled=true; p.lumaSmear.strength=clamp01(s.lumaSmear/100.0f*master);
+                p.lumaSmearEnabled=true; p.lumaSmear.strength=clamp01(s.lumaSmear/100.0f);
                 p.lumaSmear.tapCount=16; p.lumaSmear.decay=0.65f; p.lumaSmear.offsetPx=1.0f;
                 p.lumaSmear.highlightStrength=0.18f;
             }
             if(s.bloom>0) {
-                p.bloomEnabled=true; p.bloom.threshold=0.72f; p.bloom.intensity=clamp01(s.bloom/100.0f*master);
+                p.bloomEnabled=true; p.bloom.threshold=0.72f; p.bloom.intensity=clamp01(s.bloom/100.0f);
                 p.bloom.spread=2.0f; p.bloom.levels=3;
             }
             if(s.scanlines>0) {
-                p.scanlinesEnabled=true; p.scanlines.amount=clamp01(s.scanlines/100.0f*master);
+                p.scanlinesEnabled=true; p.scanlines.amount=clamp01(s.scanlines/100.0f);
                 p.scanlines.frequency=0.5f; p.scanlines.speed=0.0f; p.scanlines.frame=s.frame;
             }
             ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
@@ -378,6 +395,10 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.chromaSubsample=float(params[PARAM_CHROMA_SUBSAMPLE]->u.fs_d.value);
     s.verticalChroma=float(params[PARAM_VERTICAL_CHROMA]->u.fs_d.value);
     s.verticalLuma=float(params[PARAM_VERTICAL_LUMA]->u.fs_d.value);
+    s.lumaNoise=float(params[PARAM_LUMA_NOISE]->u.fs_d.value);
+    s.chromaNoise=float(params[PARAM_CHROMA_NOISE]->u.fs_d.value);
+    s.compositeNoise=float(params[PARAM_COMPOSITE_NOISE]->u.fs_d.value);
+    s.noiseHue=float(params[PARAM_NOISE_HUE]->u.fs_d.value);
     s.lumaSmear=float(params[PARAM_LUMA_SMEAR]->u.fs_d.value);
     s.bloom=float(params[PARAM_BLOOM]->u.fs_d.value);
     s.tapeSurface=float(params[PARAM_TAPE_SURFACE]->u.fs_d.value);
