@@ -55,7 +55,7 @@ bool processTrackRead(ConstImageView src,ImageView dst,const TrackReadParams&p) 
   for(int x=0;x<src.width;++x){const float*px=src.rgba+y*src.rowStrideFloats+x*4;const float a=px[3];float*out=dr+x*4;
    if(a<=1e-6f){std::copy_n(px,4,out);continue;}
    YIQ mixed{0,0,0};
-   for(int t=0;t<3;++t){if(weights[t]<=0)continue;const int k=int(center)-1+t;const RGB c=read(src,x,y+k,a>0&&p.premultipliedAlpha);const YIQ q=rgbToYiq(c);
+   for(int t=0;t<3;++t){if(weights[t]<=0)continue;const int k=int(center)-1+t;const RGB c=read(src,x,y+(k-int(center)),p.premultipliedAlpha);const YIQ q=rgbToYiq(c);
     mixed.y+=q.y*fm[t]*norm;mixed.i+=q.i*color[t]*norm;mixed.q+=q.q*color[t]*norm;
    }
    const RGB original=read(src,x,y,p.premultipliedAlpha);const YIQ base=rgbToYiq(original);
