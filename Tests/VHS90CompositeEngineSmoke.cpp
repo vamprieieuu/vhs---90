@@ -89,7 +89,7 @@ int main() {
     for(size_t i=0;i<previous.size();i+=4){previous[i]=.1f;previous[i+1]=.8f;previous[i+2]=.2f;previous[i+3]=1.0f;}
     ConstImageView previousView{previous.data(),w,h,w*4};ImageView temporalView{temporalOnly.data(),w,h,w*4};
     CompositeParams temporal=p;temporal.compositeSignalStrength=0.0f;temporal.inputBandwidthEnabled=false;temporal.outputBandwidthEnabled=false;
-    temporal.temporalGhostEnabled=true;temporal.previousProcessedFrame=previousView;temporal.temporalGhost.amount=.5f;
+    temporal.temporalGhostEnabled=true;temporal.previousFrame=previousView;temporal.previousFrameIndex=10;temporal.temporalGhost.amount=.5f;
     assert(processCompositeRoundTrip(si,temporalView,temporal));assert(temporalOnly!=src);
 
     // Receiver AFC hunt, chroma flutter and Y/C crosstalk run as an independent stage.
