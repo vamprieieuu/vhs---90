@@ -54,6 +54,14 @@ int main() {
     rf.rfInstabilityEnabled=true;rf.rfInstability.drift=.65f;rf.rfInstability.hum=.4f;rf.rfInstability.amNonlinearity=.7f;
     assert(processCompositeRoundTrip(si,rfOnlyView,rf));assert(rfOnly!=src);
 
+    // Barash-derived edge/fade/grade/vignette/flicker stage is wired to the shared pipeline.
+    std::vector<float> gradeOnly(src.size());
+    ImageView gradeOnlyView{gradeOnly.data(),w,h,w*4};
+    CompositeParams grade=p;grade.compositeSignalStrength=0.0f;grade.inputBandwidthEnabled=false;grade.outputBandwidthEnabled=false;
+    grade.imageGradeEnabled=true;grade.imageGrade.edgeEnhancement=.5f;grade.imageGrade.fade=.3f;
+    grade.imageGrade.contrast=1.15f;grade.imageGrade.saturation=.85f;grade.imageGrade.vignette=.4f;grade.imageGrade.flicker=.2f;
+    assert(processCompositeRoundTrip(si,gradeOnlyView,grade));assert(gradeOnly!=src);
+
     // Receiver AFC hunt, chroma flutter and Y/C crosstalk run as an independent stage.
     std::vector<float> receiverOnly(src.size());
     ImageView receiverOnlyView{receiverOnly.data(),w,h,w*4};
