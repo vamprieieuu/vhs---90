@@ -204,7 +204,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/engine/src/glitch/mod.rs` | 634 | content-reviewed | Read during this audit pass |
 | `port/engine/src/glitch/params.rs` | 25256 | content-reviewed | Read during this audit pass |
 | `port/engine/src/glitch/receiver.rs` | 43912 | content-reviewed | Receiver circuit simulator reviewed: warmup, horizontal AFC/VCO PI, vertical integrator/oscillator, burst-key phase, signal separator/noise, chroma reference/ACC/killer, VCR/deck/transport field plans. Full C++ parity engine remains pending. |
-| `port/engine/src/glitch/stage.rs` | 25145 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `port/engine/src/glitch/stage.rs` | 25145 | content-reviewed | GPU stage orchestration reviewed: checkpoint-aware FieldPlan resimulation, 1-second snapshots, background reruns, VCR-before-TV order, uniforms and WGPU resource setup. Algorithmic state semantics are portable; WGPU encoding is not. |
 | `port/engine/src/glitch/tape.rs` | 24899 | content-reviewed | Full core source reviewed and cross-checked against Swift reference; selective C++ adaptation documented in report 45 |
 | `port/engine/src/glitch/transport.rs` | 14511 | content-reviewed | Read during this audit pass |
 | `port/engine/src/glitch/vcr.rs` | 19408 | content-reviewed | VCR RF/FM/color-under kernels and coefficient generation reviewed; reusable CPU coefficient layer ported, complete record/play pipeline remains open |
