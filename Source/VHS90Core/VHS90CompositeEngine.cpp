@@ -56,7 +56,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             input={prefiltered.data(),w,h,w*4};
         }
 
-        std::vector<float> y(count),i(count,0.0f),q(count,0.0f),encoded(count),decodedY(count),decodedI(count,0.0f),decodedQ(count,0.0f);
+        std::vector<float> y(count),i(count),q(count),decodedY(count);
         for(int row=0;row<h;++row) for(int x=0;x<w;++x) {
             const std::size_t idx=std::size_t(row)*w+x;
             const RGB rgb=readStraight(input,x,row,p.premultipliedAlpha);
@@ -86,7 +86,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
                     const float a0=x>0?y[base+x-1]:16.0f/255.0f;
                     const float a1=y[base+x];
                     const float a2=y[base+std::min(x+1,w-1)];
-                    const float a3=encoded[base+std::min(x+2,w-1)];
+                    const float a3=y[base+std::min(x+2,w-1)];
                     scratch[x]=(a0+a1+a2+a3)*0.25f;
                     const float chroma=c-scratch[x];
                     demodulateChroma(chroma,x,xi,i.data()+base,q.data()+base,w);
@@ -96,16 +96,16 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
                 const int prev=row==0?1:row-1;
                 const int next=row==h-1?h-2:row+1;
                 for(int x=0;x<w;++x) {
-                    const float cur=encoded[base+x];
+                    const float cur=y[base+x];
                     float blended=cur;
                     if(p.demodulator==CompositeDemodulator::OneLineComb) {
                         blended=(cur+y[std::size_t(prev)*w+x])*0.5f;
                     } else {
-                        blended=cur*0.5f+encoded[std::size_t(prev)*w+x]*0.25f+y[std::size_t(next)*w+x]*0.25f;
+                        blended=cur*0.5f+y[std::size_t(prev)*w+x]*0.25f+y[std::size_t(next)*w+x]*0.25f;
                     }
                     decodedY[base+x]=blended;
                     const float chroma=blended-cur;
-                    demodulateChroma(chroma,x,xi,decodedI.data()+base,decodedQ.data()+base,w);
+                    demodulateChroma(chroma,x,xi,i.data()+base,q.data()+base,w);
                 }
             }
         }
