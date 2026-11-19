@@ -11,48 +11,49 @@ Sources: `plugins/aex/signal.aex`, `plugins/c+/signal.aex.c`, `plugins/c+/signal
 
 ### Core controls recovered from parameter setup
 
-| ID | Label |
-|---:|---|
-| 1 | Random seed |
-| 2 | Signal strength |
-| 3 | Signal amplification |
-| 4 | Cutoff filter |
-| 5 | Luma noise |
-| 6 | Chroma noise |
-| 7 | Hue Noise |
-| 8 | Chroma loss |
-| 9 | Sharpen |
-| 10 | Device-to-device connections |
-| 11 | Emulating VHS (VHS_SP / VHS_LP / VHS_EP) |
-| 12 | Destruction button |
-| 13 | Luma modulation |
-| 14 | Turn On/Off |
-| 15 | Frequency |
-| 16 | Phase |
-| 17 | Lightness |
-| 18 | Quantize |
-| 19 | Tape Errors |
-| 20 | TE start |
-| 21 | TE end |
-| 22 | TE probability |
-| 23 | TE fade |
-| 25 | TE gamma |
-| 27 | TV distortion |
-| 28 | Thick distortion |
-| 29 | Fine distotrion (spelling as present in binary strings) |
-| 30 | Distortion speed |
-| 31 | Roll speed |
-| 33 | Experimental parameters |
-| 33 | Low-Pass filter in |
-| 34 | Low-Pass filter out |
-| 35 | Phase shift |
-| 36 | Phase shift offset |
-| 37 | S-video out |
-| 38 | Chroma vertical blend |
-| 39 | Sharpen On/Off |
-| 41 | Scanlines blur |
+The first ten core controls have confirmed sequential IDs 1–10. Later controls are nested/experimental groups and the Ghidra decompilation does not preserve enough of the AE parameter structure to safely assign every numeric ID here. The complete recovered label sequence is:
 
-Some indices are inferred from adjacent parameter-construction code and may include hidden/experimental rows; preserve source IDs as internal audit references, not as final VHS-90 IDs.
+- Random seed
+- Signal strength
+- Signal amplification
+- Cutoff filter
+- Luma noise
+- Chroma noise
+- Hue Noise
+- Chroma loss
+- Sharpen
+- Device-to-device connections
+- Emulating VHS (VHS_SP / VHS_LP / VHS_EP)
+- Destruction button
+- Luma modulation
+- Turn On/Off
+- Frequency
+- Phase
+- Lightness
+- Quantize
+- Tape Errors
+- TE start
+- TE end
+- TE probability
+- TE fade
+- TE gamma
+- TV distortion
+- Thick distortion
+- Fine distotrion (spelling as present in binary strings)
+- Distortion speed
+- Roll speed
+- Experimental parameters
+- Low-Pass filter in
+- Low-Pass filter out
+- Off / Lite / Strong
+- Phase shift
+- Phase shift offset
+- S-video out
+- Chroma vertical blend
+- Sharpen On/Off
+- Scanlines blur
+
+Numeric IDs for the remaining nested/experimental rows are intentionally omitted rather than guessed. Preserve the confirmed source IDs internally when the parameter layout is reconstructed from the original binary.
 
 ## Recovered processing concepts
 
