@@ -167,12 +167,21 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             decodedView={smeared.data(),w,h,w*4};
         }
         std::vector<float> filtered;
+        std::vector<float> bloomed;
         if(p.outputBandwidthEnabled) {
             filtered.resize(count*4);
             ImageView filteredView{filtered.data(),w,h,w*4};
             YiqBandwidthParams bp=p.outputBandwidth; bp.premultipliedAlpha=p.premultipliedAlpha;
             if(!processYiqBandwidth(decodedView,filteredView,bp)) return false;
             decodedView={filtered.data(),w,h,w*4};
+        }
+        if(p.bloomEnabled && p.bloom.intensity>0.0f) {
+            bloomed.resize(count*4);
+            ImageView bloomView{bloomed.data(),w,h,w*4};
+            BloomParams bp=p.bloom;
+            bp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processBloom(decodedView,bloomView,bp)) return false;
+            decodedView={bloomed.data(),w,h,w*4};
         }
 
         for(int row=0;row<h;++row) {
