@@ -76,7 +76,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtCodec/Video1Codec.swift` | 10694 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/ChainInputCache.swift` | 4145 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/CrtCodecExport.swift` | 207 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/Deck.swift` | 7542 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/Deck.swift` | 7542 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
 | `Sources/CrtCore/DigitalStage.swift` | 12116 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/Downscaler.swift` | 11854 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/GifExporter.swift` | 19879 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
@@ -92,18 +92,18 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtCore/NtscStage.swift` | 7626 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/Pipeline.swift` | 7476 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/PlaybackPipeline.swift` | 22040 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/Presets.swift` | 1375 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/Presets.swift` | 1375 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
 | `Sources/CrtCore/PreviewCompositor.swift` | 12012 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/PreviewGeometry.swift` | 4836 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/PreviewScaling.swift` | 7192 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/Receiver.swift` | 48200 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/Receiver.swift` | 48200 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
 | `Sources/CrtCore/ScanlineGrid.swift` | 6334 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/ShaderBypass.swift` | 8205 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/SourceCrop.swift` | 9603 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/Tape.swift` | 29129 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/Transport.swift` | 13900 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/Tape.swift` | 29129 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
+| `Sources/CrtCore/Transport.swift` | 13900 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
 | `Sources/CrtCore/UpdateCheck.swift` | 4189 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/VcrStage.swift` | 59635 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/VcrStage.swift` | 59635 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
 | `Sources/CrtCore/VideoSource.swift` | 12672 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtSmoke/main.swift` | 13860 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `Sources/CrtSweep/main.swift` | 11373 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
