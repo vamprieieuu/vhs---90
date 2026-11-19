@@ -46,8 +46,22 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
     try {
         const int w=src.width,h=src.height;
         const std::size_t count=std::size_t(w)*std::size_t(h);
+        std::vector<float> transported;
+        std::vector<float> tapeDamaged;
         std::vector<float> prefiltered;
         ConstImageView input=src;
+        if(p.tapeTransportEnabled) {
+            transported.resize(count*4);
+            ImageView transportView{transported.data(),w,h,w*4};
+            if(!processTapeTransportWarp(src,transportView,p.tapeTransport)) return false;
+            input={transported.data(),w,h,w*4};
+        }
+        if(p.tapeSurfaceEnabled) {
+            tapeDamaged.resize(count*4);
+            ImageView tapeView{tapeDamaged.data(),w,h,w*4};
+            if(!processTapeSurface(input,tapeView,p.tapeSurface)) return false;
+            input={tapeDamaged.data(),w,h,w*4};
+        }
         if(p.inputBandwidthEnabled) {
             prefiltered.resize(count*4);
             ImageView pre{prefiltered.data(),w,h,w*4};
