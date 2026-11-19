@@ -12,4 +12,9 @@ int main(){using namespace vhs90;constexpr int w=40,h=24;std::vector<float>s(w*h
  ScanlineParams sp;sp.amount=.7f;sp.frequency=.5f;assert(processScanlines(si,sc,sp));assert(scan!=s);
  std::fill(off.begin(),off.end(),0.0f);sp.amount=0;assert(processScanlines(si,oi,sp));assert(off==s);
  for(size_t i=3;i<scan.size();i+=4)assert(scan[i]==1.0f);
+    AnalogGeometryParams interlace;interlace.interlaceAmount=.8f;interlace.frame=7;
+    std::vector<float> fieldA(src.size()),fieldB(src.size());
+    ImageView fieldAView{fieldA.data(),w,h,w*4},fieldBView{fieldB.data(),w,h,w*4};
+    assert(processAnalogGeometry(si,fieldAView,interlace));assert(processAnalogGeometry(si,fieldBView,interlace));
+    assert(fieldA==fieldB&&fieldA!=src);
  return 0;}
