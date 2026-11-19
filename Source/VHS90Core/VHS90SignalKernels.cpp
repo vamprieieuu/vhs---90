@@ -34,7 +34,10 @@ inline float sampleChannel(ConstImageView im,float x,int y,int ch) noexcept {
     return a[ch]+(b[ch]-a[ch])*t;
 }
 inline float rowNoise(int y,const SignalParams& p) noexcept {
-    return hash01(0u,std::uint32_t(y),p.seed,p.frame);
+    const float correlation = std::max(0.0f, p.lineWobbleCorrelationRows);
+    if (correlation <= 1.0e-4f)
+        return hash01(0u,std::uint32_t(y),p.seed,p.frame);
+    return valueNoise1D(float(y) / correlation, p.seed, p.frame);
 }
 }
 
@@ -55,6 +58,17 @@ float hash01(std::uint32_t x,std::uint32_t y,std::uint32_t seed,std::int64_t fra
     std::uint32_t f=std::uint32_t(frame) ^ std::uint32_t(std::uint64_t(frame)>>32);
     std::uint32_t h=hash32(x*0x9e3779b9u ^ y*0x85ebca6bu ^ seed ^ f*0xc2b2ae35u);
     return float(h) / 4294967295.0f;
+}
+
+float valueNoise1D(float coordinate,std::uint32_t seed,std::int64_t frame) noexcept {
+    if (!std::isfinite(coordinate)) return 0.5f;
+    const float x = std::max(-1.0e7f, std::min(1.0e7f, coordinate));
+    const int cell = static_cast<int>(std::floor(x));
+    const float t = x - static_cast<float>(cell);
+    const float s = t*t*(3.0f-2.0f*t);
+    const float a = hash01(0u,static_cast<std::uint32_t>(cell),seed,frame);
+    const float b = hash01(0u,static_cast<std::uint32_t>(cell+1),seed,frame);
+    return a+(b-a)*s;
 }
 
 bool processYiqChromaBlur(ConstImageView src,ImageView dst,float shift,float bleed,float saturation) noexcept {
