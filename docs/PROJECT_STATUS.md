@@ -91,4 +91,4 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Enabled optional physical tape sampling in the two-head deck recurrence (12 points per field) and physical control-track pulse detection from the AE parameter adapter. Full source deck history/snapshot parity and Windows/AE execution remain open.
 - Corrected three-track read to use absolute source overlap shares, source azimuth attenuation at FM/color-under frequencies, and VBI-scaled adjacent-track line offsets.
 - Added `VHS90VcrSignalEngine` coefficient helpers for NTSCRT's 28.636 MHz signal path, 64×81 spacing bank, 95-tap analytic FM bandpass and supporting biquad/shelf/trap filters. The full nine-stage VCR record/playback pipeline is not yet ported.
-- Hosted Linux core CI run [507](https://github.com/vamprieieuu/vhs---90/actions/runs/44622882847) passed 28/28 tests. Windows/MSVC, AE SDK, PiPL, AEX loading, live AE and MFR are not validated.
+- Hosted Linux core CI run [520](https://github.com/vamprieieuu/vhs---90/actions/runs/44623626784) passed 28/28 tests. Windows/MSVC, AE SDK, PiPL, AEX loading, live AE and MFR are not validated.
