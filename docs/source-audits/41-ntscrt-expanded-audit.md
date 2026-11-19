@@ -22,7 +22,13 @@ This is an inventory checkpoint, **not a complete 359-file source review**. The 
 - `README.md`: full processing order and design summary; digital codec → NTSC signal → downscale → tape/deck → TV glitches → CRT shader.
 - `port/engine/src/glitch/receiver.rs`: Rust receiver simulation, NTSC timing, deterministic purpose-keyed noise, sync/burst/AGC/AFC and raster field plans.
 - `port/engine/src/glitch/tape.rs`: slanted tape-track geometry, SP/LP/EP track pitch/head width, neighboring-track overlap and frequency-dependent azimuth loss.
-- `port/engine/src/glitch/transport.rs`, `stage.rs`, `vcr.rs`, `glitch.wgsl`, `vcr.wgsl`: identified as the next source-review set; detailed function-by-function review remains open.
+- `port/engine/src/glitch/transport.rs`: servo/control-track recovery, capstan speed loop, stick-slip and search transport functions inventoried.
+- `port/engine/src/glitch/stage.rs`: checkpointed deterministic rerun/resimulation and GPU pass orchestration inventoried.
+- `port/engine/src/glitch/deck.rs`: per-head wear, dirt, buildup, mismatch and field-keyed shedding/clog events inventoried.
+- `port/engine/src/glitch/params.rs`: VCR/tape/deck parameter metadata and preset migration functions inventoried.
+- `port/engine/src/glitch/vcr.rs`: Cauchy spacing filter bank, analytic FM band-pass taps, field plans and GPU pipeline orchestration inventoried.
+- `port/engine/src/glitch/vcr.wgsl`: full shader pass order inspected: tape surface, composite recording, slanted-track read/azimuth, magnetization, head spacing/gap filtering, FM demodulation/dropout detection, color-under recovery, comb filtering, ACC/APC/color killer and dropout compensation.
+- `port/engine/src/glitch/glitch.wgsl`: receiver gate, chroma recovery and per-pixel composition pass map inspected; `transport.rs`, `stage.rs`, `deck.rs`, `params.rs` and WGSL function-level review remains in progress.
 - `Sources/CrtCore/Tape.swift`: physical tape geometry and SP/LP/EP read-overlap equations.
 - `Sources/CrtCore/VcrStage.swift`: 28.6 MHz / 1820 samples-per-line VCR signal path, FM luminance, color-under, emphasis/de-emphasis, band-pass, spacing-loss filter banks, and line planning.
 - `Sources/CrtCore/Receiver.swift`: receiver circuit model and deterministic replay architecture (previous audit; re-check against current upstream).
@@ -31,6 +37,8 @@ This is an inventory checkpoint, **not a complete 359-file source review**. The 
 ## New VHS-90 port in this pass
 
 - Added `VHS90TrackReadEngine.{h,cpp}`: a CPU C++17 raster approximation of NTSCRT's three-track head read. It models center/neighbor track overlap, SP/LP/EP-dependent track geometry, azimuth-related suppression of the FM/luma contribution versus the lower-frequency color-under/chroma contribution, tracking misalignment, premultiplied alpha and an exact zero-amount bypass.
+- Enhanced `VHS90TapeSurfaceEngine` using the NTSCRT `tape_at` material model: deterministic pinholes, flakes, mold colonies and vaseline film, in addition to the existing oxide voids, scratches, creases, debris and edge lift.
+- Replaced the earlier uniform spacing attenuation with a frequency-dependent head-spacing/gap response adapted from `VcrStage.channelGain`: high-frequency FM luma detail is softened more strongly than the low-frequency color-under carrier. This remains a spatial/raster approximation; the upstream Cauchy filter bank and sampled FM chain are not ported.
 - Integrated the stage before composite encoding in `VHS90CompositeEngine`.
 - Added AE controls: `Adjacent Track Crosstalk` and `Track Misalignment`; the existing `Tape Speed` popup selects SP/LP/EP geometry.
 - Added standalone and composite-pipeline smoke coverage.
@@ -46,7 +54,9 @@ This is an inventory checkpoint, **not a complete 359-file source review**. The 
 
 ## Validation boundary
 
-- The new track-read unit smoke test passed its first hosted run.
+- The new track-read unit smoke test passed; GitHub Actions run `44608850831` passed the integrated core build and **26/26 CTest tests**.
+- The frequency-dependent head-spacing refinement passed run `44609157611`, **26/26 CTest tests**, including a high-frequency luma-softening assertion.
+- The pinhole/flake/mold/vaseline material extension and contamination test are in the current CI run; do not claim that newest change passes until its run completes.
 - Initial pipeline integration CI exposed a missing CMake source registration; the corrected CMake list now includes both the engine and smoke target. GitHub Actions run `44608850831` passed the core build and **26/26 CTest tests**, including standalone track-read and composite-pipeline coverage.
 - Static AE parameter audit after adding the two controls: 81 real parameter slots and 81 `PF_ADD_*` calls.
 - No Windows/MSVC AE SDK build or live After Effects runtime/MFR test is claimed.
