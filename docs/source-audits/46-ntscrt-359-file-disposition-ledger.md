@@ -81,7 +81,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtCore/Downscaler.swift` | 11854 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/GifExporter.swift` | 19879 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/GlitchParams.swift` | 27087 | content-reviewed | Full 30-control schema reviewed: reception, tape, deck, condition pickers, timing IDs and defaults. Source UI schema is reference; VHS-90 currently maps a subset to its existing AE controls. |
-| `Sources/CrtCore/GlitchRenderer.swift` | 14627 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/GlitchRenderer.swift` | 14627 | content-reviewed | Metal-side simulation owner reviewed: deterministic forward stepping, timing-history resimulation, per-second snapshots, checkpoint-key invalidation and background rerun cancellation. Snapshot/cache semantics are portable; Metal rendering/thread dispatch is not. |
 | `Sources/CrtCore/GlitchStage.swift` | 21056 | content-reviewed | Metal wrapper and three-pass receiver shader orchestration reviewed (gate, chroma reference, compose), including uniform layout, VCR-before-TV ordering and CPU FieldPlan contract. Native AE requires a CPU C++ port, not direct Metal reuse. |
 | `Sources/CrtCore/Howlaround.swift` | 54180 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/HowlaroundPad.swift` | 7570 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
@@ -89,9 +89,9 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtCore/ImageStats.swift` | 1894 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/MetalContext.swift` | 1014 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/Mp4Exporter.swift` | 35617 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/NtscStage.swift` | 7626 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/Pipeline.swift` | 7476 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/PlaybackPipeline.swift` | 22040 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/NtscStage.swift` | 7626 | content-reviewed | Reviewed CPU/Metal bridge to ntsc-rs C API, including shared/managed texture synchronization and clean-frame caching. macOS wrapper only; VHS-90 already links its own AnalogNTSC C++ library. |
+| `Sources/CrtCore/Pipeline.swift` | 7476 | content-reviewed | Reviewed Metal downscale → shader-chain orchestration and frame input ownership. App-specific Metal/librashader integration; not part of physical tape engine. |
+| `Sources/CrtCore/PlaybackPipeline.swift` | 22040 | content-reviewed | Reviewed AVFoundation decode queue, two-filter pipelining, frame generation invalidation and buffer-backed texture pool. macOS playback infrastructure; no direct AE effect port. |
 | `Sources/CrtCore/Presets.swift` | 1375 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
 | `Sources/CrtCore/PreviewCompositor.swift` | 12012 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/PreviewGeometry.swift` | 4836 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
