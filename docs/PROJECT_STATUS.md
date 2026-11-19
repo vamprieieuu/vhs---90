@@ -31,6 +31,8 @@ Updated: 2026-11-19
 
 - CMake configure/build: PASS for the host-independent VHS90Core static library and all six smoke-test executables.
 - CTest: 6/6 PASS in Release and Debug with AddressSanitizer + UndefinedBehaviorSanitizer.
+- Release smoke-test assertions are now explicitly kept enabled with `-UNDEBUG` / `/UNDEBUG`; an optional `VHS90_ENABLE_SANITIZERS` CMake switch is available.
+- Added `.github/workflows/core-ci.yml` to configure, compile and run all six host-independent smoke tests on Ubuntu for pushes and pull requests. The workflow has been committed but its first hosted run has not yet been confirmed.
 - Signal-kernel, region, static, IIR, composite-modem and sync-collapse smoke tests all pass under g++ C++17.
 - VHS6RIFT static validator, parameter occurrence audit and Python 14-gate model tests: PASS.
 - VHS6RIFT native harness compile attempt: FAIL, with SDK fallback/ABI/API declaration errors.
