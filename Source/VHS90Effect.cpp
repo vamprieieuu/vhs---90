@@ -76,6 +76,7 @@ static PF_Err GlobalSetup(PF_InData* in_data,PF_OutData* out_data) {
 static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     PF_Err err=PF_Err_NONE;
     PF_ParamDef def;
+    AEFX_CLR_STRUCT(def); PF_ADD_INPUT("Source",PF_LayerDefault_MYSELF,PF_PixelFormat_ARGB32);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
