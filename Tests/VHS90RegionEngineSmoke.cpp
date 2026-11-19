@@ -76,6 +76,24 @@ int main() {
     assert(processDamageRegions(si,doff,pOff));
     assert(offOutput==src);
 
+    // Servo drift profiles crossfade between deterministic epochs instead of
+    // re-randomizing the entire row profile on every frame.
+    DamageRegion servo=full;
+    servo.maxShiftPx=0.0f; servo.waveAmplitudePx=0.0f; servo.servoDriftPx=18.0f;
+    servo.servoSmoothnessPx=10.0f; servo.servoEpochFrames=8;
+    servo.tearProbability=0.0f; servo.dropoutProbability=0.0f;
+    servo.noiseAmount=0.0f; servo.noiseDensity=0.0f; servo.chromaShiftPx=0.0f;
+    RegionEngineParams servoA; servoA.regions=&servo; servoA.regionCount=1;
+    servoA.seed=55; servoA.frame=20;
+    RegionEngineParams servoB=servoA; servoB.frame=21;
+    std::vector<float> servoOutA(src.size(),0.0f),servoOutB(src.size(),0.0f);
+    ImageView servoViewA{servoOutA.data(),w,h,w*4},servoViewB{servoOutB.data(),w,h,w*4};
+    assert(processDamageRegions(si,servoViewA,servoA));
+    assert(processDamageRegions(si,servoViewB,servoB));
+    float servoDelta=0.0f;
+    for(size_t i=0;i<servoOutA.size();i+=4) servoDelta+=std::fabs(servoOutA[i]-servoOutB[i]);
+    assert(servoDelta<static_cast<float>(w*h)*0.20f);
+
     // Signed chroma displacement must work in both directions.
     std::vector<float> chromaSrc(src.size()),chromaOut(src.size(),0.0f);
     for(int y=0;y<h;++y) for(int x=0;x<w;++x) {
