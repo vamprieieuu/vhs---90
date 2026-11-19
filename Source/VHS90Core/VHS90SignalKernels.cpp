@@ -137,12 +137,14 @@ bool processLumaSmear(ConstImageView src,ImageView dst,const LumaSmearParams& p)
         const float trailMix=amount*0.18f;
         const float outY=center*(1.0f-trailMix)+smear*trailMix
                         +glow*(amount*p.highlightStrength);
-        RGB out=yiqToRgb({outY,rgbToYiq({sampleChannel(src,float(x),y,0),
-                                        sampleChannel(src,float(x),y,1),
-                                        sampleChannel(src,float(x),y,2)}).i,
-                                  rgbToYiq({sampleChannel(src,float(x),y,0),
-                                            sampleChannel(src,float(x),y,1),
-                                            sampleChannel(src,float(x),y,2)}).q});
+        RGB centerRgb{sampleChannel(src,float(x),y,0),
+                       sampleChannel(src,float(x),y,1),
+                       sampleChannel(src,float(x),y,2)};
+        if(p.premultipliedAlpha) {
+            centerRgb.r/=alpha; centerRgb.g/=alpha; centerRgb.b/=alpha;
+        }
+        const YIQ centerYiq=rgbToYiq(centerRgb);
+        RGB out=yiqToRgb({outY,centerYiq.i,centerYiq.q});
         if(p.premultipliedAlpha) { out.r*=alpha; out.g*=alpha; out.b*=alpha; }
         write(dst,x,y,out,alpha);
     }
