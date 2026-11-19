@@ -27,6 +27,25 @@ int main() {
     LumaSmearParams smp; smp.strength=1.0f; smp.decay=0.3f; smp.offsetPx=1.0f; smp.premultipliedAlpha=false;
     assert(processLumaSmear(smi,smo,smp));
     assert(smearDst[2*4+0]>0.0f && smearDst[2*4+3]==1.0f);
+    // VHS vertical chroma delay blends the previous field line's I/Q only;
+    // current-line luma and alpha remain anchored to the source.
+    std::vector<float> verticalSrc(2*4*4,0.0f),verticalDst(verticalSrc.size(),0.0f);
+    for(int yy=0;yy<4;++yy) for(int xx=0;xx<2;++xx) {
+        const size_t ii=(yy*2+xx)*4;
+        verticalSrc[ii+3]=1.0f;
+        if(yy==0) { verticalSrc[ii]=1.0f; verticalSrc[ii+1]=0.0f; verticalSrc[ii+2]=0.0f; }
+        else { verticalSrc[ii]=0.0f; verticalSrc[ii+1]=0.0f; verticalSrc[ii+2]=1.0f; }
+    }
+    ConstImageView vsi{verticalSrc.data(),2,4,8}; ImageView vdi{verticalDst.data(),2,4,8};
+    VerticalChromaBlendParams vbp; vbp.amount=1.0f; vbp.premultipliedAlpha=false;
+    assert(processVerticalChromaBlend(vsi,vdi,vbp));
+    const size_t vcur=(2*2)*4, vprev=0;
+    assert(verticalDst[vcur+3]==1.0f);
+    assert(std::fabs(rgbToYiq({verticalDst[vcur],verticalDst[vcur+1],verticalDst[vcur+2]}).y-
+                     rgbToYiq({verticalSrc[vcur],verticalSrc[vcur+1],verticalSrc[vcur+2]}).y)<1e-5f);
+    assert(verticalDst[vcur+1]>verticalSrc[vcur+1] || verticalDst[vcur+2]<verticalSrc[vcur+2]);
+    assert(verticalDst[vprev]==verticalSrc[vprev]);
+
     smp.highlightThreshold=0.2f; smp.highlightStrength=0.5f; smp.tapCount=16;
     std::fill(smearDst.begin(),smearDst.end(),0.0f);
     assert(processLumaSmear(smi,smo,smp));
