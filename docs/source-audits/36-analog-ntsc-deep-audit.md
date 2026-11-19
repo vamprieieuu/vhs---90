@@ -87,13 +87,14 @@ These require separate adaptation and regression tests before this repository ca
 1. Dedicated H-sync, V-sync and burst-noise controls with explicit receiver lock coupling.
 2. Sync-gated DC restoration and receiver AGC response around weak/overlapping sync.
 3. Group-delay and multipath interactions should be compared against the raw composite reference, not only the current raster approximation.
-4. The current AFC/chroma/Y-C ports are raster-space adaptations; waveform-level validation is still needed before calling them numerically identical to the original raw-sample implementation.
+4. The current AFC/chroma/Y-C/sync/burst ports are raster-space adaptations; waveform-level validation is still needed before calling them numerically identical to the original raw-sample implementation.
 
 The 525/910 sample waveform encoder/decoder itself remains a separate, potentially valuable engine-level upgrade, but must be designed for arbitrary AE frame dimensions, float/HDR, premultiplied alpha, MFR determinism and CPU performance rather than copying the fixed 720×480 RGB24 implementation.
 
 ## Validation status
 
+- GitHub Actions run `44599161053` passed 16/16 CTest tests after adding independent horizontal sync, vertical sync and burst-noise controls.
+- GitHub Actions run `44598929488` passed 16/16 CTest tests with the content-driven AGC pump refinement.
 - GitHub Actions run `44598799885` passed 16/16 CTest tests after integrating AFC Hunt, Chroma Flutter and Y/C Crosstalk into the composite pipeline.
-- GitHub Actions run `44598604938` passed 15/15 CTest tests after adding RF Drift, Mains Hum, AM Nonlinearity, Impulse Noise and Multipath Echo, with all corresponding AE controls wired.
-- A further AGC content-drive refinement was committed after those runs; its newest CI run must be checked before claiming that refinement passed.
+- GitHub Actions run `44598604938` passed 15/15 CTest tests after adding RF Drift, Mains Hum, AM Nonlinearity, Impulse Noise and Multipath Echo, with their corresponding AE controls wired.
 - No Windows/MSVC AE build or AE runtime test is claimed.
