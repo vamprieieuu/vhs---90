@@ -22,4 +22,9 @@ int main(){using namespace vhs90;constexpr int w=40,h=24;std::vector<float>s(w*h
     ImageView rollAView{rollA.data(),w,h,w*4},rollBView{rollB.data(),w,h,w*4};
     assert(processAnalogGeometry(si,rollAView,roll));assert(processAnalogGeometry(si,rollBView,roll));
     assert(rollA==rollB&&rollA!=s);
+    AnalogGeometryParams edge;edge.edgeWaveAmplitudePixels=4.0f;edge.horizontalScale=1.0f;edge.verticalScale=1.0f;edge.frame=5;edge.seed=21;
+    std::vector<float> edgeA(s.size()),edgeB(s.size()),edgeC(s.size());
+    ImageView edgeAView{edgeA.data(),w,h,w*4},edgeBView{edgeB.data(),w,h,w*4},edgeCView{edgeC.data(),w,h,w*4};
+    assert(processAnalogGeometry(si,edgeAView,edge));assert(processAnalogGeometry(si,edgeBView,edge));assert(edgeA==edgeB&&edgeA!=s);
+    edge.frame=6;assert(processAnalogGeometry(si,edgeCView,edge));assert(edgeA!=edgeC);
  return 0;}
