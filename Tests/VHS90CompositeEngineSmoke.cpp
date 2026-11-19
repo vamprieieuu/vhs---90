@@ -54,6 +54,13 @@ int main() {
     rf.rfInstabilityEnabled=true;rf.rfInstability.drift=.65f;rf.rfInstability.hum=.4f;rf.rfInstability.amNonlinearity=.7f;
     assert(processCompositeRoundTrip(si,rfOnlyView,rf));assert(rfOnly!=src);
 
+    // Sparse impulse bursts are a separate signal-damage stage.
+    std::vector<float> impulseOnly(src.size());
+    ImageView impulseOnlyView{impulseOnly.data(),w,h,w*4};
+    CompositeParams impulse=p;impulse.compositeSignalStrength=0.0f;impulse.inputBandwidthEnabled=false;impulse.outputBandwidthEnabled=false;
+    impulse.impulseNoiseEnabled=true;impulse.impulseNoise.amount=.8f;impulse.impulseNoise.seed=7;impulse.impulseNoise.frame=11;
+    assert(processCompositeRoundTrip(si,impulseOnlyView,impulse));assert(impulseOnly!=src);
+
     // Post-signal modules can run without forcing the composite encoder/decoder.
     std::vector<float> postOnly(src.size()),noiseOnly(src.size());
     ImageView postOnlyView{postOnly.data(),w,h,w*4},noiseOnlyView{noiseOnly.data(),w,h,w*4};
