@@ -4,6 +4,7 @@
 #include "VHS90AnalogGeometryEngine.h"
 #include "VHS90AnalogNoiseEngine.h"
 #include "VHS90RfInstabilityEngine.h"
+#include "VHS90ImpulseNoiseEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
@@ -37,6 +38,8 @@ struct CompositeParams {
     AnalogNoiseParams analogNoise{};
     bool rfInstabilityEnabled = false;
     RfInstabilityParams rfInstability{};
+    bool impulseNoiseEnabled = false;
+    ImpulseNoiseParams impulseNoise{};
     bool geometryEnabled = false;
     AnalogGeometryParams geometry{};
     bool scanlinesEnabled = false;
