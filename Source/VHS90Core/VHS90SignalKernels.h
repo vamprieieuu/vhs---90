@@ -25,6 +25,9 @@ struct LumaSmearParams {
     float strength = 0.0f;
     float decay = 0.3f;
     float offsetPx = 1.0f;
+    int tapCount = 12;
+    float highlightThreshold = 0.604f;
+    float highlightStrength = 0.22f;
     bool premultipliedAlpha = true;
 };
 
