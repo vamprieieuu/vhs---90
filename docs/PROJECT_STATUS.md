@@ -28,7 +28,7 @@ Latest verified source-pipeline fix: `eb8969184c2d80638cfcb1165dd1984ca02015c2` 
 - Added chroma-under subsampling/bleed and optional vertical luma-only bandwidth. Added PAL-style alternate-line Q phase switching in the composite modem.
 - Added independent deterministic luma, hue-biased chroma and fine composite noise, with separate UI controls.
 - Added Analog-NTSC-derived RF drift, mains hum, AM nonlinearity, content-driven AGC pump, impulse bursts and three-tap multipath echoes as alpha-aware C++17 engines.
-- Added BarashNTSC-derived Tape Detail, opposing Cr/Cb channel shift, frame-driven chroma phase drift, image grading/fade, and alternating-field interlace. Temporal ghost is connected in the composite core when a processed previous frame is supplied; AE adapter checkout remains pending.
+- Added BarashNTSC-derived Tape Detail, opposing Cr/Cb channel shift, frame-driven chroma phase drift, image grading/fade, and alternating-field interlace. Temporal ghost is connected in the composite core when a processed previous frame is supplied; AE adapter checkout remains pending. GitHub Actions run `44601192626` passed 19/19 CTest tests.
 - Added receiver instability ports for AFC Hunt, chroma flutter, Y/C crosstalk, horizontal/vertical sync noise and burst-phase noise; these are connected to the shared composite engine and exposed as independent AE controls.
 - Separated global mix from `compositeSignalStrength` so each post-signal effect can run without forcing composite encode/decode and without double-scaling its amount.
 - Added arbitrary rotation to Tracking Noise / Head Switching region masks while retaining their existing normalized size/position semantics.
