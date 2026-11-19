@@ -40,7 +40,7 @@ Inspected `ntsc_processor.cpp`, `ntsc_effects.cpp` (68,961 chars), and `ntsc_par
 
 ### 2. BarashNTSC — Python/OpenCV batch processor
 
-Inspected the 66 KB main script and tree. It is a desktop/batch-processing application using Python, OpenCV, NumPy and Pillow, with multiprocessing, temporary files, and UI/file management. No native AE-ready DSP module has yet been isolated. Do not port its GUI, file IO or process orchestration into the AEX.
+Inspected the 66 KB main script, including `VHSProcessor.process` (lines 309–497), and tree. Its image path includes edge enhancement/fade, spatial noise banks, chroma shift, composite phase, contrast/brightness/saturation, tape wear/dropouts, horizontal jitter, tracking, interlace, prior-frame ghosting, scanlines and vignette. It relies on Python/OpenCV/NumPy/Pillow and UI/file management. Cached base maps/carrier patterns and noise banks are the main ideas worth retaining; no native AE-ready kernel has yet been isolated. Do not port its GUI, file IO or process orchestration into the AEX.
 
 ### 3. ComfyUI RetroTape — CPU/GPU VHS implementation
 
@@ -85,7 +85,7 @@ Recursive tree inventory is complete (327 entries, 293 files). Most of the tree 
 
 ### 8. VHS Effect Add-on
 
-Inspected README and GUI. It has five main UI groups: effect strength, output settings, date/time overlay, text overlay and processing log. README describes chroma bleed/subsampling, luma noise, scanlines, jitter, blur, glow, saturation, REC/PLAY/date overlays, plus directory-tree batch processing. Repository contains a bundled OpenCV distribution and FFmpeg binary; those are packaging/runtime baggage, not suitable for the AE plugin. The actual `vhs_lib/vhs_effects.py` and `vhs_video.py` still need code-level audit.
+Inspected README, GUI, `vhs_lib/vhs_effects.py` (1,412 lines) and `vhs_lib/vhs_video.py`. The effects module has a reusable `VHSParams`/`VHSContext` design and separate methods for anisotropic chroma low-pass/subsampling/offset, TBC jitter and vertical roll, head switching, tracking bands, dropouts, low-resolution noise, softness/bloom/sharpen, color, scanlines and OSD glyph/date generation. Its render order is explicit. Frame processing is still Python/PIL/OpenCV; `vhs_video.py` is FFmpeg I/O and should not enter the AEX. OSD and effect-stage ordering are useful references, but no code was copied.
 
 ### 9. Composite Video Simulator
 
@@ -112,9 +112,9 @@ Inspected `analog_color.glsl` and `composite.fsh` (about 30 KB).
 
 1. Verify the upstream identity and exact source snapshot for `vhs-main` from the original ZIP metadata.
 2. Inspect the remaining files and subfolders of every repository, not just recursive tree inventories.
-3. Finish `ntscqt` source review (especially renderer, templates and filters).
+3. Finish `ntscqt` source review (especially renderer, templates and filters); its core VHS methods and preset JSON have now been inspected.
 4. Inspect all Unity shader/renderer source files in URP VHS Retro Effects.
-5. Inspect `vhs_lib/vhs_effects.py`, `vhs_video.py`, and `vhs_task.py` in VHS Effect Add-on.
+5. Inspect remaining `vhs_task.py`, preset/config files and test/self-test paths in VHS Effect Add-on.
 6. Inspect all relevant C/C++ functions and tests in NTSC-CRT, Analog-NTSC and Composite Video Simulator.
 7. Review all README, docs, presets, test suites and licenses in every repository.
 8. Convert only independent useful kernels to C++17, wire them into the unified VHS-90 pipeline, and add tests for each port.
