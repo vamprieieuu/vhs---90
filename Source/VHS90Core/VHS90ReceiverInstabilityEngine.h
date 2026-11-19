@@ -8,6 +8,7 @@ struct ReceiverInstabilityParams {
     float horizontalSyncNoise=0.0f;
     float verticalSyncNoise=0.0f;
     float burstNoise=0.0f;
+    float chromaPhaseDrift=0.0f;
     std::uint32_t seed=1;
     std::int64_t frame=0;
     bool premultipliedAlpha=true;
