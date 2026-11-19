@@ -107,8 +107,9 @@ bool processYiqBandwidth(ConstImageView src,ImageView dst,
        src.rgba==dst.rgba||p.sampleRateHz<=0.0f) return false;
     if(p.iCutoffHz<0.0f||p.qCutoffHz<0.0f||p.lumaCutoffHz<0.0f||
        !std::isfinite(p.sampleRateHz)||!std::isfinite(p.iCutoffHz)||
-       !std::isfinite(p.qCutoffHz)||!std::isfinite(p.lumaCutoffHz)) return false;
-    if(p.iCutoffHz==0.0f&&p.qCutoffHz==0.0f&&p.lumaCutoffHz==0.0f) {
+       !std::isfinite(p.qCutoffHz)||!std::isfinite(p.lumaCutoffHz)||!std::isfinite(p.verticalLumaSigmaRows)||
+       p.verticalLumaRadiusRows<0||p.verticalLumaRadiusRows>32||p.verticalLumaSigmaRows<=0.0f) return false;
+    if(p.iCutoffHz==0.0f&&p.qCutoffHz==0.0f&&p.lumaCutoffHz==0.0f&&p.verticalLumaRadiusRows==0) {
         for(int y=0;y<src.height;++y)
             std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);
         return true;
@@ -142,6 +143,37 @@ bool processYiqBandwidth(ConstImageView src,ImageView dst,
                 if(p.premultipliedAlpha) { out.r*=a; out.g*=a; out.b*=a; }
                 float* dstPx=dstRow+x*4;
                 dstPx[0]=out.r; dstPx[1]=out.g; dstPx[2]=out.b; dstPx[3]=a;
+            }
+        }
+        if(p.verticalLumaRadiusRows>0) {
+            const std::size_t count=std::size_t(src.width)*std::size_t(src.height);
+            std::vector<float> lumaPlane(count),iPlane(count),qPlane(count),alphaPlane(count);
+            for(int row=0;row<src.height;++row) {
+                const float* rowPx=dst.rgba+row*dst.rowStrideFloats;
+                for(int x=0;x<src.width;++x) {
+                    const float* px=rowPx+x*4;const float a=px[3];
+                    RGB rgb=unassociate({px[0],px[1],px[2]},a,p.premultipliedAlpha);
+                    const YIQ q=rgbToYiq(rgb);const std::size_t k=std::size_t(row)*src.width+x;
+                    lumaPlane[k]=q.y;iPlane[k]=q.i;qPlane[k]=q.q;alphaPlane[k]=a;
+                }
+            }
+            const int radius=p.verticalLumaRadiusRows;const float sigma=p.verticalLumaSigmaRows;
+            float weights[65]{};float total=0.0f;
+            for(int d=-radius;d<=radius;++d){const float q=std::exp(-float(d*d)/(2.0f*sigma*sigma));weights[d+radius]=q;total+=q;}
+            for(int d=0;d<radius*2+1;++d)weights[d]/=total;
+            for(int row=0;row<src.height;++row) {
+                float* rowPx=dst.rgba+row*dst.rowStrideFloats;
+                for(int x=0;x<src.width;++x) {
+                    float filteredY=0.0f;
+                    for(int d=-radius;d<=radius;++d) {
+                        const int yy=std::clamp(row+d,0,src.height-1);
+                        filteredY+=lumaPlane[std::size_t(yy)*src.width+x]*weights[d+radius];
+                    }
+                    const std::size_t k=std::size_t(row)*src.width+x;
+                    RGB out=yiqToRgb({filteredY,iPlane[k],qPlane[k]});
+                    if(p.premultipliedAlpha){out.r*=alphaPlane[k];out.g*=alphaPlane[k];out.b*=alphaPlane[k];}
+                    float* px=rowPx+x*4;px[0]=out.r;px[1]=out.g;px[2]=out.b;px[3]=alphaPlane[k];
+                }
             }
         }
         return true;
