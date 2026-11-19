@@ -37,7 +37,7 @@ inline HeadReadState simulateHeadState(const HeadConditionParams& p,int head,flo
     const float along=(float(i)+0.5f)/12.0f*kTrackLength;
     const double x=double(field)*kAdvancePerField/double(tape.tapeSpeed+1u)+double(along*std::cos(kAngle));
     const float y=1.0f+along*std::sin(kAngle);
-    const auto sample=sampleTapeSurfaceAtMm(x,y,tape);
+    const auto sample=sampleTapeSurfaceAtMm(x,y,tape,false,true);
     shed+=sample.shed;film+=sample.film;
    }
    shed/=12.0f;film/=12.0f;
