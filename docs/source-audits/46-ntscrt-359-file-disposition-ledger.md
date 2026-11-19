@@ -22,8 +22,8 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `NTSCRT july 27.webp` | 80040 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `Package.swift` | 3983 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
 | `README.md` | 19946 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtApp/AppState+Export.swift` | 8347 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/AppState+Howlaround.swift` | 17019 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
+| `Sources/CrtApp/AppState+Export.swift` | 8347 | content-reviewed | Reviewed movie/GIF/PNG export routing and async status handling; app export orchestration only, no AE render kernel. |
+| `Sources/CrtApp/AppState+Howlaround.swift` | 17019 | content-reviewed | Reviewed Howlaround export sizing, draft scheduling, render cancellation and feedback-preset load/save. Separate Screen Loop feedback effect/export workflow, not VHS tape engine. |
 | `Sources/CrtApp/AppState.swift` | 102696 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `Sources/CrtApp/BuiltInPresets.swift` | 1572 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `Sources/CrtApp/CLI/CLIHelp.swift` | 2255 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
