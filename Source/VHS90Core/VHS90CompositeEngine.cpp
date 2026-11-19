@@ -352,6 +352,16 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             decodedView={temporallyGhosted.data(),w,h,w*4};
         }
 
+        std::vector<float> analogGlowed;
+        if(p.analogGlowEnabled && p.analogGlow.amount>0.0f) {
+            analogGlowed.resize(count*4);
+            ImageView glowView{analogGlowed.data(),w,h,w*4};
+            AnalogGlowParams gp=p.analogGlow;
+            gp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processAnalogGlow(decodedView,glowView,gp)) return false;
+            decodedView={analogGlowed.data(),w,h,w*4};
+        }
+
         for(int row=0;row<h;++row) {
             const float* srcRow=src.rgba+row*src.rowStrideFloats;
             float* dstRow=dst.rgba+row*dst.rowStrideFloats;
