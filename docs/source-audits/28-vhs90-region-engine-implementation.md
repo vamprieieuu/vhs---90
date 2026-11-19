@@ -21,7 +21,7 @@ Files added:
 
 ## Local C++ verification
 
-Compiled the new region engine together with the VHS90SignalKernels source using g++ C++17, -Wall, -Wextra, -Wpedantic, AddressSanitizer and UndefinedBehaviorSanitizer.
+Compiled the new region engine together with the VHS90SignalKernels source using g++ C++17, -Wall, -Wextra, -Wpedantic, AddressSanitizer and UndefinedBehaviorSanitizer. Also added a root CMake build for the host-independent core and ran its two CTest targets.
 
 Results:
 - VHS90SignalKernelsSmoke: PASS.
@@ -33,7 +33,8 @@ Results:
 - Full-frame head-switch coverage: PASS.
 - Transparent-pixel non-contamination and alpha preservation: PASS.
 - Zero global intensity identity copy: PASS.
-- No compiler warnings in the final two test builds.
+- CMake configure/build: PASS; CTest: 2/2 PASS.
+- No compiler warnings in the final sanitizer test builds.
 
 ## Scope and limitations
 
