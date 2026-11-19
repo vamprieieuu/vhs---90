@@ -8,6 +8,7 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90RegionEngine.cpp
     Source/VHS90Core/VHS90StaticEngine.cpp
     Source/VHS90Core/VHS90IIRFilter.cpp
+    Source/VHS90Core/VHS90CompositeEngine.cpp
 )
 target_include_directories(VHS90Core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core
@@ -38,4 +39,8 @@ if(VHS90_BUILD_TESTS)
     add_executable(VHS90IIRFilterSmoke Tests/VHS90IIRFilterSmoke.cpp)
     target_link_libraries(VHS90IIRFilterSmoke PRIVATE VHS90Core)
     add_test(NAME VHS90IIRFilterSmoke COMMAND VHS90IIRFilterSmoke)
+
+    add_executable(VHS90CompositeEngineSmoke Tests/VHS90CompositeEngineSmoke.cpp)
+    target_link_libraries(VHS90CompositeEngineSmoke PRIVATE VHS90Core)
+    add_test(NAME VHS90CompositeEngineSmoke COMMAND VHS90CompositeEngineSmoke)
 endif()
