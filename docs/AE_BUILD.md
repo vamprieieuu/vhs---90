@@ -47,6 +47,10 @@ Global flags in C++ and PiPL are paired deliberately:
 
 The per-render settings snapshot is immutable and all processing buffers are local to the render call; no mutable global state is used.
 
+## Initial host controls
+
+The first UI shell exposes Master Strength plus Signal (Composite Signal, Sync Collapse), Static (Amount, Density), Tracking Noise (Amount, region shape, Center X/Y, Width/Height, Motion X/Y, Servo Drift, Tear Probability), and Head Switching (Amount, Bottom Edge Y, Height, Horizontal Shift). Tracking regions can be horizontal bands, vertical bands or rectangles. Head Switching uses a bottom-edge anchor so Height=100% and Bottom Edge Y=100% spans the full frame.
+
 ## Validation status
 
 The host adapter, PiPL resource and Windows build script are present in source. They have **not** been compiled with MSVC against a local AE SDK or loaded in After Effects in this environment. The six portable C++ tests validate the CPU core only. The first Windows build and in-host test are still required before calling the AEX production-ready.
