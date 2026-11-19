@@ -5,6 +5,9 @@
 namespace vhs90 {
 namespace {
 constexpr float kPi=3.14159265358979323846f;
+constexpr float kAngle=5.97f*kPi/180.0f;
+constexpr double kAdvancePerField=33.35/(60000.0/1001.0);
+constexpr float kTrackLength=5.8f*1000.0f/(60000.0f/1001.0f);
 inline std::uint32_t mix(std::uint32_t x) noexcept { x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;x^=x>>16;return x; }
 inline float rnd(std::uint32_t seed,std::int64_t frame,std::uint32_t lane) noexcept {
  const auto f=std::uint32_t(frame)^std::uint32_t(std::uint64_t(frame)>>32);
@@ -21,11 +24,27 @@ struct HeadReadState { float debris=0.0f, grease=0.0f; };
 inline HeadReadState simulateHeadState(const HeadConditionParams& p,int head,float dirt,float buildup,float greaseTarget) noexcept {
  HeadReadState state{};
  const float pickup=0.02f+1.2f*buildup*buildup;
- const float shed=std::clamp(0.025f+0.11f*dirt+0.035f*buildup,0.0f,0.35f);
- const float dt=1.0f/59.94f;
+ const float proxyShed=std::clamp(0.025f+0.11f*dirt+0.035f*buildup,0.0f,0.35f);
+ const float dt=1.0f/59.94005994f;
  const std::int64_t last=std::max<std::int64_t>(0,std::min<std::int64_t>(p.frame*2+1,1000000));
+ TapeSurfaceParams tape=p.tapeSurface;tape.seed=p.seed;
  for(std::int64_t field=0;field<=last;++field) {
   if(int(field&1)!=head) continue;
+  float shed=proxyShed,film=greaseTarget;
+  if(p.usePhysicalTapeSamples) {
+   shed=0.0f;film=0.0f;
+   for(int i=0;i<12;++i) {
+    const float along=(float(i)+0.5f)/12.0f*kTrackLength;
+    const double x=double(field)*kAdvancePerField+double(along*std::cos(kAngle));
+    const float y=1.0f+along*std::sin(kAngle);
+    const auto sample=sampleTapeSurfaceAtMm(x,y,tape);
+    shed+=sample.shed;film+=sample.film;
+   }
+   shed/=12.0f;film/=12.0f;
+   // Head dirt and buildup remain deck-side contributions, not tape map values.
+   shed+=0.11f*dirt+0.035f*buildup;
+   film=std::max(film,greaseTarget);
+  }
   state.debris+=pickup*shed*dt-state.debris*0.5f*dt;
   const float event=rnd(p.seed,field,81u+std::uint32_t(head)*17u);
   if(event<std::min(pickup*shed*0.03f,0.25f))
@@ -33,7 +52,7 @@ inline HeadReadState simulateHeadState(const HeadConditionParams& p,int head,flo
   if(rnd(p.seed,field,83u+std::uint32_t(head)*17u)<0.0005f+0.004f*state.debris*state.debris)
    state.debris*=0.25f*rnd(p.seed,field,84u+std::uint32_t(head)*17u);
   state.debris=std::clamp(state.debris,0.0f,6.0f);
-  state.grease+=(greaseTarget-state.grease)*(greaseTarget>state.grease?0.2f:0.003f);
+  state.grease+=(film-state.grease)*(film>state.grease?0.2f:0.003f);
  }
  return state;
 }
