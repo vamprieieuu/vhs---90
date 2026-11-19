@@ -27,6 +27,7 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90TapeDetailEngine.cpp
     Source/VHS90Core/VHS90ChromaShiftEngine.cpp
     Source/VHS90Core/VHS90WaveformEngine.cpp
+    Source/VHS90Core/VHS90RingingEngine.cpp
     ThirdParty/AnalogNTSC/src/ntsc_signal.cpp
     ThirdParty/AnalogNTSC/src/ntsc_params.cpp
     ThirdParty/AnalogNTSC/src/ntsc_effects.cpp
