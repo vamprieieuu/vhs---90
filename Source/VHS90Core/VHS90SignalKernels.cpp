@@ -39,13 +39,14 @@ inline float rowNoise(int y,const SignalParams& p) noexcept {
 }
 
 YIQ rgbToYiq(RGB c) noexcept {
-    return {0.2989f*c.r+0.5959f*c.g+0.2115f*c.b,
-            0.5870f*c.r-0.2744f*c.g-0.5229f*c.b,
-            0.1140f*c.r-0.3216f*c.g+0.3114f*c.b};
+    return {0.2990f*c.r+0.5870f*c.g+0.1140f*c.b,
+            0.5960f*c.r-0.2740f*c.g-0.3220f*c.b,
+            0.2110f*c.r-0.5230f*c.g+0.3120f*c.b};
 }
 RGB yiqToRgb(YIQ c) noexcept {
-    return {c.y+c.i+c.q, 0.956f*c.y-0.2720f*c.i-1.1060f*c.q,
-            0.6210f*c.y-0.6474f*c.i+1.7046f*c.q};
+    return {c.y+0.95617f*c.i+0.62143f*c.q,
+            c.y-0.27269f*c.i-0.64681f*c.q,
+            c.y-1.10374f*c.i+1.70062f*c.q};
 }
 std::uint32_t hash32(std::uint32_t x) noexcept {
     x ^= x >> 16; x *= 0x7feb352du; x ^= x >> 15; x *= 0x846ca68bu; x ^= x >> 16; return x;
