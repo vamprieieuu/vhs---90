@@ -54,6 +54,14 @@ int main() {
     rf.rfInstabilityEnabled=true;rf.rfInstability.drift=.65f;rf.rfInstability.hum=.4f;rf.rfInstability.amNonlinearity=.7f;
     assert(processCompositeRoundTrip(si,rfOnlyView,rf));assert(rfOnly!=src);
 
+    // Receiver AFC hunt, chroma flutter and Y/C crosstalk run as an independent stage.
+    std::vector<float> receiverOnly(src.size());
+    ImageView receiverOnlyView{receiverOnly.data(),w,h,w*4};
+    CompositeParams receiver=p;receiver.compositeSignalStrength=0.0f;receiver.inputBandwidthEnabled=false;receiver.outputBandwidthEnabled=false;
+    receiver.receiverInstabilityEnabled=true;receiver.receiverInstability.afcHunt=.45f;
+    receiver.receiverInstability.chromaFlutter=.6f;receiver.receiverInstability.ycCrosstalk=.5f;
+    assert(processCompositeRoundTrip(si,receiverOnlyView,receiver));assert(receiverOnly!=src);
+
     // Delayed RF multipath echoes are separate from previous-frame ghosting.
     std::vector<float> multipathOnly(src.size());
     ImageView multipathOnlyView{multipathOnly.data(),w,h,w*4};
