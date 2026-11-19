@@ -100,7 +100,10 @@ Inspected `analog_color.glsl` and `composite.fsh` (about 30 KB).
 
 ## Code transfer ledger
 
-- New code files copied into VHS-90 in this batch: **0**.
+- New code files copied verbatim into VHS-90 in this batch: **0**.
+- Adapted C++ code added: `valueNoise1D` in `VHS90SignalKernels.cpp`, declared in the matching header, and wired into line-wobble generation using a new correlation-length parameter. This adapts the correlated smooth value-noise method inspected in Lost Signal VHS's `analog_color.glsl` / `composite.fsh`; it is a native C++ implementation, not a raw GLSL copy.
+- Test added: deterministic repeatability and local continuity of `valueNoise1D` in `Tests/VHS90SignalKernelsSmoke.cpp`.
+- Commits: header `41ee8ee`; implementation `7ef93f2`; test `a270b41`.
 - New algorithms identified for C++ port: deterministic tape-coordinate defect map; lateral track-overlap model; stateful temporal replay/checkpoint model; selected fixed-point NTSC math; selected signal-domain effect kernels (multipath, line jitter, burst/sync instability, chroma phase drift).
 - Reason for zero copy in this batch: the reviewed files are coupled to Python, Swift/Metal, CUDA, FFmpeg, Unity or repository-specific data structures. A verbatim copy would introduce non-compiling dependencies or incorrect host/runtime assumptions. Existing VHS-90 modules already implement some overlapping YIQ/IIR/composite/region behavior, so each candidate must be compared and tested before duplication.
 
