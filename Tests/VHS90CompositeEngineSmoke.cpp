@@ -49,7 +49,9 @@ int main() {
 
     std::vector<float> verticalLumaComposite(src.size());
     ImageView verticalLumaCompositeView{verticalLumaComposite.data(),w,h,w*4};
-    CompositeParams verticalLumaStage=p;verticalLumaStage.outputBandwidth.verticalLumaRadiusRows=1;
+    CompositeParams verticalLumaStage=p;verticalLumaStage.outputBandwidthEnabled=true;
+    verticalLumaStage.outputBandwidth.iCutoffHz=0;verticalLumaStage.outputBandwidth.qCutoffHz=0;
+    verticalLumaStage.outputBandwidth.lumaCutoffHz=0;verticalLumaStage.outputBandwidth.verticalLumaRadiusRows=1;
     verticalLumaStage.outputBandwidth.verticalLumaSigmaRows=.8f;
     assert(processCompositeRoundTrip(si,verticalLumaCompositeView,verticalLumaStage));
     assert(verticalLumaComposite!=boxOut);
