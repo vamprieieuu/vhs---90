@@ -22,8 +22,8 @@ inline float clamp01(float x) noexcept {return std::clamp(x,0.0f,1.0f);}
 bool processAnalogGeometry(ConstImageView src,ImageView dst,const AnalogGeometryParams&p) noexcept {
  if(!valid(src,dst)||!std::isfinite(p.lineJitterPixels)||!std::isfinite(p.lineJitterCorrelationRows)||
     !std::isfinite(p.topSkewPixels)||!std::isfinite(p.topSkewDecayRows)||
-    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower))return false;
- if(p.lineJitterPixels==0.0f&&p.topSkewPixels==0.0f&&p.edgePincushionPixels==0.0f) {
+    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower)||!std::isfinite(p.interlaceAmount))return false;
+ if(p.lineJitterPixels==0.0f&&p.topSkewPixels==0.0f&&p.edgePincushionPixels==0.0f&&p.interlaceAmount==0.0f) {
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
  for(int y=0;y<src.height;++y) {
@@ -33,12 +33,18 @@ bool processAnalogGeometry(ConstImageView src,ImageView dst,const AnalogGeometry
   const float topShift=topNoise*p.topSkewPixels*decay;
   const float jitter=valueNoise1D(float(y)/std::max(1.0f,p.lineJitterCorrelationRows),p.seed+0x9e3779b9u,p.frame)*2.0f-1.0f;
   const float rowShift=topShift+jitter*p.lineJitterPixels;
+  const float interlace=clamp01(p.interlaceAmount);
+  const float fieldDir=(y&1)?-1.0f:1.0f;
+  const float fieldPhase=std::sin(float(p.frame)*0.73f)*interlace*std::max(1.0f,float(src.width)*0.004f);
+  const float fieldShift=fieldPhase*fieldDir;
+  const float fieldYShift=0.15f*interlace*fieldDir;
   float*dr=dst.rgba+y*dst.rowStrideFloats;
   for(int x=0;x<src.width;++x) {
    const float xn=src.width>1?(2.0f*float(x)/float(src.width-1)-1.0f):0.0f;
    const float bend=p.edgePincushionPixels*xn*std::pow(std::abs(yn),std::max(0.1f,p.edgePincushionPower));
-   const float sx=float(x)-rowShift-bend;
-   for(int c=0;c<4;++c)dr[x*4+c]=sampleChannel(src,sx,float(y),c);
+   const float sx=float(x)-rowShift-bend-fieldShift;
+   const float sy=std::clamp(float(y)+fieldYShift,0.0f,float(src.height-1));
+   for(int c=0;c<4;++c)dr[x*4+c]=sampleChannel(src,sx,sy,c);
   }
  }
  return true;
