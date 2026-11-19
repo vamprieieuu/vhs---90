@@ -176,6 +176,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         ConstImageView decodedView{decoded.data(),w,h,w*4};
+        std::vector<float> temporallyGhosted;
+        if(p.temporalGhostEnabled && p.previousProcessedFrame.rgba) {
+            temporallyGhosted.resize(count*4);
+            ImageView temporalView{temporallyGhosted.data(),w,h,w*4};
+            TemporalGhostParams tp=p.temporalGhost;
+            tp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processTemporalGhost(decodedView,p.previousProcessedFrame,temporalView,tp)) return false;
+            decodedView={temporallyGhosted.data(),w,h,w*4};
+        }
         std::vector<float> graded;
         if(p.imageGradeEnabled) {
             graded.resize(count*4);
