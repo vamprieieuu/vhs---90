@@ -56,8 +56,9 @@ inline float evaluateMask(const DamageRegion& r, float u, float v,
                           double timeSeconds) noexcept {
     float cx = r.centerX + r.motionXPerSecond * static_cast<float>(timeSeconds);
     float cy = r.centerY + r.motionYPerSecond * static_cast<float>(timeSeconds);
-    cx = clamp01(cx);
-    cy = clamp01(cy);
+    // Keep region centers outside [0,1] when needed. This lets edge-anchored
+    // regions (for example Head Switching with Bottom Edge Y near 0) clip
+    // naturally instead of being pulled back into the image.
 
     const float dx = std::fabs(u - cx);
     const float dy = std::fabs(v - cy);
@@ -123,7 +124,7 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
         }
     }
 
-    if (r.chromaShiftPx > 0.0f) {
+    if (std::fabs(r.chromaShiftPx) > 1.0e-6f) {
         const float red = sampleChannel(src, sx - r.chromaShiftPx, sy, 0);
         const float blue = sampleChannel(src, sx + r.chromaShiftPx, sy, 2);
         if (p.premultipliedAlpha) {
