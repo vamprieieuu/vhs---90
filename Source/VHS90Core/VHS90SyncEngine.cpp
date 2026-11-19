@@ -58,7 +58,7 @@ bool processSyncCollapse(ConstImageView src,ImageView dst,const SyncCollapsePara
     const bool syncEvent=syncWindow&&hash2(syncTick,241,p.seed+0x51ed270bu)>1.0f-clamp01(p.syncEventProbability);
     const bool rollChoice=hash2(syncTick,92,p.seed+0x94d049bbu)>0.52f;
     const float roll=syncEvent&&rollChoice&&p.enableVerticalRoll?(0.10f+syncProgress*0.90f)*p.syncRollStrength:0.0f;
-    const float trackingY=std::fmod(time*p.trackingLineSpeed+0.13f*std::sin(time*0.19f)+1.0f,1.0f);
+    const float trackingY=std::fmod(time*p.trackingLineSpeed+p.trackingLineWobble*std::sin(time*0.19f)+1.0f,1.0f);
     for(int y=0;y<src.height;++y) {
         const float v=(float(y)+0.5f)/float(src.height),signalLine=v*float(src.height);
         const float slow=valueNoise(signalLine*0.018f,time*0.82f,p.seed+0x68bc21ebu)*2.0f-1.0f;
@@ -67,7 +67,8 @@ bool processSyncCollapse(ConstImageView src,ImageView dst,const SyncCollapsePara
         const float primary=1.0f-smoothStep(tearWidth,tearWidth*2.4f,circularDistance(v,tearCenter));
         const float secondary=(1.0f-smoothStep(tearWidth*0.45f,tearWidth*1.45f,circularDistance(v,secondCenter)))*p.secondaryTearStrength;
         const float tearShape=std::max(primary,secondary);
-        const float tearTexture=0.62f+0.38f*valueNoise(signalLine*0.055f,time*5.1f+glitchTickF,p.seed+0x243f6a88u);
+        const float textureNoise=valueNoise(signalLine*0.055f,time*5.1f+glitchTickF,p.seed+0x243f6a88u);
+        const float tearTexture=1.0f-clamp01(p.lineTextureAmount)*(1.0f-textureNoise);
         const float glitchBand=active*tearShape;
         const float trackingDistance=circularDistance(v,trackingY);
         const float trackingBand=p.enableTrackingLine?std::pow(std::max(0.0f,1.0f-trackingDistance*42.0f),3.0f):0.0f;
