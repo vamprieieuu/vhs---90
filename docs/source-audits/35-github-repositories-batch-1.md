@@ -10,7 +10,7 @@ All tree requests below returned complete recursive Git trees (`truncated=false`
 | Archive folder | Matched upstream | Tree entries | Files | Directories | Status |
 |---|---|---:|---:|---:|---|
 | `Analog-NTSC-master` | `kdkd/Analog-NTSC` | 42 | 31 | 11 | **31/31 files audited.** Raster-space RF/receiver adaptations plus the full 525-line/910-sample NTSC waveform engine are integrated; AE exposes Raster vs Full Waveform NTSC. CI 20/20. Remaining limits: 8-bit 720×480 internal waveform, NTSC-only, profile HD/4K and verify against reference renders. See `36-analog-ntsc-deep-audit.md`. |
-| `BarashNTSC-0.1.2` | `LittleBlabbit763/BarashNTSC` | 11 | 10 | 1 | Complete 10-file inventory and algorithm mapping in `37-barash-ntsc-deep-audit.md`. Tape detail, Cr/Cb shift, phase drift, interlace, grade/fade and temporal ghost are adapted to C++ and connected to the shared pipeline; run `44601192626` passed 19/19 CTest. Previous-frame checkout remains pending in the AE adapter. |
+| `BarashNTSC-0.1.2` | `LittleBlabbit763/BarashNTSC` | 11 | 10 | 1 | **10/10 files audited.** Tape detail, Cr/Cb shift, phase drift, interlace, grade/fade and temporal ghost are adapted to C++ and connected to the shared pipeline. Previous-frame ghost now uses a second SmartFX checkout ID; Windows AE/MFR runtime validation remains pending. Core CI 20/20 at `44602045505`. See `37-barash-ntsc-deep-audit.md`. |
 | `ComfyUI_RetroTape-main` | `SKBv0/ComfyUI_RetroTape` | 29 | 25 | 4 | Tree + CPU/GPU cores inspected |
 | `NTSC-CRT-v.2.3.2` | `LMP88959/NTSC-CRT` | 33 | 32 | 1 | Tree + NTSC/VHS/core C source inspected |
 | `NTSC-VHS-Renderer-1.3.0` | `F33RNI/NTSC-VHS-Renderer` | 41 | 32 | 9 | Tree + frame processor inspected |
