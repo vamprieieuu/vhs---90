@@ -31,7 +31,7 @@ License: MIT-style permission grant; retain copyright and permission notice when
 | Frame-driven color phase instability | Added to `VHS90ReceiverInstabilityEngine` as `chromaPhaseDrift`; AE control `Color Phase Drift`. |
 | Composite carrier / rainbow artifacts | Existing shared composite encoder/decoder pipeline; no Python carrier arrays or OpenCV runtime dependency. |
 | Horizontal edge enhancement, tape fade, contrast, brightness, saturation, vignette, flicker | `VHS90ImageGradeEngine`; connected in the shared pipeline and exposed as AE controls. |
-| Previous-frame motion ghost | Core `VHS90TemporalEngine` supports current + previous frame, but this Barash behavior is **not yet wired to the AE adapter**. It needs correct previous-frame checkout and out-of-order/MFR-safe handling; do not emulate it with global mutable frame history. |
+| Previous-frame motion ghost | `VHS90TemporalEngine` is now wired to AE SmartFX using a second declared checkout ID for the immediately preceding source frame; previous pixels are checked out/in per render, passed through render-local buffers and never stored in global mutable history. The first frame (or unavailable previous frame) safely skips the ghost. Source-level wiring is committed; Windows AE SDK build/runtime and MFR validation remain pending. |
 | Interlace field weave | `VHS90AnalogGeometryEngine` now includes deterministic alternating-field horizontal phase and subpixel vertical offset; AE control `Interlace / Field Weave`. |
 | Tracking band / line jitter | Existing region/tracking and geometry/transport modules cover the portable behavior. Python random-number sequence is not reused. |
 | Tape wear / dropouts | Existing tape-surface defect and impulse-noise engines cover the procedural defect families; per-frame randomness is deterministic in VHS-90. |
@@ -44,11 +44,11 @@ License: MIT-style permission grant; retain copyright and permission notice when
 - `Tests/VHS90TapeDetailEngineSmoke.cpp`
 - `Tests/VHS90ChromaShiftEngineSmoke.cpp`
 
-Additional edits connect these engines to `VHS90CompositeEngine`, add their smoke coverage to CMake, and expose their AE controls. The image-grade module is a direct C++ adaptation of Barash's edge/fade/grade operations. The receiver module is shared with Analog-NTSC-derived receiver effects; its global chroma-phase drift control was specifically ported from Barash's frame-driven phase formula.
+Additional edits connect these engines to `VHS90CompositeEngine`, add their smoke coverage to CMake, and expose their AE controls. The image-grade module is a direct C++ adaptation of Barash's edge/fade/grade operations. The receiver module is shared with Analog-NTSC-derived receiver effects; its global chroma-phase drift control was specifically ported from Barash's frame-driven phase formula. The previous-frame ghost now uses a SmartFX previous-time checkout rather than unsafe global temporal state.
 
 ## Verification boundary
 
 - At commit `419f4adbea2638643085737416b562f6aea6ffe8`, GitHub Actions run `44600396446` built the core and passed **18/18 CTest tests**, including composite integration of Tape Detail and the standalone detail test.
-- The later Barash chroma-shift, color-phase and interlace UI wiring has its own later CI runs; use the latest run status before claiming those combined changes pass.
-- A static AE parameter count must match the actual `PF_ADD` calls; this is not an AE SDK/MSVC plugin build or an After Effects runtime test.
-- The Barash repository inventory is complete. Algorithm migration is substantially integrated, but previous-frame ghosting remains intentionally unconnected to the AE adapter until a safe temporal checkout path is implemented.
+- Core CI run `44602045505` passed 20/20 tests, including the tape-detail and waveform paths; this run does not compile the AE adapter.
+- Latest static AE parameter audit after adding the previous-frame ghost control: 67 real parameter slots and 67 `PF_ADD_*` calls.
+- The Barash repository inventory and portable algorithm migration are complete at source level. Previous-frame ghost SmartFX checkout is wired, but it remains unverified in a Windows/MSVC build and live AE/MFR session.
