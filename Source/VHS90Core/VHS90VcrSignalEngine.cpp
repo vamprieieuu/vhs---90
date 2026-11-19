@@ -55,6 +55,32 @@ std::vector<VcrComplexTap> buildVcrFmBandTaps() {
  }
  return out;
 }
+bool applyVcrSpacingBank(const float*input,const float*spacing,std::size_t count,float gapUm,float*output) {
+ if(!input||!spacing||!output||count==0||!std::isfinite(gapUm)||gapUm<0.0f)return false;
+ const auto bank=buildVcrSpacingBank(gapUm);constexpr int reach=int(kVcrSpacingReach),taps=2*reach+1;
+ for(std::size_t i=0;i<count;++i){
+  const float level=std::clamp(spacing[i]/kVcrMaxSpacingUm,0.0f,1.0f)*float(kVcrSpacingLevels-1u);
+  const int lo=int(level),hi=std::min(lo+1,int(kVcrSpacingLevels-1u));const float f=level-float(lo);
+  double a=0.0,b=0.0;
+  for(int k=-reach;k<=reach;++k){const auto j=std::size_t(std::clamp<std::ptrdiff_t>(std::ptrdiff_t(i)+k,0,std::ptrdiff_t(count-1)));
+   a+=double(input[j])*bank[std::size_t(lo)*taps+std::size_t(k+reach)];
+   b+=double(input[j])*bank[std::size_t(hi)*taps+std::size_t(k+reach)];
+  }
+  output[i]=float(a+(b-a)*f);
+ }
+ return true;
+}
+bool applyVcrFmBandpass(const float*input,std::size_t count,float*real,float*imag) {
+ if(!input||!real||!imag||count==0)return false;
+ const auto taps=buildVcrFmBandTaps();constexpr int reach=int(kVcrFmReach);
+ for(std::size_t i=0;i<count;++i){double re=0.0,im=0.0;
+  for(int k=-reach;k<=reach;++k){const auto j=std::size_t(std::clamp<std::ptrdiff_t>(std::ptrdiff_t(i)+k,0,std::ptrdiff_t(count-1)));
+   const auto&t=taps[std::size_t(k+reach)];re+=double(input[j])*t.real;im+=double(input[j])*t.imag;
+  }
+  real[i]=float(re);imag[i]=float(im);
+ }
+ return true;
+}
 std::array<float,5> buildVcrLowPass(double mhz) noexcept {
  const double k=std::tan(kPi*mhz/kVcrSampleRateMHz),s2=std::sqrt(2.0);
  const double norm=1.0/(1.0+s2*k+k*k),b0=k*k*norm;
