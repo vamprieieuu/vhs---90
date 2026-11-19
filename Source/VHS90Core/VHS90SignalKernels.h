@@ -21,6 +21,11 @@ struct ImageView {
     std::ptrdiff_t rowStrideFloats = 0;
 };
 
+struct VerticalChromaBlendParams {
+    float amount = 0.5f;
+    bool premultipliedAlpha = true;
+};
+
 struct LumaSmearParams {
     float strength = 0.0f;
     float decay = 0.3f;
@@ -60,6 +65,8 @@ float hash01(std::uint32_t x, std::uint32_t y, std::uint32_t seed, std::int64_t 
 float valueNoise1D(float coordinate, std::uint32_t seed, std::int64_t frame) noexcept;
 
 // CPU reference kernels. Source and destination must be distinct buffers.
+bool processVerticalChromaBlend(ConstImageView src, ImageView dst,
+                                const VerticalChromaBlendParams& params) noexcept;
 bool processLumaSmear(ConstImageView src, ImageView dst,
                        const LumaSmearParams& params) noexcept;
 // These routines preserve the input alpha channel.
