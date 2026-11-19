@@ -47,6 +47,13 @@ int main() {
     assert(processCompositeRoundTrip(si,d2,pp));
     assert(one!=two);
 
+    std::vector<float> bloomComposite(src.size());
+    ImageView bloomCompositeView{bloomComposite.data(),w,h,w*4};
+    CompositeParams bloomStage=p;bloomStage.bloomEnabled=true;bloomStage.bloom.threshold=.1f;
+    bloomStage.bloom.intensity=.8f;bloomStage.bloom.spread=1.5f;bloomStage.bloom.levels=2;
+    assert(processCompositeRoundTrip(si,bloomCompositeView,bloomStage));
+    assert(bloomComposite!=boxOut);
+
     std::vector<float> chromaComposite(src.size());
     ImageView chromaCompositeView{chromaComposite.data(),w,h,w*4};
     CompositeParams chromaStage=p;chromaStage.chromaSubsampleEnabled=true;
