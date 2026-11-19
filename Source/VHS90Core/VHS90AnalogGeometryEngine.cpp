@@ -22,18 +22,39 @@ inline float clamp01(float x) noexcept {return std::clamp(x,0.0f,1.0f);}
 bool processAnalogGeometry(ConstImageView src,ImageView dst,const AnalogGeometryParams&p) noexcept {
  if(!valid(src,dst)||!std::isfinite(p.lineJitterPixels)||!std::isfinite(p.lineJitterCorrelationRows)||
     !std::isfinite(p.topSkewPixels)||!std::isfinite(p.topSkewDecayRows)||
-    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower)||!std::isfinite(p.interlaceAmount)||!std::isfinite(p.verticalRoll))return false;
- if(p.lineJitterPixels==0.0f&&p.topSkewPixels==0.0f&&p.edgePincushionPixels==0.0f&&p.interlaceAmount==0.0f&&p.verticalRoll==0.0f) {
+    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower)||!std::isfinite(p.interlaceAmount)||!std::isfinite(p.verticalRoll)||!std::isfinite(p.edgeWaveAmplitudePixels)||!std::isfinite(p.horizontalScale)||!std::isfinite(p.verticalScale)||p.horizontalScale<=0.0f||p.verticalScale<=0.0f||p.edgeWaveEpochFrames<1)return false;
+ if(p.lineJitterPixels==0.0f&&p.topSkewPixels==0.0f&&p.edgePincushionPixels==0.0f&&p.interlaceAmount==0.0f&&p.verticalRoll==0.0f&&p.edgeWaveAmplitudePixels==0.0f) {
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
  const float rollOffset=std::sin(float(p.frame)*0.23f+float(p.seed)*0.00017f)*clamp01(p.verticalRoll)*float(src.height)*0.045f;
+ std::vector<float> edgeWave;
+ if(p.edgeWaveAmplitudePixels>0.0f) {
+  auto profile=[&](int epoch) {
+   std::vector<float> result(std::size_t(src.height));float pole=std::pow(.92f,1.0f/p.verticalScale);
+   float gain=.08f*std::sqrt(std::max(1.0e-8f,(1.0f-pole*pole)/(1.0f-.92f*.92f)));
+   float state=0.0f;
+   for(int row=0;row<src.height;++row) {
+    const std::uint32_t es=p.seed^(std::uint32_t(epoch)*0x9E3779B9u);
+    float normal=0.0f;
+    for(std::uint32_t k=0;k<6;++k)normal+=hash01(std::uint32_t(row),k,es,0)-.5f;
+    state=gain*(normal*3.4641016f*p.edgeWaveAmplitudePixels*.62f*p.horizontalScale)+pole*state;
+    result[std::size_t(row)]=state;
+   }
+   return result;
+  };
+  const int epoch=int(p.frame/p.edgeWaveEpochFrames);
+  const float mix=float(p.frame%p.edgeWaveEpochFrames)/float(p.edgeWaveEpochFrames);
+  const auto current=profile(epoch),upcoming=profile(epoch+1);
+  edgeWave.resize(std::size_t(src.height));
+  for(int row=0;row<src.height;++row)edgeWave[std::size_t(row)]=std::round(current[std::size_t(row)]*(1.0f-mix)+upcoming[std::size_t(row)]*mix);
+ }
  for(int y=0;y<src.height;++y) {
   const float yn=src.height>1?(2.0f*float(y)/float(src.height-1)-1.0f):0.0f;
   const float decay=std::exp(-float(y)/std::max(1.0f,p.topSkewDecayRows));
   const float topNoise=hash01(7u,0u,p.seed,p.frame)*2.0f-1.0f;
   const float topShift=topNoise*p.topSkewPixels*decay;
   const float jitter=valueNoise1D(float(y)/std::max(1.0f,p.lineJitterCorrelationRows),p.seed+0x9e3779b9u,p.frame)*2.0f-1.0f;
-  const float rowShift=topShift+jitter*p.lineJitterPixels;
+  const float rowShift=topShift+jitter*p.lineJitterPixels+(edgeWave.empty()?0.0f:edgeWave[std::size_t(y)]);
   const float interlace=clamp01(p.interlaceAmount);
   const float fieldDir=(y&1)?-1.0f:1.0f;
   const float fieldPhase=std::sin(float(p.frame)*0.73f)*interlace*std::max(1.0f,float(src.width)*0.004f);
