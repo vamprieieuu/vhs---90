@@ -19,7 +19,8 @@ See [Source Audit Index](docs/source-audits/INDEX.md) for the audits of the supp
 - `Source/VHS90Core/VHS90StaticEngine.h/.cpp` — generated static/snow patterns, top/bottom weighting, split-band chroma, and static-to-blackout events.
 - `Source/VHS90Core/VHS90IIRFilter.h/.cpp` — constant-K and Butterworth YIQ bandwidth filtering.
 - `Source/VHS90Core/VHS90CompositeEngine.h/.cpp` — four-phase NTSC composite encode/decode with box and comb demodulators.
-- `Tests/` — standalone C++ smoke tests for the host-independent kernels (5 CTest targets).
+- `Source/VHS90Core/VHS90SyncEngine.h/.cpp` — procedural time-base instability, tracking tears, tracking line and sync vertical roll.
+- `Tests/` — standalone C++ smoke tests for the host-independent kernels (6 CTest targets).
 
 ## Build status
 
