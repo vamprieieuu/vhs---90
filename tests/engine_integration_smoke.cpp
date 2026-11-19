@@ -3,6 +3,7 @@
 #include "../src/engines/shared/vhs90_tape_surface.hpp"
 #include "../src/engines/shared/vhs90_image_degradation.hpp"
 #include "../src/engines/shared/vhs90_bloom.hpp"
+#include "../src/engines/shared/vhs90_tape_physics.hpp"
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -40,6 +41,9 @@ int main() {
     vhs90::applyRowWave(va,rw);vhs90::applyRowWave(vb,rw);
     vhs90::BloomParams bp;bp.enabled=true;bp.threshold=0.5f;bp.intensity=0.15f;bp.spread=1.4f;bp.levels=2;
     vhs90::applyBloom(va,bp);vhs90::applyBloom(vb,bp);
+    vhs90::TapeTransportParams transport;transport.seed=sp.seed;transport.frameIndex=sp.frameIndex;
+    transport.lineJitterPixels=0.8f;transport.flutterPixels=0.25f;
+    vhs90::applyTapeTransportWarp(va,transport);vhs90::applyTapeTransportWarp(vb,transport);
     if(a!=b)return 1;
     float sum=0.0f;
     for(size_t i=0;i<a.size();i+=4) {
@@ -47,6 +51,6 @@ int main() {
         if(std::abs(a[i+3]-0.63f)>1e-6f)return 2;
     }
     if(sum<1.0f)return 3;
-    std::cout<<"PASS shared VHS chain deterministic; alpha preserved; all eight stages composed\n";
+    std::cout<<"PASS shared VHS chain deterministic; alpha preserved; all nine stages composed\n";
     return 0;
 }
