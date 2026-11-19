@@ -3,9 +3,9 @@
 #include <cstdint>
 namespace vhs90 {
 struct TapeSurfaceParams {
-    float defectDensity=0.12f, oxideLoss=0.45f, scratchDensity=0.08f;
-    float creaseStrength=0.25f, debrisAmount=0.12f, edgeLift=0.08f;
-    float surfaceRoughness=0.025f, tapeAdvancePerFrame=0.012f;
+    float defectDensity=0.0f, oxideLoss=0.0f, scratchDensity=0.0f;
+    float creaseStrength=0.0f, debrisAmount=0.0f, edgeLift=0.0f;
+    float surfaceRoughness=0.0f, tapeAdvancePerFrame=0.012f;
     float moldAmount=0.0f, vaselineAmount=0.0f, pinholeAmount=0.0f, flakeAmount=0.0f;
     float alongCellSize=0.018f, acrossCellSize=0.035f;
     std::uint32_t seed=1;
