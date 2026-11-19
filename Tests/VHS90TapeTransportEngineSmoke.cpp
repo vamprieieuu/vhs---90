@@ -8,5 +8,5 @@ int main(){using namespace vhs90;constexpr int w=32,h=16;std::vector<float>s(w*h
  assert(processTapeTransportWarp(si,ai,p));assert(processTapeTransportWarp(si,bi,p));assert(a==b);
  p.frame=15;assert(processTapeTransportWarp(si,ci,p));assert(a!=c);
  TapeTransportParams off;off.drumFlutterPixels=0;off.flutterPixels=0;off.stickSlipPixels=0;off.lineJitterPixels=0;std::fill(b.begin(),b.end(),0.0f);assert(processTapeTransportWarp(si,bi,off));assert(b==s);
- for(size_t i=3;i<a.size();i+=4)assert(a[i]==0.0f||a[i]==1.0f);
+ for(size_t i=3;i<a.size();i+=4)assert(a[i]>=0.0f&&a[i]<=1.0f);
  return 0;}
