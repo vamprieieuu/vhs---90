@@ -16,10 +16,11 @@ inline float sample(const float*row,int w,float x,int c) noexcept {
 }
 }
 bool processReceiverInstability(ConstImageView src,ImageView dst,const ReceiverInstabilityParams&p) noexcept {
- if(!valid(src,dst)||!std::isfinite(p.afcHunt)||!std::isfinite(p.chromaFlutter)||!std::isfinite(p.ycCrosstalk))return false;
- const float afc=std::clamp(p.afcHunt,0.0f,1.0f),flutter=std::clamp(p.chromaFlutter,0.0f,1.0f),cross=std::clamp(p.ycCrosstalk,0.0f,1.0f);
- if(afc<=0&&flutter<=0&&cross<=0){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
+ if(!valid(src,dst)||!std::isfinite(p.afcHunt)||!std::isfinite(p.chromaFlutter)||!std::isfinite(p.ycCrosstalk)||!std::isfinite(p.horizontalSyncNoise)||!std::isfinite(p.verticalSyncNoise)||!std::isfinite(p.burstNoise))return false;
+ const float afc=std::clamp(p.afcHunt,0.0f,1.0f),flutter=std::clamp(p.chromaFlutter,0.0f,1.0f),cross=std::clamp(p.ycCrosstalk,0.0f,1.0f),hsync=std::clamp(p.horizontalSyncNoise,0.0f,1.0f),vsync=std::clamp(p.verticalSyncNoise,0.0f,1.0f),burst=std::clamp(p.burstNoise,0.0f,1.0f);
+ if(afc<=0&&flutter<=0&&cross<=0&&hsync<=0&&vsync<=0&&burst<=0){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
  const float phase=0.0051f*float(p.seed)+0.0023f*float(p.frame);
+ const int verticalOffset=int(std::lround(std::sin(phase*0.37f+0.4f)*vsync*2.0f));
  for(int y=0;y<src.height;++y){
   const float paired=float(std::min(y,(y+src.height/2)%src.height));
   const float linePhase=phase*0.41f+0.062f*paired;
@@ -29,13 +30,16 @@ bool processReceiverInstability(ConstImageView src,ImageView dst,const ReceiverI
       (hash01(std::uint32_t(y),12u,p.seed,p.frame)<0.5f?-1.0f:1.0f)*(0.7f+6.5f*afc):0.0f;
   const float micro=(hash01(std::uint32_t(y),13u,p.seed,p.frame)*2.0f-1.0f)*(0.02f+0.75f*afc);
   const float fastDecay=7.0f+13.0f*(1.0f-afc),slowDecay=34.0f+76.0f*(1.0f-afc);
+  const float burstPhase=(hash01(std::uint32_t(y),41u,p.seed,p.frame)*2.0f-1.0f)*(0.25f*burst);
   const float phaseJit=(0.22f+2.4f*flutter)*flutter*std::sin(phase*0.31f+0.043f*paired)+
-      (hash01(std::uint32_t(y),21u,p.seed,p.frame)*2.0f-1.0f)*(0.65f*flutter);
+      (hash01(std::uint32_t(y),21u,p.seed,p.frame)*2.0f-1.0f)*(0.65f*flutter)+burstPhase;
   const float ampJit=1.0f+(0.06f+1.18f*flutter)*flutter*std::sin(phase*0.47f+0.071f*paired+0.9f);
-  const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
+  const int sourceY=std::clamp(y+verticalOffset,0,src.height-1);
+  const float*sr=src.rgba+sourceY*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
+  const float hsyncShift=(hash01(std::uint32_t(y),51u,p.seed,p.frame)*2.0f-1.0f)*(2.5f*hsync);
   for(int x=0;x<src.width;++x){
    const float left=std::exp(-float(x)/slowDecay),sync=std::exp(-float(x)/fastDecay);
-   const float shift=afc*(baseShift*left+(slip+micro)*sync);
+   const float shift=afc*(baseShift*left+(slip+micro)*sync)+hsyncShift;
    const float sx=float(x)-shift;const float alpha=sample(sr,src.width,sx,3);
    if(alpha<=1.0e-6f){std::copy_n(sr+x*4,4,dr+x*4);continue;}
    RGB rgb{sample(sr,src.width,sx,0),sample(sr,src.width,sx,1),sample(sr,src.width,sx,2)};
