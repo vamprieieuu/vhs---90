@@ -9,6 +9,9 @@ constexpr float kTapeWidthMm=12.65f;
 constexpr float kTrackAngle=5.97f*kPi/180.0f;
 constexpr float kTrackLengthMm=5.8f*1000.0f/(60000.0f/1001.0f);
 constexpr float kLineLengthMm=kTrackLengthMm/262.5f;
+constexpr float kLinePeriodUs=63.556f;
+constexpr float kActiveStartUs=9.4f;
+constexpr float kActiveLengthUs=52.656f;
 constexpr double kAdvancePerFieldMm=33.35/(60000.0/1001.0);
 inline std::uint64_t mix64(std::uint64_t x) noexcept { x^=x>>30;x*=0xbf58476d1ce4e5b9ULL;x^=x>>27;x*=0x94d049bb133111ebULL;x^=x>>31;return x; }
 inline std::uint64_t hashCell(std::uint32_t seed,std::int64_t x,std::int64_t y,std::uint32_t lane=0) noexcept {
@@ -122,8 +125,9 @@ TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfacePara
 TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams&p) noexcept {
  // Raster rows advance along the helical track; horizontal samples move
  // through the recorded NTSC line. This is TapeGeometry::along_track/point.
- const float along=v*kTrackLengthMm+u*kLineLengthMm;
- const double x=double(p.frame)*kAdvancePerFieldMm+double(along*std::cos(kTrackAngle));
+ const float along=v*kTrackLengthMm+((kActiveStartUs+u*kActiveLengthUs)/kLinePeriodUs)*kLineLengthMm;
+ const double fieldAdvance=kAdvancePerFieldMm/double(p.tapeSpeed+1u);
+ const double x=double(p.frame*2)*fieldAdvance+double(along*std::cos(kTrackAngle));
  const float y=1.0f+along*std::sin(kTrackAngle);
  return sampleTapeSurfaceAtMm(x,y,p);
 }
