@@ -63,5 +63,37 @@ int main() {
     RegionEngineParams pZero=p; pZero.globalIntensity=0.0f;
     assert(processDamageRegions(si,dzi,pZero));
     assert(zero==src);
+
+    // A region whose bottom edge is exactly at the top of the frame stays
+    // outside the raster; it must not be clamped back into the visible image.
+    DamageRegion offFrame=full;
+    offFrame.centerY=-0.10f; offFrame.height=0.20f;
+    offFrame.maxShiftPx=0.0f; offFrame.waveAmplitudePx=0.0f;
+    offFrame.servoDriftPx=0.0f; offFrame.dropoutProbability=0.0f;
+    offFrame.noiseAmount=1.0f; offFrame.noiseDensity=1.0f; offFrame.chromaShiftPx=0.0f;
+    RegionEngineParams pOff; pOff.regions=&offFrame; pOff.regionCount=1; pOff.seed=5; pOff.frame=1;
+    std::vector<float> offOutput(src.size(),0.0f); ImageView doff{offOutput.data(),w,h,w*4};
+    assert(processDamageRegions(si,doff,pOff));
+    assert(offOutput==src);
+
+    // Signed chroma displacement must work in both directions.
+    std::vector<float> chromaSrc(src.size()),chromaOut(src.size(),0.0f);
+    for(int y=0;y<h;++y) for(int x=0;x<w;++x) {
+        size_t i=(y*w+x)*4;
+        chromaSrc[i]=float(x)/float(w-1); chromaSrc[i+1]=0.25f;
+        chromaSrc[i+2]=1.0f-float(x)/float(w-1); chromaSrc[i+3]=1.0f;
+    }
+    ConstImageView csi{chromaSrc.data(),w,h,w*4}; ImageView cdo{chromaOut.data(),w,h,w*4};
+    DamageRegion signedChroma=full;
+    signedChroma.maxShiftPx=0.0f; signedChroma.waveAmplitudePx=0.0f;
+    signedChroma.servoDriftPx=0.0f; signedChroma.tearProbability=0.0f;
+    signedChroma.noiseAmount=0.0f; signedChroma.noiseDensity=0.0f;
+    signedChroma.dropoutProbability=0.0f; signedChroma.chromaShiftPx=-2.0f;
+    RegionEngineParams pChroma; pChroma.regions=&signedChroma; pChroma.regionCount=1;
+    pChroma.seed=8; pChroma.frame=2;
+    assert(processDamageRegions(csi,cdo,pChroma));
+    const size_t mid=(24*w+32)*4;
+    assert(chromaOut[mid]>chromaSrc[mid]);
+    assert(chromaOut[mid+2]<chromaSrc[mid+2]);
     return 0;
 }
