@@ -39,7 +39,49 @@ TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams&p) n
  out.spacingLift+=edgeProfile*std::max(0.0f,p.edgeLift);
  out.roughness+=std::abs(std::sin((u*173.0f+v*29.0f)*kPi))*p.surfaceRoughness*0.15f;
  out.magnetization=std::clamp(out.magnetization,0.0f,1.0f);out.spacingLift=std::clamp(out.spacingLift,0.0f,1.0f);
- out.roughness=std::clamp(out.roughness,0.0f,0.25f);out.creaseLoss=std::clamp(out.creaseLoss,0.0f,1.0f);return out;
+ // NTSCRT tape_at additions: pinholes, flakes, mold colonies and vaseline film.
+ const float pin=std::clamp(p.pinholeAmount,0.0f,1.0f),flake=std::clamp(p.flakeAmount,0.0f,1.0f);
+ const float mold=std::clamp(p.moldAmount,0.0f,1.0f),vas=std::clamp(p.vaselineAmount,0.0f,1.0f);
+ for(int oy=-1;oy<=1;++oy)for(int ox=-1;ox<=1;++ox){
+  const auto cx=ix+ox,cy=iy+oy;
+  if(unit(hashCell(p.seed^0x31u,cx,cy,11))<pin*0.22f){
+   const float px=(float(cx)+unit(hashCell(p.seed,cx,cy,12)))*cu;
+   const float py=(float(cy)+unit(hashCell(p.seed,cx,cy,13)))*cv;
+   const float r=0.002f+0.009f*unit(hashCell(p.seed,cx,cy,14));
+   const float dd=std::sqrt((u-px)*(u-px)+(v-py)*(v-py));
+   const float f=1.0f-smooth(dd/r);out.magnetization*=1.0f-pin*0.98f*f;
+  }
+  if(unit(hashCell(p.seed^0x52u,cx,cy,21))<flake*0.18f){
+   const float px=(float(cx)+unit(hashCell(p.seed,cx,cy,22)))*cu;
+   const float py=(float(cy)+unit(hashCell(p.seed,cx,cy,23)))*cv;
+   const float r=0.025f+0.11f*unit(hashCell(p.seed,cx,cy,24));
+   const float f=falloffEllipse(u-px,v-py,r,r*(0.35f+0.65f*unit(hashCell(p.seed,cx,cy,25))));
+   out.magnetization*=1.0f-0.85f*flake*f;out.spacingLift+=0.35f*flake*f;
+  }
+ }
+ if(mold>0.0f){
+  const float mc=std::max(cu*8.0f,0.08f),mv=std::max(cv*8.0f,0.12f);
+  const auto mx=static_cast<std::int64_t>(std::floor(u/mc)),my=static_cast<std::int64_t>(std::floor(v/mv));
+  for(int oy=-1;oy<=1;++oy)for(int ox=-1;ox<=1;++ox){
+   const auto cx=mx+ox,cy=my+oy;const float py=(float(cy)+unit(hashCell(p.seed^0x63u,cx,cy,61)))*mv;
+   const float edgeNear=1.0f-std::min(1.0f,std::min(std::fabs(py),std::fabs(1.0f-py))/0.22f);
+   if(unit(hashCell(p.seed,cx,cy,62))>=mold*(0.12f+0.5f*edgeNear))continue;
+   const float px=(float(cx)+unit(hashCell(p.seed,cx,cy,63)))*mc;
+   const float r=0.025f+0.10f*unit(hashCell(p.seed,cx,cy,64));
+   const float f=falloffEllipse(u-px,v-py,r,r*0.7f);
+   out.spacingLift+=f*(0.2f+0.6f*mold);out.magnetization*=1.0f-0.45f*mold*f;
+  }
+ }
+ if(vas>0.0f){
+  const auto lane=static_cast<std::int64_t>(std::floor(v*18.0f));
+  const float gate=unit(hashCell(p.seed^0x74u,lane,0,71));
+  const float begin=unit(hashCell(p.seed^0x74u,lane,0,72))*0.35f;
+  const float end=0.35f+unit(hashCell(p.seed^0x74u,lane,0,73))*0.65f;
+  const float taper=smooth((u-begin)*4.0f)*smooth((end-u)*4.0f);
+  if(gate<0.2f+0.8f*vas)out.film=std::max(out.film,vas*(0.35f+0.65f*taper));
+ }
+ out.roughness=std::clamp(out.roughness,0.0f,0.25f);out.creaseLoss=std::clamp(out.creaseLoss,0.0f,1.0f);
+ out.film=std::clamp(out.film,0.0f,1.0f);return out;
 }
 bool processTapeSurface(ConstImageView src,ImageView dst,const TapeSurfaceParams&p) noexcept {
  if(!valid(src,dst))return false;
@@ -51,7 +93,7 @@ bool processTapeSurface(ConstImageView src,ImageView dst,const TapeSurfaceParams
    YIQ q=rgbToYiq(rgb);const float mag=d.magnetization*(1.0f-d.creaseLoss);
    // NTSCRT/VcrStage channelGain: head spacing damages high-frequency FM luma
    // more than the lower-frequency color-under carrier.
-   const float spacingUm=4.0f*d.spacingLift,headGapUm=1.0f,writingSpeed=5.8f;
+   const float spacingUm=4.0f*std::clamp(d.spacingLift+d.film,0.0f,1.0f),headGapUm=1.0f,writingSpeed=5.8f;
    const auto channelGain=[&](float mhz) noexcept {
     const float spacing=std::exp(-2.0f*kPi*spacingUm*mhz/writingSpeed);
     const float aperture=kPi*headGapUm*mhz/writingSpeed;
