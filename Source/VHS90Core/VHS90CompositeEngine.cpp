@@ -35,8 +35,9 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
        dst.width!=src.width||dst.height!=src.height||
        src.rowStrideFloats<src.width*4||dst.rowStrideFloats<dst.width*4||
        src.rgba==dst.rgba) return false;
-    if(!std::isfinite(p.strength)) return false;
+    if(!std::isfinite(p.strength)||!std::isfinite(p.compositeSignalStrength)) return false;
     const float strength=std::max(0.0f,std::min(1.0f,p.strength));
+    const float compositeStrength=std::max(0.0f,std::min(1.0f,p.compositeSignalStrength));
     if(strength<=0.0f) {
         for(int y=0;y<src.height;++y)
             std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);
@@ -69,7 +70,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processTapeSurface(input,tapeView,p.tapeSurface)) return false;
             input={tapeDamaged.data(),w,h,w*4};
         }
-        if(p.inputBandwidthEnabled) {
+        if(compositeStrength>0.0f && p.inputBandwidthEnabled) {
             prefiltered.resize(count*4);
             ImageView pre{prefiltered.data(),w,h,w*4};
             YiqBandwidthParams bp=p.inputBandwidth; bp.premultipliedAlpha=p.premultipliedAlpha;
@@ -77,77 +78,94 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             input={prefiltered.data(),w,h,w*4};
         }
 
-        std::vector<float> y(count),i(count),q(count),decodedY(count);
-        for(int row=0;row<h;++row) for(int x=0;x<w;++x) {
-            const std::size_t idx=std::size_t(row)*w+x;
-            const RGB rgb=readStraight(input,x,row,p.premultipliedAlpha);
-            const YIQ yiq=rgbToYiq(rgb);
-            y[idx]=yiq.y; i[idx]=yiq.i; q[idx]=yiq.q;
-        }
-
-        for(int row=0;row<h;++row) {
-            const int xi=phaseShift(p.phase,p.phaseOffset,p.frame,row);
-            const std::size_t base=std::size_t(row)*w;
-            for(int x=0;x<w;++x) {
-                const int phase=(x+xi)&3;
-                const float palSign=(p.palMode&&p.palSwitch&&(row&1))?-1.0f:1.0f;
-                y[base+x]+=i[base+x]*kIMult[phase]+q[base+x]*palSign*kQMult[phase];
+        std::vector<float> decoded;
+        if(compositeStrength>0.0f) {
+            std::vector<float> y(count),i(count),q(count),decodedY(count);
+            for(int row=0;row<h;++row) for(int x=0;x<w;++x) {
+                const std::size_t idx=std::size_t(row)*w+x;
+                const RGB rgb=readStraight(input,x,row,p.premultipliedAlpha);
+                const YIQ yiq=rgbToYiq(rgb);
+                y[idx]=yiq.y; i[idx]=yiq.i; q[idx]=yiq.q;
             }
-        }
-
-        std::fill(i.begin(),i.end(),0.0f);
-        std::fill(q.begin(),q.end(),0.0f);
-
-        std::vector<float> scratch(w);
-        for(int row=0;row<h;++row) {
-            const int xi=phaseShift(p.phase,p.phaseOffset,p.frame,row);
-            const std::size_t base=std::size_t(row)*w;
-            if(p.demodulator==CompositeDemodulator::Box || h<2) {
+    
+            for(int row=0;row<h;++row) {
+                const int xi=phaseShift(p.phase,p.phaseOffset,p.frame,row);
+                const std::size_t base=std::size_t(row)*w;
                 for(int x=0;x<w;++x) {
-                    const float c=y[base+std::min(x+2,w-1)];
-                    const float a0=x>0?y[base+x-1]:16.0f/255.0f;
-                    const float a1=y[base+x];
-                    const float a2=y[base+std::min(x+1,w-1)];
-                    const float a3=y[base+std::min(x+2,w-1)];
-                    scratch[x]=(a0+a1+a2+a3)*0.25f;
-                    const float chroma=c-scratch[x];
-                    demodulateChroma(chroma,x,xi,i.data()+base,q.data()+base,w);
+                    const int phase=(x+xi)&3;
+                    const float palSign=(p.palMode&&p.palSwitch&&(row&1))?-1.0f:1.0f;
+                    y[base+x]+=i[base+x]*kIMult[phase]+q[base+x]*palSign*kQMult[phase];
                 }
-                std::copy(scratch.begin(),scratch.end(),decodedY.begin()+base);
-            } else {
-                const int prev=row==0?1:row-1;
-                const int next=row==h-1?h-2:row+1;
-                for(int x=0;x<w;++x) {
-                    const float cur=y[base+x];
-                    float blended=cur;
-                    if(p.demodulator==CompositeDemodulator::OneLineComb) {
-                        blended=(cur+y[std::size_t(prev)*w+x])*0.5f;
-                    } else {
-                        blended=cur*0.5f+y[std::size_t(prev)*w+x]*0.25f+y[std::size_t(next)*w+x]*0.25f;
+            }
+    
+            std::fill(i.begin(),i.end(),0.0f);
+            std::fill(q.begin(),q.end(),0.0f);
+    
+            std::vector<float> scratch(w);
+            for(int row=0;row<h;++row) {
+                const int xi=phaseShift(p.phase,p.phaseOffset,p.frame,row);
+                const std::size_t base=std::size_t(row)*w;
+                if(p.demodulator==CompositeDemodulator::Box || h<2) {
+                    for(int x=0;x<w;++x) {
+                        const float c=y[base+std::min(x+2,w-1)];
+                        const float a0=x>0?y[base+x-1]:16.0f/255.0f;
+                        const float a1=y[base+x];
+                        const float a2=y[base+std::min(x+1,w-1)];
+                        const float a3=y[base+std::min(x+2,w-1)];
+                        scratch[x]=(a0+a1+a2+a3)*0.25f;
+                        const float chroma=c-scratch[x];
+                        demodulateChroma(chroma,x,xi,i.data()+base,q.data()+base,w);
                     }
-                    decodedY[base+x]=blended;
-                    const float chroma=blended-cur;
-                    demodulateChroma(chroma,x,xi,i.data()+base,q.data()+base,w);
+                    std::copy(scratch.begin(),scratch.end(),decodedY.begin()+base);
+                } else {
+                    const int prev=row==0?1:row-1;
+                    const int next=row==h-1?h-2:row+1;
+                    for(int x=0;x<w;++x) {
+                        const float cur=y[base+x];
+                        float blended=cur;
+                        if(p.demodulator==CompositeDemodulator::OneLineComb) {
+                            blended=(cur+y[std::size_t(prev)*w+x])*0.5f;
+                        } else {
+                            blended=cur*0.5f+y[std::size_t(prev)*w+x]*0.25f+y[std::size_t(next)*w+x]*0.25f;
+                        }
+                        decodedY[base+x]=blended;
+                        const float chroma=blended-cur;
+                        demodulateChroma(chroma,x,xi,i.data()+base,q.data()+base,w);
+                    }
                 }
+                if(p.palMode&&p.palSwitch&&(row&1))
+                    for(int x=0;x<w;++x) q[base+x]=-q[base+x];
             }
-            if(p.palMode&&p.palSwitch&&(row&1))
-                for(int x=0;x<w;++x) q[base+x]=-q[base+x];
+    
+            decoded.resize(count*4);
+            for(int row=0;row<h;++row) for(int x=0;x<w;++x) {
+                const std::size_t idx=std::size_t(row)*w+x;
+                const float alpha=input.rgba[row*input.rowStrideFloats+x*4+3];
+                RGB rgb=yiqToRgb({decodedY[idx],i[idx],q[idx]});
+                if(p.premultipliedAlpha) { rgb.r*=alpha; rgb.g*=alpha; rgb.b*=alpha; }
+                float* out=decoded.data()+idx*4;
+                out[0]=rgb.r; out[1]=rgb.g; out[2]=rgb.b; out[3]=alpha;
+            }
+    
+        } else {
+            decoded.resize(count*4);
+            for(int y=0;y<h;++y)
+                std::copy_n(input.rgba+y*input.rowStrideFloats,w*4,decoded.data()+std::size_t(y)*w*4);
         }
 
-        std::vector<float> decoded(count*4);
-        for(int row=0;row<h;++row) for(int x=0;x<w;++x) {
-            const std::size_t idx=std::size_t(row)*w+x;
-            const float alpha=input.rgba[row*input.rowStrideFloats+x*4+3];
-            RGB rgb=yiqToRgb({decodedY[idx],i[idx],q[idx]});
-            if(p.premultipliedAlpha) { rgb.r*=alpha; rgb.g*=alpha; rgb.b*=alpha; }
-            float* out=decoded.data()+idx*4;
-            out[0]=rgb.r; out[1]=rgb.g; out[2]=rgb.b; out[3]=alpha;
+        std::vector<float> analogNoisy;
+        ConstImageView decodedView{decoded.data(),w,h,w*4};
+        if(p.analogNoiseEnabled) {
+            analogNoisy.resize(count*4);
+            ImageView noiseView{analogNoisy.data(),w,h,w*4};
+            AnalogNoiseParams np=p.analogNoise;
+            np.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processAnalogNoise(decodedView,noiseView,np)) return false;
+            decodedView={analogNoisy.data(),w,h,w*4};
         }
-
         std::vector<float> verticalBlended;
         std::vector<float> chromaSubsampled;
         std::vector<float> smeared;
-        ConstImageView decodedView{decoded.data(),w,h,w*4};
         if(p.verticalChromaBlendEnabled && p.verticalChromaBlendAmount>0.0f) {
             verticalBlended.resize(count*4);
             ImageView verticalView{verticalBlended.data(),w,h,w*4};
@@ -176,7 +194,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         std::vector<float> filtered;
         std::vector<float> bloomed;
         std::vector<float> scanlined;
-        if(p.outputBandwidthEnabled) {
+        if(p.outputBandwidthEnabled && (compositeStrength>0.0f || p.outputBandwidth.verticalLumaRadiusRows>0)) {
             filtered.resize(count*4);
             ImageView filteredView{filtered.data(),w,h,w*4};
             YiqBandwidthParams bp=p.outputBandwidth; bp.premultipliedAlpha=p.premultipliedAlpha;
