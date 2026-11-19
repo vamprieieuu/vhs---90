@@ -37,24 +37,25 @@ License: Apache-2.0 (Copyright 2026 SKBv0). The project credits ntscQT and compo
 |---|---|
 | RGB↔YIQ, chroma phase and composite carrier | `VHS90CompositeEngine`, `VHS90WaveformEngine` |
 | Horizontal/vertical chroma bleed and chroma delay | `VHS90ChromaShiftEngine`, chroma subsampling/vertical blend and IIR bandwidth |
-| Frame-driven chroma colour drift | `VHS90ReceiverInstabilityEngine::chromaPhaseDrift` |
+| Frame-driven and row-dependent chroma colour drift | `VHS90ReceiverInstabilityEngine::chromaPhaseDrift` + `chromaColorDrift`; AE control `Chroma Color Drift` |
 | Luma/chroma/composite noise | `VHS90AnalogNoiseEngine` |
 | Causal exponential luma smear and highlight-only trail | `processLumaSmear` in `VHS90SignalKernels`, extended to 2–64 taps with independent highlight trail |
-| Servo tracking profile with epoch crossfade | `VHS90RegionEngine` deterministic row-correlated tracking profiles |
+| Servo tracking profile with epoch crossfade | `VHS90TapeTransportEngine` slow one-pole servo profile plus `VHS90RegionEngine` row-correlated tracking profiles |
 | Tracking warp / time-base jitter | `VHS90AnalogGeometryEngine`, `VHS90TapeTransportEngine`, region tracking |
 | Interlace field weave and vertical roll | `VHS90AnalogGeometryEngine` |
-| Dropout bands and speckles | `VHS90TapeSurfaceEngine`, `VHS90ImpulseNoiseEngine`, region engine |
+| Dropout bands and speckles | `VHS90DropoutEngine`, plus `VHS90TapeSurfaceEngine` and `VHS90ImpulseNoiseEngine` for other defect families |
 | Previous-frame ghosting | `VHS90TemporalEngine`; AE SmartFX now checks out the previous source frame with a separate checkout ID (source-level integration; live AE/MFR validation pending) |
 | Scanlines / composite carrier modulation | `VHS90CompositeEngine::processScanlines` and composite pipeline |
-| Analog glow / highlight bloom | `VHS90BloomEngine` |
+| Analog glow / highlight bloom | `VHS90BloomEngine` plus `VHS90AnalogGlowEngine` for thresholded channel-weighted halo |
 | Head switching | shared `RegionEngine` head-switch region |
 | VHS luma/chroma bandwidth and vertical chroma blending | tape-speed IIR profiles, chroma subsampling and vertical chroma blend |
 | Seven-tap luma ringing and asymmetric edge echoes | New `VHS90RingingEngine`, integrated before composite modulation; AE controls `Ringing` and `Ringing Power` |
 | Two-stage luma ghost and I/Q chroma delay | New `VHS90SignalGhostEngine`, integrated after RF multipath; AE controls `Signal Ghost` and `Chroma Delay` |
 | Sparse dropout bands and luma-only speckles | New `VHS90DropoutEngine`, deterministic per frame/seed, alpha-aware; AE control `Dropouts` |
 | Thresholded channel-weighted analog glow | New `VHS90AnalogGlowEngine`, integrated post-scanline; AE control `Analog Glow` |
-| Frame and row-dependent chroma rotation | `VHS90ReceiverInstabilityEngine::chromaColorDrift`; AE control `Color Drift` |
+| Frame and row-dependent chroma rotation | `VHS90ReceiverInstabilityEngine::chromaColorDrift`; AE control `Chroma Color Drift` |
 | Vertical roll | `VHS90AnalogGeometryEngine::verticalRoll`; AE control `Vertical Roll` |
+| Per-scanline stochastic chroma loss | `VHS90AnalogNoiseEngine::chromaLoss`, seeded row mask with 8% chroma retention; AE control `Chroma Loss` |
 | VHS edge-wave per-row motion | `VHS90AnalogGeometryEngine` now has deterministic epoch-crossfaded per-row edge-wave profiles; AE control `VHS Edge Wave` |
 | Black pedestal lift | `VHS90ImageGradeEngine::blackLift`; AE control `Black Lift`, white-level preserving pedestal curve |
 | Preview server, CUDA device manager, ComfyUI widget and browser panel | Excluded as host-specific infrastructure |
@@ -69,11 +70,13 @@ License: Apache-2.0 (Copyright 2026 SKBv0). The project credits ntscQT and compo
 - `VHS90AnalogGeometryEngine`: deterministic edge-wave profile with temporal epoch crossfade, plus vertical roll; exposed as `VHS Edge Wave` and `Vertical Roll`.
 - `VHS90ImageGradeEngine`: now includes black-pedestal lift that preserves white level.
 - `VHS90ReceiverInstabilityEngine`: row-dependent color drift and phase rotation.
+- `VHS90TapeTransportEngine`: epoch-crossfaded one-pole servo jitter profile, connected to the tracking servo control.
 - All these modules are connected to the shared composite pipeline and their AE controls are wired. Existing Comfy-derived luma smear, servo epoch profile, tracking warp and fidelity-test ideas are retained as documented earlier ports.
 
 ## Verification boundary
 
 - GitHub Actions run `44604160794` passed 24/24 CTest tests, including standalone Ringing, Dropout, Signal Ghost and Analog Glow tests.
-- The later edge-wave/servo profile changes have additional tests and CI runs; verify the latest run after the final test additions before claiming that final combined state passes.
+- GitHub Actions run `44604803432` passed **25/25 CTest tests**, including standalone and composite tests for the chroma-loss mask.
+- Later AE parameter wiring and the servo-only activation fix have newer runs; verify the latest run before claiming the combined adapter source state is validated.
 - Static AE parameter count after the ComfyUI-derived controls: 77 real parameter slots and 77 `PF_ADD_*` calls. This does not substitute for a Windows/MSVC AE SDK build or live After Effects/MFR validation.
-- The 25-file ComfyUI RetroTape source inventory is complete. Most portable image/signal algorithms are now represented in VHS-90; remaining candidate is the stochastic per-scanline chroma-loss mask and detailed CPU/GPU statistical parity (GPU path is intentionally not imported into CPU-first AE).
+- The 25-file ComfyUI RetroTape source inventory is complete. All identified portable image/signal algorithms are now represented in VHS-90, including per-scanline chroma loss. Exact OpenCV/PyTorch statistical parity remains a separate fidelity task; the GPU path is intentionally not imported into the CPU-first AE plugin.
