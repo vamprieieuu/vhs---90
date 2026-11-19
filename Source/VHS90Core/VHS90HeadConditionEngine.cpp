@@ -27,7 +27,7 @@ inline HeadReadState simulateHeadState(const HeadConditionParams& p,int head,flo
  const float proxyShed=std::clamp(0.025f+0.11f*dirt+0.035f*buildup,0.0f,0.35f);
  const float dt=1.0f/59.94005994f;
  const std::int64_t last=std::max<std::int64_t>(0,std::min<std::int64_t>(p.frame*2+1,1000000));
- TapeSurfaceParams tape=p.tapeSurface;tape.seed=p.seed;
+ TapeSurfaceParams tape=p.tapeSurface;
  for(std::int64_t field=0;field<=last;++field) {
   if(int(field&1)!=head) continue;
   float shed=proxyShed,film=greaseTarget;
