@@ -158,6 +158,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         ConstImageView decodedView{decoded.data(),w,h,w*4};
+        std::vector<float> receiverProcessed;
+        if(p.receiverInstabilityEnabled) {
+            receiverProcessed.resize(count*4);
+            ImageView receiverView{receiverProcessed.data(),w,h,w*4};
+            ReceiverInstabilityParams rp=p.receiverInstability;
+            rp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processReceiverInstability(decodedView,receiverView,rp)) return false;
+            decodedView={receiverProcessed.data(),w,h,w*4};
+        }
         std::vector<float> multipathProcessed;
         if(p.multipathEchoEnabled) {
             multipathProcessed.resize(count*4);
