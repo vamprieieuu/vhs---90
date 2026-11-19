@@ -34,6 +34,7 @@ Inspected `ntsc_processor.cpp`, `ntsc_effects.cpp` (68,961 chars), and `ntsc_par
 - Uses a clear encode → signal-domain effects → decode frame pipeline.
 - Exposes separate parameter namespaces for decoder, effects, and encoder.
 - Effect parameters include noise, multipath gain/delay/ensemble, line-time jitter, RF drift, AM nonlinearity, impulse noise, AFC hunt, chroma flutter, AGC pump, hum, Y/C crosstalk, H/V sync noise, burst noise, VHS tracking, wrinkle, head-switch and dropouts.
+- The main effects body was scanned through its implementation sections: DC restoration and sync-referenced AGC; causal group delay; line-time jitter; RF drift; AM compression/nonlinearity; impulse noise; hum; AFC hunting; AGC pumping; chroma flutter; Y/C crosstalk; VHS tracking; head switching; tape wrinkle; dropouts; H/V/burst lock noise; spectrally shaped noise.
 - Strong reference for parameter metadata/ranges and signal-domain ordering. The source file is large and has its own signal representation; no wholesale copy was made.
 - The source declares BSD-2-Clause headers. Retain attribution/license if any code is ported.
 
@@ -95,7 +96,7 @@ Inspected `ffmpeg_ntsc.cpp` (about 90 KB), `ffmpeg_vhsled.cpp` (about 32 KB), an
 Inspected `analog_color.glsl` and `composite.fsh` (about 30 KB).
 
 - Explicit RGB↔YIQ conversion and I/Q phase rotation.
-- Correlated smooth value noise rather than independent per-line hashes, useful for continuous time-base error.
+- Correlated smooth value noise rather than independent per-line hashes, useful for continuous time-base error. Its interpolation pattern was adapted into VHS-90's C++ `valueNoise1D` helper and line-wobble correlation control.
 - Shader depends on Minecraft shaderpack uniforms, depth buffers, camera matrices and persistent render targets; only independent equations are candidates for a C++ port.
 
 ## Code transfer ledger
