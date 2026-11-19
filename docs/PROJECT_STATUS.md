@@ -21,7 +21,8 @@ Updated: 2026-11-19
 - Added `processLumaSmear`, a C++ CPU port upgraded to a configurable 2–64 tap causal exponential luma-smear kernel with a separate highlight-only glow trail, adapted from ComfyUI RetroTape. It retains I/Q chroma and handles premultiplied alpha.
 - Adapted ComfyUI RetroTape's temporal servo-profile crossfade into Tracking Noise. Row-correlated deterministic servo profiles now interpolate between configurable temporal epochs rather than fully re-randomizing every frame.
 - Added `processVerticalChromaBlend`, a C++ port of the composite-video simulator's VHS field-line chroma delay. It blends I/Q from the previous same-field line while retaining current-line luma and alpha.
-- Added smoke assertions for variable-tap smear/highlight trail, vertical chroma blending/luma preservation, alpha preservation and adjacent-frame servo continuity. GitHub Actions run `44592423967` on commit `9e1b5b8` passed the core build and all 6/6 CTest tests. The source audits and commits are recorded in `docs/source-audits/35-github-repositories-batch-1.md`.
+- Migrated the deterministic tape-coordinate defect map from the previously unbuilt local `src/engines/shared/vhs90_tape_surface` candidate into canonical `Source/VHS90Core/VHS90TapeSurfaceEngine.{h,cpp}`. The canonical version adds explicit premultiplied-alpha handling and an exact inactive bypass; CMake now builds it and runs `VHS90TapeSurfaceEngineSmoke`.
+- Added smoke assertions for variable-tap smear/highlight trail, vertical chroma blending/luma preservation, alpha preservation and adjacent-frame servo continuity. GitHub Actions run `44592423967` on commit `9e1b5b8` passed the core build and all 6/6 CTest tests. After migrating the tape-surface engine, run `44593216735` on commit `4f7e34f` passed the build and all 7/7 CTest tests. The source audits and commits are recorded in `docs/source-audits/35-github-repositories-batch-1.md`.
 - Added an initial AE SmartFX/legacy host adapter with ARGB32/64/128 conversion and basic UI controls for Composite Signal, Sync Collapse, Static, Tracking Noise and Head Switching.
 - Added an optional Windows x64/MSVC AEX target, PiPL resource generation and PowerShell build script. The target searches the local AE SDK tree for PiPLtool.
 
@@ -52,6 +53,6 @@ Updated: 2026-11-19
 5. Continue porting the high-value source algorithms: full composite sync/burst/AFC/PLL, dropout/blackout/hold, tape-surface defects, OSD/font shaping and Blue Screen mode.
 6. Complete the remaining source/reference audits and connect the modules to unified presets and the final UI.
 7. Compare actual AE renders against the supplied reference clips/stills before marking visual matching complete.
-8. Complete the full audit of all 15 bundled GitHub repositories; current batch-1 audit is explicitly incomplete.
+8. Complete the full audit of all 15 bundled GitHub repositories; current batch-1 audit is explicitly incomplete. The `vhs-main` folder is now confirmed (28 files) and has two detailed source-audit reports; its upstream remote URL remains to be recovered.
 
 Do not call VHS-90 test-ready until the Windows build and in-host validation gates pass.
