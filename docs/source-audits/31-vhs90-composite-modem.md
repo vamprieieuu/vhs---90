@@ -20,6 +20,7 @@ Ported the four-phase NTSC composite modulation/demodulation structure from ntsc
 
 ## Alpha / determinism
 
+- Reuses the Y/I/Q planes in place for carrier modulation and demodulation to reduce full-frame scratch memory.
 - No global state or mutable temporal history.
 - Phase depends only on explicit frame index, line and phase offset.
 - Alpha is preserved; premultiplied input is unassociated before YIQ modulation and reassociated after decoding.
