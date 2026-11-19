@@ -4,7 +4,8 @@
 #include <vector>
 int main(){using namespace vhs90;constexpr int w=32,h=24;std::vector<float>s(w*h*4,0),out(s.size()),again(s.size()),off(s.size());
  for(int y=0;y<h;++y)for(int x=0;x<w;++x){size_t i=(y*w+x)*4;s[i+3]=1.0f;}
- const size_t center=((h/2)*w+w/2)*4;s[center]=s[center+1]=s[center+2]=1.0f;
+ for(int yy=h/2-2;yy<h/2+2;++yy)for(int xx=w/2-2;xx<w/2+2;++xx){const size_t i=(yy*w+xx)*4;s[i]=s[i+1]=s[i+2]=1.0f;}
+ const size_t center=((h/2)*w+w/2)*4;
  ConstImageView si{s.data(),w,h,w*4};ImageView oi{out.data(),w,h,w*4},ai{again.data(),w,h,w*4},zi{off.data(),w,h,w*4};
  BloomParams p;p.threshold=.5f;p.intensity=1.0f;p.spread=2.0f;p.levels=3;
  assert(processBloom(si,oi,p));assert(processBloom(si,ai,p));assert(out==again);
