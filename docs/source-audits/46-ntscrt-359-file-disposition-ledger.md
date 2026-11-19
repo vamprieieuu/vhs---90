@@ -43,28 +43,28 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtApp/Paths.swift` | 5052 | content-reviewed | Reviewed macOS bundle/vendor/env path discovery for Metal, ntsc-rs, shaders and presets. App packaging utility only. |
 | `Sources/CrtApp/Timeline.swift` | 7300 | content-reviewed | Reviewed whole-state keyframe snapshots, easing, numeric interpolation and discrete bool/choice handling. AE host keyframes replace this timeline in the native plug-in. |
 | `Sources/CrtApp/UpdateChecker.swift` | 7858 | content-reviewed | Reviewed GitHub release-feed checks and update-notification UI. No rendering or effect code. |
-| `Sources/CrtApp/Views/ConnectClaudeView.swift` | 4915 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/ContentView.swift` | 159354 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/CropPanel.swift` | 4230 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/DigitalVideoPanel.swift` | 6041 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/DownscalePanel.swift` | 5896 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/ExportOptions.swift` | 7553 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/ExportPopover.swift` | 7382 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/GlitchPanel.swift` | 4913 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/HowlaroundPanel.swift` | 17733 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/NtscPanel.swift` | 10493 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/NumericField.swift` | 5558 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/PresetCycleCheck.swift` | 12372 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/PreviewView.swift` | 40712 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/PropertySlider.swift` | 4775 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/ShaderPanel.swift` | 15412 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/SourcePanel.swift` | 2516 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/TimelineBar.swift` | 13727 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/ToolTip.swift` | 1065 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/TransportBar.swift` | 2564 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/VanishingPointPad.swift` | 12645 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/VcrPanel.swift` | 3795 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Views/ViewPalette.swift` | 3389 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
+| `Sources/CrtApp/Views/ConnectClaudeView.swift` | 4915 | content-reviewed | Reviewed SwiftUI Claude connection window and status/actions; external MCP configuration UI only. |
+| `Sources/CrtApp/Views/ContentView.swift` | 159354 | content-reviewed | Reviewed main macOS window/sidebar composition, preview overlays, development self-tests and panel assembly. SwiftUI app shell, not effect engine. |
+| `Sources/CrtApp/Views/CropPanel.swift` | 4230 | content-reviewed | Reviewed crop aspect presets and preview drag/zoom controls; UI wrapper around generic crop geometry. |
+| `Sources/CrtApp/Views/DigitalVideoPanel.swift` | 6041 | content-reviewed | Reviewed separate digital codec control panel and inter-control hints; optional digital stage UI, not analog VHS. |
+| `Sources/CrtApp/Views/DownscalePanel.swift` | 5896 | content-reviewed | Reviewed resolution presets and sampling selector UI; wraps generic downscale stage. |
+| `Sources/CrtApp/Views/ExportOptions.swift` | 7553 | content-reviewed | Reviewed shared export size/quality/fps/loop options; UI state only. |
+| `Sources/CrtApp/Views/ExportPopover.swift` | 7382 | content-reviewed | Reviewed save-panel and export action UI; exporter implementation is separately audited. |
+| `Sources/CrtApp/Views/GlitchPanel.swift` | 4913 | content-reviewed | Reviewed receiver/glitch controls generated from GlitchParam metadata; UI only, source receiver algorithms are separately audited. |
+| `Sources/CrtApp/Views/HowlaroundPanel.swift` | 17733 | content-reviewed | Reviewed Screen Loop feedback camera controls, draft preview player and render/preset actions; separate feedback feature UI. |
+| `Sources/CrtApp/Views/NtscPanel.swift` | 10493 | content-reviewed | Reviewed dynamic ntsc-rs controls and gating; source intentionally separates NTSC TV settings from VCR physical tape controls. |
+| `Sources/CrtApp/Views/NumericField.swift` | 5558 | content-reviewed | Reviewed reusable numeric/int text fields and commit/clamp behavior; generic UI component. |
+| `Sources/CrtApp/Views/PresetCycleCheck.swift` | 12372 | content-reviewed | Reviewed preset-cycle performance/state-leak regression harness and memory/stall measurement; test-only UI tooling. |
+| `Sources/CrtApp/Views/PreviewView.swift` | 40712 | content-reviewed | Reviewed MTKView render target, frame redraw, compare split, zoom/pan, crop interaction and playback display. macOS preview renderer, not AE effect core. |
+| `Sources/CrtApp/Views/PropertySlider.swift` | 4775 | content-reviewed | Reviewed NSSlider bridge, neutral reset and knob double-click handling; UI-only. |
+| `Sources/CrtApp/Views/ShaderPanel.swift` | 15412 | content-reviewed | Reviewed dynamic shader parameter sections/control presentation and neutral resets; CRT shader UI only. |
+| `Sources/CrtApp/Views/SourcePanel.swift` | 2516 | content-reviewed | Reviewed file open/clear/drop source selection UI; media input wrapper only. |
+| `Sources/CrtApp/Views/TimelineBar.swift` | 13727 | content-reviewed | Reviewed keyframe ruler, playhead, easing chips and selection UI; AE host timeline replaces it. |
+| `Sources/CrtApp/Views/ToolTip.swift` | 1065 | content-reviewed | Reviewed pass-through AppKit tooltip overlay; UI helper only. |
+| `Sources/CrtApp/Views/TransportBar.swift` | 2564 | content-reviewed | Reviewed video play/pause/scrub/time/fps UI; source playback controls only. |
+| `Sources/CrtApp/Views/VanishingPointPad.swift` | 12645 | content-reviewed | Reviewed Screen Loop camera vanishing-point/drift pad and hit geometry; separate feedback UI. |
+| `Sources/CrtApp/Views/VcrPanel.swift` | 3795 | content-reviewed | Reviewed tape/deck condition pickers and parameter group UI. Confirms VCR controls are independent tape/deck physical conditions, not NTSC filter controls. |
+| `Sources/CrtApp/Views/ViewPalette.swift` | 3389 | content-reviewed | Reviewed compare/integer-scale/animate/zoom preview-only controls; these do not affect exported pixels. |
 | `Sources/CrtAppBridge/LibrashaderBridge.m` | 7857 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `Sources/CrtAppBridge/NtscRsBridge.m` | 4603 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `Sources/CrtAppBridge/include/LibrashaderBridge.h` | 2340 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
