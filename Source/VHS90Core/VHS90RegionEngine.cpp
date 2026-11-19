@@ -42,6 +42,16 @@ inline float sampleChannel(ConstImageView im, float x, float y, int channel) noe
 inline float hashCell(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
     return hash01(static_cast<std::uint32_t>(x), static_cast<std::uint32_t>(y), seed, frame);
 }
+inline float smoothServoNoise(float yPx,float smoothnessPx,std::uint32_t seed,std::int64_t frame) noexcept {
+    const float scale=std::max(1.0f,smoothnessPx);
+    const float pos=yPx/scale;
+    const int a=static_cast<int>(std::floor(pos));
+    const float t=pos-float(a);
+    const float n0=hashCell(0,a,seed,frame);
+    const float n1=hashCell(0,a+1,seed,frame);
+    const float s=t*t*(3.0f-2.0f*t);
+    return n0+(n1-n0)*s;
+}
 inline float evaluateMask(const DamageRegion& r, float u, float v,
                           double timeSeconds) noexcept {
     float cx = r.centerX + r.motionXPerSecond * static_cast<float>(timeSeconds);
@@ -82,7 +92,15 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
 
     float shiftX = (rowN - 0.5f) * r.maxShiftPx + rowWave * r.waveAmplitudePx;
     const float shiftY = (n - 0.5f) * r.verticalShiftPx;
-    if (r.kind == RegionKind::HeadSwitch) {
+    if (r.kind == RegionKind::TrackingNoise) {
+        const float servo=smoothServoNoise(y,r.servoSmoothnessPx,regionSeed+0x165667b1u,p.frame);
+        shiftX += (servo-0.5f)*2.0f*r.servoDriftPx;
+        const float tearEvent=hashCell(cx,cy,regionSeed+0xd3a2646cu,p.frame);
+        if (tearEvent<clamp01(r.tearProbability)) {
+            const float tearDirection=hashCell(cx+7,cy+11,regionSeed+0x9e3779b9u,p.frame);
+            shiftX += (tearDirection-0.5f)*2.0f*r.tearShiftPx;
+        }
+    } else {
         const float tear = hashCell(0, iy / 2, regionSeed + 0x9e3779b9u, p.frame);
         shiftX += (tear - 0.5f) * r.maxShiftPx * 1.75f;
     }
