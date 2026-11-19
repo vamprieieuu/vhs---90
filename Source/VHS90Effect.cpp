@@ -22,7 +22,7 @@
 namespace {
 enum ParamIndex {
     PARAM_INPUT=0, PARAM_MASTER, PARAM_SIGNAL_TOPIC, PARAM_COMPOSITE_AMOUNT,
-    PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
+    PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_TAPE_SPEED, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
     PARAM_LUMA_NOISE, PARAM_CHROMA_NOISE, PARAM_COMPOSITE_NOISE, PARAM_NOISE_HUE,
     PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT,
     PARAM_GEOMETRY, PARAM_SCANLINES, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
@@ -34,7 +34,7 @@ enum ParamIndex {
     PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_COUNT
 };
 enum ParamDiskID {
-    ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE,
+    ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_TAPE_SPEED,
     ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_NOISE, ID_CHROMA_NOISE, ID_COMPOSITE_NOISE, ID_NOISE_HUE, ID_LUMA_SMEAR, ID_BLOOM,
     ID_TAPE_SURFACE, ID_TAPE_TRANSPORT, ID_GEOMETRY, ID_SCANLINES, ID_STATIC_TOPIC,
     ID_STATIC_AMOUNT, ID_STATIC_DENSITY, ID_TRACKING_TOPIC, ID_TRACKING_AMOUNT,
@@ -46,10 +46,11 @@ enum ParamDiskID {
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
 static char kColorSystemChoices[]="NTSC|PAL";
+static char kTapeSpeedChoices[]="SP|LP|EP";
 
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35;
-    A_long colorSystem=1;
+    A_long colorSystem=1, tapeSpeed=1;
     float chromaSubsample=0, verticalChroma=0, verticalLuma=0;
     float lumaNoise=0, chromaNoise=0, compositeNoise=0, noiseHue=0, lumaSmear=0, bloom=0;
     float tapeSurface=0, tapeTransport=0, geometry=0, scanlines=0;
@@ -82,6 +83,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sync Collapse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Color System",2,1,kColorSystemChoices,ID_PAL_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tape Speed",3,1,kTapeSpeedChoices,ID_TAPE_SPEED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Subsample / Bleed",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_SUBSAMPLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Chroma Delay",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_CHROMA);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Luma Blur",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_LUMA);
@@ -143,6 +145,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_MASTER,master); READ_FLOAT(PARAM_COMPOSITE_AMOUNT,composite);
     READ_FLOAT(PARAM_SYNC_AMOUNT,sync);
     err=CheckoutPopup(in_data,PARAM_PAL_MODE,s.colorSystem); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_TAPE_SPEED,s.tapeSpeed); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_CHROMA_SUBSAMPLE,chromaSubsample); READ_FLOAT(PARAM_VERTICAL_CHROMA,verticalChroma);
     READ_FLOAT(PARAM_VERTICAL_LUMA,verticalLuma);
     READ_FLOAT(PARAM_LUMA_NOISE,lumaNoise); READ_FLOAT(PARAM_CHROMA_NOISE,chromaNoise);
@@ -240,6 +243,16 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             p.outputBandwidthEnabled=(s.composite>0||s.verticalLuma>0);
             if(s.composite<=0) { p.outputBandwidth.iCutoffHz=0.0f; p.outputBandwidth.qCutoffHz=0.0f; p.outputBandwidth.lumaCutoffHz=0.0f; }
             p.palMode=(s.colorSystem==2);
+            if(s.composite>0) {
+                const float lumaCut=(s.tapeSpeed==1)?2400000.0f:((s.tapeSpeed==2)?1900000.0f:1400000.0f);
+                const float chromaCut=(s.tapeSpeed==1)?320000.0f:((s.tapeSpeed==2)?300000.0f:280000.0f);
+                const int chromaDelay=(s.tapeSpeed==1)?9:((s.tapeSpeed==2)?12:14);
+                p.inputBandwidth.lumaCutoffHz=lumaCut;p.outputBandwidth.lumaCutoffHz=lumaCut;
+                p.inputBandwidth.iCutoffHz=chromaCut;p.inputBandwidth.qCutoffHz=chromaCut;
+                p.outputBandwidth.iCutoffHz=chromaCut;p.outputBandwidth.qCutoffHz=chromaCut;
+                p.inputBandwidth.iDelaySamples=chromaDelay;p.inputBandwidth.qDelaySamples=chromaDelay;
+                p.outputBandwidth.iDelaySamples=chromaDelay;p.outputBandwidth.qDelaySamples=chromaDelay;
+            }
             if(s.geometry>0) {
                 p.geometryEnabled=true; p.geometry.seed=0x90A1106Eu; p.geometry.frame=s.frame;
                 p.geometry.lineJitterPixels=s.geometry/100.0f*1.5f;
@@ -393,6 +406,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.composite=float(params[PARAM_COMPOSITE_AMOUNT]->u.fs_d.value);
     s.sync=float(params[PARAM_SYNC_AMOUNT]->u.fs_d.value);
     s.colorSystem=params[PARAM_PAL_MODE]->u.pd.value;
+    s.tapeSpeed=params[PARAM_TAPE_SPEED]->u.pd.value;
     s.chromaSubsample=float(params[PARAM_CHROMA_SUBSAMPLE]->u.fs_d.value);
     s.verticalChroma=float(params[PARAM_VERTICAL_CHROMA]->u.fs_d.value);
     s.verticalLuma=float(params[PARAM_VERTICAL_LUMA]->u.fs_d.value);
