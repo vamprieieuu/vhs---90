@@ -42,15 +42,17 @@ inline float sampleChannel(ConstImageView im, float x, float y, int channel) noe
 inline float hashCell(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
     return hash01(static_cast<std::uint32_t>(x), static_cast<std::uint32_t>(y), seed, frame);
 }
-inline float smoothServoNoise(float yPx,float smoothnessPx,std::uint32_t seed,std::int64_t frame) noexcept {
-    const float scale=std::max(1.0f,smoothnessPx);
-    const float pos=yPx/scale;
-    const int a=static_cast<int>(std::floor(pos));
-    const float t=pos-float(a);
-    const float n0=hashCell(0,a,seed,frame);
-    const float n1=hashCell(0,a+1,seed,frame);
-    const float s=t*t*(3.0f-2.0f*t);
-    return n0+(n1-n0)*s;
+inline float smoothServoNoise(float yPx,float smoothnessPx,std::uint32_t seed,
+                               std::int64_t frame,int epochFrames) noexcept {
+    const float rowCoordinate=yPx/std::max(1.0f,smoothnessPx);
+    const std::int64_t span=std::max(1,epochFrames);
+    const double epochValue=std::floor(static_cast<double>(frame)/static_cast<double>(span));
+    const auto epoch=static_cast<std::int64_t>(epochValue);
+    const float phase=static_cast<float>((static_cast<double>(frame)-epochValue*span)/span);
+    const float temporal=phase*phase*(3.0f-2.0f*phase);
+    const float current=valueNoise1D(rowCoordinate,seed,epoch);
+    const float next=valueNoise1D(rowCoordinate,seed,epoch+1);
+    return current+(next-current)*temporal;
 }
 inline float evaluateMask(const DamageRegion& r, float u, float v,
                           double timeSeconds) noexcept {
@@ -94,7 +96,7 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
     float shiftX = (rowN - 0.5f) * r.maxShiftPx + rowWave * r.waveAmplitudePx;
     const float shiftY = (n - 0.5f) * r.verticalShiftPx;
     if (r.kind == RegionKind::TrackingNoise) {
-        const float servo=smoothServoNoise(y,r.servoSmoothnessPx,regionSeed+0x165667b1u,p.frame);
+        const float servo=smoothServoNoise(y,r.servoSmoothnessPx,regionSeed+0x165667b1u,p.frame,r.servoEpochFrames);
         shiftX += (servo-0.5f)*2.0f*r.servoDriftPx;
         const float tearEvent=hashCell(cx,cy,regionSeed+0xd3a2646cu,p.frame);
         if (tearEvent<clamp01(r.tearProbability)) {
