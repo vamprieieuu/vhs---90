@@ -88,17 +88,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
                 y[idx]=yiq.y; i[idx]=yiq.i; q[idx]=yiq.q;
             }
     
-            std::vector<float> graded;
-        if(p.imageGradeEnabled) {
-            graded.resize(count*4);
-            ImageView gradeView{graded.data(),w,h,w*4};
-            ImageGradeParams gp=p.imageGrade;
-            gp.premultipliedAlpha=p.premultipliedAlpha;
-            if(!processImageGrade(decodedView,gradeView,gp)) return false;
-            decodedView={graded.data(),w,h,w*4};
-        }
-
-        for(int row=0;row<h;++row) {
+            for(int row=0;row<h;++row) {
                 const int xi=phaseShift(p.phase,p.phaseOffset,p.frame,row);
                 const std::size_t base=std::size_t(row)*w;
                 for(int x=0;x<w;++x) {
@@ -168,6 +158,16 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         ConstImageView decodedView{decoded.data(),w,h,w*4};
+        std::vector<float> graded;
+        if(p.imageGradeEnabled) {
+            graded.resize(count*4);
+            ImageView gradeView{graded.data(),w,h,w*4};
+            ImageGradeParams gp=p.imageGrade;
+            gp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processImageGrade(decodedView,gradeView,gp)) return false;
+            decodedView={graded.data(),w,h,w*4};
+        }
+
         std::vector<float> receiverProcessed;
         if(p.receiverInstabilityEnabled) {
             receiverProcessed.resize(count*4);
