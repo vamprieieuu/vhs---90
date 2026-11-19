@@ -8,6 +8,7 @@
 #include "VHS90MultipathEchoEngine.h"
 #include "VHS90ReceiverInstabilityEngine.h"
 #include "VHS90ImageGradeEngine.h"
+#include "VHS90TapeDetailEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
@@ -49,6 +50,8 @@ struct CompositeParams {
     ReceiverInstabilityParams receiverInstability{};
     bool imageGradeEnabled = false;
     ImageGradeParams imageGrade{};
+    bool tapeDetailEnabled = false;
+    TapeDetailParams tapeDetail{};
     bool geometryEnabled = false;
     AnalogGeometryParams geometry{};
     bool scanlinesEnabled = false;
