@@ -70,6 +70,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processTapeSurface(input,tapeView,p.tapeSurface)) return false;
             input={tapeDamaged.data(),w,h,w*4};
         }
+        std::vector<float> trackRead;
+        if(p.trackReadEnabled) {
+            trackRead.resize(count*4);
+            ImageView trackView{trackRead.data(),w,h,w*4};
+            TrackReadParams tr=p.trackRead;
+            tr.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processTrackRead(input,trackView,tr)) return false;
+            input={trackRead.data(),w,h,w*4};
+        }
         std::vector<float> chromaShifted;
         if(p.chromaChannelShiftEnabled) {
             chromaShifted.resize(count*4);
