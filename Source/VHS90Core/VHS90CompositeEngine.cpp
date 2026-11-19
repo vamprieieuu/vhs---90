@@ -88,7 +88,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processTapeDetail(input,detailView,dp)) return false;
             input={tapeDetailed.data(),w,h,w*4};
         }
-        if(compositeStrength>0.0f && p.inputBandwidthEnabled) {
+        if(compositeStrength>0.0f && p.inputBandwidthEnabled && !p.waveformCompositeEnabled) {
             prefiltered.resize(count*4);
             ImageView pre{prefiltered.data(),w,h,w*4};
             YiqBandwidthParams bp=p.inputBandwidth; bp.premultipliedAlpha=p.premultipliedAlpha;
@@ -97,7 +97,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         std::vector<float> decoded;
-        if(compositeStrength>0.0f) {
+        if(compositeStrength>0.0f && p.waveformCompositeEnabled) {
+            decoded.resize(count*4);
+            ImageView waveformView{decoded.data(),w,h,w*4};
+            NtscWaveformParams wp=p.waveformComposite;
+            wp.strength=compositeStrength;
+            wp.frame=static_cast<std::uint32_t>(p.frame);
+            wp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processNtscWaveformRoundTrip(input,waveformView,wp)) return false;
+        } else if(compositeStrength>0.0f) {
             std::vector<float> y(count),i(count),q(count),decodedY(count);
             for(int row=0;row<h;++row) for(int x=0;x<w;++x) {
                 const std::size_t idx=std::size_t(row)*w+x;
@@ -271,7 +279,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         std::vector<float> filtered;
         std::vector<float> bloomed;
         std::vector<float> scanlined;
-        if(p.outputBandwidthEnabled && (compositeStrength>0.0f || p.outputBandwidth.verticalLumaRadiusRows>0)) {
+        if(!p.waveformCompositeEnabled && p.outputBandwidthEnabled && (compositeStrength>0.0f || p.outputBandwidth.verticalLumaRadiusRows>0)) {
             filtered.resize(count*4);
             ImageView filteredView{filtered.data(),w,h,w*4};
             YiqBandwidthParams bp=p.outputBandwidth; bp.premultipliedAlpha=p.premultipliedAlpha;
