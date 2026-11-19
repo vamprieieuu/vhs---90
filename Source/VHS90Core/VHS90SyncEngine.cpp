@@ -26,6 +26,11 @@ inline float sample(ConstImageView src,float x,float y,int ch) noexcept {
     return lerp(lerp(p00[ch],p10[ch],tx),lerp(p01[ch],p11[ch],tx),ty);
 }
 inline float circularDistance(float a,float b) noexcept { const float d=std::fabs(a-b); return std::min(d,1.0f-d); }
+inline float wrapY(float y,int height) noexcept {
+    const float h=static_cast<float>(height);
+    y=std::fmod(y,h);
+    return y<0.0f?y+h:y;
+}
 }
 bool processSyncCollapse(ConstImageView src,ImageView dst,const SyncCollapseParams& p) noexcept {
     if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||dst.width!=src.width||dst.height!=src.height||
@@ -82,7 +87,9 @@ bool processSyncCollapse(ConstImageView src,ImageView dst,const SyncCollapsePara
             if(alpha<=0.0f) { out[0]=original[0]; out[1]=original[1]; out[2]=original[2]; out[3]=alpha; continue; }
             const float lineNoise=(hash01(std::uint32_t(x/6),std::uint32_t(y),p.seed,p.frame)-0.5f)*p.noiseAmount;
             const float trackingPulse=trackingBand*std::sin(time*17.0f)*p.trackingLineStrength;
-            const float sx=float(x)+rowShift+trackingPulse,sy=float(y)+rollPixels;
+            const float sx=float(x)+rowShift+trackingPulse;
+            // A vertical sync roll is a raster wrap, not a clamped edge smear.
+            const float sy=rollPixels>0.0f?wrapY(float(y)+rollPixels,src.height):float(y);
             float r=sample(src,sx,sy,0),g=sample(src,sx,sy,1),b=sample(src,sx,sy,2);
             const float sourceA=sample(src,sx,sy,3);
             const float bandDamage=glitchBand;
