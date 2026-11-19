@@ -12,6 +12,7 @@
 #include "VHS90ChromaShiftEngine.h"
 #include "VHS90TemporalEngine.h"
 #include "VHS90WaveformEngine.h"
+#include "VHS90RingingEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
@@ -55,6 +56,8 @@ struct CompositeParams {
     ImageGradeParams imageGrade{};
     bool tapeDetailEnabled = false;
     TapeDetailParams tapeDetail{};
+    bool ringingEnabled = false;
+    RingingParams ringing{};
     bool chromaChannelShiftEnabled = false;
     ChromaChannelShiftParams chromaChannelShift{};
     bool waveformCompositeEnabled = false;
