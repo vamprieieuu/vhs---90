@@ -46,10 +46,17 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
     try {
         const int w=src.width,h=src.height;
         const std::size_t count=std::size_t(w)*std::size_t(h);
+        std::vector<float> geometricallyWarped;
         std::vector<float> transported;
         std::vector<float> tapeDamaged;
         std::vector<float> prefiltered;
         ConstImageView input=src;
+        if(p.geometryEnabled) {
+            geometricallyWarped.resize(count*4);
+            ImageView geometryView{geometricallyWarped.data(),w,h,w*4};
+            if(!processAnalogGeometry(src,geometryView,p.geometry)) return false;
+            input={geometricallyWarped.data(),w,h,w*4};
+        }
         if(p.tapeTransportEnabled) {
             transported.resize(count*4);
             ImageView transportView{transported.data(),w,h,w*4};
@@ -168,6 +175,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
         std::vector<float> filtered;
         std::vector<float> bloomed;
+        std::vector<float> scanlined;
         if(p.outputBandwidthEnabled) {
             filtered.resize(count*4);
             ImageView filteredView{filtered.data(),w,h,w*4};
@@ -182,6 +190,14 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             bp.premultipliedAlpha=p.premultipliedAlpha;
             if(!processBloom(decodedView,bloomView,bp)) return false;
             decodedView={bloomed.data(),w,h,w*4};
+        }
+        if(p.scanlinesEnabled && p.scanlines.amount>0.0f) {
+            scanlined.resize(count*4);
+            ImageView scanlineView{scanlined.data(),w,h,w*4};
+            ScanlineParams sp=p.scanlines;
+            sp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processScanlines(decodedView,scanlineView,sp)) return false;
+            decodedView={scanlined.data(),w,h,w*4};
         }
 
         for(int row=0;row<h;++row) {
