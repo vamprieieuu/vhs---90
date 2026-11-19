@@ -14,6 +14,7 @@ inline float smooth(float x) noexcept { x=std::clamp(x,0.0f,1.0f);return x*x*(3.
 inline float falloffEllipse(float dx,float dy,float rx,float ry) noexcept {
  if(rx<=0.0f||ry<=0.0f)return 0.0f;const float q=dx*dx/(rx*rx)+dy*dy/(ry*ry);return q>=1.0f?0.0f:1.0f-smooth(q);
 }
+inline RGB straightAt(ConstImageView s,int x,int y,bool premul) noexcept { x=std::clamp(x,0,s.width-1);y=std::clamp(y,0,s.height-1);const float*p=s.rgba+y*s.rowStrideFloats+x*4;RGB c{p[0],p[1],p[2]};if(premul&&p[3]>1.0e-6f){c.r/=p[3];c.g/=p[3];c.b/=p[3];}return c; }
 inline bool valid(ConstImageView s,ImageView d) noexcept {
  return s.rgba&&d.rgba&&s.width>0&&s.height>0&&d.width==s.width&&d.height==s.height&&s.rowStrideFloats>=s.width*4&&d.rowStrideFloats>=d.width*4&&s.rgba!=d.rgba;
 }
@@ -48,7 +49,21 @@ bool processTapeSurface(ConstImageView src,ImageView dst,const TapeSurfaceParams
    const float u=(float(x)+0.5f)/float(src.width)+float(p.frame)*p.tapeAdvancePerFrame;const auto d=sampleTapeSurface(u,v,p);
    RGB rgb{px[0],px[1],px[2]};if(p.premultipliedAlpha){rgb.r/=a;rgb.g/=a;rgb.b/=a;}
    YIQ q=rgbToYiq(rgb);const float mag=d.magnetization*(1.0f-d.creaseLoss);
-   q.y*=mag*(1.0f-0.22f*d.spacingLift);const float ca=mag*(1.0f-0.65f*d.spacingLift);q.i*=ca;q.q*=ca;
+   // NTSCRT/VcrStage channelGain: head spacing damages high-frequency FM luma
+   // more than the lower-frequency color-under carrier.
+   const float spacingUm=4.0f*d.spacingLift,headGapUm=1.0f,writingSpeed=5.8f;
+   const auto channelGain=[&](float mhz) noexcept {
+    const float spacing=std::exp(-2.0f*kPi*spacingUm*mhz/writingSpeed);
+    const float aperture=kPi*headGapUm*mhz/writingSpeed;
+    const float gap=std::fabs(aperture)<1.0e-5f?1.0f:std::fabs(std::sin(aperture)/aperture);
+    return spacing*gap;
+   };
+   const float lumaGain=channelGain(4.0f),chromaGain=channelGain(0.62937f);
+   const float leftY=rgbToYiq(straightAt(src,std::max(0,x-1),y,p.premultipliedAlpha)).y;
+   const float rightY=rgbToYiq(straightAt(src,std::min(src.width-1,x+1),y,p.premultipliedAlpha)).y;
+   const float lowY=(leftY+2.0f*q.y+rightY)*0.25f;
+   q.y=(lowY+(q.y-lowY)*lumaGain)*mag;
+   const float ca=mag*chromaGain;q.i*=ca;q.q*=ca;
    const auto nh=hashCell(p.seed^0xA511E9B3u,static_cast<std::int64_t>(std::floor(u*4096.0f)),static_cast<std::int64_t>(std::floor(v*1024.0f)),static_cast<std::uint32_t>(p.frame));
    q.y+=(unit(nh)*2.0f-1.0f)*d.roughness;rgb=yiqToRgb(q);if(p.premultipliedAlpha){rgb.r*=a;rgb.g*=a;rgb.b*=a;}
    out[0]=rgb.r;out[1]=rgb.g;out[2]=rgb.b;out[3]=a;
