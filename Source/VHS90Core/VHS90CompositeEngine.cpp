@@ -303,6 +303,8 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             previousParams.previousFrame={};
             previousParams.strength=1.0f;
             previousParams.frame=p.previousFrameIndex;
+            previousParams.waveformComposite.effects.random_seed=0x90A11E5Eu+std::uint32_t(p.previousFrameIndex)*0x9E3779B9u;
+            previousParams.waveformComposite.decoder.random_seed=previousParams.waveformComposite.effects.random_seed^0x85EBCA6Bu;
             previousParams.geometry.frame=p.previousFrameIndex;
             previousParams.tapeTransport.frame=p.previousFrameIndex;
             previousParams.tapeSurface.frame=p.previousFrameIndex;
