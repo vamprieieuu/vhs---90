@@ -28,7 +28,7 @@ enum ParamIndex {
     PARAM_MULTIPATH_GAIN, PARAM_MULTIPATH_DELAY, PARAM_MULTIPATH_ENSEMBLE,
     PARAM_AFC_HUNT, PARAM_CHROMA_FLUTTER, PARAM_YC_CROSSTALK, PARAM_COLOR_PHASE_DRIFT,
     PARAM_HSYNC_NOISE, PARAM_VSYNC_NOISE, PARAM_BURST_NOISE,
-    PARAM_EDGE_ENHANCE, PARAM_TAPE_FADE, PARAM_GRADE_CONTRAST, PARAM_GRADE_BRIGHTNESS,
+    PARAM_EDGE_ENHANCE, PARAM_TAPE_FADE, PARAM_TEMPORAL_GHOST, PARAM_GRADE_CONTRAST, PARAM_GRADE_BRIGHTNESS,
     PARAM_GRADE_SATURATION, PARAM_VIGNETTE, PARAM_FLICKER,
     PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT,
     PARAM_GEOMETRY, PARAM_INTERLACE, PARAM_SCANLINES, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
@@ -45,7 +45,7 @@ enum ParamDiskID {
     ID_MULTIPATH_GAIN, ID_MULTIPATH_DELAY, ID_MULTIPATH_ENSEMBLE,
     ID_AFC_HUNT, ID_CHROMA_FLUTTER, ID_YC_CROSSTALK, ID_COLOR_PHASE_DRIFT,
     ID_HSYNC_NOISE, ID_VSYNC_NOISE, ID_BURST_NOISE,
-    ID_EDGE_ENHANCE, ID_TAPE_FADE, ID_GRADE_CONTRAST, ID_GRADE_BRIGHTNESS,
+    ID_EDGE_ENHANCE, ID_TAPE_FADE, ID_TEMPORAL_GHOST, ID_GRADE_CONTRAST, ID_GRADE_BRIGHTNESS,
     ID_GRADE_SATURATION, ID_VIGNETTE, ID_FLICKER, ID_LUMA_SMEAR, ID_BLOOM,
     ID_TAPE_SURFACE, ID_TAPE_TRANSPORT, ID_GEOMETRY, ID_INTERLACE, ID_SCANLINES, ID_STATIC_TOPIC,
     ID_STATIC_AMOUNT, ID_STATIC_DENSITY, ID_TRACKING_TOPIC, ID_TRACKING_AMOUNT,
@@ -70,13 +70,14 @@ struct RenderSettings {
     float multipathGain=0, multipathDelay=24, multipathEnsemble=0;
     float afcHunt=0, chromaFlutter=0, ycCrosstalk=0, colorPhaseDrift=0;
     float hsyncNoise=0, vsyncNoise=0, burstNoise=0;
-    float edgeEnhance=0, tapeFade=0, gradeContrast=100, gradeBrightness=0, gradeSaturation=100, vignette=0, flicker=0;
+    float edgeEnhance=0, tapeFade=0, temporalGhost=0, gradeContrast=100, gradeBrightness=0, gradeSaturation=100, vignette=0, flicker=0;
     float lumaSmear=0, bloom=0;
     float tapeSurface=0, tapeTransport=0, geometry=0, interlace=0, scanlines=0;
     float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
     A_long trackingShape=3;
     float headAmount=0, headY=100, headHeight=4, headShift=24;
+    bool previousFrameAvailable=false;
     std::int64_t frame=0;
     double timeSeconds=0;
     float frameRate=29.97f;
@@ -130,6 +131,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Burst Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BURST_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Edge Enhancement",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_EDGE_ENHANCE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Fade",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_FADE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Previous Frame Ghost",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEMPORAL_GHOST);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Contrast",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_CONTRAST);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Brightness",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_GRADE_BRIGHTNESS);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION);
@@ -207,6 +209,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_HSYNC_NOISE,hsyncNoise); READ_FLOAT(PARAM_VSYNC_NOISE,vsyncNoise);
     READ_FLOAT(PARAM_BURST_NOISE,burstNoise);
     READ_FLOAT(PARAM_EDGE_ENHANCE,edgeEnhance); READ_FLOAT(PARAM_TAPE_FADE,tapeFade);
+    READ_FLOAT(PARAM_TEMPORAL_GHOST,temporalGhost);
     READ_FLOAT(PARAM_GRADE_CONTRAST,gradeContrast); READ_FLOAT(PARAM_GRADE_BRIGHTNESS,gradeBrightness);
     READ_FLOAT(PARAM_GRADE_SATURATION,gradeSaturation); READ_FLOAT(PARAM_VIGNETTE,vignette); READ_FLOAT(PARAM_FLICKER,flicker);
     READ_FLOAT(PARAM_LUMA_SMEAR,lumaSmear); READ_FLOAT(PARAM_BLOOM,bloom);
@@ -284,16 +287,20 @@ static void CopyRegion(const PF_EffectWorld* in,PF_EffectWorld* out,PF_PixelForm
     }
 }
 
-static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_EffectWorld* output,PF_PixelFormat format) {
+static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_EffectWorld* output,PF_PixelFormat format,PF_EffectWorld* previousInput=nullptr) {
     try {
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool compositeStages=s.tapeDetail<100||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.multipathGain>0||s.multipathEnsemble>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.interlace>0||s.scanlines>0;
+        const bool compositeStages=s.tapeDetail<100||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.multipathGain>0||s.multipathEnsemble>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.temporalGhost>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.interlace>0||s.scanlines>0;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
         if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
+        std::vector<float> previousPixels;
+        if(previousInput && s.temporalGhost>0 && previousInput->width==w && previousInput->height==h) {
+            if(!ConvertInputWorld(previousInput,format,previousPixels)) previousPixels.clear();
+        }
         working=source; scratch.resize(source.size());
         if(compositeStages) {
             CompositeParams p;
@@ -306,6 +313,16 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             p.palMode=(s.colorSystem==2);
             // The full raw-waveform simulator currently models NTSC 525/60 only.
             p.waveformCompositeEnabled=(s.signalModel==2 && s.colorSystem==1);
+            if(!previousPixels.empty() && s.temporalGhost>0) {
+                p.temporalGhostEnabled=true;
+                p.previousProcessedFrame={previousPixels.data(),w,h,w*4};
+                p.temporalGhost.amount=clamp01(s.temporalGhost/100.0f)*0.35f;
+                p.temporalGhost.lumaAmount=1.0f;
+                p.temporalGhost.chromaAmount=0.8f;
+                p.temporalGhost.offsetXPixels=2.0f;
+                p.temporalGhost.redFringePixels=0.6f;
+                p.temporalGhost.blueFringePixels=-0.6f;
+            }
             if(p.waveformCompositeEnabled) {
                 auto& e=p.waveformComposite.effects;
                 auto& d=p.waveformComposite.decoder;
@@ -383,7 +400,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.outputBandwidth.verticalLumaRadiusRows=std::max(1,int(std::lround(s.verticalLuma/100.0f*4.0f)));
                 p.outputBandwidth.verticalLumaSigmaRows=0.6f+s.verticalLuma/100.0f*1.4f;
             }
-            if(s.edgeEnhance>0||s.tapeFade>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0) {
+            if(s.edgeEnhance>0||s.tapeFade>0||s.temporalGhost>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0) {
                 p.imageGradeEnabled=true; p.imageGrade.seed=0x90A11E5Eu; p.imageGrade.frame=s.frame;
                 p.imageGrade.edgeEnhancement=clamp01(s.edgeEnhance/100.0f);
                 p.imageGrade.fade=clamp01(s.tapeFade/100.0f);
@@ -504,6 +521,15 @@ static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
     err=extra->cb->checkout_layer(in_data->effect_ref,PARAM_INPUT,kInputCheckoutID,&req,
         in_data->current_time,in_data->time_step,in_data->time_scale,&result);
     if(err!=PF_Err_NONE) { delete s; return err; }
+    // Checkout the immediately preceding source frame through SmartFX's declared
+    // checkout ID; no global frame cache is used, so MFR/out-of-order renders stay safe.
+    if(s->temporalGhost>0 && in_data->time_step>0 && in_data->current_time>=in_data->time_step) {
+        PF_CheckoutResult previousResult; AEFX_CLR_STRUCT(previousResult);
+        const A_long previousTime=in_data->current_time-in_data->time_step;
+        const PF_Err previousErr=extra->cb->checkout_layer(in_data->effect_ref,PARAM_INPUT,kInputCheckoutID+1,&req,
+            previousTime,in_data->time_step,in_data->time_scale,&previousResult);
+        s->previousFrameAvailable=(previousErr==PF_Err_NONE);
+    }
     extra->output->result_rect=extra->input->output_request.rect;
     extra->output->max_result_rect=result.max_result_rect;
     extra->output->solid=result.solid;
@@ -514,9 +540,13 @@ static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
 static PF_Err SmartRender(PF_InData* in_data,PF_OutData* out_data,PF_SmartRenderExtra* extra) {
     const auto* s=static_cast<const RenderSettings*>(extra->input->pre_render_data);
     if(!s) return PF_Err_INTERNAL_STRUCT_DAMAGED;
-    PF_EffectWorld* inWorld=nullptr; PF_EffectWorld* outWorld=nullptr; bool checked=false;
+    PF_EffectWorld* inWorld=nullptr; PF_EffectWorld* previousWorld=nullptr; PF_EffectWorld* outWorld=nullptr; bool checked=false,previousChecked=false;
     PF_Err err=extra->cb->checkout_layer_pixels(in_data->effect_ref,kInputCheckoutID,&inWorld);
     if(err==PF_Err_NONE) checked=true;
+    if(err==PF_Err_NONE && s->previousFrameAvailable) {
+        const PF_Err previousErr=extra->cb->checkout_layer_pixels(in_data->effect_ref,kInputCheckoutID+1,&previousWorld);
+        if(previousErr==PF_Err_NONE) previousChecked=true;
+    }
     if(err==PF_Err_NONE) err=extra->cb->checkout_output(in_data->effect_ref,&outWorld);
     if(err==PF_Err_NONE) {
         AEFX_SuiteScoper<PF_WorldSuite2> suite(in_data,kPFWorldSuite,kPFWorldSuiteVersion2,out_data);
@@ -524,7 +554,11 @@ static PF_Err SmartRender(PF_InData* in_data,PF_OutData* out_data,PF_SmartRender
         err=suite->PF_GetPixelFormat(inWorld,&inFmt);
         if(err==PF_Err_NONE) err=suite->PF_GetPixelFormat(outWorld,&outFmt);
         if(err==PF_Err_NONE&&inFmt!=outFmt) err=PF_Err_UNRECOGNIZED_PARAM_TYPE;
-        if(err==PF_Err_NONE) err=RenderWorld(*s,inWorld,outWorld,inFmt);
+        if(err==PF_Err_NONE) err=RenderWorld(*s,inWorld,outWorld,inFmt,previousWorld);
+    }
+    if(previousChecked) {
+        const PF_Err previousCheckin=extra->cb->checkin_layer_pixels(in_data->effect_ref,kInputCheckoutID+1);
+        if(err==PF_Err_NONE) err=previousCheckin;
     }
     if(checked) {
         const PF_Err checkin=extra->cb->checkin_layer_pixels(in_data->effect_ref,kInputCheckoutID);
@@ -566,6 +600,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.burstNoise=float(params[PARAM_BURST_NOISE]->u.fs_d.value);
     s.edgeEnhance=float(params[PARAM_EDGE_ENHANCE]->u.fs_d.value);
     s.tapeFade=float(params[PARAM_TAPE_FADE]->u.fs_d.value);
+    s.temporalGhost=float(params[PARAM_TEMPORAL_GHOST]->u.fs_d.value);
     s.gradeContrast=float(params[PARAM_GRADE_CONTRAST]->u.fs_d.value);
     s.gradeBrightness=float(params[PARAM_GRADE_BRIGHTNESS]->u.fs_d.value);
     s.gradeSaturation=float(params[PARAM_GRADE_SATURATION]->u.fs_d.value);
