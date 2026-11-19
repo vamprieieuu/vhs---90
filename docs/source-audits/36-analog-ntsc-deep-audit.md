@@ -63,7 +63,7 @@ The original engine processes raw composite samples (IRE float waveform) in this
 - Y/C crosstalk (high-frequency edge energy modulated by carrier);
 - sync/burst noise, VHS tracking/wrinkle/head-switch/dropout and group delay.
 
-The original RF code assumes 525-line NTSC sampled at 910 samples/line, with sync/blank/burst intervals and IRE units. These algorithms cannot be copied line-for-line into an arbitrary-resolution RGB pixel buffer without a waveform domain. The VHS-90 adaptations below preserve the visible behavior where feasible and keep the raw-sample-only behaviors as explicit remaining work.
+The original RF code assumes 525-line NTSC sampled at 910 samples/line, with sync/blank/burst intervals and IRE units. These algorithms cannot be copied line-for-line into an arbitrary-resolution RGB pixel buffer without a waveform domain. VHS-90 now has both raster-space adaptations for fast modular looks and a selectable full waveform path. The full path preserves the upstream 525-line/910-sample signal domain internally while resampling arbitrary AE frame dimensions at the adapter boundary.
 
 ## C++ ports now added to VHS-90
 
@@ -72,8 +72,9 @@ New host-independent C++17 kernels:
 - `VHS90ImpulseNoiseEngine.{h,cpp}`: sparse horizontal impulse bursts with signed decaying amplitude and correlated walk, deterministic by seed/frame.
 - `VHS90MultipathEchoEngine.{h,cpp}`: three delayed, signed echo taps and ensemble gain; separate from previous-frame temporal ghosting.
 - `VHS90ReceiverInstabilityEngine.{h,cpp}`: AFC Hunt with sync-edge decay/cycle slips, line-correlated chroma flutter and high-frequency Y/C crosstalk.
+- `VHS90WaveformEngine.{h,cpp}`: complete 525-line/910-sample NTSC encode → RF-effects → receiver-decode path, resampled to/from arbitrary AE frame sizes, with deterministic frame seed and premultiplied-alpha preservation. The BSD-2-Clause upstream encoder/effects/decoder/parameter/signal implementation is retained under `ThirdParty/AnalogNTSC/` with its license.
 
-They are registered in CMake, have standalone smoke tests, and are connected as stages of the shared `VHS90CompositeEngine`. The AE adapter now exposes RF Drift, Mains Hum, AM Nonlinearity, AGC Pump, Impulse Noise, RF Ghost Gain, RF Ghost Delay, RF Ghost Ensemble, AFC Hunt, Chroma Flutter and Y/C Crosstalk controls.
+They are registered in CMake, have standalone smoke tests, and are connected as stages of the shared `VHS90CompositeEngine`. A new AE `Signal Model` popup selects the existing fast raster NTSC approximation or the full NTSC waveform model. In full-waveform mode, RF Drift, Mains Hum, AM Nonlinearity, AGC Pump, Impulse Noise, RF Ghost Gain/Delay/Ensemble, AFC Hunt, Chroma Flutter, Y/C Crosstalk, H/V Sync Noise, Burst Noise and Composite Noise are mapped into the signal-domain effect controls.
 
 Previously integrated from this source family or equivalent inspected sources:
 - line jitter / geometry and tape transport via `VHS90AnalogGeometryEngine` and `VHS90TapeTransportEngine`;
@@ -81,15 +82,12 @@ Previously integrated from this source family or equivalent inspected sources:
 - shared sync collapse, tracking/head-switch regions and dropouts via the existing VHS-90 sync/region engines;
 - YIQ bandwidth and composite encode/decode via the existing IIR/composite engines.
 
-## Remaining Analog-NTSC candidates — not marked complete
+## Remaining Analog-NTSC validation / port considerations
 
-These require separate adaptation and regression tests before this repository can be marked fully ported:
-1. Dedicated H-sync, V-sync and burst-noise controls with explicit receiver lock coupling.
-2. Sync-gated DC restoration and receiver AGC response around weak/overlapping sync.
-3. Group-delay and multipath interactions should be compared against the raw composite reference, not only the current raster approximation.
-4. The current AFC/chroma/Y-C/sync/burst ports are raster-space adaptations; waveform-level validation is still needed before calling them numerically identical to the original raw-sample implementation.
-
-The 525/910 sample waveform encoder/decoder itself remains a separate, potentially valuable engine-level upgrade, but must be designed for arbitrary AE frame dimensions, float/HDR, premultiplied alpha, MFR determinism and CPU performance rather than copying the fixed 720×480 RGB24 implementation.
+- The waveform path is currently an SDR RGB8 intermediate at 720×480 internally, matching the upstream encoder/decoder contract. AE frame dimensions are resampled at input/output; float/HDR precision is not preserved through this path yet.
+- Full waveform mode is NTSC-only. PAL continues to use the raster-space path until a PAL waveform encoder/decoder is implemented and validated.
+- Full waveform processing currently allocates per-frame waveform/decoded buffers. Profile CPU cost and memory pressure on HD/4K clips before recommending it for heavy timelines.
+- Compare sync-gated DC restoration, group-delay and multipath interactions against known reference renders; smoke tests currently establish determinism, identity bypass, output difference and alpha preservation, not full perceptual equivalence to every upstream sample.
 
 ## Validation status
 
@@ -97,4 +95,7 @@ The 525/910 sample waveform encoder/decoder itself remains a separate, potential
 - GitHub Actions run `44598929488` passed 16/16 CTest tests with the content-driven AGC pump refinement.
 - GitHub Actions run `44598799885` passed 16/16 CTest tests after integrating AFC Hunt, Chroma Flutter and Y/C Crosstalk into the composite pipeline.
 - GitHub Actions run `44598604938` passed 15/15 CTest tests after adding RF Drift, Mains Hum, AM Nonlinearity, Impulse Noise and Multipath Echo, with their corresponding AE controls wired.
+- GitHub Actions run `44602045505` passed 20/20 CTest tests, including the full waveform smoke test.
+- GitHub Actions run `44601767654` compiled the vendored Analog-NTSC waveform pipeline successfully.
+- The AE adapter exposes the new `Signal Model` selector; a follow-up static parameter audit confirmed 66 real parameter slots and 66 `PF_ADD_*` calls.
 - No Windows/MSVC AE build or AE runtime test is claimed.
