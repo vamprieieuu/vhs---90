@@ -415,6 +415,8 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.tapeSurface.scratchDensity=0.12f; p.tapeSurface.creaseStrength=0.35f;
                 p.tapeSurface.debrisAmount=0.18f; p.tapeSurface.edgeLift=0.12f*a;
                 p.tapeSurface.surfaceRoughness=0.03f*a;
+                p.tapeSurface.pinholeAmount=0.25f*a; p.tapeSurface.flakeAmount=0.35f*a;
+                p.tapeSurface.moldAmount=0.45f*a; p.tapeSurface.vaselineAmount=0.30f*a;
             }
             if(s.chromaSubsample>0) {
                 p.chromaSubsampleEnabled=true; p.chromaSubsample.amount=clamp01(s.chromaSubsample/100.0f);
