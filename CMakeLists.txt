@@ -17,6 +17,7 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90TapeTransportEngine.cpp
     Source/VHS90Core/VHS90BloomEngine.cpp
     Source/VHS90Core/VHS90TemporalEngine.cpp
+    Source/VHS90Core/VHS90AnalogGeometryEngine.cpp
 )
 target_include_directories(VHS90Core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core)
 target_compile_features(VHS90Core PUBLIC cxx_std_17)
@@ -35,7 +36,7 @@ endif()
 
 if(VHS90_BUILD_TESTS)
     enable_testing()
-    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine)
+    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine AnalogGeometryEngine)
         add_executable(VHS90${test_name}Smoke Tests/VHS90${test_name}Smoke.cpp)
         target_link_libraries(VHS90${test_name}Smoke PRIVATE VHS90Core)
         # The smoke tests use assert(); keep those checks active in Release too.
