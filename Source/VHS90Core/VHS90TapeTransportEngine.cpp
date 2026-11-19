@@ -22,6 +22,46 @@ inline float gaussianHash(std::uint32_t seed,int epoch,int row,int lane) noexcep
  const float u2=hash01(std::uint32_t(row),std::uint32_t(lane+1),seed,std::int64_t(epoch));
  return std::sqrt(-2.0f*std::log(u1))*std::cos(2.0f*kPi*u2);
 }
+// Replays the source PI loop from frame zero so arbitrary AE frame order is safe.
+float controlTrackServoOffset(const TapeTransportParams& p) noexcept {
+ const std::int64_t last=std::max<std::int64_t>(0,std::min<std::int64_t>(p.frame,500000));
+ if(p.controlTrackServoAmount<=0.0f) return 0.0f;
+ float delta=0.0f,speed=0.0f,kick=0.0f,integrator=0.0f;
+ float phase=0.0f,rate=0.0f;
+ for(std::int64_t f=0;f<=last;++f) {
+  const float motor=0.004f*randomSigned(p.seed^69u,f,0,0)+0.006f*randomSigned(p.seed^60u,f,0,1);
+  delta+=(motor+speed+kick);
+  kick=0.0f;
+  if(p.pictureSearchSpeed>1.02f) {
+   phase=std::fmod(phase+rate+2.0f,2.0f);
+   rate=std::clamp(p.pictureSearchSpeed-1.0f,0.0f,8.0f);
+   continue;
+  }
+  if(rate!=0.0f||phase!=0.0f) {
+   float wrapped=std::fmod(phase+rate+1.0f,2.0f)-1.0f;
+   delta+=wrapped; phase=0.0f; rate=0.0f;
+  }
+  // Control-track pulse strength models oxide/remanence and head contact.
+  const float pulse=std::clamp(p.controlTrackPulseStrength,0.0f,1.5f);
+  const float variation=0.85f+0.3f*(randomSigned(p.seed^66u,f,0,0)*0.5f+0.5f);
+  bool detected=pulse*(1.0f-std::clamp(p.controlTrackPulseDropout,0.0f,1.0f))*variation>0.5f;
+  const float falseChance=std::clamp(p.controlTrackFalsePulseChance,0.0f,1.0f);
+  const float falseRoll=randomSigned(p.seed^67u,f,0,0)*0.5f+0.5f;
+  float error=0.0f;
+  if(falseRoll<falseChance) {
+   detected=true;
+   error=(randomSigned(p.seed^68u,f,0,0))*0.5f;
+  } else if(detected) {
+   error=std::clamp(delta-p.trackingTargetPixels,-1.0f,1.0f);
+  }
+  if(detected) {
+   speed=-integrator;
+   kick=-0.377f*error*std::clamp(p.controlTrackServoAmount,0.0f,1.0f);
+   integrator=std::clamp(integrator+0.0986f*error*std::clamp(p.controlTrackServoAmount,0.0f,1.0f),-0.15f,0.15f);
+  }
+ }
+ return delta;
+}
 std::vector<float> slowProfile(std::uint32_t seed,int epoch,int height,float amplitude,float gain,float pole,float vScale) {
  const float scale=std::max(1.0e-6f,vScale);
  const float scaledPole=std::pow(std::min(std::abs(pole),0.999999f),1.0f/scale);
@@ -33,7 +73,7 @@ std::vector<float> slowProfile(std::uint32_t seed,int epoch,int height,float amp
 inline bool inactive(const TapeTransportParams&p) noexcept {
  return p.slowDriftPixelsPerSecond==0.0f&&p.drumFlutterPixels==0.0f&&
         p.flutterPixels==0.0f&&p.stickSlipPixels==0.0f&&p.lineJitterPixels==0.0f&&
-        p.trackingOffsetPixels==0.0f&&p.trackingSlopePixels==0.0f&&p.servoJitterPixels==0.0f;
+        p.trackingOffsetPixels==0.0f&&p.trackingSlopePixels==0.0f&&p.servoJitterPixels==0.0f&&p.controlTrackServoAmount==0.0f;
 }
 inline void sample(const std::vector<float>&src,int w,int h,float x,float y,float out[4]) noexcept {
  x=std::clamp(x,0.0f,float(w-1));y=std::clamp(y,0.0f,float(h-1));
@@ -48,12 +88,14 @@ bool processTapeTransportWarp(ConstImageView src,ImageView dst,const TapeTranspo
     !std::isfinite(p.slowDriftPixelsPerSecond)||!std::isfinite(p.drumFlutterPixels)||
     !std::isfinite(p.flutterHz)||!std::isfinite(p.flutterPixels)||
     !std::isfinite(p.stickSlipPixels)||!std::isfinite(p.lineJitterPixels)||
-    !std::isfinite(p.trackingOffsetPixels)||!std::isfinite(p.trackingSlopePixels)||!std::isfinite(p.servoJitterPixels)||!std::isfinite(p.verticalScale)||p.verticalScale<=0) return false;
+    !std::isfinite(p.trackingOffsetPixels)||!std::isfinite(p.trackingSlopePixels)||!std::isfinite(p.servoJitterPixels)||!std::isfinite(p.controlTrackServoAmount)||!std::isfinite(p.controlTrackPulseStrength)||
+    !std::isfinite(p.controlTrackPulseDropout)||!std::isfinite(p.controlTrackFalsePulseChance)||!std::isfinite(p.pictureSearchSpeed)||
+    !std::isfinite(p.trackingTargetPixels)||!std::isfinite(p.verticalScale)||p.verticalScale<=0) return false;
  if(inactive(p)){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
  try {
   const int w=src.width,h=src.height;std::vector<float>copy(size_t(w)*h*4);
   for(int y=0;y<h;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,w*4,copy.data()+size_t(y)*w*4);
-  const float fps=std::max(p.framesPerSecond,1.0f),time=float(p.frame)/fps;
+  const float fps=std::max(p.framesPerSecond,1.0f),time=float(p.frame)/fps;\n  const float controlServo=controlTrackServoOffset(p);
   const int epochFrames=4,epoch=int(p.frame/epochFrames);const float epochMix=float(p.frame%epochFrames)/float(epochFrames);
   std::vector<float> servo,servoNext;
   if(p.servoJitterPixels>0){servo=slowProfile(p.seed^0x51A7u,epoch,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);servoNext=slowProfile(p.seed^0x51A7u,epoch+1,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);}
@@ -66,7 +108,7 @@ bool processTapeTransportWarp(ConstImageView src,ImageView dst,const TapeTranspo
    const float tracking=p.trackingOffsetPixels+p.trackingSlopePixels*(line-0.5f);
    const float drift=time*p.slowDriftPixelsPerSecond;
    const float servoShift=servo.empty()?0.0f:servo[std::size_t(y)]*(1.0f-epochMix)+servoNext[std::size_t(y)]*epochMix;
-   const float shift=drum+flutter+stick+jitter+tracking+drift+servoShift;
+   const float shift=drum+flutter+stick+jitter+tracking+drift+servoShift+controlServo;
    float*row=dst.rgba+y*dst.rowStrideFloats;
    for(int x=0;x<w;++x){float q[4];sample(copy,w,h,float(x)-shift,float(y),q);row[x*4]=q[0];row[x*4+1]=q[1];row[x*4+2]=q[2];row[x*4+3]=q[3];}
   }
