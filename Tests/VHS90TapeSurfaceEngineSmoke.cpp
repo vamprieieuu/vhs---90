@@ -34,4 +34,7 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  assert(std::fabs(ntscrtTapeDropoutAmount(1.0f)-3.0f)<1e-5f&&std::fabs(ntscrtTapeScratchAmount(1.0f)-4.0f)<1e-5f);
  assert(std::fabs(ntscrtTapeEdgeAmount(1.0f)-1.45f)<1e-5f&&std::fabs(ntscrtTapeCreaseAmount(1.0f)-5.0f)<1e-5f);
  assert(ntscrtTapeSeed(1u)==7936u);
+ bool trackingChanges=false;TapeSurfaceParams tracked=p;tracked.trackingOffsetTracks=1.0f;
+ for(int n=0;n<120&&!trackingChanges;++n){const float u=float(n)/120.0f;const auto centered=sampleTapeSurface(u,.42f,p),shifted=sampleTapeSurface(u,.42f,tracked);trackingChanges=centered.magnetization!=shifted.magnetization||centered.spacingLift!=shifted.spacingLift||centered.film!=shifted.film;}
+ assert(trackingChanges);
  return 0;}
