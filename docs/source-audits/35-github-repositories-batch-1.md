@@ -56,7 +56,7 @@ Inspected `ntsc_core.py` (1,738 lines), `ntsc_gpu.py` (38 KB), `tests/test_fidel
 
 ### 4. NTSC-CRT — integer C NTSC/VHS signal emulation
 
-Inspected `crt_core.c`, `crt_ntsc.c`, and `crt_ntscvhs.c`.
+Inspected `crt_core.c` (673 lines), `crt_ntsc.c` (332 lines), and `crt_ntscvhs.c` (339 lines), including integer YIQ conversion, interpolated quarter-wave sine/cosine, fixed-point exponential, IIR band-limiting, composite carrier/burst synthesis, field phase alternation, and the NTSC-VHS modulator. The integer source uses static global IIR state and `rand()` in places, so those pieces cannot be copied into an MFR render path unchanged.
 
 - Integer/fixed-point signal encoding and decoding, with a dedicated NTSC+VHS system implementation.
 - Fixed-point exponential and interpolated sine/cosine helpers are potential deterministic CPU references.
@@ -93,7 +93,7 @@ Inspected README, GUI, `vhs_lib/vhs_effects.py` (1,412 lines) and `vhs_lib/vhs_v
 
 ### 9. Composite Video Simulator
 
-Inspected `ffmpeg_ntsc.cpp` (about 90 KB), `ffmpeg_vhsled.cpp` (about 32 KB), and tree. These are FFmpeg command-line filter/processing programs with libav dependencies. They are useful for algorithm research, but the source files are not standalone AE kernels. Need isolate the independent math and remove FFmpeg I/O before porting.
+Inspected `ffmpeg_ntsc.cpp` (2,333 lines, about 90 KB), `ffmpeg_vhsled.cpp` (1,019 lines, about 32 KB), and tree. The FFmpeg input/output, audio and frame scheduling layers are host-specific. Relevant signal sections inspected include RGB↔YIQ, three-stage I/Q low-pass with distinct I/Q cutoffs and sample delays, phase-aware chroma-to-luma carrier modulation/demodulation, composite pre-emphasis, luma/chroma noise, chroma phase noise, VHS SP/LP/EP bandwidth profiles, vertical chroma delay-line blending, playback sharpening, chroma loss and head-switching ramp. These algorithms overlap VHS-90's YIQ bandwidth, Composite and Region engines; the vertical chroma blend and per-speed bandwidth calibration remain candidates for separate C++ additions after comparison with the current IIR implementation.
 
 ### 10. Lost Signal VHS
 
@@ -107,16 +107,17 @@ Inspected `analog_color.glsl` and `composite.fsh` (about 30 KB).
 
 - New code files copied verbatim into VHS-90 in this batch: **0**.
 - Adapted C++ code added: `valueNoise1D` in `VHS90SignalKernels.cpp`, declared in the matching header, and wired into line-wobble generation using a new correlation-length parameter. This adapts the correlated smooth value-noise method inspected in Lost Signal VHS's `analog_color.glsl` / `composite.fsh`; it is a native C++ implementation, not a raw GLSL copy.
-- Adapted C++ code added: `processLumaSmear` in `VHS90SignalKernels.cpp`, declared in the matching header. It ports the two-pass shader's four-tap exponential horizontal luma-smear concept into a parameterized CPU kernel, keeps I/Q chroma separate, and preserves alpha/premultiplication.
-- Tests added in `Tests/VHS90SignalKernelsSmoke.cpp`: deterministic repeatability/local continuity for `valueNoise1D`; a horizontal luma-smear sample and alpha-preservation assertion for `processLumaSmear`.
+- Adapted C++ code added: `processLumaSmear` in `VHS90SignalKernels.cpp`, declared in the matching header. It now uses a configurable 2–64 tap causal exponential kernel and a separate highlight-only glow trail, based on the more complete ComfyUI RetroTape implementation; it keeps I/Q chroma separate and preserves alpha/premultiplication.
+- Adapted C++ code added: Tracking Noise servo drift now uses deterministic row-correlated profiles crossfaded between temporal epochs, adapting the ComfyUI RetroTape servo-profile interpolation model. Added a configurable epoch length and a continuity smoke test.
+- Tests added in `Tests/VHS90SignalKernelsSmoke.cpp`: deterministic repeatability/local continuity for `valueNoise1D`; variable-tap luma-smear/highlight trail output and alpha preservation for `processLumaSmear`. `Tests/VHS90RegionEngineSmoke.cpp` now checks temporal continuity of Tracking Noise servo drift across adjacent frames.
 - Commits: value-noise header/source/test `41ee8ee` / `7ef93f2` / `a270b41`; luma-smear header/source/test `4844c3b` / `98f9e06` / `bbd0651`; regression fixes `4eddefd` / `730833e`.
-- Validation: the first hosted run exposed two failures (RegionEngine signed-chroma expectation and StaticEngine zero-density identity). Corrected the test's signed chroma expectation and added an exact zero-density identity bypass. GitHub Actions run `44591429056` on `730833e` then passed the core build and all 6/6 CTest smoke tests.
+- Validation: the first hosted run exposed two failures (RegionEngine signed-chroma expectation and StaticEngine zero-density identity). Corrected the test's signed chroma expectation and added an exact zero-density identity bypass. GitHub Actions run `44591429056` on `730833e` passed 6/6 CTest. The subsequent variable-smear and temporal-servo changes also passed GitHub Actions run `44592423967` on commit `9e1b5b8`.
 - New algorithms identified for C++ port: deterministic tape-coordinate defect map; lateral track-overlap model; stateful temporal replay/checkpoint model; selected fixed-point NTSC math; selected signal-domain effect kernels (multipath, line jitter, burst/sync instability, chroma phase drift).
 - Reason for zero copy in this batch: the reviewed files are coupled to Python, Swift/Metal, CUDA, FFmpeg, Unity or repository-specific data structures. A verbatim copy would introduce non-compiling dependencies or incorrect host/runtime assumptions. Existing VHS-90 modules already implement some overlapping YIQ/IIR/composite/region behavior, so each candidate must be compared and tested before duplication.
 
 ## What remains before this 15-repository audit is complete
 
-1. Verify the upstream identity and exact source snapshot for `vhs-main` from the original ZIP metadata.
+1. Verify the upstream identity and exact source snapshot for `vhs-main` from the original ZIP metadata. Conversation history confirms the destination repo `vamprieieuu/vhs---90`, but does not contain a separate upstream URL for this bundled folder.
 2. Inspect the remaining files and subfolders of every repository, not just recursive tree inventories.
 3. Finish `ntscqt` source review of remaining UI/packaging/assets and tests; its main renderer, core VHS methods and preset JSON have now been inspected.
 4. Inspect all Unity shader/renderer source files in URP VHS Retro Effects.
