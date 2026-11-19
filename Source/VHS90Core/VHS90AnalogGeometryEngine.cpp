@@ -22,10 +22,11 @@ inline float clamp01(float x) noexcept {return std::clamp(x,0.0f,1.0f);}
 bool processAnalogGeometry(ConstImageView src,ImageView dst,const AnalogGeometryParams&p) noexcept {
  if(!valid(src,dst)||!std::isfinite(p.lineJitterPixels)||!std::isfinite(p.lineJitterCorrelationRows)||
     !std::isfinite(p.topSkewPixels)||!std::isfinite(p.topSkewDecayRows)||
-    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower)||!std::isfinite(p.interlaceAmount))return false;
- if(p.lineJitterPixels==0.0f&&p.topSkewPixels==0.0f&&p.edgePincushionPixels==0.0f&&p.interlaceAmount==0.0f) {
+    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower)||!std::isfinite(p.interlaceAmount)||!std::isfinite(p.verticalRoll))return false;
+ if(p.lineJitterPixels==0.0f&&p.topSkewPixels==0.0f&&p.edgePincushionPixels==0.0f&&p.interlaceAmount==0.0f&&p.verticalRoll==0.0f) {
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
+ const float rollOffset=std::sin(float(p.frame)*0.23f+float(p.seed)*0.00017f)*clamp01(p.verticalRoll)*float(src.height)*0.045f;
  for(int y=0;y<src.height;++y) {
   const float yn=src.height>1?(2.0f*float(y)/float(src.height-1)-1.0f):0.0f;
   const float decay=std::exp(-float(y)/std::max(1.0f,p.topSkewDecayRows));
@@ -43,7 +44,7 @@ bool processAnalogGeometry(ConstImageView src,ImageView dst,const AnalogGeometry
    const float xn=src.width>1?(2.0f*float(x)/float(src.width-1)-1.0f):0.0f;
    const float bend=p.edgePincushionPixels*xn*std::pow(std::abs(yn),std::max(0.1f,p.edgePincushionPower));
    const float sx=float(x)-rowShift-bend-fieldShift;
-   const float sy=std::clamp(float(y)+fieldYShift,0.0f,float(src.height-1));
+   float sy=std::fmod(float(y)+rollOffset+fieldYShift,float(src.height));if(sy<0.0f)sy+=float(src.height);
    for(int c=0;c<4;++c)dr[x*4+c]=sampleChannel(src,sx,sy,c);
   }
  }
