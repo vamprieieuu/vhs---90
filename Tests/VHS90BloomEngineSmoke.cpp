@@ -10,6 +10,8 @@ int main(){using namespace vhs90;constexpr int w=32,h=24;std::vector<float>s(w*h
  BloomParams p;p.threshold=.05f;p.intensity=1.0f;p.spread=2.0f;p.levels=3;
  assert(processBloom(si,oi,p));assert(processBloom(si,ai,p));assert(out==again);
  assert(out[center+4]>0.0f || out[center-4]>0.0f || out[center+w*4]>0.0f);
+ BloomParams fast=p;fast.fast=true;std::vector<float>fastA(s.size()),fastB(s.size());ImageView fa{fastA.data(),w,h,w*4},fb{fastB.data(),w,h,w*4};
+ assert(processBloom(si,fa,fast));assert(processBloom(si,fb,fast));assert(fastA==fastB&&fastA!=s);
  BloomParams zero;zero.intensity=0;assert(processBloom(si,zi,zero));assert(off==s);
  std::vector<float>semi=s,semiOut(s.size());for(size_t i=0;i<semi.size();i+=4){semi[i]*=.5f;semi[i+1]*=.5f;semi[i+2]*=.5f;semi[i+3]=.5f;}
  ConstImageView ssi{semi.data(),w,h,w*4};ImageView so{semiOut.data(),w,h,w*4};p.premultipliedAlpha=true;assert(processBloom(ssi,so,p));
