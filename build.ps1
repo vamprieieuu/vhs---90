@@ -12,8 +12,9 @@ if ([string]::IsNullOrWhiteSpace($AeSdkRoot)) {
 if (-not (Test-Path (Join-Path $AeSdkRoot "Headers/AE_Effect.h"))) {
     throw "AE SDK headers not found under: $AeSdkRoot"
 }
-if (-not (Test-Path (Join-Path $AeSdkRoot "Resources/PiPLtool.exe"))) {
-    throw "PiPLtool.exe not found under: $AeSdkRoot"
+$piplTool = Get-ChildItem -Path $AeSdkRoot -Filter "PiPLtool.exe" -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+if (-not $piplTool) {
+    throw "PiPLtool.exe not found anywhere under: $AeSdkRoot"
 }
 
 $resolvedSdk = (Resolve-Path $AeSdkRoot).Path
