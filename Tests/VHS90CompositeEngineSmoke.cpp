@@ -54,6 +54,13 @@ int main() {
     rf.rfInstabilityEnabled=true;rf.rfInstability.drift=.65f;rf.rfInstability.hum=.4f;rf.rfInstability.amNonlinearity=.7f;
     assert(processCompositeRoundTrip(si,rfOnlyView,rf));assert(rfOnly!=src);
 
+    // Barash-style independent Cr/Cb displacement is applied before composite encoding.
+    std::vector<float> chromaShiftOnly(src.size());
+    ImageView chromaShiftOnlyView{chromaShiftOnly.data(),w,h,w*4};
+    CompositeParams chromaShift=p;chromaShift.compositeSignalStrength=0.0f;chromaShift.inputBandwidthEnabled=false;chromaShift.outputBandwidthEnabled=false;
+    chromaShift.chromaChannelShiftEnabled=true;chromaShift.chromaChannelShift.shiftPixels=3.0f;
+    assert(processCompositeRoundTrip(si,chromaShiftOnlyView,chromaShift));assert(chromaShiftOnly!=src);
+
     // Barash horizontal luma downsample/upsample stage runs in the shared pipeline.
     std::vector<float> detailOnly(src.size());
     ImageView detailOnlyView{detailOnly.data(),w,h,w*4};
