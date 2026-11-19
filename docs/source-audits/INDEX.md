@@ -40,6 +40,7 @@ These reports are based on the supplied vhs.zip archive and the linked VHS-90 re
 - 29-vhs90-static-engine-implementation.md — procedural static modes and deterministic/alpha tests.
 - 30-vhs90-yiq-iir-filter.md — standard YIQ transform correction and constant-K/Butterworth bandwidth filters.
 - 31-vhs90-composite-modem.md — four-phase NTSC composite encode/decode and comb demodulator.
+- 32-vhs90-sync-collapse-engine.md — procedural sync tears, time-base instability and vertical roll.
 
 ## Current project status
 
