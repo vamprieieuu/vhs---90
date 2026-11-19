@@ -71,8 +71,8 @@ inline float evaluateMask(const DamageRegion& r, float u, float v,
             return edgeMask(across,std::max(0.0f,r.height)*0.5f,r.feather)
                  * edgeMask(along,std::max(0.0f,r.width)*0.5f,r.feather);
         case RegionShape::VerticalBand:
-            return edgeMask(across,std::max(0.0f,r.width)*0.5f,r.feather)
-                 * edgeMask(along,std::max(0.0f,r.height)*0.5f,r.feather);
+            return edgeMask(along,std::max(0.0f,r.width)*0.5f,r.feather)
+                 * edgeMask(across,std::max(0.0f,r.height)*0.5f,r.feather);
         case RegionShape::Rectangle:
         default:
             return edgeMask(along,std::max(0.0f,r.width)*0.5f,r.feather)
