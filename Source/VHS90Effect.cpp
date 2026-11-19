@@ -22,7 +22,9 @@
 namespace {
 enum ParamIndex {
     PARAM_INPUT=0, PARAM_MASTER, PARAM_SIGNAL_TOPIC, PARAM_COMPOSITE_AMOUNT,
-    PARAM_SYNC_AMOUNT, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
+    PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA,
+    PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT,
+    PARAM_GEOMETRY, PARAM_SCANLINES, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
     PARAM_STATIC_DENSITY, PARAM_STATIC_END, PARAM_TRACKING_TOPIC, PARAM_TRACKING_AMOUNT,
     PARAM_TRACKING_SHAPE, PARAM_TRACKING_CENTER_X, PARAM_TRACKING_CENTER_Y,
     PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_MOTION_X,
@@ -31,7 +33,9 @@ enum ParamIndex {
     PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_COUNT
 };
 enum ParamDiskID {
-    ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_STATIC_TOPIC,
+    ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE,
+    ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_LUMA_SMEAR, ID_BLOOM,
+    ID_TAPE_SURFACE, ID_TAPE_TRANSPORT, ID_GEOMETRY, ID_SCANLINES, ID_STATIC_TOPIC,
     ID_STATIC_AMOUNT, ID_STATIC_DENSITY, ID_TRACKING_TOPIC, ID_TRACKING_AMOUNT,
     ID_TRACKING_SHAPE, ID_TRACKING_X, ID_TRACKING_Y, ID_TRACKING_WIDTH,
     ID_TRACKING_HEIGHT, ID_TRACKING_MOTION_X, ID_TRACKING_MOTION_Y,
@@ -40,9 +44,13 @@ enum ParamDiskID {
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
+static char kColorSystemChoices[]="NTSC|PAL";
 
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35;
+    A_long colorSystem=1;
+    float chromaSubsample=0, verticalChroma=0, lumaSmear=0, bloom=0;
+    float tapeSurface=0, tapeTransport=0, geometry=0, scanlines=0;
     float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8;
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
     A_long trackingShape=3;
@@ -69,6 +77,15 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sync Collapse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Color System",2,1,kColorSystemChoices,ID_PAL_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Subsample / Bleed",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_SUBSAMPLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Chroma Delay",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_CHROMA);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Smear",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_SMEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Bloom / Glow",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BLOOM);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Surface Defects",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Transport",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_TRANSPORT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Geometry Warp",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_GEOMETRY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Scanlines",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SCANLINES);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SIGNAL_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Static",ID_STATIC_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Static Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_STATIC_AMOUNT);
@@ -114,7 +131,13 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     PF_Err err=PF_Err_NONE;
 #define READ_FLOAT(I,F) do { err=CheckoutFloat(in_data,(I),s.F); if(err!=PF_Err_NONE) return err; } while(0)
     READ_FLOAT(PARAM_MASTER,master); READ_FLOAT(PARAM_COMPOSITE_AMOUNT,composite);
-    READ_FLOAT(PARAM_SYNC_AMOUNT,sync); READ_FLOAT(PARAM_STATIC_AMOUNT,staticAmount);
+    READ_FLOAT(PARAM_SYNC_AMOUNT,sync);
+    err=CheckoutPopup(in_data,PARAM_PAL_MODE,s.colorSystem); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_CHROMA_SUBSAMPLE,chromaSubsample); READ_FLOAT(PARAM_VERTICAL_CHROMA,verticalChroma);
+    READ_FLOAT(PARAM_LUMA_SMEAR,lumaSmear); READ_FLOAT(PARAM_BLOOM,bloom);
+    READ_FLOAT(PARAM_TAPE_SURFACE,tapeSurface); READ_FLOAT(PARAM_TAPE_TRANSPORT,tapeTransport);
+    READ_FLOAT(PARAM_GEOMETRY,geometry); READ_FLOAT(PARAM_SCANLINES,scanlines);
+    READ_FLOAT(PARAM_STATIC_AMOUNT,staticAmount);
     READ_FLOAT(PARAM_STATIC_DENSITY,staticDensity); READ_FLOAT(PARAM_TRACKING_AMOUNT,trackingAmount);
     err=CheckoutPopup(in_data,PARAM_TRACKING_SHAPE,s.trackingShape); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_TRACKING_CENTER_X,trackingX); READ_FLOAT(PARAM_TRACKING_CENTER_Y,trackingY);
@@ -189,13 +212,59 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool any=s.composite>0||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
+        const bool compositeStages=s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
+        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
         if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
         working=source; scratch.resize(source.size());
-        if(s.composite>0) {
-            CompositeParams p; p.strength=clamp01(s.composite/100.0f*master); p.frame=s.frame;
+        if(compositeStages) {
+            CompositeParams p;
+            const float compositeMix=std::max({s.composite,s.chromaSubsample,s.verticalChroma,s.lumaSmear,s.bloom,s.tapeSurface,s.tapeTransport,s.geometry,s.scanlines});
+            p.strength=clamp01(compositeMix/100.0f*master); p.frame=s.frame;
+            p.palMode=(s.colorSystem==2);
+            if(s.geometry>0) {
+                p.geometryEnabled=true; p.geometry.seed=0x90A1106Eu; p.geometry.frame=s.frame;
+                p.geometry.lineJitterPixels=s.geometry/100.0f*1.5f;
+                p.geometry.topSkewPixels=s.geometry/100.0f*2.0f;
+                p.geometry.edgePincushionPixels=s.geometry/100.0f*1.2f;
+            }
+            if(s.tapeTransport>0) {
+                const float a=clamp01(s.tapeTransport/100.0f*master);
+                p.tapeTransportEnabled=true; p.tapeTransport.seed=0x90A11A6Eu; p.tapeTransport.frame=s.frame;
+                p.tapeTransport.drumFlutterPixels=1.2f*a; p.tapeTransport.flutterPixels=0.5f*a;
+                p.tapeTransport.stickSlipPixels=0.35f*a; p.tapeTransport.lineJitterPixels=0.2f*a;
+                p.tapeTransport.slowDriftPixelsPerSecond=0.08f*a;
+            }
+            if(s.tapeSurface>0) {
+                const float a=clamp01(s.tapeSurface/100.0f*master);
+                p.tapeSurfaceEnabled=true; p.tapeSurface.seed=0x90A115FAu; p.tapeSurface.frame=s.frame;
+                p.tapeSurface.defectDensity=a; p.tapeSurface.oxideLoss=0.65f*a;
+                p.tapeSurface.scratchDensity=0.12f*a; p.tapeSurface.creaseStrength=0.35f*a;
+                p.tapeSurface.debrisAmount=0.18f*a; p.tapeSurface.edgeLift=0.12f*a;
+                p.tapeSurface.surfaceRoughness=0.03f*a;
+            }
+            if(s.chromaSubsample>0) {
+                p.chromaSubsampleEnabled=true; p.chromaSubsample.amount=clamp01(s.chromaSubsample/100.0f*master);
+                p.chromaSubsample.horizontalFactor=2; p.chromaSubsample.verticalFactor=2;
+                p.chromaSubsample.blurRadius=2.0f;
+            }
+            if(s.verticalChroma>0) {
+                p.verticalChromaBlendEnabled=true; p.verticalChromaBlendAmount=clamp01(s.verticalChroma/100.0f*master);
+            }
+            if(s.lumaSmear>0) {
+                p.lumaSmearEnabled=true; p.lumaSmear.strength=clamp01(s.lumaSmear/100.0f*master);
+                p.lumaSmear.tapCount=16; p.lumaSmear.decay=0.65f; p.lumaSmear.offsetPx=1.0f;
+                p.lumaSmear.highlightStrength=0.18f;
+            }
+            if(s.bloom>0) {
+                p.bloomEnabled=true; p.bloom.threshold=0.72f; p.bloom.intensity=clamp01(s.bloom/100.0f*master);
+                p.bloom.spread=2.0f; p.bloom.levels=3;
+            }
+            if(s.scanlines>0) {
+                p.scanlinesEnabled=true; p.scanlines.amount=clamp01(s.scanlines/100.0f*master);
+                p.scanlines.frequency=0.5f; p.scanlines.speed=0.0f; p.scanlines.frame=s.frame;
+            }
             ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
             if(!processCompositeRoundTrip(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
@@ -293,6 +362,15 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.master=float(params[PARAM_MASTER]->u.fs_d.value);
     s.composite=float(params[PARAM_COMPOSITE_AMOUNT]->u.fs_d.value);
     s.sync=float(params[PARAM_SYNC_AMOUNT]->u.fs_d.value);
+    s.colorSystem=params[PARAM_PAL_MODE]->u.pd.value;
+    s.chromaSubsample=float(params[PARAM_CHROMA_SUBSAMPLE]->u.fs_d.value);
+    s.verticalChroma=float(params[PARAM_VERTICAL_CHROMA]->u.fs_d.value);
+    s.lumaSmear=float(params[PARAM_LUMA_SMEAR]->u.fs_d.value);
+    s.bloom=float(params[PARAM_BLOOM]->u.fs_d.value);
+    s.tapeSurface=float(params[PARAM_TAPE_SURFACE]->u.fs_d.value);
+    s.tapeTransport=float(params[PARAM_TAPE_TRANSPORT]->u.fs_d.value);
+    s.geometry=float(params[PARAM_GEOMETRY]->u.fs_d.value);
+    s.scanlines=float(params[PARAM_SCANLINES]->u.fs_d.value);
     s.staticAmount=float(params[PARAM_STATIC_AMOUNT]->u.fs_d.value);
     s.staticDensity=float(params[PARAM_STATIC_DENSITY]->u.fs_d.value);
     s.trackingAmount=float(params[PARAM_TRACKING_AMOUNT]->u.fs_d.value);
