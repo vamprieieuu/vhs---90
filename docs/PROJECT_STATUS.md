@@ -35,7 +35,7 @@ Updated: 2026-11-19
 - CTest: 6/6 PASS in Release and Debug with AddressSanitizer + UndefinedBehaviorSanitizer.
 - Release smoke-test assertions are now explicitly kept enabled with `-UNDEBUG` / `/UNDEBUG`; an optional `VHS90_ENABLE_SANITIZERS` CMake switch is available.
 - Added `.github/workflows/core-ci.yml` to configure, compile and run all six host-independent smoke tests on Ubuntu for pushes and pull requests. The workflow has been committed but its first hosted run has not yet been confirmed.
-- Signal-kernel, region, static, IIR, composite-modem and sync-collapse smoke tests all pass under g++ C++17.
+- Signal-kernel, region, static, IIR, composite-modem and sync-collapse smoke tests all pass under g++ C++17. The first CI run after adding the new source kernels exposed two pre-existing smoke-test issues (signed-chroma expected direction and zero-density static identity); both were corrected. GitHub Actions run `44591429056` on commit `730833e` completed successfully with build PASS and CTest 6/6 PASS, including the new luma-smear and correlated-noise assertions.
 - VHS6RIFT static validator, parameter occurrence audit and Python 14-gate model tests: PASS.
 - VHS6RIFT native harness compile attempt: FAIL, with SDK fallback/ABI/API declaration errors.
 - No Windows/MSVC build or After Effects runtime test has been performed.
