@@ -17,12 +17,12 @@ inline RGB straightAt(ConstImageView s,int x,int y,bool premul) noexcept {
 inline float clamp01(float v) noexcept{return std::clamp(v,0.0f,1.0f);}
 }
 bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p) noexcept {
- if(!valid(src,dst)||!std::isfinite(p.edgeEnhancement)||!std::isfinite(p.fade)||
+ if(!valid(src,dst)||!std::isfinite(p.edgeEnhancement)||!std::isfinite(p.fade)||!std::isfinite(p.blackLift)||
     !std::isfinite(p.contrast)||!std::isfinite(p.brightness)||!std::isfinite(p.saturation)||
     !std::isfinite(p.vignette)||!std::isfinite(p.flicker))return false;
- const float edge=clamp01(p.edgeEnhancement),fade=clamp01(p.fade),contrast=std::clamp(p.contrast,0.0f,3.0f);
+ const float edge=clamp01(p.edgeEnhancement),fade=clamp01(p.fade),blackLift=clamp01(p.blackLift),contrast=std::clamp(p.contrast,0.0f,3.0f);
  const float sat=std::clamp(p.saturation,0.0f,3.0f),vignette=clamp01(p.vignette),flicker=clamp01(p.flicker);
- if(edge==0&&fade==0&&contrast==1&&p.brightness==0&&sat==1&&vignette==0&&flicker==0){
+ if(edge==0&&fade==0&&contrast==1&&p.brightness==0&&blackLift==0&&sat==1&&vignette==0&&flicker==0){
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
  const float flickerValue=std::sin(float(p.frame)*0.73f)*flicker*0.10f+
@@ -38,6 +38,7 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
     const float r=rgbToYiq(straightAt(src,x+1,y,p.premultipliedAlpha)).y;
     const float blur=(l+yiq.y+r)/3.0f;yiq.y+=edge*0.70f*(yiq.y-blur);}
    yiq.y=yiq.y*fadeLuma+fadeLift;
+   const float pedestal=(46.0f/255.0f)*blackLift; yiq.y=yiq.y*(1.0f-pedestal)+pedestal;
    yiq.i*=fadeSat;yiq.q*=fadeSat;
    yiq.y=(yiq.y-0.5f)*contrast+0.5f+p.brightness;
    yiq.i*=sat*fadeSat;yiq.q*=sat*fadeSat;
