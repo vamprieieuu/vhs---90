@@ -78,6 +78,35 @@ TapePointMm tapeTrackPoint(std::int64_t field,double along,double across,std::ui
  return {origin+along*std::cos(kTrackAngle)-across*std::sin(kTrackAngle),
          double(kTrackStartMm)+along*std::sin(kTrackAngle)+across*std::cos(kTrackAngle)};
 }
+namespace {
+const float* tapeCurve(TapeDamageControl c) noexcept {
+ static constexpr float wear[11]={0,.259f,.648f,.955f,1.202f,1.391f,1.540f,1.640f,1.724f,1.785f,1.850f};
+ static constexpr float drop[11]={0,.195f,.473f,.754f,.931f,1.120f,1.322f,1.607f,2.124f,2.480f,3.0f};
+ static constexpr float scratch[11]={0,.759f,1.281f,1.822f,2.073f,2.289f,2.516f,2.777f,3.069f,3.430f,4.0f};
+ static constexpr float edge[11]={0,.703f,.743f,.800f,.888f,.934f,.987f,1.056f,1.190f,1.329f,1.45f};
+ switch(c){case TapeDamageControl::Wear:return wear;case TapeDamageControl::Dropouts:return drop;case TapeDamageControl::Scratches:return scratch;case TapeDamageControl::EdgeDamage:return edge;default:return nullptr;}
+}
+float topEndAmount(float k,float gain) noexcept { k=std::clamp(k,0.0f,1.0f);return k<=.5f?k:k+gain*(k-.5f)/.5f; }
+float topEndKnob(float a,float gain) noexcept { a=std::max(0.0f,a);return a<=.5f?a:(a+gain)/(1.0f+2.0f*gain); }
+float oldAmount(TapeDamageControl c,float k) noexcept {
+ float gain=0.0f;switch(c){case TapeDamageControl::Wear:gain=.85f;break;case TapeDamageControl::Dropouts:gain=2.0f;break;case TapeDamageControl::Scratches:gain=3.0f;break;case TapeDamageControl::EdgeDamage:gain=.45f;break;default:break;}
+ return topEndAmount(k,gain);
+}
+}
+float ntscrtTapeAmount(TapeDamageControl c,float k) noexcept {
+ if(const float*curve=tapeCurve(c))return curve11(k,*reinterpret_cast<const float(*)[11]>(curve));
+ return topEndAmount(k,4.0f);
+}
+float ntscrtTapeKnobForAmount(TapeDamageControl c,float amount) noexcept {
+ if(const float*curve=tapeCurve(c)){
+  const float a=std::clamp(amount,0.0f,curve[10]);
+  for(int i=0;i<10;++i)if(a<=curve[i+1]){const float span=curve[i+1]-curve[i];return (float(i)+(span>0?(a-curve[i])/span:0.0f))/10.0f;}
+  return 1.0f;
+ }
+ return topEndKnob(amount,4.0f);
+}
+float ntscrtTapeAmountIn027(TapeDamageControl c,float k) noexcept { return oldAmount(c,k); }
+float ntscrtTransportFlutterAmount(float k) noexcept { return topEndAmount(k,4.0f); }
 float ntscrtTapeWearAmount(float k) noexcept { static constexpr float v[11]={0,.259f,.648f,.955f,1.202f,1.391f,1.540f,1.640f,1.724f,1.785f,1.850f};return curve11(k,v); }
 float ntscrtTapeDropoutAmount(float k) noexcept { static constexpr float v[11]={0,.195f,.473f,.754f,.931f,1.120f,1.322f,1.607f,2.124f,2.480f,3.0f};return curve11(k,v); }
 float ntscrtTapeScratchAmount(float k) noexcept { static constexpr float v[11]={0,.759f,1.281f,1.822f,2.073f,2.289f,2.516f,2.777f,3.069f,3.430f,4.0f};return curve11(k,v); }
