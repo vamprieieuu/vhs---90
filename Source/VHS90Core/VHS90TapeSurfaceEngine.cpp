@@ -65,6 +65,19 @@ float curve11(float knob,const float (&values)[11]) noexcept {
  return values[i]+(values[i+1]-values[i])*(x-float(i));
 }
 }
+double tapeWidthMm() noexcept { return double(kTapeWidthMm); }
+double tapeTrackStartMm() noexcept { return double(kTrackStartMm); }
+double tapeTrackLengthMm() noexcept { return double(kTrackLengthMm); }
+double tapeTrackPitchUm(std::uint32_t speed) noexcept { return kAdvancePerFieldMm/double(speed+1u)*std::sin(kTrackAngle)*1000.0; }
+double tapeTrackOffsetLines(std::uint32_t speed) noexcept {
+ const double lineLength=kTrackLengthMm/262.5;
+ return kAdvancePerFieldMm/double(speed+1u)*std::cos(kTrackAngle)/lineLength;
+}
+TapePointMm tapeTrackPoint(std::int64_t field,double along,double across,std::uint32_t speed) noexcept {
+ const double origin=double(field)*kAdvancePerFieldMm/double(speed+1u);
+ return {origin+along*std::cos(kTrackAngle)-across*std::sin(kTrackAngle),
+         double(kTrackStartMm)+along*std::sin(kTrackAngle)+across*std::cos(kTrackAngle)};
+}
 float ntscrtTapeWearAmount(float k) noexcept { static constexpr float v[11]={0,.259f,.648f,.955f,1.202f,1.391f,1.540f,1.640f,1.724f,1.785f,1.850f};return curve11(k,v); }
 float ntscrtTapeDropoutAmount(float k) noexcept { static constexpr float v[11]={0,.195f,.473f,.754f,.931f,1.120f,1.322f,1.607f,2.124f,2.480f,3.0f};return curve11(k,v); }
 float ntscrtTapeScratchAmount(float k) noexcept { static constexpr float v[11]={0,.759f,1.281f,1.822f,2.073f,2.289f,2.516f,2.777f,3.069f,3.430f,4.0f};return curve11(k,v); }
