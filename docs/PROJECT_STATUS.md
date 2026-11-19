@@ -17,7 +17,7 @@ Updated: 2026-11-19
 - Audited all 20 VHS Damage Lab prompt documents and all 19 associated visual references.
 - Audited the supplied font pack metadata and Arabic glyph/shaping coverage.
 - Audited the VHS camera before/after references and the available processed audio stream.
-- Added host-independent C++ signal kernels and a generalized multi-region Tracking Noise / Head Switching engine.
+- Added host-independent C++ signal kernels, a generalized multi-region Tracking Noise / Head Switching engine, and a procedural static-pattern engine.
 
 ## Important VHS6RIFT findings
 
@@ -28,9 +28,9 @@ Updated: 2026-11-19
 
 ## C++ tests run
 
-- CMake configure/build: PASS for the host-independent VHS90Core static library and both smoke-test executables.
-- CTest: 2/2 PASS.
-- VHS90SignalKernelsSmoke and VHS90RegionEngineSmoke: PASS under g++ C++17 with ASan/UBSan.
+- CMake configure/build: PASS for the host-independent VHS90Core static library and all three smoke-test executables.
+- CTest: 3/3 PASS.
+- VHS90SignalKernelsSmoke, VHS90RegionEngineSmoke and VHS90StaticEngineSmoke: PASS under g++ C++17 with ASan/UBSan.
 - VHS6RIFT static validator, parameter occurrence audit and Python 14-gate model tests: PASS.
 - VHS6RIFT native harness compile attempt: FAIL, with SDK fallback/ABI/API declaration errors.
 - No Windows/MSVC build or After Effects runtime test has been performed.
@@ -39,7 +39,7 @@ Updated: 2026-11-19
 
 1. Finish the deeper source and reference audits, keeping each source's algorithms and limitations separate.
 2. Build a clean VHS-90 native AE project using exact SDK declarations and verified PiPL flags; do not copy VHS6RIFT's ABI mistakes.
-3. Integrate the region engine and signal kernels into a shared normalized pixel pipeline.
+3. Integrate the signal, region and static kernels into a shared normalized pixel pipeline.
 4. Add 8/16/32-bit adapters, SmartFX checkout, alpha/premultiplication policy and MFR-safe immutable frame context.
 5. Port the highest-value algorithms from Analog NTSC, ntsc-rs, RetroTape, NTSCRT, vhs-phys and Lost Signal in isolated modules.
 6. Build with Windows/MSVC 2022, then validate load/apply/render inside AE 23.2.1.
