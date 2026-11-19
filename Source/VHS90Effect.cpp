@@ -22,7 +22,7 @@
 namespace {
 enum ParamIndex {
     PARAM_INPUT=0, PARAM_MASTER, PARAM_SIGNAL_TOPIC, PARAM_COMPOSITE_AMOUNT,
-    PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA,
+    PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
     PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT,
     PARAM_GEOMETRY, PARAM_SCANLINES, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
     PARAM_STATIC_DENSITY, PARAM_STATIC_END, PARAM_TRACKING_TOPIC, PARAM_TRACKING_AMOUNT,
@@ -34,7 +34,7 @@ enum ParamIndex {
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE,
-    ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_LUMA_SMEAR, ID_BLOOM,
+    ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_SMEAR, ID_BLOOM,
     ID_TAPE_SURFACE, ID_TAPE_TRANSPORT, ID_GEOMETRY, ID_SCANLINES, ID_STATIC_TOPIC,
     ID_STATIC_AMOUNT, ID_STATIC_DENSITY, ID_TRACKING_TOPIC, ID_TRACKING_AMOUNT,
     ID_TRACKING_SHAPE, ID_TRACKING_X, ID_TRACKING_Y, ID_TRACKING_WIDTH,
@@ -49,7 +49,7 @@ static char kColorSystemChoices[]="NTSC|PAL";
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35;
     A_long colorSystem=1;
-    float chromaSubsample=0, verticalChroma=0, lumaSmear=0, bloom=0;
+    float chromaSubsample=0, verticalChroma=0, verticalLuma=0, lumaSmear=0, bloom=0;
     float tapeSurface=0, tapeTransport=0, geometry=0, scanlines=0;
     float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8;
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
@@ -81,6 +81,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Color System",2,1,kColorSystemChoices,ID_PAL_MODE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Subsample / Bleed",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_SUBSAMPLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Chroma Delay",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_CHROMA);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Luma Blur",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_LUMA);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Smear",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_SMEAR);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Bloom / Glow",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BLOOM);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Surface Defects",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE);
@@ -135,6 +136,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_SYNC_AMOUNT,sync);
     err=CheckoutPopup(in_data,PARAM_PAL_MODE,s.colorSystem); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_CHROMA_SUBSAMPLE,chromaSubsample); READ_FLOAT(PARAM_VERTICAL_CHROMA,verticalChroma);
+    READ_FLOAT(PARAM_VERTICAL_LUMA,verticalLuma);
     READ_FLOAT(PARAM_LUMA_SMEAR,lumaSmear); READ_FLOAT(PARAM_BLOOM,bloom);
     READ_FLOAT(PARAM_TAPE_SURFACE,tapeSurface); READ_FLOAT(PARAM_TAPE_TRANSPORT,tapeTransport);
     READ_FLOAT(PARAM_GEOMETRY,geometry); READ_FLOAT(PARAM_SCANLINES,scanlines);
@@ -214,7 +216,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool compositeStages=s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
+        const bool compositeStages=s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
         if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
@@ -222,7 +224,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         working=source; scratch.resize(source.size());
         if(compositeStages) {
             CompositeParams p;
-            const float compositeMix=std::max({s.composite,s.chromaSubsample,s.verticalChroma,s.lumaSmear,s.bloom,s.tapeSurface,s.tapeTransport,s.geometry,s.scanlines});
+            const float compositeMix=std::max({s.composite,s.chromaSubsample,s.verticalChroma,s.verticalLuma,s.lumaSmear,s.bloom,s.tapeSurface,s.tapeTransport,s.geometry,s.scanlines});
             p.strength=clamp01(compositeMix/100.0f*master); p.frame=s.frame;
             p.palMode=(s.colorSystem==2);
             if(s.geometry>0) {
@@ -254,6 +256,10 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             }
             if(s.verticalChroma>0) {
                 p.verticalChromaBlendEnabled=true; p.verticalChromaBlendAmount=clamp01(s.verticalChroma/100.0f*master);
+            }
+            if(s.verticalLuma>0) {
+                p.outputBandwidth.verticalLumaRadiusRows=std::max(1,int(std::lround(s.verticalLuma/100.0f*4.0f)));
+                p.outputBandwidth.verticalLumaSigmaRows=0.6f+s.verticalLuma/100.0f*1.4f;
             }
             if(s.lumaSmear>0) {
                 p.lumaSmearEnabled=true; p.lumaSmear.strength=clamp01(s.lumaSmear/100.0f*master);
@@ -368,6 +374,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.colorSystem=params[PARAM_PAL_MODE]->u.pd.value;
     s.chromaSubsample=float(params[PARAM_CHROMA_SUBSAMPLE]->u.fs_d.value);
     s.verticalChroma=float(params[PARAM_VERTICAL_CHROMA]->u.fs_d.value);
+    s.verticalLuma=float(params[PARAM_VERTICAL_LUMA]->u.fs_d.value);
     s.lumaSmear=float(params[PARAM_LUMA_SMEAR]->u.fs_d.value);
     s.bloom=float(params[PARAM_BLOOM]->u.fs_d.value);
     s.tapeSurface=float(params[PARAM_TAPE_SURFACE]->u.fs_d.value);
