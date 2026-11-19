@@ -1,6 +1,7 @@
 #include "VHS90SignalKernels.h"
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 namespace vhs90 {
 namespace {
