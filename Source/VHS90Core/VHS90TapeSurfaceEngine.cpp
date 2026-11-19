@@ -107,11 +107,11 @@ float ntscrtTapeKnobForAmount(TapeDamageControl c,float amount) noexcept {
 }
 float ntscrtTapeAmountIn027(TapeDamageControl c,float k) noexcept { return oldAmount(c,k); }
 float ntscrtTransportFlutterAmount(float k) noexcept { return topEndAmount(k,4.0f); }
-float ntscrtTapeWearAmount(float k) noexcept { static constexpr float v[11]={0,.259f,.648f,.955f,1.202f,1.391f,1.540f,1.640f,1.724f,1.785f,1.850f};return curve11(k,v); }
-float ntscrtTapeDropoutAmount(float k) noexcept { static constexpr float v[11]={0,.195f,.473f,.754f,.931f,1.120f,1.322f,1.607f,2.124f,2.480f,3.0f};return curve11(k,v); }
-float ntscrtTapeScratchAmount(float k) noexcept { static constexpr float v[11]={0,.759f,1.281f,1.822f,2.073f,2.289f,2.516f,2.777f,3.069f,3.430f,4.0f};return curve11(k,v); }
-float ntscrtTapeEdgeAmount(float k) noexcept { static constexpr float v[11]={0,.703f,.743f,.800f,.888f,.934f,.987f,1.056f,1.190f,1.329f,1.45f};return curve11(k,v); }
-float ntscrtTapeCreaseAmount(float k) noexcept { k=std::clamp(k,0.0f,1.0f);return k<=.5f?k:k+4.0f*(k-.5f)/.5f; }
+float ntscrtTapeWearAmount(float k) noexcept { return ntscrtTapeAmount(TapeDamageControl::Wear,k); }
+float ntscrtTapeDropoutAmount(float k) noexcept { return ntscrtTapeAmount(TapeDamageControl::Dropouts,k); }
+float ntscrtTapeScratchAmount(float k) noexcept { return ntscrtTapeAmount(TapeDamageControl::Scratches,k); }
+float ntscrtTapeEdgeAmount(float k) noexcept { return ntscrtTapeAmount(TapeDamageControl::EdgeDamage,k); }
+float ntscrtTapeCreaseAmount(float k) noexcept { return ntscrtTapeAmount(TapeDamageControl::Creases,k); }
 std::uint32_t ntscrtTapeSeed(std::uint32_t seed) noexcept { return seed*7919u+17u; }
 TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfaceParams&p,bool detail,bool flakes) noexcept {
  const PhysicalPosition pos=makePosition(xMm,y);const std::uint32_t s=p.seed;
