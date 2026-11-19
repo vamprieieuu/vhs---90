@@ -37,7 +37,7 @@ License: Apache-2.0 (Copyright 2026 SKBv0). The project credits ntscQT and compo
 |---|---|
 | RGB↔YIQ, chroma phase and composite carrier | `VHS90CompositeEngine`, `VHS90WaveformEngine` |
 | Horizontal/vertical chroma bleed and chroma delay | `VHS90ChromaShiftEngine`, chroma subsampling/vertical blend and IIR bandwidth |
-| Frame-driven and row-dependent chroma colour drift | `VHS90ReceiverInstabilityEngine::chromaPhaseDrift` + `chromaColorDrift`; AE control `Chroma Color Drift` |
+| Frame-driven and row-dependent chroma colour drift | `VHS90ReceiverInstabilityEngine::chromaPhaseDrift` + `chromaColorDrift`; AE controls `Color Phase Drift` and `Chroma Color Drift` |
 | Luma/chroma/composite noise | `VHS90AnalogNoiseEngine` |
 | Causal exponential luma smear and highlight-only trail | `processLumaSmear` in `VHS90SignalKernels`, extended to 2–64 taps with independent highlight trail |
 | Servo tracking profile with epoch crossfade | `VHS90TapeTransportEngine` slow one-pole servo profile plus `VHS90RegionEngine` row-correlated tracking profiles |
@@ -55,7 +55,7 @@ License: Apache-2.0 (Copyright 2026 SKBv0). The project credits ntscQT and compo
 | Thresholded channel-weighted analog glow | New `VHS90AnalogGlowEngine`, integrated post-scanline; AE control `Analog Glow` |
 | Frame and row-dependent chroma rotation | `VHS90ReceiverInstabilityEngine::chromaColorDrift`; AE control `Chroma Color Drift` |
 | Vertical roll | `VHS90AnalogGeometryEngine::verticalRoll`; AE control `Vertical Roll` |
-| Per-scanline stochastic chroma loss | `VHS90AnalogNoiseEngine::chromaLoss`, seeded row mask with 8% chroma retention; AE control `Chroma Loss` |
+| Per-scanline stochastic chroma loss | `VHS90AnalogNoiseEngine::chromaLoss`, seeded row mask with 8% chroma retention; AE control `Chroma Loss` (0–5000 source range) |
 | VHS edge-wave per-row motion | `VHS90AnalogGeometryEngine` now has deterministic epoch-crossfaded per-row edge-wave profiles; AE control `VHS Edge Wave` |
 | Black pedestal lift | `VHS90ImageGradeEngine::blackLift`; AE control `Black Lift`, white-level preserving pedestal curve |
 | Preview server, CUDA device manager, ComfyUI widget and browser panel | Excluded as host-specific infrastructure |
@@ -78,5 +78,5 @@ License: Apache-2.0 (Copyright 2026 SKBv0). The project credits ntscQT and compo
 - GitHub Actions run `44604160794` passed 24/24 CTest tests, including standalone Ringing, Dropout, Signal Ghost and Analog Glow tests.
 - GitHub Actions run `44604803432` passed **25/25 CTest tests**, including standalone and composite tests for the chroma-loss mask.
 - Later AE parameter wiring and the servo-only activation fix have newer runs; verify the latest run before claiming the combined adapter source state is validated.
-- Static AE parameter count after the ComfyUI-derived controls: 77 real parameter slots and 77 `PF_ADD_*` calls. This does not substitute for a Windows/MSVC AE SDK build or live After Effects/MFR validation.
+- Static AE parameter count after the ComfyUI-derived controls: **78 real parameter slots and 78 `PF_ADD_*` calls**, with exactly one `Chroma Loss` registration. This does not substitute for a Windows/MSVC AE SDK build or live After Effects/MFR validation.
 - The 25-file ComfyUI RetroTape source inventory is complete. All identified portable image/signal algorithms are now represented in VHS-90, including per-scanline chroma loss. Exact OpenCV/PyTorch statistical parity remains a separate fidelity task; the GPU path is intentionally not imported into the CPU-first AE plugin.
