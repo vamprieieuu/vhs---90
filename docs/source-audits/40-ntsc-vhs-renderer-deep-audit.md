@@ -74,6 +74,6 @@ Main application license: Apache-2.0. Bundled BloomEffect source: MIT, Copyright
 ## Verification boundary
 
 - The exact 1.3.0 source inventory is complete: 32/32 files audited.
-- The BloomEffect changes are registered in the VHS-90 core and its smoke test; check the newest CI run after this commit before claiming the updated combined test set passes.
+- GitHub Actions run `44607780420` passed **25/25 CTest tests** after the 5-tap Gaussian, BT.601 bright-pass, x16 fast-path and fast-mode smoke-test updates.
 - Static AE parameter count remains 79 real slots / 79 PF_ADD_* calls at the time of the previous audit; no new AE controls were added in this pass.
 - No Windows/MSVC AE SDK build or live After Effects runtime/MFR test is claimed.
