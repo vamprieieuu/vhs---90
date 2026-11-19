@@ -5,6 +5,7 @@ struct RfInstabilityParams {
     float drift=0.0f;
     float hum=0.0f;
     float amNonlinearity=0.0f;
+    float agcPump=0.0f;
     float blackPedestal=0.0f;
     std::uint32_t seed=1;
     std::int64_t frame=0;
