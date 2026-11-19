@@ -30,4 +30,8 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  for(int n=0;n<400&&!detailChanges;++n){const double xx=double(n)*0.37;const auto full=sampleTapeSurfaceAtMm(xx,4.25f,detailParams,true,true),coarse=sampleTapeSurfaceAtMm(xx,4.25f,detailParams,false,true);detailChanges=full.magnetization!=coarse.magnetization||full.spacingLift!=coarse.spacingLift;}
  for(int n=0;n<400&&!flakeChanges;++n){const double xx=double(n)*0.37;const auto full=sampleTapeSurfaceAtMm(xx,4.25f,detailParams,false,true),noFlakes=sampleTapeSurfaceAtMm(xx,4.25f,detailParams,false,false);flakeChanges=full.shed!=noFlakes.shed||full.magnetization!=noFlakes.magnetization;}
  assert(detailChanges&&flakeChanges);
+ assert(std::fabs(ntscrtTapeWearAmount(0.0f))<1e-6f&&std::fabs(ntscrtTapeWearAmount(1.0f)-1.85f)<1e-5f);
+ assert(std::fabs(ntscrtTapeDropoutAmount(1.0f)-3.0f)<1e-5f&&std::fabs(ntscrtTapeScratchAmount(1.0f)-4.0f)<1e-5f);
+ assert(std::fabs(ntscrtTapeEdgeAmount(1.0f)-1.45f)<1e-5f&&std::fabs(ntscrtTapeCreaseAmount(1.0f)-5.0f)<1e-5f);
+ assert(ntscrtTapeSeed(1u)==8010u);
  return 0;}
