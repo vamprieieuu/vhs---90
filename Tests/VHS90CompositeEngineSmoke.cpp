@@ -54,6 +54,13 @@ int main() {
     rf.rfInstabilityEnabled=true;rf.rfInstability.drift=.65f;rf.rfInstability.hum=.4f;rf.rfInstability.amNonlinearity=.7f;
     assert(processCompositeRoundTrip(si,rfOnlyView,rf));assert(rfOnly!=src);
 
+    // Delayed RF multipath echoes are separate from previous-frame ghosting.
+    std::vector<float> multipathOnly(src.size());
+    ImageView multipathOnlyView{multipathOnly.data(),w,h,w*4};
+    CompositeParams multipath=p;multipath.compositeSignalStrength=0.0f;multipath.inputBandwidthEnabled=false;multipath.outputBandwidthEnabled=false;
+    multipath.multipathEchoEnabled=true;multipath.multipathEcho.gain=.35f;multipath.multipathEcho.delayPixels=12.0f;multipath.multipathEcho.ensemble=.7f;
+    assert(processCompositeRoundTrip(si,multipathOnlyView,multipath));assert(multipathOnly!=src);
+
     // Sparse impulse bursts are a separate signal-damage stage.
     std::vector<float> impulseOnly(src.size());
     ImageView impulseOnlyView{impulseOnly.data(),w,h,w*4};
