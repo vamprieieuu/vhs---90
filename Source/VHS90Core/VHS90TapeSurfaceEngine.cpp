@@ -6,6 +6,7 @@ namespace vhs90 {
 namespace {
 constexpr float kPi=3.14159265358979323846f;
 constexpr float kTapeWidthMm=12.65f;
+constexpr float kTrackStartMm=1.52f;
 constexpr float kTrackAngle=5.97f*kPi/180.0f;
 constexpr float kTrackLengthMm=5.8f*1000.0f/(60000.0f/1001.0f);
 constexpr float kLineLengthMm=kTrackLengthMm/262.5f;
@@ -178,7 +179,7 @@ TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams&p) n
  const float along=fieldLine*kTrackLengthMm+((kActiveStartUs+u*kActiveLengthUs)/kLinePeriodUs)*kLineLengthMm;
  const double fieldAdvance=kAdvancePerFieldMm/double(p.tapeSpeed+1u);
  const double origin=double(p.frame*2)*fieldAdvance+double(along*std::cos(kTrackAngle));
- const float centerY=1.0f+along*std::sin(kTrackAngle);
+ const float centerY=kTrackStartMm+along*std::sin(kTrackAngle);
  const float headWidthMm=p.tapeSpeed==0?0.058f:0.026f;
  const float trackPitchMm=float(kAdvancePerFieldMm/double(p.tapeSpeed+1u)*std::sin(kTrackAngle));
  TapeSurfaceSample out{};out.magnetization=0.0f;
