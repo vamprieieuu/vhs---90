@@ -8,10 +8,6 @@ inline bool valid(ConstImageView s,ImageView d) noexcept {
  return s.rgba&&d.rgba&&s.width>0&&s.height>0&&d.width==s.width&&d.height==s.height&&
  s.rowStrideFloats>=s.width*4&&d.rowStrideFloats>=d.width*4&&s.rgba!=d.rgba;
 }
-inline float sample(const float*row,int w,float x,int c) noexcept {
- x=std::clamp(x,0.0f,float(w-1));const int a=int(x),b=std::min(a+1,w-1);const float t=x-float(a);
- return row[a*4+c]+(row[b*4+c]-row[a*4+c])*t;
-}
 inline RGB straight(const float*row,int x,bool premul) noexcept {
  const float a=row[x*4+3];RGB c{row[x*4],row[x*4+1],row[x*4+2]};
  if(premul&&a>1.0e-6f){c.r/=a;c.g/=a;c.b/=a;}return c;
