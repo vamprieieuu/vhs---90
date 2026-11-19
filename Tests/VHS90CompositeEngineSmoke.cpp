@@ -61,6 +61,13 @@ int main() {
     chromaShift.chromaChannelShiftEnabled=true;chromaShift.chromaChannelShift.shiftPixels=3.0f;
     assert(processCompositeRoundTrip(si,chromaShiftOnlyView,chromaShift));assert(chromaShiftOnly!=src);
 
+    // ComfyUI RetroTape ringing is integrated before composite modulation.
+    std::vector<float> ringOnly(src.size());
+    ImageView ringOnlyView{ringOnly.data(),w,h,w*4};
+    CompositeParams ring=p;ring.compositeSignalStrength=0.0f;ring.inputBandwidthEnabled=false;ring.outputBandwidthEnabled=false;
+    ring.ringingEnabled=true;ring.ringing.strength=.7f;ring.ringing.power=2.0f;
+    assert(processCompositeRoundTrip(si,ringOnlyView,ring));assert(ringOnly!=src);
+
     // Barash horizontal luma downsample/upsample stage runs in the shared pipeline.
     std::vector<float> detailOnly(src.size());
     ImageView detailOnlyView{detailOnly.data(),w,h,w*4};
