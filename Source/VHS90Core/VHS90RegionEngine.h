@@ -36,6 +36,10 @@ struct DamageRegion {
     float verticalShiftPx = 0.0f;
     float waveAmplitudePx = 2.0f;
     float waveFrequency = 3.0f;
+    float servoDriftPx = 4.0f;
+    float servoSmoothnessPx = 24.0f;
+    float tearProbability = 0.025f;
+    float tearShiftPx = 28.0f;
 
     float noiseAmount = 0.12f;
     float noiseDensity = 0.15f;
