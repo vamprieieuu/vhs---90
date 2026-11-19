@@ -76,6 +76,20 @@ int main() {
     assert(processDamageRegions(si,doff,pOff));
     assert(offOutput==src);
 
+    // Region geometry supports arbitrary rotation without changing its normalized center/size.
+    DamageRegion rotated=full;rotated.kind=RegionKind::TrackingNoise;rotated.shape=RegionShape::Rectangle;
+    rotated.centerX=.5f;rotated.centerY=.5f;rotated.width=.65f;rotated.height=.18f;
+    rotated.angleRadians=0.78539816339f;rotated.maxShiftPx=0;rotated.servoDriftPx=0;
+    rotated.waveAmplitudePx=0;rotated.tearProbability=0;rotated.dropoutProbability=0;
+    rotated.noiseDensity=1;rotated.noiseAmount=.5f;rotated.intensity=1;
+    DamageRegion unrotated=rotated;unrotated.angleRadians=0;
+    RegionEngineParams rotP;rotP.regions=&rotated;rotP.regionCount=1;rotP.seed=71;rotP.frame=9;
+    RegionEngineParams unrotP=rotP;unrotP.regions=&unrotated;
+    std::vector<float> rotOut(src.size()),unrotOut(src.size());
+    ImageView rotView{rotOut.data(),w,h,w*4},unrotView{unrotOut.data(),w,h,w*4};
+    assert(processDamageRegions(si,rotView,rotP));assert(processDamageRegions(si,unrotView,unrotP));
+    assert(rotOut!=unrotOut);
+
     // Servo drift profiles crossfade between deterministic epochs instead of
     // re-randomizing the entire row profile on every frame.
     std::vector<float> servoSource(src.size(),0.0f);
