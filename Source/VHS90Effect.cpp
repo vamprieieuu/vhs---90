@@ -305,7 +305,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool compositeStages=s.tapeDetail<100||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.chromaLoss>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0;
+        const bool compositeStages=s.tapeDetail<100||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
         if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
@@ -444,10 +444,6 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.receiverInstability.horizontalSyncNoise=clamp01(s.hsyncNoise/100.0f);
                 p.receiverInstability.verticalSyncNoise=clamp01(s.vsyncNoise/100.0f);
                 p.receiverInstability.burstNoise=clamp01(s.burstNoise/100.0f);
-            }
-            if(s.chromaLoss>0) {
-                p.chromaLossEnabled=true; p.chromaLoss.amount=clamp01(s.chromaLoss/100.0f);
-                p.chromaLoss.seed=0x90C4A055u; p.chromaLoss.frame=s.frame;
             }
             if(s.signalGhost>0||s.chromaDelay>0) {
                 p.signalGhostEnabled=true; p.signalGhost.amount=clamp01(s.signalGhost/100.0f);
@@ -645,7 +641,6 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.multipathEnsemble=float(params[PARAM_MULTIPATH_ENSEMBLE]->u.fs_d.value);
     s.signalGhost=float(params[PARAM_SIGNAL_GHOST]->u.fs_d.value);
     s.chromaDelay=float(params[PARAM_CHROMA_DELAY]->u.fs_d.value);
-    s.chromaLoss=float(params[PARAM_CHROMA_LOSS]->u.fs_d.value);
     s.afcHunt=float(params[PARAM_AFC_HUNT]->u.fs_d.value);
     s.chromaFlutter=float(params[PARAM_CHROMA_FLUTTER]->u.fs_d.value);
     s.ycCrosstalk=float(params[PARAM_YC_CROSSTALK]->u.fs_d.value);
