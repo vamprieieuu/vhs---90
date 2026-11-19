@@ -50,13 +50,14 @@ This is an inventory checkpoint, **not a complete 359-file source review**. The 
 2. Review every current `Sources/CrtCore` file not covered by the prior audit, plus the 162-file `port/` tree; classify host/UI/CLI/codec/shader infrastructure separately from reusable signal kernels.
 3. Review all 45 presets and map their settings to VHS-90 unified preset recipes where meaningful.
 4. Inspect parity and unit tests; use them as behavioral specifications. The upstream's Rust/WGSL and Swift/Metal implementations must not be imported as runtime dependencies into the C++ AE plugin.
-5. Consider a deeper optional CPU FM-tape engine only after profiling and after establishing a testable line/sample-domain interface. Preserve AE alpha and render-local deterministic state.
+5. Port or approximate the control-track servo loop from `transport.rs`: once-per-frame control pulse, missing-pulse hold, fake pulses from creases, PI capstan correction, stick-slip and search mode. Preserve deterministic random access without mutable global state.
+6. Consider a deeper optional CPU FM-tape engine only after profiling and after establishing a testable line/sample-domain interface. Preserve AE alpha and render-local deterministic state.
 
 ## Validation boundary
 
 - The new track-read unit smoke test passed; GitHub Actions run `44608850831` passed the integrated core build and **26/26 CTest tests**.
 - The frequency-dependent head-spacing refinement passed run `44609157611`, **26/26 CTest tests**, including a high-frequency luma-softening assertion.
-- The pinhole/flake/mold/vaseline material extension and contamination test are in the current CI run; do not claim that newest change passes until its run completes.
+- The pinhole/flake/mold/vaseline material extension and deterministic contamination assertions passed GitHub Actions run `44609446637`: core build and **26/26 CTest tests**.
 - Initial pipeline integration CI exposed a missing CMake source registration; the corrected CMake list now includes both the engine and smoke target. GitHub Actions run `44608850831` passed the core build and **26/26 CTest tests**, including standalone track-read and composite-pipeline coverage.
 - Static AE parameter audit after adding the two controls: 81 real parameter slots and 81 `PF_ADD_*` calls.
 - No Windows/MSVC AE SDK build or live After Effects runtime/MFR test is claimed.
