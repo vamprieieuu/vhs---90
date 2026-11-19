@@ -59,6 +59,18 @@ inline bool valid(ConstImageView s,ImageView d) noexcept {
 }
 inline bool inactive(const TapeSurfaceParams&p) noexcept { return p.defectDensity<=0.0f&&p.edgeLift<=0.0f&&p.surfaceRoughness<=0.0f&&p.oxideLoss<=0.0f&&p.scratchDensity<=0.0f&&p.creaseStrength<=0.0f&&p.moldAmount<=0.0f&&p.vaselineAmount<=0.0f&&p.pinholeAmount<=0.0f&&p.flakeAmount<=0.0f; }
 }
+namespace {
+float curve11(float knob,const float (&values)[11]) noexcept {
+ const float x=std::clamp(knob,0.0f,1.0f)*10.0f;const int i=std::min(9,int(x));
+ return values[i]+(values[i+1]-values[i])*(x-float(i));
+}
+}
+float ntscrtTapeWearAmount(float k) noexcept { static constexpr float v[11]={0,.259f,.648f,.955f,1.202f,1.391f,1.540f,1.640f,1.724f,1.785f,1.850f};return curve11(k,v); }
+float ntscrtTapeDropoutAmount(float k) noexcept { static constexpr float v[11]={0,.195f,.473f,.754f,.931f,1.120f,1.322f,1.607f,2.124f,2.480f,3.0f};return curve11(k,v); }
+float ntscrtTapeScratchAmount(float k) noexcept { static constexpr float v[11]={0,.759f,1.281f,1.822f,2.073f,2.289f,2.516f,2.777f,3.069f,3.430f,4.0f};return curve11(k,v); }
+float ntscrtTapeEdgeAmount(float k) noexcept { static constexpr float v[11]={0,.703f,.743f,.800f,.888f,.934f,.987f,1.056f,1.190f,1.329f,1.45f};return curve11(k,v); }
+float ntscrtTapeCreaseAmount(float k) noexcept { k=std::clamp(k,0.0f,1.0f);return k<=.5f?k:k+4.0f*(k-.5f)/.5f; }
+std::uint32_t ntscrtTapeSeed(std::uint32_t seed) noexcept { return seed*7919u+17u; }
 TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfaceParams&p,bool detail,bool flakes) noexcept {
  const PhysicalPosition pos=makePosition(xMm,y);const std::uint32_t s=p.seed;
  const float wear=std::clamp(p.oxideLoss,0.0f,1.85f),drop=std::clamp(p.defectDensity,0.0f,3.0f);
