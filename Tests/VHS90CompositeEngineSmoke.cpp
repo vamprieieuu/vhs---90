@@ -76,6 +76,14 @@ int main() {
     grade.imageGrade.contrast=1.15f;grade.imageGrade.saturation=.85f;grade.imageGrade.vignette=.4f;grade.imageGrade.flicker=.2f;
     assert(processCompositeRoundTrip(si,gradeOnlyView,grade));assert(gradeOnly!=src);
 
+    // Full waveform composite model uses the 525x910 signal path when explicitly selected.
+    std::vector<float> waveformOnly(src.size()),waveformRepeat(src.size());
+    ImageView waveformOnlyView{waveformOnly.data(),w,h,w*4},waveformRepeatView{waveformRepeat.data(),w,h,w*4};
+    CompositeParams waveform=p;waveform.compositeSignalStrength=1.0f;waveform.waveformCompositeEnabled=true;
+    waveform.inputBandwidthEnabled=false;waveform.outputBandwidthEnabled=false;waveform.frame=11;
+    assert(processCompositeRoundTrip(si,waveformOnlyView,waveform));assert(processCompositeRoundTrip(si,waveformRepeatView,waveform));
+    assert(waveformOnly==waveformRepeat&&waveformOnly!=src);
+
     // Temporal ghost consumes an explicitly supplied, already-processed previous frame.
     std::vector<float> previous(src.size()),temporalOnly(src.size());
     for(size_t i=0;i<previous.size();i+=4){previous[i]=.1f;previous[i+1]=.8f;previous[i+2]=.2f;previous[i+3]=1.0f;}
