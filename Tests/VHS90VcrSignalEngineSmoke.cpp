@@ -13,4 +13,11 @@ int main(){using namespace vhs90;
  for(std::size_t k=0;k<47;++k){assert(std::fabs(fm[k].real-fm[94-k].real)<1e-6f);assert(std::fabs(fm[k].imag+fm[94-k].imag)<1e-6f);}
  const auto lp=buildVcrLowPass(3.0);const auto em=buildVcrShelf(1.0/(2.0*3.14159265358979323846*1.3),5.0/(2.0*3.14159265358979323846*1.3));const auto trap=buildVcrInputTrap();
  for(float x:lp)assert(std::isfinite(x));for(float x:em)assert(std::isfinite(x));for(float x:trap)assert(std::isfinite(x));
- assert(vcrInputChromaDelaySamples()>0);return 0;}
+ assert(vcrInputChromaDelaySamples()>0);
+ constexpr std::size_t n=256,mid=n/2;float input[n]{},spacing0[n]{},spacing4[n],out0[n]{},out4[n]{},fmR[n]{},fmI[n]{};
+ input[mid]=1.0f;for(std::size_t i=0;i<n;++i)spacing4[i]=4.0f;
+ assert(applyVcrSpacingBank(input,spacing0,n,.3f,out0));assert(applyVcrSpacingBank(input,spacing4,n,.3f,out4));
+ assert(out0[mid]>out4[mid]&&out4[mid]>0.0f);
+ assert(applyVcrFmBandpass(input,n,fmR,fmI));assert(fmR[mid]>0.0f);
+ assert(std::fabs(fmR[mid-1]-fmR[mid+1])<1e-6f&&std::fabs(fmI[mid-1]+fmI[mid+1])<1e-6f);
+ return 0;}
