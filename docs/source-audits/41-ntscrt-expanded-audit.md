@@ -47,7 +47,7 @@ This is an inventory checkpoint, **not a complete 359-file source review**. The 
 ## Validation boundary
 
 - The new track-read unit smoke test passed its first hosted run.
-- The initial pipeline integration CI failed because `VHS90TrackReadEngine.cpp` was not actually registered in the CMake source list; this was corrected in a follow-up CMake commit. The corrected CI run is pending at the time of this report.
+- Initial pipeline integration CI exposed a missing CMake source registration; the corrected CMake list now includes both the engine and smoke target. GitHub Actions run `44608850831` passed the core build and **26/26 CTest tests**, including standalone track-read and composite-pipeline coverage.
 - Static AE parameter audit after adding the two controls: 81 real parameter slots and 81 `PF_ADD_*` calls.
 - No Windows/MSVC AE SDK build or live After Effects runtime/MFR test is claimed.
 - NTSCRT's current 359-file tree is **not fully audited**, and this repository is **not complete**.
