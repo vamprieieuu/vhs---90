@@ -23,4 +23,6 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  assert(physicalA.magnetization==physicalB.magnetization&&physicalA.spacingLift==physicalB.spacingLift&&physicalA.shed==physicalB.shed);
  assert(std::isfinite(physicalA.magnetization)&&std::isfinite(physicalA.spacingLift)&&std::isfinite(physicalA.film)&&std::isfinite(physicalA.shed));
  assert(physicalA.magnetization!=physicalC.magnetization||physicalA.spacingLift!=physicalC.spacingLift||physicalA.film!=physicalC.film);
+ const auto spSample=sampleTapeSurface(.31f,.42f,p);TapeSurfaceParams ep=p;ep.tapeSpeed=2;const auto epSample=sampleTapeSurface(.31f,.42f,ep);
+ assert(spSample.magnetization!=epSample.magnetization||spSample.spacingLift!=epSample.spacingLift||spSample.film!=epSample.film);
  return 0;}
