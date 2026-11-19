@@ -38,6 +38,17 @@ int main() {
     assert(std::fabs(top[upper]-src[upper])>1e-5f);
     assert(top[lower]==src[lower] && top[lower+1]==src[lower+1] && top[lower+2]==src[lower+2]);
 
+    // Exercise the split-band path (upper horizontal chroma static and
+    // lower vertical RGB streaks) so this mode cannot silently regress.
+    std::vector<float> split(src.size()); ImageView dsplit{split.data(),w,h,w*4};
+    StaticParams pSplit=p; pSplit.mode=StaticPatternMode::SplitBandChromatic;
+    pSplit.splitPosition=0.5f; pSplit.sourceMix=1.0f; pSplit.intensity=1.0f;
+    pSplit.density=1.0f; pSplit.frame=12;
+    assert(processStaticPattern(si,dsplit,pSplit));
+    const size_t upperSplit=(10*w+30)*4, lowerSplit=(50*w+30)*4;
+    assert(std::fabs(split[upperSplit]-src[upperSplit])>1e-5f);
+    assert(std::fabs(split[lowerSplit]-src[lowerSplit])>1e-5f);
+
     std::vector<float> black(src.size()); ImageView dblack{black.data(),w,h,w*4};
     StaticParams pb; pb.mode=StaticPatternMode::StaticToBlackout; pb.sourceMix=0.0f;
     pb.blackoutProbability=1.0f; pb.baseLuma=0.2f; pb.frame=2;
