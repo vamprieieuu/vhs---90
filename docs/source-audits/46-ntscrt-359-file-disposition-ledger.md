@@ -24,7 +24,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `README.md` | 19946 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `Sources/CrtApp/AppState+Export.swift` | 8347 | content-reviewed | Reviewed movie/GIF/PNG export routing and async status handling; app export orchestration only, no AE render kernel. |
 | `Sources/CrtApp/AppState+Howlaround.swift` | 17019 | content-reviewed | Reviewed Howlaround export sizing, draft scheduling, render cancellation and feedback-preset load/save. Separate Screen Loop feedback effect/export workflow, not VHS tape engine. |
-| `Sources/CrtApp/AppState.swift` | 102696 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
+| `Sources/CrtApp/AppState.swift` | 102696 | content-reviewed | Reviewed main SwiftUI app state: source/crop, preset/look migration, VCR and reception toggles, frame/keyframe state, preview invalidation and export routing. App orchestration only; core algorithms live in CrtCore/port/engine. |
 | `Sources/CrtApp/BuiltInPresets.swift` | 1572 | content-reviewed | Reviewed dynamic JSON preset-folder discovery and natural sorting; app menu resource loader, no effect code. |
 | `Sources/CrtApp/CLI/CLIHelp.swift` | 2255 | content-reviewed | Reviewed CLI command/option contract; command-line documentation only. |
 | `Sources/CrtApp/CLI/ConnectSelfTest.swift` | 3187 | content-reviewed | Reviewed Claude Desktop connection self-test and UI snapshot harness; test-only integration. |
@@ -145,41 +145,41 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `licenses/MPL-2.0.txt` | 15383 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
 | `licenses/rust-crates.txt` | 527781 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
 | `mcpb/icon.png` | 249433 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `mcpb/manifest.json` | 4042 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `mcpb/server/launch.cmd` | 1823 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `mcpb/server/launch.sh` | 1093 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
+| `mcpb/manifest.json` | 4042 | content-reviewed | Reviewed MCP bundle metadata and server entry point; packaging manifest only. |
+| `mcpb/server/launch.cmd` | 1823 | content-reviewed | Reviewed Windows MCP launcher and bundled executable resolution; app deployment wrapper only. |
+| `mcpb/server/launch.sh` | 1093 | content-reviewed | Reviewed macOS/Linux MCP launcher and bundled executable resolution; app deployment wrapper only. |
 | `port/Cargo.lock` | 137943 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
 | `port/Cargo.toml` | 1040 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `port/README.md` | 5184 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/app/Cargo.toml` | 1357 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/build.rs` | 578 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
+| `port/app/Cargo.toml` | 1357 | content-reviewed | Reviewed eframe/egui app, media and CLI dependencies; platform app manifest only. |
+| `port/app/build.rs` | 578 | content-reviewed | Reviewed Windows resource/version embedding; build metadata only. |
 | `port/app/icon-256.png` | 92660 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/app/ntscrt.ico` | 146065 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/app/src/bin/ntscrt-cli.rs` | 2385 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/claude.rs` | 16079 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/cli/describe.rs` | 23230 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/cli/help.rs` | 2600 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/cli/mcp.rs` | 35074 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/cli/mcp_text.rs` | 10784 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/cli/mod.rs` | 7833 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/cli/render.rs` | 25695 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/cli/settings.rs` | 35356 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/clip_frames.rs` | 1653 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/connect_ui.rs` | 6442 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/digital_panel.rs` | 4154 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/export.rs` | 14116 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/frame_cache.rs` | 3741 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/glitch_panel.rs` | 3389 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/main.rs` | 87067 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/ntsc_panel.rs` | 9648 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/prefetch.rs` | 5049 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/producer.rs` | 11969 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/screen_loop.rs` | 36147 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/shader_panel.rs` | 13419 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/timeline_ui.rs` | 12109 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/update.rs` | 15767 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/vcr_panel.rs` | 2315 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `port/app/src/worker.rs` | 18843 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
+| `port/app/src/bin/ntscrt-cli.rs` | 2385 | content-reviewed | Reviewed CLI binary entry point and exit-code routing; no render algorithms. |
+| `port/app/src/claude.rs` | 16079 | content-reviewed | Reviewed Claude Desktop/Code MCP config detection, connect/disconnect and status; external app integration only. |
+| `port/app/src/cli/describe.rs` | 23230 | content-reviewed | Reviewed JSON stage/control schema, order, keyframe docs and settings examples; API documentation wrapper. |
+| `port/app/src/cli/help.rs` | 2600 | content-reviewed | Reviewed CLI usage text and option help; no engine code. |
+| `port/app/src/cli/mcp.rs` | 35074 | content-reviewed | Reviewed JSON-RPC/MCP initialization, tool listing/call dispatch, job cancellation and response handling; app service only. |
+| `port/app/src/cli/mcp_text.rs` | 10784 | content-reviewed | Reviewed MCP text/structured-content serialization and output formatting; protocol wrapper only. |
+| `port/app/src/cli/mod.rs` | 7833 | content-reviewed | Reviewed CLI command routing, argument expansion, JSON helpers and output channels; app shell only. |
+| `port/app/src/cli/render.rs` | 25695 | content-reviewed | Reviewed render request parsing, stage flags, export route/format/size and dry-run planning; app command layer only. |
+| `port/app/src/cli/settings.rs` | 35356 | content-reviewed | Reviewed settings application order, legacy look migration, crop/downscale/digital/NTSC/VCR/CRT toggles, timeline and keyframe updates. Migration semantics are useful reference; no native AE render kernel. |
+| `port/app/src/clip_frames.rs` | 1653 | content-reviewed | Reviewed independent cropped frame visitor for Digital stage reruns; media decode adapter only. |
+| `port/app/src/connect_ui.rs` | 6442 | content-reviewed | Reviewed egui Claude connection window and self-test snapshot; UI only. |
+| `port/app/src/digital_panel.rs` | 4154 | content-reviewed | Reviewed digital codec panel controls and dependent-control hints; optional digital codec UI, not analog VHS. |
+| `port/app/src/export.rs` | 14116 | content-reviewed | Reviewed threaded PNG/MP4/GIF export, frame seed policy and progress/cancel reporting; host export wrapper only. |
+| `port/app/src/frame_cache.rs` | 3741 | content-reviewed | Reviewed stamped per-frame baked-input cache, stale-entry eviction and byte budget; app playback optimization, not signal processing. |
+| `port/app/src/glitch_panel.rs` | 3389 | content-reviewed | Reviewed receiver/glitch control generation from GlitchParam metadata; UI only. |
+| `port/app/src/main.rs` | 87067 | content-reviewed | Reviewed Windows egui application bootstrap, stage order, source/preset state, preview, export and starting VCR sample values. App shell; the VCR sample values are reference preset data, not an engine. |
+| `port/app/src/ntsc_panel.rs` | 9648 | content-reviewed | Reviewed dynamic ntsc-rs control panel and no-write-on-draw tests; UI wrapper only. |
+| `port/app/src/prefetch.rs` | 5049 | content-reviewed | Reviewed ordered video frame prefetch worker, seek policy and ring buffer; media decode scheduling only. |
+| `port/app/src/producer.rs` | 11969 | content-reviewed | Reviewed ordered playback producer, digital codec catch-up, frame seeding and loop wrap; app playback concurrency, not analog tape. |
+| `port/app/src/screen_loop.rs` | 36147 | content-reviewed | Reviewed separate Screen Loop camera-to-display feedback simulation, camera pose/projection, feedback history and temporal rendering. Distinct effect from VHS tape; no migration into the analog engine. |
+| `port/app/src/shader_panel.rs` | 13419 | content-reviewed | Reviewed dynamic CRT shader parameter UI, presentation metadata and gating; UI only. |
+| `port/app/src/timeline_ui.rs` | 12109 | content-reviewed | Reviewed keyframe timeline editing and easing UI; After Effects host keyframes replace it. |
+| `port/app/src/update.rs` | 15767 | content-reviewed | Reviewed GitHub release lookup/version comparison and update checks; app update service only. |
+| `port/app/src/vcr_panel.rs` | 2315 | content-reviewed | Reviewed eight tape and five deck condition pickers, curve-aware preset values and reset semantics. Preset data is useful reference; current VHS-90 AE UI does not yet expose these pickers/independent knobs. |
+| `port/app/src/worker.rs` | 18843 | content-reviewed | Reviewed WGPU render worker, request coalescing, background exact reruns, preview quick pass and frame-cache/producer coordination. Concurrency wrapper only; AE render scheduling replaces it. |
 | `port/codec/.gitignore` | 11 | content-reviewed | Reviewed; build-ignore metadata only, no implementation. |
 | `port/codec/Cargo.toml` | 351 | content-reviewed | Reviewed Rust codec crate manifest and dependencies (serde/rayon); no native VHS behavior. |
 | `port/codec/examples/parity.rs` | 11546 | content-reviewed | Reviewed parity harness comparing Rust codec output to Swift reference fixtures; test tooling only. |
