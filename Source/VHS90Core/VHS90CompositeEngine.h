@@ -6,6 +6,7 @@
 #include "VHS90RfInstabilityEngine.h"
 #include "VHS90ImpulseNoiseEngine.h"
 #include "VHS90MultipathEchoEngine.h"
+#include "VHS90ReceiverInstabilityEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
@@ -43,6 +44,8 @@ struct CompositeParams {
     ImpulseNoiseParams impulseNoise{};
     bool multipathEchoEnabled = false;
     MultipathEchoParams multipathEcho{};
+    bool receiverInstabilityEnabled = false;
+    ReceiverInstabilityParams receiverInstability{};
     bool geometryEnabled = false;
     AnalogGeometryParams geometry{};
     bool scanlinesEnabled = false;
