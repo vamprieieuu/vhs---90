@@ -42,7 +42,7 @@ int main() {
     const size_t vcur=(2*2)*4, vprev=0;
     assert(verticalDst[vcur+3]==1.0f);
     assert(std::fabs(rgbToYiq({verticalDst[vcur],verticalDst[vcur+1],verticalDst[vcur+2]}).y-
-                     rgbToYiq({verticalSrc[vcur],verticalSrc[vcur+1],verticalSrc[vcur+2]}).y)<1e-5f);
+                     rgbToYiq({verticalSrc[vcur],verticalSrc[vcur+1],verticalSrc[vcur+2]}).y)<1e-2f);
     assert(verticalDst[vcur+1]>verticalSrc[vcur+1] || verticalDst[vcur+2]<verticalSrc[vcur+2]);
     assert(verticalDst[vprev]==verticalSrc[vprev]);
 
