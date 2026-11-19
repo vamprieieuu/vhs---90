@@ -2,10 +2,12 @@
 
 Updated: 2026-11-19
 
+Latest verified source-pipeline fix: `eb8969184c2d80638cfcb1165dd1984ca02015c2` — moved Image Grade after decoded-frame creation so the composite pipeline no longer references `decodedView` before initialization.
+
 ## Current state
 
 - Plugin name: VHS-90.
-- The repository contains scoped audits of the supplied source archive and six host-independent C++ processing modules.
+- The repository contains scoped audits of the supplied source archive and an expanding set of host-independent C++ processing modules. The 15 `github repos/` sources are being treated as a separate audit/migration queue; tree inventories and selected deep audits exist, but the queue is not yet declared complete.
 - An initial native AE host adapter now exists in `Source/VHS90Effect.cpp`, with PiPL identity/flags, an optional Windows/MSVC CMake target, a PiPL generation script and `build.ps1`.
 - The host adapter has not yet been compiled with MSVC against a local AE SDK or loaded in After Effects. There is no verified AEX artifact and no claim of AE load/render success.
 
@@ -29,7 +31,7 @@ Updated: 2026-11-19
 - Added receiver instability ports for AFC Hunt, chroma flutter, Y/C crosstalk, horizontal/vertical sync noise and burst-phase noise; these are connected to the shared composite engine and exposed as independent AE controls.
 - Separated global mix from `compositeSignalStrength` so each post-signal effect can run without forcing composite encode/decode and without double-scaling its amount.
 - Added arbitrary rotation to Tracking Noise / Head Switching region masks while retaining their existing normalized size/position semantics.
-- The AE parameter panel now exposes the required Source input, PAL/NTSC, chroma subsample, vertical chroma/luma, luma/chroma/composite noise and hue bias, luma smear, bloom, tape surface, tape transport, geometry, scanline and Tracking Noise region angle controls. A static count check matches all 54 `PF_ADD_*` calls with the 54 real parameter slots (excluding the four topic-end sentinels).
+- The AE parameter panel now exposes the required Source input, PAL/NTSC, chroma subsample, vertical chroma/luma, luma/chroma/composite noise and hue bias, luma smear, bloom, tape surface, tape transport, geometry, scanline and Tracking Noise region angle controls. The current enum contains 58 slots including four topic-end sentinels, leaving 54 real parameters matching the 54 `PF_ADD_*` calls; Source remains `PARAM_INPUT=0` and is checked out through the SmartFX layer checkout ID.
 - The previous-frame temporal ghost core is implemented, but the AE adapter still needs previous-frame checkout before it can be exposed safely.
 - Analog-NTSC repository audit: 31/31 files inventoried and categorized; see `docs/source-audits/36-analog-ntsc-deep-audit.md`. Its raw 525-line/910-sample waveform encode/decode, sync-gated DC restoration and exact waveform-domain behavior are not yet ported; the added raster-space adaptations must not be represented as numerically identical to the upstream raw-sample engine.
 - Added smoke assertions for variable-tap smear/highlight trail, vertical chroma blending/luma preservation, alpha preservation and adjacent-frame servo continuity. GitHub Actions run `44592423967` on commit `9e1b5b8` passed the core build and all 6/6 CTest tests. After migrating the tape-surface engine, run `44593216735` on commit `4f7e34f` passed the build and all 7/7 CTest tests. The source audits and commits are recorded in `docs/source-audits/35-github-repositories-batch-1.md`.
