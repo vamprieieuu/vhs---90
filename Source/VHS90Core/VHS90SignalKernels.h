@@ -21,6 +21,16 @@ struct ImageView {
     std::ptrdiff_t rowStrideFloats = 0;
 };
 
+struct ChromaSubsampleParams {
+    int horizontalFactor = 2;
+    int verticalFactor = 1;
+    float amount = 0.5f;
+    float blurRadius = 2.0f;
+    float iOffsetPixels = 0.0f;
+    float qOffsetPixels = 0.0f;
+    bool premultipliedAlpha = true;
+};
+
 struct VerticalChromaBlendParams {
     float amount = 0.5f;
     bool premultipliedAlpha = true;
@@ -65,6 +75,8 @@ float hash01(std::uint32_t x, std::uint32_t y, std::uint32_t seed, std::int64_t 
 float valueNoise1D(float coordinate, std::uint32_t seed, std::int64_t frame) noexcept;
 
 // CPU reference kernels. Source and destination must be distinct buffers.
+bool processChromaSubsample(ConstImageView src, ImageView dst,
+                            const ChromaSubsampleParams& params) noexcept;
 bool processVerticalChromaBlend(ConstImageView src, ImageView dst,
                                 const VerticalChromaBlendParams& params) noexcept;
 bool processLumaSmear(ConstImageView src, ImageView dst,
