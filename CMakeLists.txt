@@ -32,6 +32,7 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90SignalGhostEngine.cpp
     Source/VHS90Core/VHS90AnalogGlowEngine.cpp
     Source/VHS90Core/VHS90CrtEqualizerEngine.cpp
+    Source/VHS90Core/VHS90TrackReadEngine.cpp
     ThirdParty/AnalogNTSC/src/ntsc_signal.cpp
     ThirdParty/AnalogNTSC/src/ntsc_params.cpp
     ThirdParty/AnalogNTSC/src/ntsc_effects.cpp
