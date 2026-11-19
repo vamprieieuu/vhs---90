@@ -1,6 +1,7 @@
 #pragma once
 #include "VHS90IIRFilter.h"
 #include "VHS90BloomEngine.h"
+#include "VHS90AnalogGeometryEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
@@ -29,6 +30,10 @@ struct CompositeParams {
     std::int64_t frame = 0;
     bool inputBandwidthEnabled = false;
     bool outputBandwidthEnabled = true;
+    bool geometryEnabled = false;
+    AnalogGeometryParams geometry{};
+    bool scanlinesEnabled = false;
+    ScanlineParams scanlines{};
     bool bloomEnabled = false;
     BloomParams bloom{};
     bool tapeTransportEnabled = false;
