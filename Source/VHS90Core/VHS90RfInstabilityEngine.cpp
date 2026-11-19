@@ -17,9 +17,9 @@ inline float sample(const float* row,int width,float x,int channel) noexcept {
 }
 bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityParams&p) noexcept {
  if(!valid(src,dst)||!std::isfinite(p.drift)||!std::isfinite(p.hum)||
-    !std::isfinite(p.amNonlinearity)||!std::isfinite(p.blackPedestal))return false;
- const float drift=clamp01(p.drift),hum=clamp01(p.hum),am=clamp01(p.amNonlinearity);
- if(drift==0.0f&&hum==0.0f&&am==0.0f&&p.blackPedestal==0.0f) {
+    !std::isfinite(p.amNonlinearity)||!std::isfinite(p.agcPump)||!std::isfinite(p.blackPedestal))return false;
+ const float drift=clamp01(p.drift),hum=clamp01(p.hum),am=clamp01(p.amNonlinearity),agc=clamp01(p.agcPump);
+ if(drift==0.0f&&hum==0.0f&&am==0.0f&&agc==0.0f&&p.blackPedestal==0.0f) {
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);
   return true;
  }
@@ -28,6 +28,23 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
  const float globalBias=9.0f*drift*std::sin(framePhase*0.19f+0.7f);
  const float humPeriod=3.0f-1.0f*hum;
  const float humPhase=framePhase+float(p.frame)*(2.0f*kPi/std::max(1.0f,30.0f*humPeriod));
+ float brightEnergy=0.0f,transientEnergy=0.0f,peakLevel=0.0f;std::size_t energyCount=0;
+ if(agc>0.0f){
+  for(int y=0;y<src.height;++y){const float*row=src.rgba+y*src.rowStrideFloats;float previous=0.0f;
+   for(int x=0;x<src.width;++x){const float a=row[x*4+3];if(a<=1.0e-6f)continue;
+    RGB rgb{row[x*4],row[x*4+1],row[x*4+2]};if(p.premultipliedAlpha){rgb.r/=a;rgb.g/=a;rgb.b/=a;}
+    const float lum=rgbToYiq(rgb).y;const float positive=std::max(0.0f,lum);
+    brightEnergy+=std::max(0.0f,positive-0.78f);transientEnergy+=std::abs(lum-previous);peakLevel=std::max(peakLevel,positive);previous=lum;++energyCount;
+   }
+  }
+ }
+ const float invCount=energyCount?1.0f/float(energyCount):0.0f;
+ const float brightDrive=std::clamp(brightEnergy*invCount/0.26f,0.0f,1.0f);
+ const float transDrive=std::clamp(transientEnergy*invCount/0.07f,0.0f,1.0f);
+ const float peakDrive=std::clamp((peakLevel-0.96f)/0.26f,0.0f,1.0f);
+ const float eventDrive=std::clamp(0.50f*brightDrive+0.35f*transDrive+0.30f*peakDrive-0.40f,0.0f,1.0f);
+ const float pulse=std::max(0.0f,std::sin(framePhase*0.47f+0.6f))*(0.78f+0.22f*std::sin(framePhase*0.19f+1.4f));
+ const float pump=(0.06f+0.46f*agc)*std::clamp((eventDrive-0.08f)/(0.95f-0.08f),0.0f,1.0f)*pulse;
  const float hiKnee=0.68f-0.20f*am,loKnee=0.40f-0.12f*am;
  const float hiComp=0.010f+0.085f*am,loComp=0.013f+0.110f*am;
  for(int y=0;y<src.height;++y) {
@@ -55,6 +72,12 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
                        0.25f*std::sin(framePhase*0.71f+0.0032f*float(x)));
    const float interference=(0.03f+1.1f*hum)*std::sin((kPi*0.5f)*float(x)+0.63f*humLinePhase);
    luma=p.blackPedestal+(luma-p.blackPedestal)*humGain+humOffset*0.01f+ripple*0.01f+interference*0.01f;
+   if(pump>0.0001f){const float linePump=pump*(0.86f+0.14f*std::sin(framePhase*0.53f+0.024f*float(y)));
+    const float knee=0.24f+0.14f*(1.0f-agc);float centered=luma-p.blackPedestal;
+    if(centered>knee)centered=knee+(centered-knee)*(1.0f-0.92f*linePump);
+    else if(centered>0.0f)centered*=1.0f-0.20f*linePump*(centered/(knee+0.01f));
+    luma=p.blackPedestal+centered;
+   }
    float v=luma-p.blackPedestal;
    if(v>hiKnee){const float over=v-hiKnee;v=hiKnee+over/(1.0f+hiComp*over);}
    else if(v< -loKnee){const float under=-loKnee-v;v=-loKnee-under/(1.0f+loComp*under);}
