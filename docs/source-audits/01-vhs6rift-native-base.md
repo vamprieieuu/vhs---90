@@ -59,7 +59,7 @@ The header labels the style list as 17 choices including Custom, while comments 
 
 ### 9. Several parameter fields require functional verification
 
-The static reference-count audit does not establish that a parameter affects pixels. In the 8-bit renderer, fields such as `trackingFreq`, `noiseDetail`, `ghostingDecay`, and `signalTrails` appear not to drive the corresponding effect math. The audio downsample rate is used, but the audio path itself is API-inconsistent. Build a semantic parameter-to-kernel audit, not a token-occurrence counter.
+The static reference-count audit does not establish that a parameter affects pixels. In the 8-bit renderer, fields such as `trackingFreq`, `noiseDetail`, `ghostingDecay`, and `signalTrails` appear not to drive the corresponding effect math. The audio downsample rate is used. The audio callback uses real members present in the supplied SDK, but the project's non-SDK fallback declarations do not match those SDK structures; production compilation must be SDK-only. Build a semantic parameter-to-kernel audit, not a token-occurrence counter.
 
 ### 10. Alpha and premultiplication require a deliberate policy
 
