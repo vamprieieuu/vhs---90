@@ -24,6 +24,10 @@ struct CompositeParams {
     std::int64_t frame = 0;
     bool inputBandwidthEnabled = false;
     bool outputBandwidthEnabled = true;
+    bool verticalChromaBlendEnabled = false;
+    float verticalChromaBlendAmount = 0.5f;
+    bool lumaSmearEnabled = false;
+    LumaSmearParams lumaSmear{};
     bool premultipliedAlpha = true;
     YiqBandwidthParams inputBandwidth{};
     YiqBandwidthParams outputBandwidth{};
