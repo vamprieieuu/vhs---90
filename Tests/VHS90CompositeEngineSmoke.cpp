@@ -47,6 +47,16 @@ int main() {
     assert(processCompositeRoundTrip(si,d2,pp));
     assert(one!=two);
 
+    // Post-signal modules can run without forcing the composite encoder/decoder.
+    std::vector<float> postOnly(src.size()),noiseOnly(src.size());
+    ImageView postOnlyView{postOnly.data(),w,h,w*4},noiseOnlyView{noiseOnly.data(),w,h,w*4};
+    CompositeParams post=p;post.compositeSignalStrength=0.0f;post.inputBandwidthEnabled=false;post.outputBandwidthEnabled=false;
+    post.chromaSubsampleEnabled=true;post.chromaSubsample.amount=.8f;
+    assert(processCompositeRoundTrip(si,postOnlyView,post));assert(postOnly!=src);
+    post=p;post.compositeSignalStrength=0.0f;post.inputBandwidthEnabled=false;post.outputBandwidthEnabled=false;
+    post.analogNoiseEnabled=true;post.analogNoise.lumaAmount=.5f;post.analogNoise.chromaAmount=.4f;
+    assert(processCompositeRoundTrip(si,noiseOnlyView,post));assert(noiseOnly!=src);
+
     std::vector<float> verticalLumaComposite(src.size());
     ImageView verticalLumaCompositeView{verticalLumaComposite.data(),w,h,w*4};
     CompositeParams verticalLumaStage=p;verticalLumaStage.outputBandwidthEnabled=true;
