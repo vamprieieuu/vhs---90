@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include <cstddef>
 #include <vector>
 namespace vhs90 {
 // NTSCRT VCR sample-domain constants: 8x NTSC color subcarrier.
@@ -14,6 +15,8 @@ constexpr float kVcrNoise = 0.022f;
 constexpr float kVcrMaxSpacingUm = 4.0f;
 struct VcrComplexTap { float real=0.0f, imag=0.0f; };
 double vcrCarrierToNoiseDb() noexcept;
+bool applyVcrSpacingBank(const float* input,const float* spacingUm,std::size_t count,float gapUm,float* output);
+bool applyVcrFmBandpass(const float* input,std::size_t count,float* outputReal,float* outputImag);
 double vcrChannelGain(double mhz,double spacingUm,double gapUm) noexcept;
 std::vector<float> buildVcrSpacingBank(float gapUm);
 std::vector<VcrComplexTap> buildVcrFmBandTaps();
