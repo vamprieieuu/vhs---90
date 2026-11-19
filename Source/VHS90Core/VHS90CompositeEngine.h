@@ -1,5 +1,7 @@
 #pragma once
 #include "VHS90IIRFilter.h"
+#include "VHS90TapeSurfaceEngine.h"
+#include "VHS90TapeTransportEngine.h"
 #include <cstdint>
 
 namespace vhs90 {
@@ -26,6 +28,10 @@ struct CompositeParams {
     std::int64_t frame = 0;
     bool inputBandwidthEnabled = false;
     bool outputBandwidthEnabled = true;
+    bool tapeTransportEnabled = false;
+    TapeTransportParams tapeTransport{};
+    bool tapeSurfaceEnabled = false;
+    TapeSurfaceParams tapeSurface{};
     bool verticalChromaBlendEnabled = false;
     float verticalChromaBlendAmount = 0.5f;
     bool lumaSmearEnabled = false;
