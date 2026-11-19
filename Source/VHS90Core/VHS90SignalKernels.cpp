@@ -94,35 +94,55 @@ bool processLumaSmear(ConstImageView src,ImageView dst,const LumaSmearParams& p)
        src.rowStrideFloats<src.width*4||dst.rowStrideFloats<dst.width*4||
        src.rgba==dst.rgba||!std::isfinite(p.strength)||
        !std::isfinite(p.decay)||!std::isfinite(p.offsetPx)||
-       p.strength<0.0f||p.decay<0.0f||p.offsetPx<0.0f) return false;
-    const float strength=std::min(1.0f,p.strength);
-    if(strength<=0.0f) {
+       !std::isfinite(p.highlightThreshold)||!std::isfinite(p.highlightStrength)||
+       p.strength<0.0f||p.decay<0.0f||p.offsetPx<0.0f||p.highlightStrength<0.0f)
+        return false;
+    const float amount=std::min(1.0f,p.strength);
+    if(amount<=0.0f) {
         for(int y=0;y<src.height;++y)
             std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);
         return true;
     }
+    const int taps=std::max(2,std::min(64,p.tapCount));
+    float weights[64]{};
+    float weightSum=0.0f;
+    for(int tap=0;tap<taps;++tap) {
+        const float phase=float(tap)/float(taps-1);
+        weights[tap]=std::exp(-p.decay*phase*3.2f);
+        weightSum+=weights[tap];
+    }
+    if(weightSum<=1.0e-8f) return false;
     for(int y=0;y<src.height;++y) for(int x=0;x<src.width;++x) {
         const float alpha=sampleChannel(src,float(x),y,3);
         if(alpha<=1.0e-6f) { write(dst,x,y,{0.0f,0.0f,0.0f},alpha); continue; }
-        auto straightAt=[&](float sx) noexcept {
+        auto straightLumaAt=[&](float sx) noexcept {
             RGB c{sampleChannel(src,sx,y,0),sampleChannel(src,sx,y,1),sampleChannel(src,sx,y,2)};
             const float a=sampleChannel(src,sx,y,3);
             if(p.premultipliedAlpha) {
                 if(a>1.0e-6f) { c.r/=a; c.g/=a; c.b/=a; }
-                else c={0.0f,0.0f,0.0f};
+                else return 0.0f;
             }
-            return rgbToYiq(c);
+            return luma(c);
         };
-        const YIQ center=straightAt(float(x));
-        float sum=center.y,energy=1.0f;
-        for(int tap=1;tap<=4;++tap) {
-            const float weight=std::exp(-p.decay*float(tap));
-            sum+=straightAt(float(x)-p.offsetPx*float(tap)).y*weight;
-            energy+=weight;
+        const float center=straightLumaAt(float(x));
+        float smear=0.0f,glow=0.0f;
+        for(int tap=0;tap<taps;++tap) {
+            const float sample=straightLumaAt(float(x)-p.offsetPx*float(tap));
+            const float w=weights[tap];
+            smear+=sample*w;
+            glow+=std::max(0.0f,sample-p.highlightThreshold)*w;
         }
-        const float blurred=sum/energy;
-        const float outY=center.y+(blurred-center.y)*strength;
-        RGB out=yiqToRgb({outY,center.i,center.q});
+        smear/=weightSum;
+        glow/=weightSum;
+        const float trailMix=amount*0.18f;
+        const float outY=center*(1.0f-trailMix)+smear*trailMix
+                        +glow*(amount*p.highlightStrength);
+        RGB out=yiqToRgb({outY,rgbToYiq({sampleChannel(src,float(x),y,0),
+                                        sampleChannel(src,float(x),y,1),
+                                        sampleChannel(src,float(x),y,2)}).i,
+                                  rgbToYiq({sampleChannel(src,float(x),y,0),
+                                            sampleChannel(src,float(x),y,1),
+                                            sampleChannel(src,float(x),y,2)}).q});
         if(p.premultipliedAlpha) { out.r*=alpha; out.g*=alpha; out.b*=alpha; }
         write(dst,x,y,out,alpha);
     }
