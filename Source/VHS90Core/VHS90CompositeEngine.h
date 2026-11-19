@@ -60,7 +60,8 @@ struct CompositeParams {
     bool waveformCompositeEnabled = false;
     NtscWaveformParams waveformComposite{};
     bool temporalGhostEnabled = false;
-    ConstImageView previousProcessedFrame{};
+    ConstImageView previousFrame{};
+    std::int64_t previousFrameIndex=0;
     TemporalGhostParams temporalGhost{};
     bool geometryEnabled = false;
     AnalogGeometryParams geometry{};
