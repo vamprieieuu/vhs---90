@@ -45,7 +45,7 @@ The physical head-sampling path is now enabled by the AE parameter adapter when 
 
 ## Verification
 
-Latest verified core CI: [run 496](https://github.com/vamprieieuu/vhs---90/actions/runs/44622225681) — success, CMake core build and CTest 27/27, including physical tape coordinate/detail/flake behavior, SP/LP/EP mapping, measured tape response curves, seed transform, 12-point deck sampling and physical control-track path. The AE SDK adapter itself is not compiled by this Linux core workflow. This does not validate Windows/MSVC, AE SDK compilation, PiPL, AEX loading, live AE rendering or MFR.
+Latest verified core CI: [run 499](https://github.com/vamprieieuu/vhs---90/actions/runs/44622438195) — success, CMake core build and CTest 27/27, including physical tape coordinate/detail/flake behavior, SP/LP/EP mapping, measured tape response curves, seed transform, 12-point deck sampling and physical control-track path. The AE SDK adapter itself is not compiled by this Linux core workflow. This does not validate Windows/MSVC, AE SDK compilation, PiPL, AEX loading, live AE rendering or MFR.
 
 ## Preset disposition
 
