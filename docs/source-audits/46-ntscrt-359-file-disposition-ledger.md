@@ -4,6 +4,8 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 
 **Important:** this is a complete path/size disposition ledger, not a completed content audit. Only rows marked `content-reviewed` were read in this audit pass. The 45 JSON preset files were fetched and parsed, but their conversion to VHS-90 presets is pending. Every other row is explicitly left open with a reason; do not interpret inventory status as code review or port completion.
 
+**Current disposition counts:** 76 content-reviewed; 45 preset JSON parsed; 73 platform-review-pending; 58 test/reference-pending; 49 inventory-only; 45 asset-inventory; 13 metadata-inventory. There are currently zero rows in `engine-review-pending`; this does not mean the entire 359-file audit is closed, because platform, test/reference, inventory, asset and preset-semantic reviews remain open.
+
 | Upstream path | Bytes | Status | Disposition |
 |---|---:|---|---|
 | `.gitattributes` | 73 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
