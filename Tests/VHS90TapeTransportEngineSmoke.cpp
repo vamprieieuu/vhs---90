@@ -20,4 +20,8 @@ int main(){using namespace vhs90;constexpr int w=32,h=16;std::vector<float>s(w*h
     assert(processTapeTransportWarp(si,lostView,pi));assert(lost!=piA);
     pi.controlTrackPulseDropout=0.0f;pi.pictureSearchSpeed=4.0f;std::vector<float> search(s.size());ImageView searchView{search.data(),w,h,w*4};
     assert(processTapeTransportWarp(si,searchView,pi));assert(search!=piA);
+    TapeTransportParams physical=pi;physical.pictureSearchSpeed=1.0f;physical.usePhysicalControlTrackMap=true;
+    physical.controlTrackTape.oxideLoss=1.85f;physical.controlTrackTape.pinholeAmount=1.0f;physical.controlTrackTape.edgeLift=1.45f;physical.controlTrackTape.moldAmount=1.0f;
+    std::vector<float> physicalServo(s.size());ImageView physicalServoView{physicalServo.data(),w,h,w*4};
+    assert(processTapeTransportWarp(si,physicalServoView,physical));assert(physicalServo!=piA);
  return 0;}
