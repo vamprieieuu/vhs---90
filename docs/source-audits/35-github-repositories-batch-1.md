@@ -15,7 +15,7 @@ All tree requests below returned complete recursive Git trees (`truncated=false`
 | `NTSC-CRT-v.2.3.2` | `LMP88959/NTSC-CRT` | 33 | 32 | 1 | Tree + NTSC/VHS/core C source inspected |
 | `NTSC-VHS-Renderer-1.3.0` | `F33RNI/NTSC-VHS-Renderer` | 41 | 32 | 9 | Tree + frame processor inspected |
 | `NTSCRT-0.26.0` | `finnmckenty/NTSCRT` | 420 | 359 | 59 | Tree + tape/NTSC/glitch/preset files inspected |
-| `URP-VHS-Retro-Effects-main` | `nscTechArt/URP-VHS-Retro-Effects` | 327 | 293 | 34 | Tree inspected; Unity assets dominate |
+| `URP-VHS-Retro-Effects-main` | `nscTechArt/URP-VHS-Retro-Effects` | 327 | 293 | 34 | Tree + main multi-pass shader inspected; Unity assets dominate |
 | `VHS_effect_add-on-1.0.0` | `heheda2333/VHS_effect_add-on` | 144 | 101 | 43 | Tree + README/UI inspected; processing core remains to inspect |
 | `composite-video-simulator-master` | `joncampbell123/composite-video-simulator` | 36 | 36 | 0 | Tree + NTSC and VHS-LED C++ sources inspected |
 | `lost-signal-vhs-main` | `AlexDarkStalker2002/lost-signal-vhs` | 40 | 34 | 6 | Tree + analog-color and composite GLSL inspected |
@@ -81,7 +81,7 @@ Inspected `NtscStage.swift`, `Tape.swift`, `GlitchRenderer.swift`, `BuiltInPrese
 
 ### 7. URP VHS Retro Effects
 
-Recursive tree inventory is complete (327 entries, 293 files). Most of the tree is Unity sample assets, materials, prefabs and metadata. Shader and renderer source files still need to be isolated and reviewed; no code transfer decision is final.
+Recursive tree inventory is complete (327 entries, 293 files). Most of the tree is Unity sample assets, materials, prefabs and metadata. Inspected `Retro.shader` (344 lines): it has downsample/upsample blur passes, two horizontal smear passes (four taps each with exponential falloff, different decay/offset constants), and a composite pass for bleed, edge, tape noise and scanline modulation. The smear pass is a small self-contained kernel; Unity pipeline wrappers were not copied.
 
 ### 8. VHS Effect Add-on
 
@@ -103,8 +103,9 @@ Inspected `analog_color.glsl` and `composite.fsh` (about 30 KB).
 
 - New code files copied verbatim into VHS-90 in this batch: **0**.
 - Adapted C++ code added: `valueNoise1D` in `VHS90SignalKernels.cpp`, declared in the matching header, and wired into line-wobble generation using a new correlation-length parameter. This adapts the correlated smooth value-noise method inspected in Lost Signal VHS's `analog_color.glsl` / `composite.fsh`; it is a native C++ implementation, not a raw GLSL copy.
-- Test added: deterministic repeatability and local continuity of `valueNoise1D` in `Tests/VHS90SignalKernelsSmoke.cpp`.
-- Commits: header `41ee8ee`; implementation `7ef93f2`; test `a270b41`.
+- Adapted C++ code added: `processLumaSmear` in `VHS90SignalKernels.cpp`, declared in the matching header. It ports the two-pass shader's four-tap exponential horizontal luma-smear concept into a parameterized CPU kernel, keeps I/Q chroma separate, and preserves alpha/premultiplication.
+- Tests added in `Tests/VHS90SignalKernelsSmoke.cpp`: deterministic repeatability/local continuity for `valueNoise1D`; a horizontal luma-smear sample and alpha-preservation assertion for `processLumaSmear`.
+- Commits: value-noise header/source/test `41ee8ee` / `7ef93f2` / `a270b41`; luma-smear header/source/test `4844c3b` / `98f9e06` / `bbd0651`.
 - New algorithms identified for C++ port: deterministic tape-coordinate defect map; lateral track-overlap model; stateful temporal replay/checkpoint model; selected fixed-point NTSC math; selected signal-domain effect kernels (multipath, line jitter, burst/sync instability, chroma phase drift).
 - Reason for zero copy in this batch: the reviewed files are coupled to Python, Swift/Metal, CUDA, FFmpeg, Unity or repository-specific data structures. A verbatim copy would introduce non-compiling dependencies or incorrect host/runtime assumptions. Existing VHS-90 modules already implement some overlapping YIQ/IIR/composite/region behavior, so each candidate must be compared and tested before duplication.
 
