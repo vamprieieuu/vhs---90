@@ -88,6 +88,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processTapeDetail(input,detailView,dp)) return false;
             input={tapeDetailed.data(),w,h,w*4};
         }
+        std::vector<float> ringed;
+        if(p.ringingEnabled && p.ringing.strength>0.0f) {
+            ringed.resize(count*4);
+            ImageView ringingView{ringed.data(),w,h,w*4};
+            RingingParams rp=p.ringing;
+            rp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processRinging(input,ringingView,rp)) return false;
+            input={ringed.data(),w,h,w*4};
+        }
         if(compositeStrength>0.0f && p.inputBandwidthEnabled && !p.waveformCompositeEnabled) {
             prefiltered.resize(count*4);
             ImageView pre{prefiltered.data(),w,h,w*4};
