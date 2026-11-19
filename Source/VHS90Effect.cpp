@@ -234,7 +234,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         working=source; scratch.resize(source.size());
         if(compositeStages) {
             CompositeParams p;
-            const float compositeMix=p.strength=master; p.compositeSignalStrength=clamp01(s.composite/100.0f); p.frame=s.frame;
+            p.strength=master; p.compositeSignalStrength=clamp01(s.composite/100.0f); p.frame=s.frame;
             p.inputBandwidthEnabled=(s.composite>0);
             p.outputBandwidthEnabled=(s.composite>0||s.verticalLuma>0);
             if(s.composite<=0) { p.outputBandwidth.iCutoffHz=0.0f; p.outputBandwidth.qCutoffHz=0.0f; p.outputBandwidth.lumaCutoffHz=0.0f; }
@@ -256,9 +256,9 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             if(s.tapeSurface>0) {
                 const float a=clamp01(s.tapeSurface/100.0f);
                 p.tapeSurfaceEnabled=true; p.tapeSurface.seed=0x90A115FAu; p.tapeSurface.frame=s.frame;
-                p.tapeSurface.defectDensity=a; p.tapeSurface.oxideLoss=0.65f*a;
-                p.tapeSurface.scratchDensity=0.12f*a; p.tapeSurface.creaseStrength=0.35f*a;
-                p.tapeSurface.debrisAmount=0.18f*a; p.tapeSurface.edgeLift=0.12f*a;
+                p.tapeSurface.defectDensity=a; p.tapeSurface.oxideLoss=0.65f;
+                p.tapeSurface.scratchDensity=0.12f; p.tapeSurface.creaseStrength=0.35f;
+                p.tapeSurface.debrisAmount=0.18f; p.tapeSurface.edgeLift=0.12f*a;
                 p.tapeSurface.surfaceRoughness=0.03f*a;
             }
             if(s.chromaSubsample>0) {
