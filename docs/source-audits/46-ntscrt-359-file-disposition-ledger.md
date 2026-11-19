@@ -80,9 +80,9 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtCore/DigitalStage.swift` | 12116 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/Downscaler.swift` | 11854 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/GifExporter.swift` | 19879 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/GlitchParams.swift` | 27087 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/GlitchParams.swift` | 27087 | content-reviewed | Full 30-control schema reviewed: reception, tape, deck, condition pickers, timing IDs and defaults. Source UI schema is reference; VHS-90 currently maps a subset to its existing AE controls. |
 | `Sources/CrtCore/GlitchRenderer.swift` | 14627 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/GlitchStage.swift` | 21056 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/GlitchStage.swift` | 21056 | content-reviewed | Metal wrapper and three-pass receiver shader orchestration reviewed (gate, chroma reference, compose), including uniform layout, VCR-before-TV ordering and CPU FieldPlan contract. Native AE requires a CPU C++ port, not direct Metal reuse. |
 | `Sources/CrtCore/Howlaround.swift` | 54180 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/HowlaroundPad.swift` | 7570 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
 | `Sources/CrtCore/ImageIO.swift` | 4491 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
