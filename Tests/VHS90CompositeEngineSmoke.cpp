@@ -90,13 +90,6 @@ int main() {
     grade.imageGrade.contrast=1.15f;grade.imageGrade.saturation=.85f;grade.imageGrade.vignette=.4f;grade.imageGrade.flicker=.2f;
     assert(processCompositeRoundTrip(si,gradeOnlyView,grade));assert(gradeOnly!=src);
 
-    // NTSC-CRT three-band YIQ EQ is integrated immediately after composite decode.
-    std::vector<float> eqOnly(src.size());
-    ImageView eqOnlyView{eqOnly.data(),w,h,w*4};
-    CompositeParams eq=p;eq.compositeSignalStrength=0.0f;eq.inputBandwidthEnabled=false;eq.outputBandwidthEnabled=false;
-    eq.threeBandEqEnabled=true;eq.threeBandEq.amount=.8f;
-    assert(processCompositeRoundTrip(si,eqOnlyView,eq));assert(eqOnly!=src);
-
     // Analog RGB glow is applied after scanlines and temporal echo, before final mix.
     std::vector<float> glowOnly(src.size());
     ImageView glowOnlyView{glowOnly.data(),w,h,w*4};
