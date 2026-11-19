@@ -47,6 +47,13 @@ int main() {
     assert(processCompositeRoundTrip(si,d2,pp));
     assert(one!=two);
 
+    std::vector<float> verticalLumaComposite(src.size());
+    ImageView verticalLumaCompositeView{verticalLumaComposite.data(),w,h,w*4};
+    CompositeParams verticalLumaStage=p;verticalLumaStage.outputBandwidth.verticalLumaRadiusRows=1;
+    verticalLumaStage.outputBandwidth.verticalLumaSigmaRows=.8f;
+    assert(processCompositeRoundTrip(si,verticalLumaCompositeView,verticalLumaStage));
+    assert(verticalLumaComposite!=boxOut);
+
     std::vector<float> geometryComposite(src.size()),scanlineComposite(src.size());
     ImageView geometryCompositeView{geometryComposite.data(),w,h,w*4},scanlineCompositeView{scanlineComposite.data(),w,h,w*4};
     CompositeParams geometryStage=p;geometryStage.geometryEnabled=true;geometryStage.geometry.lineJitterPixels=1.0f;
