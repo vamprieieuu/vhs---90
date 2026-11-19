@@ -79,6 +79,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processTrackRead(input,trackView,tr)) return false;
             input={trackRead.data(),w,h,w*4};
         }
+        std::vector<float> headConditioned;
+        if(p.headConditionEnabled) {
+            headConditioned.resize(count*4);
+            ImageView headView{headConditioned.data(),w,h,w*4};
+            HeadConditionParams hp=p.headCondition;
+            hp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processHeadCondition(input,headView,hp)) return false;
+            input={headConditioned.data(),w,h,w*4};
+        }
         std::vector<float> chromaShifted;
         if(p.chromaChannelShiftEnabled) {
             chromaShifted.resize(count*4);
