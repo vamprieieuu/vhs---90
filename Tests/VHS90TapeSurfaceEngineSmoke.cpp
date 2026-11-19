@@ -42,4 +42,12 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  assert(std::fabs(tapeTrackOffsetLines(0)-1.5)<0.02&&std::fabs(tapeTrackOffsetLines(1)-0.75)<0.02&&std::fabs(tapeTrackOffsetLines(2)-0.5)<0.02);
  const auto top=tapeTrackPoint(0,tapeTrackLengthMm(),0.0,0);assert(std::fabs(top.y-tapeTrackStartMm()-10.1)<0.1);
  const auto sameY0=tapeTrackPoint(10,40.0,0.0,0),sameY1=tapeTrackPoint(400,40.0,0.0,0);assert(std::fabs(sameY0.y-sameY1.y)<1e-9);
+ const TapeDamageControl controls[]={TapeDamageControl::Wear,TapeDamageControl::Dropouts,TapeDamageControl::Scratches,TapeDamageControl::EdgeDamage,TapeDamageControl::Creases,TapeDamageControl::TransportFlutter};
+ for(const auto control:controls)for(int k=0;k<=20;++k){const float knob=float(k)/20.0f;const float amount=ntscrtTapeAmount(control,knob);assert(std::fabs(ntscrtTapeKnobForAmount(control,amount)-knob)<1e-5f);}
+ assert(std::fabs(ntscrtTapeAmountIn027(TapeDamageControl::Wear,1.0f)-1.85f)<1e-5f);
+ assert(std::fabs(ntscrtTapeAmountIn027(TapeDamageControl::Dropouts,1.0f)-3.0f)<1e-5f);
+ assert(std::fabs(ntscrtTapeAmountIn027(TapeDamageControl::Scratches,1.0f)-4.0f)<1e-5f);
+ assert(std::fabs(ntscrtTapeAmountIn027(TapeDamageControl::EdgeDamage,1.0f)-1.45f)<1e-5f);
+ assert(std::fabs(ntscrtTapeAmountIn027(TapeDamageControl::Creases,1.0f)-1.0f)<1e-5f);
+ assert(std::fabs(ntscrtTransportFlutterAmount(1.0f)-5.0f)<1e-5f);
  return 0;}
