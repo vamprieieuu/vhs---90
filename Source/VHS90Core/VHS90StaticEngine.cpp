@@ -96,8 +96,10 @@ bool processStaticPattern(ConstImageView src,ImageView dst,
                     case StaticPatternMode::SplitBandChromatic:
                         if(v<clamp01(p.splitPosition)) {
                             lumaNoise=horizontal*p.lumaAmount;
-                            chromaI=(hashCell(cx+3,cy+9,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*2.0f;
-                            chromaQ=(hashCell(cx+17,cy+5,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*2.0f;
+                            if(horizontalOn) {
+                                chromaI=(hashCell(cx+3,cy+9,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*2.0f;
+                                chromaQ=(hashCell(cx+17,cy+5,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*2.0f;
+                            }
                         } else {
                             const int column=x/cell;
                             const int segment=y/streak;
