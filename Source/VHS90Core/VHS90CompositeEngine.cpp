@@ -167,6 +167,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processAnalogNoise(decodedView,noiseView,np)) return false;
             decodedView={analogNoisy.data(),w,h,w*4};
         }
+        std::vector<float> rfProcessed;
+        if(p.rfInstabilityEnabled) {
+            rfProcessed.resize(count*4);
+            ImageView rfView{rfProcessed.data(),w,h,w*4};
+            RfInstabilityParams rp=p.rfInstability;
+            rp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processRfInstability(decodedView,rfView,rp)) return false;
+            decodedView={rfProcessed.data(),w,h,w*4};
+        }
         std::vector<float> verticalBlended;
         std::vector<float> chromaSubsampled;
         std::vector<float> smeared;
