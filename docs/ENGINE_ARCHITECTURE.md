@@ -67,8 +67,8 @@ Presets are data-only recipes with independent module toggles and values. Select
 
 ## Current implementation boundary
 
-Implemented in repository: initial YIQ/chroma CPU kernels and the generalized region geometry/Tracking Noise/Head Switching CPU module, with standalone C++ smoke tests.
+Implemented in repository: initial YIQ/chroma CPU kernels, generalized region geometry/Tracking Noise/Head Switching CPU module, and procedural static-pattern generator, with standalone C++ smoke tests.
 
-Not yet implemented: AE host adapter, parameter registration/UI, PiPL, full composite encode/decode, physical tape stage, full procedural static/dropout family, OSD/font shaping, Blue Screen mode, preset catalog, CMake/MSVC build and AEX packaging.
+Not yet implemented: AE host adapter, parameter registration/UI, PiPL, full composite encode/decode, physical tape stage, full procedural dropout/sync-collapse family, OSD/font shaping, Blue Screen mode, preset catalog, Windows/MSVC AE build and AEX packaging. Root CMake currently builds only the host-independent CPU core and tests.
 
 Do not call VHS-90 test-ready until those host/build/runtime gates are complete.
