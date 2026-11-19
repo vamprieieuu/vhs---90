@@ -6,7 +6,7 @@ Updated: 2026-11-19
 
 - Plugin name: VHS-90.
 - The current repository contains source-audit documents and host-independent C++ signal/region kernels.
-- No complete Adobe After Effects plugin project exists in the repository yet: no root CMakeLists.txt, no build.ps1, no PiPL resource, no AE EffectMain implementation and no CI AEX build workflow.
+- A root CMake project now builds the host-independent CPU core and two smoke tests. No complete Adobe After Effects plugin target exists yet: no build.ps1, no PiPL resource, no AE EffectMain implementation and no AEX build workflow.
 - Therefore there is no test-ready AEX artifact and no claim of AE load/render success.
 
 ## Work completed in this pass
@@ -28,8 +28,9 @@ Updated: 2026-11-19
 
 ## C++ tests run
 
-- VHS90SignalKernelsSmoke: PASS under g++ C++17 with ASan/UBSan.
-- VHS90RegionEngineSmoke: PASS under g++ C++17 with ASan/UBSan.
+- CMake configure/build: PASS for the host-independent VHS90Core static library and both smoke-test executables.
+- CTest: 2/2 PASS.
+- VHS90SignalKernelsSmoke and VHS90RegionEngineSmoke: PASS under g++ C++17 with ASan/UBSan.
 - VHS6RIFT static validator, parameter occurrence audit and Python 14-gate model tests: PASS.
 - VHS6RIFT native harness compile attempt: FAIL, with SDK fallback/ABI/API declaration errors.
 - No Windows/MSVC build or After Effects runtime test has been performed.
