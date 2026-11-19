@@ -77,13 +77,10 @@ These measurements are computed from the supplied encoded clips, not from the wr
 
 ## 3. Tracking noise_ — 4 prompts + 1 user note / 3 still references
 
-### A. Tracking Noise Research, Reconstruction & Preset Collection
+### A. Tracking Noise Research / Advanced Tracking Noise & Snow Engine — one RTF prompt
 - Requires separate source-inspired looks rather than superficial color variants.
 - Analyze the four image edges independently: top tear/static, bottom interference/scan band, right-edge displacement/noise, left-edge displacement/tear.
 - Build a shared engine supporting horizontal displacement, variable band position/height, irregular scanlines, signal interruptions, white/colored static, RGB displacement, chroma noise/bleed, edge-specific distortion, multiple regions and deterministic animation.
-- Keep each preset editable and preserve actual algorithmic differences.
-
-### B. Advanced Tracking Noise & Snow Engine
 - Tracking Noise coverage must grow from a thin band to 100% of the frame.
 - Support top, bottom, left, right and multiple simultaneous regions.
 - Each region can have independent position, width/height, coverage, intensity, displacement, edge behavior and noise density.
@@ -91,11 +88,9 @@ These measurements are computed from the supplied encoded clips, not from the wr
 - Snow is a separate engine with intensity, density, size, distribution, contrast, brightness, color/monochrome, temporal variation, animation speed and seed.
 - Keep background Noise Intensity separate from Snow and Tracking Noise.
 - Investigate the source-specific control called “Snow Inspiratory” rather than guessing its purpose.
+- Keep each preset editable and preserve actual algorithmic differences.
 
-### C. User note (not a separate prompt document)
-The plain-text note in this folder adds context about the four-edge Tracking Noise reference and points to IMG_4636.JPG. It is counted as the additional note, not as a fifth implementation prompt.
-
-### D. Spectral Chroma Smear & Lower Tear — still IMG_4654.JPG
+### B. Ultimate Tracking Noise / Tracking Damage / Signal Noise Engine — second RTF prompt
 - Preserve the supplied VHS6RIFT implementation as a dedicated behavior/preset and preserve the original source folder.
 - Improve its Tracking Noise to reach full-frame coverage without destroying the original clustered style.
 - Preserve the existing Tracking Damage Size behavior, which already expands to full-frame coverage.
@@ -103,8 +98,11 @@ The plain-text note in this folder adds context about the four-edge Tracking Noi
 - Research Grain, Signal Noise Intensity, Signal Noise Frequency and Detail and combine their actual behavior into a separate unified Signal Noise engine.
 - Keep Tracking Noise, Tracking Damage, Snow/Static, Grain, Signal Noise, Chroma Noise and Luma Noise independently adjustable.
 
-### E. Upper Static Band & Cyan-Green Wash — still IMG_4655.JPG
-- Image size: 639×480.
+### C. User note (not a separate prompt document)
+The plain-text note in this folder adds context about the four-edge Tracking Noise reference and points to IMG_4636.JPG. It is counted as the additional note, not as a fifth implementation prompt.
+
+### D. Spectral Chroma Smear & Lower Tear — still IMG_4654.JPG
+- Image size: 550×412.
 - Upper/mid-frame highly saturated spectral chroma smear and color displacement.
 - Lower full-width tracking-interference band occupies approximately 35–40% of frame height.
 - Lower band contains horizontal tearing, scanline fragmentation, RGB displacement, colored noise and localized dropouts.
