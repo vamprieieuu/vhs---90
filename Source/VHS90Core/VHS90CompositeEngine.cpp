@@ -60,7 +60,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         if(p.tapeTransportEnabled) {
             transported.resize(count*4);
             ImageView transportView{transported.data(),w,h,w*4};
-            if(!processTapeTransportWarp(src,transportView,p.tapeTransport)) return false;
+            if(!processTapeTransportWarp(input,transportView,p.tapeTransport)) return false;
             input={transported.data(),w,h,w*4};
         }
         if(p.tapeSurfaceEnabled) {
@@ -73,7 +73,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             prefiltered.resize(count*4);
             ImageView pre{prefiltered.data(),w,h,w*4};
             YiqBandwidthParams bp=p.inputBandwidth; bp.premultipliedAlpha=p.premultipliedAlpha;
-            if(!processYiqBandwidth(src,pre,bp)) return false;
+            if(!processYiqBandwidth(input,pre,bp)) return false;
             input={prefiltered.data(),w,h,w*4};
         }
 
@@ -137,7 +137,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         std::vector<float> decoded(count*4);
         for(int row=0;row<h;++row) for(int x=0;x<w;++x) {
             const std::size_t idx=std::size_t(row)*w+x;
-            const float alpha=src.rgba[row*src.rowStrideFloats+x*4+3];
+            const float alpha=input.rgba[row*input.rowStrideFloats+x*4+3];
             RGB rgb=yiqToRgb({decodedY[idx],i[idx],q[idx]});
             if(p.premultipliedAlpha) { rgb.r*=alpha; rgb.g*=alpha; rgb.b*=alpha; }
             float* out=decoded.data()+idx*4;
@@ -209,7 +209,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
                 d[0]=a[0]+(b[0]-a[0])*strength;
                 d[1]=a[1]+(b[1]-a[1])*strength;
                 d[2]=a[2]+(b[2]-a[2])*strength;
-                d[3]=a[3];
+                d[3]=a[3]+(b[3]-a[3])*strength;
             }
         }
         return true;
