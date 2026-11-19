@@ -27,7 +27,7 @@ enum ParamIndex {
     PARAM_GEOMETRY, PARAM_SCANLINES, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
     PARAM_STATIC_DENSITY, PARAM_STATIC_END, PARAM_TRACKING_TOPIC, PARAM_TRACKING_AMOUNT,
     PARAM_TRACKING_SHAPE, PARAM_TRACKING_CENTER_X, PARAM_TRACKING_CENTER_Y,
-    PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_MOTION_X,
+    PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_ANGLE, PARAM_TRACKING_MOTION_X,
     PARAM_TRACKING_MOTION_Y, PARAM_TRACKING_SERVO, PARAM_TRACKING_TEAR,
     PARAM_TRACKING_END, PARAM_HEAD_TOPIC, PARAM_HEAD_AMOUNT, PARAM_HEAD_BOTTOM_Y,
     PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_COUNT
@@ -38,7 +38,7 @@ enum ParamDiskID {
     ID_TAPE_SURFACE, ID_TAPE_TRANSPORT, ID_GEOMETRY, ID_SCANLINES, ID_STATIC_TOPIC,
     ID_STATIC_AMOUNT, ID_STATIC_DENSITY, ID_TRACKING_TOPIC, ID_TRACKING_AMOUNT,
     ID_TRACKING_SHAPE, ID_TRACKING_X, ID_TRACKING_Y, ID_TRACKING_WIDTH,
-    ID_TRACKING_HEIGHT, ID_TRACKING_MOTION_X, ID_TRACKING_MOTION_Y,
+    ID_TRACKING_HEIGHT, ID_TRACKING_ANGLE, ID_TRACKING_MOTION_X, ID_TRACKING_MOTION_Y,
     ID_TRACKING_SERVO, ID_TRACKING_TEAR, ID_HEAD_TOPIC, ID_HEAD_AMOUNT,
     ID_HEAD_Y, ID_HEAD_HEIGHT, ID_HEAD_SHIFT
 };
@@ -51,7 +51,7 @@ struct RenderSettings {
     A_long colorSystem=1;
     float chromaSubsample=0, verticalChroma=0, verticalLuma=0, lumaSmear=0, bloom=0;
     float tapeSurface=0, tapeTransport=0, geometry=0, scanlines=0;
-    float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8;
+    float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
     A_long trackingShape=3;
     float headAmount=0, headY=100, headHeight=4, headShift=24;
@@ -100,6 +100,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_WIDTH);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Region Angle",-180,180,-180,180,0,1,PF_ValueDisplayFlag_NONE,0,ID_TRACKING_ANGLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Motion X",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_MOTION_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_MOTION_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SERVO);
@@ -145,6 +146,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_TRACKING_SHAPE,s.trackingShape); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_TRACKING_CENTER_X,trackingX); READ_FLOAT(PARAM_TRACKING_CENTER_Y,trackingY);
     READ_FLOAT(PARAM_TRACKING_WIDTH,trackingWidth); READ_FLOAT(PARAM_TRACKING_HEIGHT,trackingHeight);
+    READ_FLOAT(PARAM_TRACKING_ANGLE,trackingAngle);
     READ_FLOAT(PARAM_TRACKING_MOTION_X,trackingMotionX); READ_FLOAT(PARAM_TRACKING_MOTION_Y,trackingMotionY);
     READ_FLOAT(PARAM_TRACKING_SERVO,trackingServo); READ_FLOAT(PARAM_TRACKING_TEAR,trackingTear);
     READ_FLOAT(PARAM_HEAD_AMOUNT,headAmount); READ_FLOAT(PARAM_HEAD_BOTTOM_Y,headY);
@@ -299,6 +301,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
                 r.shape=static_cast<RegionShape>(std::max<A_long>(1,std::min<A_long>(3,s.trackingShape))-1);
                 r.centerX=clamp01(s.trackingX/100.0f); r.centerY=clamp01(s.trackingY/100.0f);
+                r.angleRadians=s.trackingAngle*0.01745329251994329577f;
                 r.width=clamp01(s.trackingWidth/100.0f); r.height=clamp01(s.trackingHeight/100.0f);
                 r.intensity=clamp01(s.trackingAmount/100.0f*master);
                 r.motionXPerSecond=s.trackingMotionX/100.0f; r.motionYPerSecond=s.trackingMotionY/100.0f;
@@ -389,6 +392,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.trackingY=float(params[PARAM_TRACKING_CENTER_Y]->u.fs_d.value);
     s.trackingWidth=float(params[PARAM_TRACKING_WIDTH]->u.fs_d.value);
     s.trackingHeight=float(params[PARAM_TRACKING_HEIGHT]->u.fs_d.value);
+    s.trackingAngle=float(params[PARAM_TRACKING_ANGLE]->u.fs_d.value);
     s.trackingMotionX=float(params[PARAM_TRACKING_MOTION_X]->u.fs_d.value);
     s.trackingMotionY=float(params[PARAM_TRACKING_MOTION_Y]->u.fs_d.value);
     s.trackingServo=float(params[PARAM_TRACKING_SERVO]->u.fs_d.value);
