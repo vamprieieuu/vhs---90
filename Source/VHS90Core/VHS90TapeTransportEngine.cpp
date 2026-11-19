@@ -28,7 +28,7 @@ float controlTrackServoOffset(const TapeTransportParams& p) noexcept {
  const std::int64_t last=std::max<std::int64_t>(0,std::min<std::int64_t>(p.frame,500000));
  if(p.controlTrackServoAmount<=0.0f) return 0.0f;
  float delta=0.0f,speed=0.0f,kick=0.0f,integrator=0.0f,phase=0.0f,rate=0.0f;
- TapeSurfaceParams tape=p.controlTrackTape;tape.seed=p.seed;
+ TapeSurfaceParams tape=p.controlTrackTape;
  for(std::int64_t f=0;f<=last;++f) {
   const float motor=0.004f*randomSigned(p.seed^69u,f,0,0)+0.006f*randomSigned(p.seed^60u,f,0,1);
   delta+=(motor+speed+kick);kick=0.0f;
