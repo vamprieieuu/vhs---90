@@ -157,6 +157,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
                 std::copy_n(input.rgba+y*input.rowStrideFloats,w*4,decoded.data()+std::size_t(y)*w*4);
         }
 
+        std::vector<float> impulseProcessed;
+        if(p.impulseNoiseEnabled) {
+            impulseProcessed.resize(count*4);
+            ImageView impulseView{impulseProcessed.data(),w,h,w*4};
+            ImpulseNoiseParams ip=p.impulseNoise;
+            ip.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processImpulseNoise(decodedView,impulseView,ip)) return false;
+            decodedView={impulseProcessed.data(),w,h,w*4};
+        }
         std::vector<float> analogNoisy;
         ConstImageView decodedView{decoded.data(),w,h,w*4};
         if(p.analogNoiseEnabled) {
