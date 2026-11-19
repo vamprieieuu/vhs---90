@@ -26,6 +26,8 @@ struct SignalParams {
     float chromaBleedPx = 3.0f;
     float chromaSaturation = 0.8f;
     float lineWobblePx = 1.2f;
+    // Correlation length in raster rows for mechanical time-base wander.
+    float lineWobbleCorrelationRows = 18.0f;
     float trackingAmount = 0.35f;
     float trackingSpeed = 0.6f;
     float trackingHeight = 0.08f;
@@ -44,6 +46,8 @@ YIQ rgbToYiq(RGB c) noexcept;
 RGB yiqToRgb(YIQ c) noexcept;
 std::uint32_t hash32(std::uint32_t x) noexcept;
 float hash01(std::uint32_t x, std::uint32_t y, std::uint32_t seed, std::int64_t frame) noexcept;
+// Smooth, deterministic 1D value noise. Adjacent coordinates remain correlated.
+float valueNoise1D(float coordinate, std::uint32_t seed, std::int64_t frame) noexcept;
 
 // CPU reference kernels. Source and destination must be distinct buffers.
 // These routines preserve the input alpha channel.
