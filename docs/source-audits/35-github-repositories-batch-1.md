@@ -29,13 +29,14 @@ All tree requests below returned complete recursive Git trees (`truncated=false`
 
 ### 1. Analog-NTSC — C++ composite signal pipeline
 
-Inspected `ntsc_processor.cpp`, `ntsc_effects.cpp` (68,961 chars), and `ntsc_params.h`.
+Inspected `ntsc_processor.cpp`, `ntsc_effects.cpp` (68,961 chars), `ntsc_params.h`, `ntsc_decoder.cpp` (684 lines), `ntsc_signal.cpp` (681 lines), `ntsc_encoder.cpp`, `ntsc_params.cpp`, and `rf2_ntsc.cpp` (720 lines).
 
 - Uses a clear encode → signal-domain effects → decode frame pipeline.
 - Exposes separate parameter namespaces for decoder, effects, and encoder.
 - Effect parameters include noise, multipath gain/delay/ensemble, line-time jitter, RF drift, AM nonlinearity, impulse noise, AFC hunt, chroma flutter, AGC pump, hum, Y/C crosstalk, H/V sync noise, burst noise, VHS tracking, wrinkle, head-switch and dropouts.
 - The main effects body was scanned through its implementation sections: DC restoration and sync-referenced AGC; causal group delay; line-time jitter; RF drift; AM compression/nonlinearity; impulse noise; hum; AFC hunting; AGC pumping; chroma flutter; Y/C crosstalk; VHS tracking; head switching; tape wrinkle; dropouts; H/V/burst lock noise; spectrally shaped noise.
-- Strong reference for parameter metadata/ranges and signal-domain ordering. The source file is large and has its own signal representation; no wholesale copy was made.
+- Decoder includes blank-level estimation, burst phasor/phase/SNR measurement, sync-center and V-sync detection, luma reconstruction, chroma soft limiting, and per-frame receiver instability. Signal module includes NTSC sync/burst generation, YIQ-to-composite modulation, SIMD paths (SSE/NEON), and VBI pseudo-VITC/VITS patterns. The AE adapter uses a fixed 720×480 intermediate and its own parameter/preset setup, so its host-specific scaling/parameter code is not reusable as-is.
+- Strong reference for parameter metadata/ranges and signal-domain ordering. The source is coupled to a raw sampled composite frame; no wholesale copy was made.
 - The source declares BSD-2-Clause headers. Retain attribution/license if any code is ported.
 
 ### 2. BarashNTSC — Python/OpenCV batch processor
@@ -73,7 +74,7 @@ Inspected `FramesProcessor.py` and the full tree.
 Inspected `NtscStage.swift`, `Tape.swift`, `GlitchRenderer.swift`, `BuiltInPresets.swift`, and MIT license.
 
 - `Tape.swift` contains physically grounded tape geometry and maps tape position/track geometry to picture lines.
-- `GlitchRenderer.swift` uses forward-only simulation, deterministic replay after scrubbing, and periodic checkpoints keyed to the settings history. This is an important model for deterministic temporal effects in AE.
+- `GlitchRenderer.swift` uses forward-only simulation, deterministic replay after scrubbing, and periodic checkpoints keyed to the settings history. `Receiver.swift` implements a stateful receiver simulator with horizontal AFC, vertical oscillator/sync integration, burst-key phase tracking, deck and transport state, snapshots/restores, and frame-grid resimulation. This is an important model for deterministic temporal effects in AE.
 - `NtscStage.swift` describes a CPU NTSC stage with explicit GPU↔CPU staging and a thread-ownership rule; not directly portable to AE.
 - Presets are discovered from JSON rather than hard-coded in the UI.
 - MIT license; preserve copyright/license notice if code is reused.
@@ -116,7 +117,7 @@ Inspected `analog_color.glsl` and `composite.fsh` (about 30 KB).
 3. Finish `ntscqt` source review (especially renderer, templates and filters); its core VHS methods and preset JSON have now been inspected.
 4. Inspect all Unity shader/renderer source files in URP VHS Retro Effects.
 5. Inspect remaining `vhs_task.py`, preset/config files and test/self-test paths in VHS Effect Add-on.
-6. Inspect all relevant C/C++ functions and tests in NTSC-CRT, Analog-NTSC and Composite Video Simulator.
+6. Inspect remaining NTSC-CRT functions and full Composite Video Simulator math; Analog-NTSC's processor, effects, encoder, decoder, signal and AE adapter have now been reviewed at source level.
 7. Review all README, docs, presets, test suites and licenses in every repository.
 8. Convert only independent useful kernels to C++17, wire them into the unified VHS-90 pipeline, and add tests for each port.
 
