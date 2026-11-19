@@ -70,6 +70,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processTapeSurface(input,tapeView,p.tapeSurface)) return false;
             input={tapeDamaged.data(),w,h,w*4};
         }
+        std::vector<float> chromaShifted;
+        if(p.chromaChannelShiftEnabled) {
+            chromaShifted.resize(count*4);
+            ImageView chromaShiftView{chromaShifted.data(),w,h,w*4};
+            ChromaChannelShiftParams cp=p.chromaChannelShift;
+            cp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processChromaChannelShift(input,chromaShiftView,cp)) return false;
+            input={chromaShifted.data(),w,h,w*4};
+        }
         std::vector<float> tapeDetailed;
         if(p.tapeDetailEnabled) {
             tapeDetailed.resize(count*4);
