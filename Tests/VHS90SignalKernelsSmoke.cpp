@@ -16,5 +16,9 @@ int main() {
     assert(processCompositeVhs(si,di,p));
     for(size_t i=3;i<dst.size();i+=4) assert(std::fabs(dst[i]-0.37f)<1e-6f);
     assert(hash01(2,3,7,12)==hash01(2,3,7,12));
+    const float vn0=valueNoise1D(4.0f,7,12);
+    const float vn1=valueNoise1D(4.001f,7,12);
+    assert(std::fabs(vn1-vn0)<0.01f);
+    assert(vn0==valueNoise1D(4.0f,7,12));
     return 0;
 }
