@@ -7,7 +7,7 @@ int main(){using namespace vhs90;constexpr int w=32,h=24;std::vector<float>s(w*h
  for(int yy=h/2-2;yy<h/2+2;++yy)for(int xx=w/2-2;xx<w/2+2;++xx){const size_t i=(yy*w+xx)*4;s[i]=s[i+1]=s[i+2]=1.0f;}
  const size_t center=((h/2)*w+w/2)*4;
  ConstImageView si{s.data(),w,h,w*4};ImageView oi{out.data(),w,h,w*4},ai{again.data(),w,h,w*4},zi{off.data(),w,h,w*4};
- BloomParams p;p.threshold=.5f;p.intensity=1.0f;p.spread=2.0f;p.levels=3;
+ BloomParams p;p.threshold=.05f;p.intensity=1.0f;p.spread=2.0f;p.levels=3;
  assert(processBloom(si,oi,p));assert(processBloom(si,ai,p));assert(out==again);
  assert(out[center+4]>0.0f || out[center-4]>0.0f || out[center+w*4]>0.0f);
  BloomParams zero;zero.intensity=0;assert(processBloom(si,zi,zero));assert(off==s);
