@@ -17,13 +17,15 @@ inline Pixel sample(const std::vector<Pixel>&a,int w,int h,float x,float y) noex
  auto m=[&](float av,float bv,float cv,float dv){const float ab=av+(bv-av)*fx,cd=cv+(dv-cv)*fx;return ab+(cd-ab)*fy;};
  return {m(A.r,B.r,C.r,D.r),m(A.g,B.g,C.g,D.g),m(A.b,B.b,C.b,D.b)};
 }
-void blur(std::vector<Pixel>&a,int w,int h,int radius) {
- if(radius<=0)return;const float sigma=std::max(0.8f,float(radius)*0.65f);
- std::vector<float>weights(size_t(radius*2+1));float sum=0;
- for(int i=-radius;i<=radius;++i){const float q=std::exp(-float(i*i)/(2*sigma*sigma));weights[size_t(i+radius)]=q;sum+=q;}
- for(float&v:weights)v/=sum;std::vector<Pixel>tmp(a.size());
- for(int y=0;y<h;++y)for(int x=0;x<w;++x){Pixel p{0,0,0};for(int d=-radius;d<=radius;++d){const Pixel&s=a[size_t(y)*w+std::clamp(x+d,0,w-1)];const float q=weights[size_t(d+radius)];p.r+=s.r*q;p.g+=s.g*q;p.b+=s.b*q;}tmp[size_t(y)*w+x]=p;}
- for(int y=0;y<h;++y)for(int x=0;x<w;++x){Pixel p{0,0,0};for(int d=-radius;d<=radius;++d){const Pixel&s=tmp[size_t(std::clamp(y+d,0,h-1))*w+x];const float q=weights[size_t(d+radius)];p.r+=s.r*q;p.g+=s.g*q;p.b+=s.b*q;}a[size_t(y)*w+x]=p;}
+void blur(std::vector<Pixel>&a,int w,int h,int passes) {
+ // BloomEffect's separable 5x5 Gaussian kernel: [1,4,6,4,1]/16.
+ constexpr float k[5]={1.0f/16.0f,4.0f/16.0f,6.0f/16.0f,4.0f/16.0f,1.0f/16.0f};
+ passes=std::clamp(passes,1,8);
+ std::vector<Pixel>tmp(a.size());
+ for(int pass=0;pass<passes;++pass) {
+  for(int y=0;y<h;++y)for(int x=0;x<w;++x){Pixel p{0,0,0};for(int d=-2;d<=2;++d){const Pixel&q=a[size_t(y)*w+std::clamp(x+d,0,w-1)];const float wt=k[d+2];p.r+=q.r*wt;p.g+=q.g*wt;p.b+=q.b*wt;}tmp[size_t(y)*w+x]=p;}
+  for(int y=0;y<h;++y)for(int x=0;x<w;++x){Pixel p{0,0,0};for(int d=-2;d<=2;++d){const Pixel&q=tmp[size_t(std::clamp(y+d,0,h-1))*w+x];const float wt=k[d+2];p.r+=q.r*wt;p.g+=q.g*wt;p.b+=q.b*wt;}a[size_t(y)*w+x]=p;}
+ }
 }
 }
 bool processBloom(ConstImageView src,ImageView dst,const BloomParams&p) noexcept {
@@ -35,10 +37,10 @@ bool processBloom(ConstImageView src,ImageView dst,const BloomParams&p) noexcept
   return true;
  }
  try {
-  const int w=src.width,h=src.height,levels=p.fast?1:std::clamp(p.levels,1,5);
+  const int w=src.width,h=src.height,levels=p.fast?1:std::clamp(p.levels,1,4);
   std::vector<Pixel>accum(size_t(w)*h,{0,0,0});
   for(int level=0;level<levels;++level) {
-   const int scale=p.fast?2:(1<<(level+1));
+   const int scale=p.fast?16:(1<<(level+1));
    const int lw=std::max(1,(w+scale-1)/scale),lh=std::max(1,(h+scale-1)/scale);
    std::vector<Pixel>small(size_t(lw)*lh);
    for(int y=0;y<lh;++y)for(int x=0;x<lw;++x) {
@@ -50,11 +52,11 @@ bool processBloom(ConstImageView src,ImageView dst,const BloomParams&p) noexcept
      r+=rr*a;g+=gg*a;b+=bb*a;n+=a;
     }
     if(n>1.0e-6f){r/=n;g/=n;b/=n;}
-    const float lum=.2126f*r+.7152f*g+.0722f*b;
+    const float lum=.299f*r+.587f*g+.114f*b;
     const float bright=std::max(lum-p.threshold,0.0f)/std::max(lum,1.0e-5f);
     small[size_t(y)*lw+x]={r*bright,g*bright,b*bright};
    }
-   blur(small,lw,lh,std::clamp(int(std::round(p.spread*.75f)),1,6));
+   blur(small,lw,lh,std::clamp(int(std::round(p.spread)),1,8));
    const float weight=p.fast?1.0f:1.0f/float(level+1);
    for(int y=0;y<h;++y)for(int x=0;x<w;++x){const Pixel q=sample(small,lw,lh,(float(x)+.5f)/scale-.5f,(float(y)+.5f)/scale-.5f);Pixel&d=accum[size_t(y)*w+x];d.r+=q.r*weight;d.g+=q.g*weight;d.b+=q.b*weight;}
   }
