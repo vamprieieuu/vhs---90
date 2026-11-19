@@ -17,7 +17,7 @@ Updated: 2026-11-19
 - Audited all 20 VHS Damage Lab prompt documents and all 19 associated visual references.
 - Audited the supplied font pack metadata and Arabic glyph/shaping coverage.
 - Audited the VHS camera before/after references and the available processed audio stream.
-- Added host-independent C++ signal kernels, generalized multi-region Tracking Noise / Head Switching, procedural static patterns, a YIQ IIR bandwidth filter and a four-phase NTSC composite modem.
+- Added host-independent C++ signal kernels, generalized multi-region Tracking Noise / Head Switching, procedural static patterns, a YIQ IIR bandwidth filter and a four-phase NTSC composite modem plus a procedural sync-collapse/time-base engine.
 
 ## Important VHS6RIFT findings
 
@@ -28,9 +28,9 @@ Updated: 2026-11-19
 
 ## C++ tests run
 
-- CMake configure/build: PASS for the host-independent VHS90Core static library and all five smoke-test executables.
-- CTest: 5/5 PASS in Release and ASan/UBSan Debug builds.
-- VHS90SignalKernelsSmoke, VHS90RegionEngineSmoke, VHS90StaticEngineSmoke, VHS90IIRFilterSmoke and VHS90CompositeEngineSmoke: PASS under g++ C++17 with ASan/UBSan.
+- CMake configure/build: PASS for the host-independent VHS90Core static library and all six smoke-test executables.
+- CTest: 6/6 PASS in Release and ASan/UBSan Debug builds.
+- VHS90SignalKernelsSmoke, VHS90RegionEngineSmoke, VHS90StaticEngineSmoke, VHS90IIRFilterSmoke and VHS90CompositeEngineSmoke and VHS90SyncEngineSmoke: PASS under g++ C++17 with ASan/UBSan.
 - VHS6RIFT static validator, parameter occurrence audit and Python 14-gate model tests: PASS.
 - VHS6RIFT native harness compile attempt: FAIL, with SDK fallback/ABI/API declaration errors.
 - No Windows/MSVC build or After Effects runtime test has been performed.
