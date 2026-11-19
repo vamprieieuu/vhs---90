@@ -76,8 +76,14 @@ bool processHeadCondition(ConstImageView src,ImageView dst,const HeadConditionPa
   const float spacing=0.3f*headWear+bakedDirt+state.debris+state.grease*0.7f;
   const float gap=0.3f+0.35f*headWear+0.18f*state.debris+0.2f*state.grease;
   const float efficiency=std::pow(10.0f,-(headWear*10.0f+(head?mismatch*3.0f:0.0f))/20.0f);
-  models[head]={gain(4.0f,spacing,gap),gain(0.62937f,spacing,gap),
-                1.0f/std::max(0.15f,efficiency*gain(0.62937f,spacing,gap))};
+  const float tapeWear=std::clamp(p.tapeSurface.oxideLoss,0.0f,1.85f);
+  const float baseWear=std::min(headWear,wear);
+  const float wornColorGain=gain(0.62937f,0.3f*baseWear+0.1f*tapeWear,0.3f+0.35f*baseWear);
+  const float newColorGain=gain(0.62937f,0.0f,0.3f);
+  const float tapeRemanence=std::pow(10.0f,-tapeWear*10.0f/20.0f);
+  const float colorLost=tapeRemanence*std::pow(10.0f,-baseWear*10.0f/20.0f)*(wornColorGain/newColorGain);
+  const float colorBoost=1.0f/std::max(colorLost,1.0e-3f);
+  models[head]={gain(4.0f,spacing,gap)*efficiency,gain(0.62937f,spacing,gap)*efficiency,colorBoost};
  }
  for(int y=0;y<src.height;++y){const int head=(int((p.frame%2+2)%2)+y)&1;const HeadModel model=models[head];const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
   for(int x=0;x<src.width;++x){const float*px=sr+x*4;float*out=dr+x*4;const float a=px[3];if(a<=1e-6f){std::copy_n(px,4,out);continue;}
