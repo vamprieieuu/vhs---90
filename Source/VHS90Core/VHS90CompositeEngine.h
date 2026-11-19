@@ -11,6 +11,7 @@
 #include "VHS90TapeDetailEngine.h"
 #include "VHS90ChromaShiftEngine.h"
 #include "VHS90TemporalEngine.h"
+#include "VHS90WaveformEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
@@ -56,6 +57,8 @@ struct CompositeParams {
     TapeDetailParams tapeDetail{};
     bool chromaChannelShiftEnabled = false;
     ChromaChannelShiftParams chromaChannelShift{};
+    bool waveformCompositeEnabled = false;
+    NtscWaveformParams waveformComposite{};
     bool temporalGhostEnabled = false;
     ConstImageView previousProcessedFrame{};
     TemporalGhostParams temporalGhost{};
