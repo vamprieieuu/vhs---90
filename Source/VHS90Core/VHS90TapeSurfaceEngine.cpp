@@ -65,7 +65,7 @@ TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfacePara
  const float scratches=std::clamp(p.scratchDensity,0.0f,4.0f),creases=std::clamp(p.creaseStrength,0.0f,5.0f);
  const float edge=std::clamp(p.edgeLift,0.0f,1.45f),mold=std::clamp(p.moldAmount,0.0f,1.0f);
  const float vas=std::clamp(p.vaselineAmount,0.0f,1.0f),sticky=std::clamp(p.debrisAmount,0.0f,1.0f);
- TapeSurfaceSample o;o.magnetization=std::pow(10.0f,-wear*10.0f/20.0f);o.roughness=0.015f+0.1f*wear;o.spacingLift=o.roughness;o.shed=0.02f*wear+0.9f*sticky*sticky;
+ TapeSurfaceSample o;o.magnetization=std::pow(10.0f,-wear*10.0f/20.0f);o.roughness=0.0f;o.spacingLift=0.015f+0.1f*wear+std::clamp(p.surfaceRoughness,0.0f,0.25f);o.shed=0.02f*wear+0.9f*sticky*sticky;
  const auto [c5,f5]=cell(pos,5);const float yy=y*10.0f;const auto cy=static_cast<std::int32_t>(std::floor(yy));
  o.magnetization*=1.0f+(0.04f+0.1f*wear)*(2.0f*noise2(s,1,c5,f5,cy,yy-float(cy))-1.0f);
  const float pin=std::clamp(p.pinholeAmount>0?p.pinholeAmount:(0.05f+6.0f*drop+2.0f*wear)*0.01f,0.0f,1.0f);
