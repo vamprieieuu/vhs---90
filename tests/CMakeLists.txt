@@ -28,3 +28,7 @@ add_test(NAME vhs90_engine_integration_smoke COMMAND vhs90_engine_integration_sm
 add_executable(vhs90_bloom_smoke bloom_smoke.cpp)
 target_link_libraries(vhs90_bloom_smoke PRIVATE vhs90_bloom)
 add_test(NAME vhs90_bloom_smoke COMMAND vhs90_bloom_smoke)
+
+add_executable(vhs90_tape_physics_smoke tape_physics_smoke.cpp)
+target_link_libraries(vhs90_tape_physics_smoke PRIVATE vhs90_tape_physics)
+add_test(NAME vhs90_tape_physics_smoke COMMAND vhs90_tape_physics_smoke)
