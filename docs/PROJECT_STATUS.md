@@ -18,7 +18,9 @@ Updated: 2026-11-19
 - Audited the VHS camera before/after references and available processed audio stream.
 - Added source-matched RGB↔YIQ conversion, YIQ IIR bandwidth filtering, four-phase NTSC composite encode/decode, procedural static patterns, generalized multi-region Tracking Noise / Head Switching and a procedural sync-collapse/time-base engine.
 - Added a deterministic correlated 1D value-noise kernel adapted from the Lost Signal VHS shader's smooth-noise method; line-wobble now supports a configurable row-correlation length.
-- Added `processLumaSmear`, a C++ CPU port of the URP VHS shader's four-tap exponential horizontal smear concept. It smears luma while retaining I/Q chroma and handles premultiplied alpha. Smoke assertions cover deterministic noise continuity, smear output and alpha preservation. The source audits and commits are recorded in `docs/source-audits/35-github-repositories-batch-1.md`.
+- Added `processLumaSmear`, a C++ CPU port upgraded to a configurable 2–64 tap causal exponential luma-smear kernel with a separate highlight-only glow trail, adapted from ComfyUI RetroTape. It retains I/Q chroma and handles premultiplied alpha.
+- Adapted ComfyUI RetroTape's temporal servo-profile crossfade into Tracking Noise. Row-correlated deterministic servo profiles now interpolate between configurable temporal epochs rather than fully re-randomizing every frame.
+- Added smoke assertions for variable-tap smear/highlight trail, alpha preservation and adjacent-frame servo continuity. GitHub Actions run `44592423967` on commit `9e1b5b8` passed the core build and all 6/6 CTest tests. The source audits and commits are recorded in `docs/source-audits/35-github-repositories-batch-1.md`.
 - Added an initial AE SmartFX/legacy host adapter with ARGB32/64/128 conversion and basic UI controls for Composite Signal, Sync Collapse, Static, Tracking Noise and Head Switching.
 - Added an optional Windows x64/MSVC AEX target, PiPL resource generation and PowerShell build script. The target searches the local AE SDK tree for PiPLtool.
 
