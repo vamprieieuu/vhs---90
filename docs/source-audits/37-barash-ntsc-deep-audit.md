@@ -44,7 +44,7 @@ License: MIT-style permission grant; retain copyright and permission notice when
 - `Tests/VHS90TapeDetailEngineSmoke.cpp`
 - `Tests/VHS90ChromaShiftEngineSmoke.cpp`
 
-Additional edits connect these engines to `VHS90CompositeEngine`, add their smoke coverage to CMake, and expose their AE controls. The image-grade and receiver-phase modules were added in the same source-import batch and are documented in the Analog-NTSC report where their initial algorithms originated; Barash's equivalent parameter behavior is mapped here.
+Additional edits connect these engines to `VHS90CompositeEngine`, add their smoke coverage to CMake, and expose their AE controls. The image-grade module is a direct C++ adaptation of Barash's edge/fade/grade operations. The receiver module is shared with Analog-NTSC-derived receiver effects; its global chroma-phase drift control was specifically ported from Barash's frame-driven phase formula.
 
 ## Verification boundary
 
