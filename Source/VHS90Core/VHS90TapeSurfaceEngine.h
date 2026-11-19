@@ -12,7 +12,13 @@ struct TapeSurfaceParams {
     std::int64_t frame=0;
     bool premultipliedAlpha=true;
 };
-struct TapeSurfaceSample { float magnetization=1.0f, spacingLift=0.0f, roughness=0.0f, creaseLoss=0.0f, film=0.0f; };
+struct TapeSurfaceSample {
+    float magnetization=1.0f, spacingLift=0.0f, roughness=0.0f, creaseLoss=0.0f, film=0.0f;
+    float shed=0.0f;
+};
+// NTSCRT physical tape coordinates: x is millimetres along the tape and y
+// is millimetres across its 12.65 mm width. Deterministic across render order.
+TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm, float yMm, const TapeSurfaceParams& params) noexcept;
 TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams& params) noexcept;
 bool processTapeSurface(ConstImageView src,ImageView dst,const TapeSurfaceParams& params) noexcept;
 } // namespace vhs90
