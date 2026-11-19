@@ -8,6 +8,7 @@ struct AnalogGeometryParams {
     float topSkewDecayRows=120.0f;
     float edgePincushionPixels=0.0f;
     float edgePincushionPower=2.0f;
+    float interlaceAmount=0.0f;
     std::uint32_t seed=1;
     std::int64_t frame=0;
 };
