@@ -23,7 +23,8 @@ bool processTapeDetail(ConstImageView src,ImageView dst,const TapeDetailParams&p
   return true;
  }
  try {
-  std::vector<float> full(std::size_t(src.width)),low(std::size_t(lowWidth));
+  std::vector<float> full(static_cast<std::size_t>(src.width),0.0f);
+  std::vector<float> low(static_cast<std::size_t>(lowWidth),0.0f);
   for(int y=0;y<src.height;++y){
    const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
    for(int x=0;x<src.width;++x){
