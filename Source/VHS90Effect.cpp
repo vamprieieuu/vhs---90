@@ -437,6 +437,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.tapeSurface.pinholeAmount=0.25f*a; p.tapeSurface.flakeAmount=0.35f*a;
                 p.tapeSurface.moldAmount=0.45f*a; p.tapeSurface.vaselineAmount=0.30f*a;
             }
+            p.tapeSurface.tapeSpeed=static_cast<std::uint32_t>(std::clamp(int(s.tapeSpeed)-1,0,2));
             if(p.tapeTransportEnabled) {
                 p.tapeTransport.usePhysicalControlTrackMap=true;
                 p.tapeTransport.controlTrackTape=p.tapeSurface;
