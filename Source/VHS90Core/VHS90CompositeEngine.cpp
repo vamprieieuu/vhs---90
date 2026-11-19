@@ -184,15 +184,6 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         ConstImageView decodedView{decoded.data(),w,h,w*4};
-        std::vector<float> temporallyGhosted;
-        if(p.temporalGhostEnabled && p.previousProcessedFrame.rgba) {
-            temporallyGhosted.resize(count*4);
-            ImageView temporalView{temporallyGhosted.data(),w,h,w*4};
-            TemporalGhostParams tp=p.temporalGhost;
-            tp.premultipliedAlpha=p.premultipliedAlpha;
-            if(!processTemporalGhost(decodedView,p.previousProcessedFrame,temporalView,tp)) return false;
-            decodedView={temporallyGhosted.data(),w,h,w*4};
-        }
         std::vector<float> graded;
         if(p.imageGradeEnabled) {
             graded.resize(count*4);
@@ -301,6 +292,35 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             sp.premultipliedAlpha=p.premultipliedAlpha;
             if(!processScanlines(decodedView,scanlineView,sp)) return false;
             decodedView={scanlined.data(),w,h,w*4};
+        }
+
+        std::vector<float> temporallyGhosted;
+        if(p.temporalGhostEnabled && p.previousFrame.rgba) {
+            std::vector<float> previousProcessed(count*4);
+            ImageView previousProcessedView{previousProcessed.data(),w,h,w*4};
+            CompositeParams previousParams=p;
+            previousParams.temporalGhostEnabled=false;
+            previousParams.previousFrame={};
+            previousParams.strength=1.0f;
+            previousParams.frame=p.previousFrameIndex;
+            previousParams.geometry.frame=p.previousFrameIndex;
+            previousParams.tapeTransport.frame=p.previousFrameIndex;
+            previousParams.tapeSurface.frame=p.previousFrameIndex;
+            previousParams.imageGrade.frame=p.previousFrameIndex;
+            previousParams.receiverInstability.frame=p.previousFrameIndex;
+            previousParams.multipathEcho.frame=p.previousFrameIndex;
+            previousParams.impulseNoise.frame=p.previousFrameIndex;
+            previousParams.rfInstability.frame=p.previousFrameIndex;
+            previousParams.analogNoise.frame=p.previousFrameIndex;
+            previousParams.scanlines.frame=p.previousFrameIndex;
+            if(!processCompositeRoundTrip(p.previousFrame,previousProcessedView,previousParams)) return false;
+            temporallyGhosted.resize(count*4);
+            ImageView temporalView{temporallyGhosted.data(),w,h,w*4};
+            TemporalGhostParams tp=p.temporalGhost;
+            tp.premultipliedAlpha=p.premultipliedAlpha;
+            ConstImageView previousView{previousProcessed.data(),w,h,w*4};
+            if(!processTemporalGhost(decodedView,previousView,temporalView,tp)) return false;
+            decodedView={temporallyGhosted.data(),w,h,w*4};
         }
 
         for(int row=0;row<h;++row) {
