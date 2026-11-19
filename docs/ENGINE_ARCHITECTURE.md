@@ -1,6 +1,6 @@
 # VHS-90 — Unified Engine Architecture
 
-Status: engineering architecture proposal based on the supplied source audits; not yet wired into an AE host.
+Status: shared CPU engines and an initial AE host adapter are present in source. The Windows/MSVC build and AE runtime have not yet been verified.
 
 ## Core principle
 
@@ -33,9 +33,9 @@ SP/LP/EP format curves, deterministic timebase error, servo/tracking drift, tape
 
 ### Tracking Noise & Head Switching
 
-Use the new VHS90RegionEngine as the shared geometry layer. Each region stores normalized X/Y/width/height, shape, feather, intensity, direction/speed, displacement, noise density, dropout probability, chroma offset and seed offset. Head switching uses its own signal texture but the same geometry layer.
+Use VHS90RegionEngine as the shared geometry layer. Each region stores normalized X/Y/width/height, shape, feather, intensity, direction/speed, displacement, noise density, dropout probability, chroma offset and seed offset. The current CPU implementation supports arbitrary horizontal, vertical and rectangular regions, smooth servo drift, segmented tracking tears and independent head-switch regions.
 
-Tracking Noise must support top, bottom, left, right, arbitrary interior positions and multiple simultaneous regions. Coverage must reach the full frame. Head Switching must support arbitrary vertical position and height, including full-frame coverage.
+Tracking Noise must support top, bottom, left, right, arbitrary interior positions and multiple simultaneous regions. Coverage must reach the full frame. Head Switching must support arbitrary vertical position and height, including full-frame coverage. The initial AE UI exposes one Tracking Noise region and one Head Switching region; the core accepts multiple regions.
 
 ### Static / Snow / Grain / Signal Noise
 
@@ -43,7 +43,7 @@ Separate algorithms for monochrome luma static, colored speckles, full-frame RF 
 
 ### Tears / Sync Collapse / Dropouts
 
-Separate horizontal tracking tears, multi-band tears, diagonal sync collapse, angular ribbon distortion, luma dropout, abrupt blackout, signal freeze/roll and RF ingress. Each preset retains its own temporal and spatial identity.
+The current sync engine implements deterministic event envelopes, primary/secondary tear bands, time-base noise, a moving tracking line and vertical roll. Full frame freeze/hold, VBI/HSYNC waveform, receiver PLL/AFC recovery, blackout and RF ingress remain separate implementation gates.
 
 ### OSD / Blue Screen
 
@@ -67,8 +67,21 @@ Presets are data-only recipes with independent module toggles and values. Select
 
 ## Current implementation boundary
 
-Implemented in repository: standard RGB↔YIQ conversion, row-wise constant-K/Butterworth YIQ bandwidth filters, four-phase NTSC composite encode/decode with box and comb demodulation, generalized region geometry/Tracking Noise/Head Switching CPU module, procedural static-pattern generator, and procedural sync/time-base damage engine, with standalone C++ smoke tests.
+Implemented in repository:
+- Standard source-matched RGB↔YIQ conversion.
+- Row-wise Constant-K / Butterworth YIQ bandwidth filters.
+- Four-phase NTSC composite encode/decode with Box, One-Line Comb and Two-Line Comb demodulators.
+- Generalized region geometry, smooth tracking servo drift, segmented tears, and head-switch regions.
+- Procedural static patterns and sync/time-base damage with deterministic roll events.
+- Initial AE host adapter source with SmartFX pre-render/render, legacy render fallback, ARGB32/64/128 conversion, full-frame input request and output-region crop.
+- PiPL resource, optional Windows/MSVC AEX target and PowerShell build script.
+- Six standalone C++ smoke tests.
 
-Not yet implemented: AE host adapter, parameter registration/UI, PiPL, complete composite carrier/sync/burst/AFC/PLL implementation, physical tape stage, full procedural dropout/blackout/hold family, OSD/font shaping, Blue Screen mode, preset catalog, Windows/MSVC AE build and AEX packaging. Root CMake currently builds only the host-independent CPU core and tests.
+Not yet implemented or verified:
+- Windows/MSVC compilation of the AE adapter, PiPL resource and final AEX.
+- AE 23.2.1 load/apply/preview/render/MFR validation.
+- Full composite carrier sync/burst/AFC/PLL, full dropout/blackout/freeze/hold and RF/no-signal state machine.
+- Physical tape stage, OSD/font shaping, Blue Screen mode and preset catalog.
+- Final visual comparison against all supplied reference clips/stills.
 
-Do not call VHS-90 test-ready until those host/build/runtime gates are complete.
+Do not call VHS-90 test-ready until the Windows build and in-host validation gates pass.
