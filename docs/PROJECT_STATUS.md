@@ -1,6 +1,6 @@
 # VHS-90 — Project Status
 
-Updated: 2026-11-19
+Updated: 2026-11-20
 
 Latest verified source-pipeline fix: `eb8969184c2d80638cfcb1165dd1984ca02015c2` — moved Image Grade after decoded-frame creation so the composite pipeline no longer references `decodedView` before initialization.
 
@@ -83,3 +83,12 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Preserved NTSCRT MIT attribution under `ThirdParty/NTSCRT/`.
 - Latest Linux core CI run 449 passed the C++ core build and CTest 27/27: https://github.com/vamprieieuu/vhs---90/actions/runs/44619561972.
 - NTSCRT is **not complete**: the 359-file content audit and disposition ledger, physical tape map, full VCR RF/FM/color-under signal chain, receiver parity port, source parity/visual tests, Windows/MSVC build and live AE/MFR validation remain open. See `docs/source-audits/45-ntscrt-same-session-port-status.md`.
+
+
+## NTSCRT continuation — 2026-11-20
+
+- Ported the NTSCRT physical tape coordinate sampler into `VHS90TapeSurfaceEngine`: tape geometry, active-line/VBI mapping, SP/LP/EP field advance, four-point head-width sampling, source-derived wear/dropout/scratch/edge/crease curves and tape-seed transform. The sampler includes pinholes, flakes/shed, scratches, creases, edge lift, mold and Vaseline film; deck/control-head sampling uses source-compatible detail-off/flake-on mode.
+- Enabled optional physical tape sampling in the two-head deck recurrence (12 points per field) and physical control-track pulse detection from the AE parameter adapter. Full source deck history/snapshot parity and Windows/AE execution remain open.
+- Corrected three-track read to use absolute source overlap shares, source azimuth attenuation at FM/color-under frequencies, and VBI-scaled adjacent-track line offsets.
+- Added `VHS90VcrSignalEngine` coefficient helpers for NTSCRT's 28.636 MHz signal path, 64×81 spacing bank, 95-tap analytic FM bandpass and supporting biquad/shelf/trap filters. The full nine-stage VCR record/playback pipeline is not yet ported.
+- Hosted Linux core CI run [507](https://github.com/vamprieieuu/vhs---90/actions/runs/44622882847) passed 28/28 tests. Windows/MSVC, AE SDK, PiPL, AEX loading, live AE and MFR are not validated.
