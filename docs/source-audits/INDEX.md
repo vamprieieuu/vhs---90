@@ -1,6 +1,6 @@
 # VHS-90 Source Audit Index
 
-Date: 2026-11-19
+Date: 2026-11-20
 
 These reports are based on the supplied vhs.zip archive and the linked VHS-90 repository. Each report states its inspection scope and verification limits. An audit is not a claim that the source has already been integrated or visually validated.
 
@@ -43,7 +43,11 @@ These reports are based on the supplied vhs.zip archive and the linked VHS-90 re
 - 32-vhs90-sync-collapse-engine.md — procedural sync tears, time-base instability and vertical roll.
 - 33-vhs90-ae-host-adapter.md — initial SmartFX/legacy host adapter, PiPL flags, parameter mapping and Windows build gate.
 
-- 41-ntscrt-expanded-audit.md — current 359-file NTSCRT upstream inventory checkpoint, physical tape/receiver source review and new VHS-90 adjacent-track read port. Audit remains partial; CI 26/26.
+- 41-ntscrt-expanded-audit.md — initial 359-file NTSCRT upstream inventory checkpoint.
+- 42-ntscrt-deck-transport-checkpoint.md — deck/head-condition integration checkpoint and fidelity limits.
+- 43-ntscrt-preset-inventory-and-transport-findings.md — all 45 upstream JSON presets parsed; source physics findings for transport, deck, tape, receiver and VCR stages.
+- 44-ntscrt-track-read-physics-port.md — adjacent-track overlap and azimuth-loss C++ port.
+- 45-ntscrt-same-session-port-status.md — current transport/head recurrence implementation, CI result, attribution and remaining unported engine stages.
 
 ## Current project status
 
