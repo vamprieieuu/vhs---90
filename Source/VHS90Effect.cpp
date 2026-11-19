@@ -26,7 +26,7 @@ enum ParamIndex {
     PARAM_LUMA_NOISE, PARAM_CHROMA_NOISE, PARAM_COMPOSITE_NOISE, PARAM_NOISE_HUE,
     PARAM_RF_DRIFT, PARAM_RF_HUM, PARAM_RF_AM, PARAM_AGC_PUMP, PARAM_IMPULSE_NOISE,
     PARAM_MULTIPATH_GAIN, PARAM_MULTIPATH_DELAY, PARAM_MULTIPATH_ENSEMBLE,
-    PARAM_AFC_HUNT, PARAM_CHROMA_FLUTTER, PARAM_YC_CROSSTALK,
+    PARAM_AFC_HUNT, PARAM_CHROMA_FLUTTER, PARAM_YC_CROSSTALK, PARAM_COLOR_PHASE_DRIFT,
     PARAM_HSYNC_NOISE, PARAM_VSYNC_NOISE, PARAM_BURST_NOISE,
     PARAM_EDGE_ENHANCE, PARAM_TAPE_FADE, PARAM_GRADE_CONTRAST, PARAM_GRADE_BRIGHTNESS,
     PARAM_GRADE_SATURATION, PARAM_VIGNETTE, PARAM_FLICKER,
@@ -43,7 +43,7 @@ enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_TAPE_SPEED, ID_TAPE_DETAIL,
     ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_NOISE, ID_CHROMA_NOISE, ID_COMPOSITE_NOISE, ID_NOISE_HUE, ID_RF_DRIFT, ID_RF_HUM, ID_RF_AM, ID_AGC_PUMP, ID_IMPULSE_NOISE,
     ID_MULTIPATH_GAIN, ID_MULTIPATH_DELAY, ID_MULTIPATH_ENSEMBLE,
-    ID_AFC_HUNT, ID_CHROMA_FLUTTER, ID_YC_CROSSTALK,
+    ID_AFC_HUNT, ID_CHROMA_FLUTTER, ID_YC_CROSSTALK, ID_COLOR_PHASE_DRIFT,
     ID_HSYNC_NOISE, ID_VSYNC_NOISE, ID_BURST_NOISE,
     ID_EDGE_ENHANCE, ID_TAPE_FADE, ID_GRADE_CONTRAST, ID_GRADE_BRIGHTNESS,
     ID_GRADE_SATURATION, ID_VIGNETTE, ID_FLICKER, ID_LUMA_SMEAR, ID_BLOOM,
@@ -67,7 +67,7 @@ struct RenderSettings {
     float lumaNoise=0, chromaNoise=0, compositeNoise=0, noiseHue=0;
     float rfDrift=0, rfHum=0, rfAm=0, agcPump=0, impulseNoise=0;
     float multipathGain=0, multipathDelay=24, multipathEnsemble=0;
-    float afcHunt=0, chromaFlutter=0, ycCrosstalk=0;
+    float afcHunt=0, chromaFlutter=0, ycCrosstalk=0, colorPhaseDrift=0;
     float hsyncNoise=0, vsyncNoise=0, burstNoise=0;
     float edgeEnhance=0, tapeFade=0, gradeContrast=100, gradeBrightness=0, gradeSaturation=100, vignette=0, flicker=0;
     float lumaSmear=0, bloom=0;
@@ -121,6 +121,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("AFC Hunt",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_AFC_HUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Flutter",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_FLUTTER);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Y/C Crosstalk",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_YC_CROSSTALK);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Color Phase Drift",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COLOR_PHASE_DRIFT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("H Sync Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_HSYNC_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("V Sync Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VSYNC_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Burst Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BURST_NOISE);
@@ -197,7 +198,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_MULTIPATH_GAIN,multipathGain); READ_FLOAT(PARAM_MULTIPATH_DELAY,multipathDelay);
     READ_FLOAT(PARAM_MULTIPATH_ENSEMBLE,multipathEnsemble);
     READ_FLOAT(PARAM_AFC_HUNT,afcHunt); READ_FLOAT(PARAM_CHROMA_FLUTTER,chromaFlutter);
-    READ_FLOAT(PARAM_YC_CROSSTALK,ycCrosstalk);
+    READ_FLOAT(PARAM_YC_CROSSTALK,ycCrosstalk); READ_FLOAT(PARAM_COLOR_PHASE_DRIFT,colorPhaseDrift);
     READ_FLOAT(PARAM_HSYNC_NOISE,hsyncNoise); READ_FLOAT(PARAM_VSYNC_NOISE,vsyncNoise);
     READ_FLOAT(PARAM_BURST_NOISE,burstNoise);
     READ_FLOAT(PARAM_EDGE_ENHANCE,edgeEnhance); READ_FLOAT(PARAM_TAPE_FADE,tapeFade);
@@ -283,7 +284,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool compositeStages=s.tapeDetail<100||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.multipathGain>0||s.multipathEnsemble>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
+        const bool compositeStages=s.tapeDetail<100||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.multipathGain>0||s.multipathEnsemble>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
         if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
@@ -351,11 +352,12 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.imageGrade.vignette=clamp01(s.vignette/100.0f);
                 p.imageGrade.flicker=clamp01(s.flicker/100.0f);
             }
-            if(s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0) {
+            if(s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.colorPhaseDrift>0) {
                 p.receiverInstabilityEnabled=true; p.receiverInstability.seed=0x90A11E5Eu; p.receiverInstability.frame=s.frame;
                 p.receiverInstability.afcHunt=clamp01(s.afcHunt/100.0f);
                 p.receiverInstability.chromaFlutter=clamp01(s.chromaFlutter/100.0f);
                 p.receiverInstability.ycCrosstalk=clamp01(s.ycCrosstalk/100.0f);
+                p.receiverInstability.chromaPhaseDrift=clamp01(s.colorPhaseDrift/100.0f);
                 p.receiverInstability.horizontalSyncNoise=clamp01(s.hsyncNoise/100.0f);
                 p.receiverInstability.verticalSyncNoise=clamp01(s.vsyncNoise/100.0f);
                 p.receiverInstability.burstNoise=clamp01(s.burstNoise/100.0f);
@@ -515,6 +517,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.afcHunt=float(params[PARAM_AFC_HUNT]->u.fs_d.value);
     s.chromaFlutter=float(params[PARAM_CHROMA_FLUTTER]->u.fs_d.value);
     s.ycCrosstalk=float(params[PARAM_YC_CROSSTALK]->u.fs_d.value);
+    s.colorPhaseDrift=float(params[PARAM_COLOR_PHASE_DRIFT]->u.fs_d.value);
     s.hsyncNoise=float(params[PARAM_HSYNC_NOISE]->u.fs_d.value);
     s.vsyncNoise=float(params[PARAM_VSYNC_NOISE]->u.fs_d.value);
     s.burstNoise=float(params[PARAM_BURST_NOISE]->u.fs_d.value);
