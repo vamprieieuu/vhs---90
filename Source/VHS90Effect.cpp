@@ -1,0 +1,349 @@
+#include "AEConfig.h"
+#include "entry.h"
+#include "AEFX_SuiteHelper.h"
+#include "AE_Effect.h"
+#include "AE_EffectCB.h"
+#include "AE_EffectCBSuites.h"
+#include "AE_EffectPixelFormat.h"
+#include "Param_Utils.h"
+#include "VHS90SignalKernels.h"
+#include "VHS90RegionEngine.h"
+#include "VHS90StaticEngine.h"
+#include "VHS90IIRFilter.h"
+#include "VHS90CompositeEngine.h"
+#include "VHS90SyncEngine.h"
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <cstring>
+#include <new>
+#include <vector>
+
+namespace {
+enum ParamIndex {
+    PARAM_INPUT=0, PARAM_MASTER, PARAM_SIGNAL_TOPIC, PARAM_COMPOSITE_AMOUNT,
+    PARAM_SYNC_AMOUNT, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
+    PARAM_STATIC_DENSITY, PARAM_STATIC_END, PARAM_TRACKING_TOPIC, PARAM_TRACKING_AMOUNT,
+    PARAM_TRACKING_SHAPE, PARAM_TRACKING_CENTER_X, PARAM_TRACKING_CENTER_Y,
+    PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_MOTION_X,
+    PARAM_TRACKING_MOTION_Y, PARAM_TRACKING_SERVO, PARAM_TRACKING_TEAR,
+    PARAM_TRACKING_END, PARAM_HEAD_TOPIC, PARAM_HEAD_AMOUNT, PARAM_HEAD_BOTTOM_Y,
+    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_COUNT
+};
+enum ParamDiskID {
+    ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_STATIC_TOPIC,
+    ID_STATIC_AMOUNT, ID_STATIC_DENSITY, ID_TRACKING_TOPIC, ID_TRACKING_AMOUNT,
+    ID_TRACKING_SHAPE, ID_TRACKING_X, ID_TRACKING_Y, ID_TRACKING_WIDTH,
+    ID_TRACKING_HEIGHT, ID_TRACKING_MOTION_X, ID_TRACKING_MOTION_Y,
+    ID_TRACKING_SERVO, ID_TRACKING_TEAR, ID_HEAD_TOPIC, ID_HEAD_AMOUNT,
+    ID_HEAD_Y, ID_HEAD_HEIGHT, ID_HEAD_SHIFT
+};
+constexpr A_long kInputCheckoutID=1;
+static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
+
+struct RenderSettings {
+    float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35;
+    float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8;
+    float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
+    A_long trackingShape=3;
+    float headAmount=0, headY=100, headHeight=4, headShift=24;
+    std::int64_t frame=0;
+    double timeSeconds=0;
+};
+inline float clamp01(float x) noexcept { return std::max(0.0f,std::min(1.0f,x)); }
+static void DeletePreRenderData(void* data) { delete static_cast<RenderSettings*>(data); }
+
+static PF_Err GlobalSetup(PF_InData* in_data,PF_OutData* out_data) {
+    (void)in_data;
+    out_data->my_version=PF_VERSION(1,0,0,PF_Stage_DEVELOP,1);
+    out_data->out_flags=PF_OutFlag_DEEP_COLOR_AWARE|PF_OutFlag_NON_PARAM_VARY;
+    out_data->out_flags2=PF_OutFlag2_SUPPORTS_SMART_RENDER|
+        PF_OutFlag2_FLOAT_COLOR_AWARE|PF_OutFlag2_SUPPORTS_THREADED_RENDERING;
+    return PF_Err_NONE;
+}
+
+static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
+    PF_Err err=PF_Err_NONE;
+    PF_ParamDef def;
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sync Collapse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SIGNAL_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Static",ID_STATIC_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Static Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_STATIC_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Static Density",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_STATIC_DENSITY);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_STATIC_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tracking Noise",ID_TRACKING_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Region Shape",3,3,kTrackingShapeChoices,ID_TRACKING_SHAPE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_WIDTH);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Motion X",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_MOTION_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_MOTION_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SERVO);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,3,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_TEAR);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACKING_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Head Switching",ID_HEAD_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Bottom Edge Y",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Shift",0,100,0,100,24,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_HEAD_TOPIC+100);
+    out_data->num_params=PARAM_COUNT;
+    return err;
+}
+
+static PF_Err CheckoutFloat(PF_InData* in_data,A_long index,float& value) {
+    PF_ParamDef param; AEFX_CLR_STRUCT(param);
+    PF_Err err=PF_CHECKOUT_PARAM(in_data,index,in_data->current_time,in_data->time_step,in_data->time_scale,&param);
+    if(err!=PF_Err_NONE) return err;
+    value=static_cast<float>(param.u.fs_d.value);
+    return PF_CHECKIN_PARAM(in_data,&param);
+}
+static PF_Err CheckoutPopup(PF_InData* in_data,A_long index,A_long& value) {
+    PF_ParamDef param; AEFX_CLR_STRUCT(param);
+    PF_Err err=PF_CHECKOUT_PARAM(in_data,index,in_data->current_time,in_data->time_step,in_data->time_scale,&param);
+    if(err!=PF_Err_NONE) return err;
+    value=param.u.pd.value;
+    return PF_CHECKIN_PARAM(in_data,&param);
+}
+static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
+    PF_Err err=PF_Err_NONE;
+#define READ_FLOAT(I,F) do { err=CheckoutFloat(in_data,(I),s.F); if(err!=PF_Err_NONE) return err; } while(0)
+    READ_FLOAT(PARAM_MASTER,master); READ_FLOAT(PARAM_COMPOSITE_AMOUNT,composite);
+    READ_FLOAT(PARAM_SYNC_AMOUNT,sync); READ_FLOAT(PARAM_STATIC_AMOUNT,staticAmount);
+    READ_FLOAT(PARAM_STATIC_DENSITY,staticDensity); READ_FLOAT(PARAM_TRACKING_AMOUNT,trackingAmount);
+    err=CheckoutPopup(in_data,PARAM_TRACKING_SHAPE,s.trackingShape); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_TRACKING_CENTER_X,trackingX); READ_FLOAT(PARAM_TRACKING_CENTER_Y,trackingY);
+    READ_FLOAT(PARAM_TRACKING_WIDTH,trackingWidth); READ_FLOAT(PARAM_TRACKING_HEIGHT,trackingHeight);
+    READ_FLOAT(PARAM_TRACKING_MOTION_X,trackingMotionX); READ_FLOAT(PARAM_TRACKING_MOTION_Y,trackingMotionY);
+    READ_FLOAT(PARAM_TRACKING_SERVO,trackingServo); READ_FLOAT(PARAM_TRACKING_TEAR,trackingTear);
+    READ_FLOAT(PARAM_HEAD_AMOUNT,headAmount); READ_FLOAT(PARAM_HEAD_BOTTOM_Y,headY);
+    READ_FLOAT(PARAM_HEAD_HEIGHT,headHeight); READ_FLOAT(PARAM_HEAD_SHIFT,headShift);
+#undef READ_FLOAT
+    s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
+    s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
+    return PF_Err_NONE;
+}
+
+static bool ConvertInputWorld(const PF_EffectWorld* world,PF_PixelFormat format,std::vector<float>& rgba) {
+    const int w=world->width,h=world->height; rgba.resize(std::size_t(w)*h*4);
+    for(int y=0;y<h;++y) {
+        const char* row=reinterpret_cast<const char*>(world->data)+y*world->rowbytes;
+        for(int x=0;x<w;++x) {
+            float r=0,g=0,b=0,a=0;
+            if(format==PF_PixelFormat_ARGB32) {
+                const auto* px=reinterpret_cast<const PF_Pixel8*>(row)+x;
+                a=float(px->alpha)/PF_MAX_CHAN8; r=float(px->red)/PF_MAX_CHAN8; g=float(px->green)/PF_MAX_CHAN8; b=float(px->blue)/PF_MAX_CHAN8;
+            } else if(format==PF_PixelFormat_ARGB64) {
+                const auto* px=reinterpret_cast<const PF_Pixel16*>(row)+x;
+                a=float(px->alpha)/PF_MAX_CHAN16; r=float(px->red)/PF_MAX_CHAN16; g=float(px->green)/PF_MAX_CHAN16; b=float(px->blue)/PF_MAX_CHAN16;
+            } else if(format==PF_PixelFormat_ARGB128) {
+                const auto* px=reinterpret_cast<const PF_PixelFloat*>(row)+x;
+                a=px->alpha; r=px->red; g=px->green; b=px->blue;
+            } else return false;
+            float* d=rgba.data()+(std::size_t(y)*w+x)*4; d[0]=r; d[1]=g; d[2]=b; d[3]=a;
+        }
+    }
+    return true;
+}
+static void WritePixel(PF_EffectWorld* world,PF_PixelFormat format,int x,int y,const float* v) {
+    char* row=reinterpret_cast<char*>(world->data)+y*world->rowbytes;
+    if(format==PF_PixelFormat_ARGB32) {
+        auto* p=reinterpret_cast<PF_Pixel8*>(row)+x;
+        p->alpha=A_u_char(std::lround(clamp01(v[3])*PF_MAX_CHAN8));
+        p->red=A_u_char(std::lround(clamp01(v[0])*PF_MAX_CHAN8));
+        p->green=A_u_char(std::lround(clamp01(v[1])*PF_MAX_CHAN8));
+        p->blue=A_u_char(std::lround(clamp01(v[2])*PF_MAX_CHAN8));
+    } else if(format==PF_PixelFormat_ARGB64) {
+        auto* p=reinterpret_cast<PF_Pixel16*>(row)+x;
+        p->alpha=A_u_short(std::lround(clamp01(v[3])*PF_MAX_CHAN16));
+        p->red=A_u_short(std::lround(clamp01(v[0])*PF_MAX_CHAN16));
+        p->green=A_u_short(std::lround(clamp01(v[1])*PF_MAX_CHAN16));
+        p->blue=A_u_short(std::lround(clamp01(v[2])*PF_MAX_CHAN16));
+    } else {
+        auto* p=reinterpret_cast<PF_PixelFloat*>(row)+x;
+        p->alpha=v[3]; p->red=v[0]; p->green=v[1]; p->blue=v[2];
+    }
+}
+static void CopyRegion(const PF_EffectWorld* in,PF_EffectWorld* out,PF_PixelFormat fmt) {
+    const int bpp=fmt==PF_PixelFormat_ARGB32?sizeof(PF_Pixel8):fmt==PF_PixelFormat_ARGB64?sizeof(PF_Pixel16):sizeof(PF_PixelFloat);
+    for(int y=0;y<out->height;++y) {
+        const int sy=out->origin_y+y-in->origin_y;
+        char* dst=reinterpret_cast<char*>(out->data)+y*out->rowbytes;
+        if(sy<0||sy>=in->height) { std::memset(dst,0,out->width*bpp); continue; }
+        const char* src=reinterpret_cast<const char*>(in->data)+sy*in->rowbytes;
+        for(int x=0;x<out->width;++x) {
+            const int sx=out->origin_x+x-in->origin_x;
+            if(sx>=0&&sx<in->width) std::memcpy(dst+x*bpp,src+sx*bpp,bpp);
+            else std::memset(dst+x*bpp,0,bpp);
+        }
+    }
+}
+
+static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_EffectWorld* output,PF_PixelFormat format) {
+    try {
+        const int w=input->width,h=input->height;
+        if(w<=0||h<=0) return PF_Err_NONE;
+        const float master=clamp01(s.master/100.0f);
+        const bool any=s.composite>0||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
+        if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
+        std::vector<float> source,working,scratch;
+        if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
+        working=source; scratch.resize(source.size());
+        if(s.composite>0) {
+            CompositeParams p; p.strength=clamp01(s.composite/100.0f*master); p.frame=s.frame;
+            ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
+            if(!processCompositeRoundTrip(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            working.swap(scratch);
+        }
+        if(s.staticAmount>0) {
+            StaticParams p; p.intensity=clamp01(s.staticAmount/100.0f*master);
+            p.sourceMix=1.0f; p.density=clamp01(s.staticDensity/100.0f); p.seed=0x905A71C1u;
+            p.frame=s.frame; p.premultipliedAlpha=true;
+            ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
+            if(!processStaticPattern(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            working.swap(scratch);
+        }
+        if(s.sync>0) {
+            SyncCollapseParams p; p.strength=clamp01(s.sync/100.0f*master);
+            p.frame=s.frame; p.timeSeconds=s.timeSeconds; p.seed=0x90C011A5u;
+            ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
+            if(!processSyncCollapse(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            working.swap(scratch);
+        }
+        if(s.trackingAmount>0||s.headAmount>0) {
+            DamageRegion regions[2]; std::size_t count=0;
+            if(s.trackingAmount>0) {
+                DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
+                r.shape=static_cast<RegionShape>(std::max<A_long>(1,std::min<A_long>(3,s.trackingShape))-1);
+                r.centerX=clamp01(s.trackingX/100.0f); r.centerY=clamp01(s.trackingY/100.0f);
+                r.width=clamp01(s.trackingWidth/100.0f); r.height=clamp01(s.trackingHeight/100.0f);
+                r.intensity=clamp01(s.trackingAmount/100.0f*master);
+                r.motionXPerSecond=s.trackingMotionX/100.0f; r.motionYPerSecond=s.trackingMotionY/100.0f;
+                r.servoDriftPx=s.trackingServo; r.tearProbability=clamp01(s.trackingTear/100.0f);
+            }
+            if(s.headAmount>0) {
+                DamageRegion& r=regions[count++]; r.kind=RegionKind::HeadSwitch; r.shape=RegionShape::HorizontalBand;
+                r.centerX=0.5f; r.width=1.0f; r.height=clamp01(s.headHeight/100.0f);
+                r.centerY=clamp01(s.headY/100.0f)-r.height*0.5f;
+                r.intensity=clamp01(s.headAmount/100.0f*master); r.maxShiftPx=s.headShift;
+                r.noiseAmount=0.25f; r.dropoutProbability=0.2f;
+            }
+            RegionEngineParams p; p.regions=regions; p.regionCount=count; p.seed=0x90DA6A6Eu;
+            p.frame=s.frame; p.timeSeconds=s.timeSeconds; p.premultipliedAlpha=true;
+            ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
+            if(!processDamageRegions(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            working.swap(scratch);
+        }
+        for(int y=0;y<output->height;++y) for(int x=0;x<output->width;++x) {
+            const int sx=output->origin_x+x-input->origin_x, sy=output->origin_y+y-input->origin_y;
+            if(sx<0||sx>=w||sy<0||sy>=h) { const float z[4]={0,0,0,0}; WritePixel(output,format,x,y,z); continue; }
+            WritePixel(output,format,x,y,working.data()+(std::size_t(sy)*w+sx)*4);
+        }
+        return PF_Err_NONE;
+    } catch(...) { return PF_Err_OUT_OF_MEMORY; }
+}
+
+static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
+    auto* s=new(std::nothrow) RenderSettings();
+    if(!s) return PF_Err_OUT_OF_MEMORY;
+    PF_Err err=ReadSettings(in_data,*s);
+    if(err!=PF_Err_NONE) { delete s; return err; }
+    PF_RenderRequest req=extra->input->output_request;
+    req.rect.left=0; req.rect.top=0; req.rect.right=in_data->width; req.rect.bottom=in_data->height;
+    PF_CheckoutResult result; AEFX_CLR_STRUCT(result);
+    err=extra->cb->checkout_layer(in_data->effect_ref,PARAM_INPUT,kInputCheckoutID,&req,
+        in_data->current_time,in_data->time_step,in_data->time_scale,&result);
+    if(err!=PF_Err_NONE) { delete s; return err; }
+    extra->output->result_rect=extra->input->output_request.rect;
+    extra->output->max_result_rect=result.max_result_rect;
+    extra->output->solid=result.solid;
+    extra->output->pre_render_data=s;
+    extra->output->delete_pre_render_data_func=DeletePreRenderData;
+    return PF_Err_NONE;
+}
+static PF_Err SmartRender(PF_InData* in_data,PF_OutData* out_data,PF_SmartRenderExtra* extra) {
+    const auto* s=static_cast<const RenderSettings*>(extra->input->pre_render_data);
+    if(!s) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+    PF_EffectWorld* inWorld=nullptr; PF_EffectWorld* outWorld=nullptr; bool checked=false;
+    PF_Err err=extra->cb->checkout_layer_pixels(in_data->effect_ref,kInputCheckoutID,&inWorld);
+    if(err==PF_Err_NONE) checked=true;
+    if(err==PF_Err_NONE) err=extra->cb->checkout_output(in_data->effect_ref,&outWorld);
+    if(err==PF_Err_NONE) {
+        AEFX_SuiteScoper<PF_WorldSuite2> suite(in_data,kPFWorldSuite,kPFWorldSuiteVersion2,out_data);
+        PF_PixelFormat inFmt=PF_PixelFormat_INVALID,outFmt=PF_PixelFormat_INVALID;
+        err=suite->PF_GetPixelFormat(inWorld,&inFmt);
+        if(err==PF_Err_NONE) err=suite->PF_GetPixelFormat(outWorld,&outFmt);
+        if(err==PF_Err_NONE&&inFmt!=outFmt) err=PF_Err_UNRECOGNIZED_PARAM_TYPE;
+        if(err==PF_Err_NONE) err=RenderWorld(*s,inWorld,outWorld,inFmt);
+    }
+    if(checked) {
+        const PF_Err checkin=extra->cb->checkin_layer_pixels(in_data->effect_ref,kInputCheckoutID);
+        if(err==PF_Err_NONE) err=checkin;
+    }
+    return err;
+}
+static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* params[],PF_LayerDef* output) {
+    if(!params||!params[PARAM_INPUT]||!output) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+    RenderSettings s;
+    s.master=float(params[PARAM_MASTER]->u.fs_d.value);
+    s.composite=float(params[PARAM_COMPOSITE_AMOUNT]->u.fs_d.value);
+    s.sync=float(params[PARAM_SYNC_AMOUNT]->u.fs_d.value);
+    s.staticAmount=float(params[PARAM_STATIC_AMOUNT]->u.fs_d.value);
+    s.staticDensity=float(params[PARAM_STATIC_DENSITY]->u.fs_d.value);
+    s.trackingAmount=float(params[PARAM_TRACKING_AMOUNT]->u.fs_d.value);
+    s.trackingShape=params[PARAM_TRACKING_SHAPE]->u.pd.value;
+    s.trackingX=float(params[PARAM_TRACKING_CENTER_X]->u.fs_d.value);
+    s.trackingY=float(params[PARAM_TRACKING_CENTER_Y]->u.fs_d.value);
+    s.trackingWidth=float(params[PARAM_TRACKING_WIDTH]->u.fs_d.value);
+    s.trackingHeight=float(params[PARAM_TRACKING_HEIGHT]->u.fs_d.value);
+    s.trackingMotionX=float(params[PARAM_TRACKING_MOTION_X]->u.fs_d.value);
+    s.trackingMotionY=float(params[PARAM_TRACKING_MOTION_Y]->u.fs_d.value);
+    s.trackingServo=float(params[PARAM_TRACKING_SERVO]->u.fs_d.value);
+    s.trackingTear=float(params[PARAM_TRACKING_TEAR]->u.fs_d.value);
+    s.headAmount=float(params[PARAM_HEAD_AMOUNT]->u.fs_d.value);
+    s.headY=float(params[PARAM_HEAD_BOTTOM_Y]->u.fs_d.value);
+    s.headHeight=float(params[PARAM_HEAD_HEIGHT]->u.fs_d.value);
+    s.headShift=float(params[PARAM_HEAD_SHIFT]->u.fs_d.value);
+    s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
+    s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
+    PF_EffectWorld* inWorld=&params[PARAM_INPUT]->u.ld; PF_EffectWorld* outWorld=output;
+    AEFX_SuiteScoper<PF_WorldSuite2> suite(in_data,kPFWorldSuite,kPFWorldSuiteVersion2,out_data);
+    PF_PixelFormat inFmt=PF_PixelFormat_INVALID,outFmt=PF_PixelFormat_INVALID;
+    PF_Err err=suite->PF_GetPixelFormat(inWorld,&inFmt);
+    if(err==PF_Err_NONE) err=suite->PF_GetPixelFormat(outWorld,&outFmt);
+    if(err==PF_Err_NONE&&inFmt!=outFmt) err=PF_Err_UNRECOGNIZED_PARAM_TYPE;
+    if(err==PF_Err_NONE) err=RenderWorld(s,inWorld,outWorld,inFmt);
+    return err;
+}
+} // namespace
+
+extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in_data,PF_OutData* out_data,
+    PF_ParamDef* params[],PF_LayerDef* output,void* extra) {
+    (void)params; (void)output;
+    PF_Err err=PF_Err_NONE;
+    try {
+        switch(cmd) {
+            case PF_Cmd_ABOUT: PF_STRCPY(out_data->return_msg,"VHS-90 1.0.0 - Native procedural VHS / NTSC signal engine."); break;
+            case PF_Cmd_GLOBAL_SETUP: err=GlobalSetup(in_data,out_data); break;
+            case PF_Cmd_PARAMS_SETUP: err=ParamsSetup(in_data,out_data); break;
+            case PF_Cmd_RENDER: err=LegacyRender(in_data,out_data,params,output); break;
+            case PF_Cmd_SMART_PRE_RENDER: err=SmartPreRender(in_data,static_cast<PF_PreRenderExtra*>(extra)); break;
+            case PF_Cmd_SMART_RENDER: err=SmartRender(in_data,out_data,static_cast<PF_SmartRenderExtra*>(extra)); break;
+            default: break;
+        }
+    } catch(...) { err=PF_Err_INTERNAL_STRUCT_DAMAGED; }
+    return err;
+}
+
+extern "C" DllExport PF_Err PluginDataEntryFunction2(PF_PluginDataPtr inPtr,
+    PF_PluginDataCB2 callback,SPBasicSuite* spBasic,const char* hostName,const char* hostVersion) {
+    (void)spBasic; (void)hostName; (void)hostVersion;
+    return PF_REGISTER_EFFECT_EXT2(inPtr,callback,"VHS-90","com.vhs90.effect",
+        "Analog & Tape Effects",AE_RESERVED_INFO,"EffectMain",
+        "https://github.com/vamprieieuu/vhs---90");
+}
