@@ -193,6 +193,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         ConstImageView decodedView{decoded.data(),w,h,w*4};
+        std::vector<float> equalized;
+        if(p.crtEqualizerEnabled && p.crtEqualizer.amount>0.0f) {
+            equalized.resize(count*4);
+            ImageView eqView{equalized.data(),w,h,w*4};
+            CrtEqualizerParams ep=p.crtEqualizer;
+            ep.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processCrtThreeBandEqualizer(decodedView,eqView,ep)) return false;
+            decodedView={equalized.data(),w,h,w*4};
+        }
         std::vector<float> graded;
         if(p.imageGradeEnabled) {
             graded.resize(count*4);
