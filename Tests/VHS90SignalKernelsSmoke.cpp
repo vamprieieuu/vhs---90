@@ -27,6 +27,15 @@ int main() {
     LumaSmearParams smp; smp.strength=1.0f; smp.decay=0.3f; smp.offsetPx=1.0f; smp.premultipliedAlpha=false;
     assert(processLumaSmear(smi,smo,smp));
     assert(smearDst[2*4+0]>0.0f && smearDst[2*4+3]==1.0f);
+    // VHS chroma-under subsampling: reduce high-frequency chroma while preserving luma/alpha.
+    std::vector<float> chromaGrid(8*4*4),chromaGridOut(chromaGrid.size());
+    for(int yy=0;yy<4;++yy)for(int xx=0;xx<8;++xx){size_t ii=(yy*8+xx)*4;const bool red=(xx&1)==0;
+        chromaGrid[ii]=red?1.0f:0.0f;chromaGrid[ii+1]=0.25f;chromaGrid[ii+2]=red?0.0f:1.0f;chromaGrid[ii+3]=1.0f;}
+    ConstImageView csi{chromaGrid.data(),8,4,32};ImageView cso{chromaGridOut.data(),8,4,32};
+    ChromaSubsampleParams csp;csp.horizontalFactor=2;csp.verticalFactor=1;csp.amount=1.0f;csp.blurRadius=1.0f;csp.premultipliedAlpha=false;
+    assert(processChromaSubsample(csi,cso,csp));
+    assert(chromaGridOut!=chromaGrid);
+    for(int yy=0;yy<4;++yy)for(int xx=0;xx<8;++xx){size_t ii=(yy*8+xx)*4;assert(chromaGridOut[ii+3]==1.0f);}
     // VHS vertical chroma delay blends the previous field line's I/Q only;
     // current-line luma and alpha remain anchored to the source.
     std::vector<float> verticalSrc(2*4*4,0.0f),verticalDst(verticalSrc.size(),0.0f);
