@@ -2,6 +2,7 @@
 #include "VHS90IIRFilter.h"
 #include "VHS90BloomEngine.h"
 #include "VHS90AnalogGeometryEngine.h"
+#include "VHS90AnalogNoiseEngine.h"
 #include "VHS90TapeSurfaceEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include <cstdint>
@@ -22,6 +23,7 @@ enum class CompositeDemodulator : std::uint8_t {
 
 struct CompositeParams {
     float strength = 1.0f;
+    float compositeSignalStrength = 1.0f;
     CompositePhase phase = CompositePhase::Quadrature90;
     int phaseOffset = 0;
     bool palMode = false;
@@ -30,6 +32,8 @@ struct CompositeParams {
     std::int64_t frame = 0;
     bool inputBandwidthEnabled = false;
     bool outputBandwidthEnabled = true;
+    bool analogNoiseEnabled = false;
+    AnalogNoiseParams analogNoise{};
     bool geometryEnabled = false;
     AnalogGeometryParams geometry{};
     bool scanlinesEnabled = false;
