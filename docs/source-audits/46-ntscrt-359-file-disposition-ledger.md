@@ -30,13 +30,13 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtApp/CLI/ConnectSelfTest.swift` | 3187 | content-reviewed | Reviewed Claude Desktop connection self-test and UI snapshot harness; test-only integration. |
 | `Sources/CrtApp/CLI/DescribeCommand.swift` | 19368 | content-reviewed | Reviewed JSON stage/control descriptions and preset summaries; useful documentation/schema reference but MCP/CLI output wrapper, no render kernel. |
 | `Sources/CrtApp/CLI/Launch.swift` | 3557 | content-reviewed | Reviewed executable routing, stdout/stderr separation and CLI entry point; app launcher only. |
-| `Sources/CrtApp/CLI/LookSettings.swift` | 31419 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/CLI/MCPServer.swift` | 40664 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/CLI/RenderCommand.swift` | 21865 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/ClaudeConnection.swift` | 8114 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/CrtAppApp.swift` | 6259 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/ExportFormat.swift` | 1171 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/FeedbackPresets.swift` | 2305 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
+| `Sources/CrtApp/CLI/LookSettings.swift` | 31419 | content-reviewed | Reviewed JSON look loading and migration, stage enable/disable, tape/deck condition selection, parameter validation, legacy Tape→VCR migration and keyframe snapshot/easing. Preset conversion rules are useful reference; Metal/CLI state mutation is app-specific. |
+| `Sources/CrtApp/CLI/MCPServer.swift` | 40664 | content-reviewed | Reviewed stdio MCP protocol, tool dispatch, child render jobs, progress/wait/cancel and image result handling. App integration only; no analog effect algorithms. |
+| `Sources/CrtApp/CLI/RenderCommand.swift` | 21865 | content-reviewed | Reviewed CLI render request parsing, stage settings merge, time/frame selection, still/movie/GIF output routing and summary. Host command wrapper; AE host handles rendering. |
+| `Sources/CrtApp/ClaudeConnection.swift` | 8114 | content-reviewed | Reviewed Claude Desktop/Code MCP registration and config-preserving connect/disconnect. External app integration only. |
+| `Sources/CrtApp/CrtAppApp.swift` | 6259 | content-reviewed | Reviewed SwiftUI app bootstrap, renderer setup, menu/window and connect-to-Claude UI. macOS app shell, no effect code. |
+| `Sources/CrtApp/ExportFormat.swift` | 1171 | content-reviewed | Reviewed H.264/HEVC/ProRes/GIF export format selection. App exporter metadata only. |
+| `Sources/CrtApp/FeedbackPresets.swift` | 2305 | content-reviewed | Reviewed separate Screen Loop feedback preset discovery/save path and `kind` discriminator; not one of the 40 normal looks and not analog tape. |
 | `Sources/CrtApp/NeutralValues.swift` | 7105 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `Sources/CrtApp/NtscSettingsModel.swift` | 8519 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `Sources/CrtApp/ParamGates.swift` | 7368 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
