@@ -38,7 +38,7 @@ float controlTrackServoOffset(const TapeTransportParams& p) noexcept {
   float physicalAmplitude=1.0f,physicalLift=0.0f;
   if(p.usePhysicalControlTrackMap){
    const double x=double(f)*kAdvancePerField/double(tape.tapeSpeed+1u)+kControlOffsetMm;
-   const auto sample=sampleTapeSurfaceAtMm(x,kControlYmm,tape);
+   const auto sample=sampleTapeSurfaceAtMm(x,kControlYmm,tape,false,true);
    const float remanence=std::pow(10.0f,-std::clamp(tape.oxideLoss,0.0f,1.85f)*10.0f/20.0f);
    physicalAmplitude=sample.magnetization/std::max(remanence,1.0e-5f);
    physicalLift=sample.spacingLift+sample.film;
