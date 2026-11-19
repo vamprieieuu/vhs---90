@@ -22,6 +22,8 @@ struct YiqBandwidthParams {
     int iDelaySamples = 2;
     int qDelaySamples = 4;
     int lumaDelaySamples = 0;
+    int verticalLumaRadiusRows = 0;
+    float verticalLumaSigmaRows = 1.0f;
     IIRFilterDesign design = IIRFilterDesign::ConstantKTriple;
     IIRInitialCondition initial = IIRInitialCondition::Zero;
     bool premultipliedAlpha = true;
@@ -29,7 +31,7 @@ struct YiqBandwidthParams {
 
 // Applies independent I/Q low-pass filters in the YIQ domain, based on the
 // ntsc-rs constant-K / Butterworth transfer-function implementation.
-// Each scanline is filtered independently; alpha is preserved.
+// Each scanline is filtered independently; optional vertical luma blur is separate. Alpha is preserved.
 bool processYiqBandwidth(ConstImageView src, ImageView dst,
                          const YiqBandwidthParams& params) noexcept;
 
