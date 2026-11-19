@@ -6,6 +6,7 @@ option(VHS90_BUILD_TESTS "Build host-independent VHS-90 CPU smoke tests" ON)
 add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90SignalKernels.cpp
     Source/VHS90Core/VHS90RegionEngine.cpp
+    Source/VHS90Core/VHS90StaticEngine.cpp
 )
 target_include_directories(VHS90Core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core
@@ -28,4 +29,8 @@ if(VHS90_BUILD_TESTS)
     add_executable(VHS90RegionEngineSmoke Tests/VHS90RegionEngineSmoke.cpp)
     target_link_libraries(VHS90RegionEngineSmoke PRIVATE VHS90Core)
     add_test(NAME VHS90RegionEngineSmoke COMMAND VHS90RegionEngineSmoke)
+
+    add_executable(VHS90StaticEngineSmoke Tests/VHS90StaticEngineSmoke.cpp)
+    target_link_libraries(VHS90StaticEngineSmoke PRIVATE VHS90Core)
+    add_test(NAME VHS90StaticEngineSmoke COMMAND VHS90StaticEngineSmoke)
 endif()
