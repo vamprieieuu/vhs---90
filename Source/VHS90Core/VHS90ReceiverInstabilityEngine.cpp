@@ -16,11 +16,13 @@ inline float sample(const float*row,int w,float x,int c) noexcept {
 }
 }
 bool processReceiverInstability(ConstImageView src,ImageView dst,const ReceiverInstabilityParams&p) noexcept {
- if(!valid(src,dst)||!std::isfinite(p.afcHunt)||!std::isfinite(p.chromaFlutter)||!std::isfinite(p.ycCrosstalk)||!std::isfinite(p.horizontalSyncNoise)||!std::isfinite(p.verticalSyncNoise)||!std::isfinite(p.burstNoise))return false;
- const float afc=std::clamp(p.afcHunt,0.0f,1.0f),flutter=std::clamp(p.chromaFlutter,0.0f,1.0f),cross=std::clamp(p.ycCrosstalk,0.0f,1.0f),hsync=std::clamp(p.horizontalSyncNoise,0.0f,1.0f),vsync=std::clamp(p.verticalSyncNoise,0.0f,1.0f),burst=std::clamp(p.burstNoise,0.0f,1.0f);
- if(afc<=0&&flutter<=0&&cross<=0&&hsync<=0&&vsync<=0&&burst<=0){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
+ if(!valid(src,dst)||!std::isfinite(p.afcHunt)||!std::isfinite(p.chromaFlutter)||!std::isfinite(p.ycCrosstalk)||!std::isfinite(p.horizontalSyncNoise)||!std::isfinite(p.verticalSyncNoise)||!std::isfinite(p.burstNoise)||!std::isfinite(p.chromaPhaseDrift))return false;
+ const float afc=std::clamp(p.afcHunt,0.0f,1.0f),flutter=std::clamp(p.chromaFlutter,0.0f,1.0f),cross=std::clamp(p.ycCrosstalk,0.0f,1.0f),hsync=std::clamp(p.horizontalSyncNoise,0.0f,1.0f),vsync=std::clamp(p.verticalSyncNoise,0.0f,1.0f),burst=std::clamp(p.burstNoise,0.0f,1.0f),phaseDrift=std::clamp(p.chromaPhaseDrift,0.0f,1.0f);
+ if(afc<=0&&flutter<=0&&cross<=0&&hsync<=0&&vsync<=0&&burst<=0&&phaseDrift<=0){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
  const float phase=0.0051f*float(p.seed)+0.0023f*float(p.frame);
  const int verticalOffset=int(std::lround(std::sin(phase*0.37f+0.4f)*vsync*2.0f));
+ const float globalChromaAngle=0.35f*phaseDrift*std::sin(float(p.frame)*0.087f+0.7f*std::sin(float(p.frame)*0.019f));
+ const float globalCos=std::cos(globalChromaAngle),globalSin=std::sin(globalChromaAngle);
  for(int y=0;y<src.height;++y){
   const float paired=float(std::min(y,(y+src.height/2)%src.height));
   const float linePhase=phase*0.41f+0.062f*paired;
@@ -45,6 +47,7 @@ bool processReceiverInstability(ConstImageView src,ImageView dst,const ReceiverI
    RGB rgb{sample(sr,src.width,sx,0),sample(sr,src.width,sx,1),sample(sr,src.width,sx,2)};
    if(p.premultipliedAlpha){rgb.r/=alpha;rgb.g/=alpha;rgb.b/=alpha;}
    YIQ yiq=rgbToYiq(rgb);
+   if(phaseDrift>0.0f){const float ii=yiq.i*globalCos-yiq.q*globalSin;yiq.q=yiq.i*globalSin+yiq.q*globalCos;yiq.i=ii;}
    if(flutter>0){
     const float angle=phaseJit*(kPi*0.5f);
     const float ii=yiq.i*std::cos(angle)-yiq.q*std::sin(angle);
