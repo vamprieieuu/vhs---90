@@ -67,8 +67,8 @@ Presets are data-only recipes with independent module toggles and values. Select
 
 ## Current implementation boundary
 
-Implemented in repository: standard RGB↔YIQ conversion, row-wise constant-K/Butterworth YIQ bandwidth filters, generalized region geometry/Tracking Noise/Head Switching CPU module, and procedural static-pattern generator, with standalone C++ smoke tests.
+Implemented in repository: standard RGB↔YIQ conversion, row-wise constant-K/Butterworth YIQ bandwidth filters, four-phase NTSC composite encode/decode with box and comb demodulation, generalized region geometry/Tracking Noise/Head Switching CPU module, and procedural static-pattern generator, with standalone C++ smoke tests.
 
-Not yet implemented: AE host adapter, parameter registration/UI, PiPL, full composite carrier encode/decode, physical tape stage, full procedural dropout/sync-collapse family, OSD/font shaping, Blue Screen mode, preset catalog, Windows/MSVC AE build and AEX packaging. Root CMake currently builds only the host-independent CPU core and tests.
+Not yet implemented: AE host adapter, parameter registration/UI, PiPL, complete composite carrier/sync/burst/AFC/PLL implementation, physical tape stage, full procedural dropout/sync-collapse family, OSD/font shaping, Blue Screen mode, preset catalog, Windows/MSVC AE build and AEX packaging. Root CMake currently builds only the host-independent CPU core and tests.
 
 Do not call VHS-90 test-ready until those host/build/runtime gates are complete.
