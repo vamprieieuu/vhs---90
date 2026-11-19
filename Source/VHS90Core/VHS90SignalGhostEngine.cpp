@@ -9,8 +9,8 @@ inline bool valid(ConstImageView s,ImageView d) noexcept {
  return s.rgba&&d.rgba&&s.width>0&&s.height>0&&d.width==s.width&&d.height==s.height&&
  s.rowStrideFloats>=s.width*4&&d.rowStrideFloats>=d.width*4&&s.rgba!=d.rgba;
 }
-inline float shifted(const std::vector<float>&v,int w,int x,int shift) noexcept {
- const int sx=std::clamp(x-shift,0,w-1);return v[std::size_t(sx)];
+inline float shifted(const std::vector<float>&v,std::size_t rowBase,int w,int x,int shift) noexcept {
+ const int sx=std::clamp(x-shift,0,w-1);return v[rowBase+std::size_t(sx)];
 }
 }
 bool processSignalGhost(ConstImageView src,ImageView dst,const SignalGhostParams&p) noexcept {
@@ -29,9 +29,9 @@ bool processSignalGhost(ConstImageView src,ImageView dst,const SignalGhostParams
   std::vector<float> outY(n),outI(n),outQ(n);
   for(int y=0;y<h;++y)for(int x=0;x<w;++x){const size_t k=size_t(y)*w+x;
    float yy=lum[k];
-   if(amount>0){const float first=shifted(std::vector<float>(lum.begin()+size_t(y)*w,lum.begin()+size_t(y+1)*w),w,x,echoDelay);yy=yy*(1.0f-amount*.18f)+first*amount*.15f;const float second=shifted(std::vector<float>(lum.begin()+size_t(y)*w,lum.begin()+size_t(y+1)*w),w,x,secondDelay);yy+=second*amount*.06f;}
-   const float delayedI=delay>0?shifted(std::vector<float>(ii.begin()+size_t(y)*w,ii.begin()+size_t(y+1)*w),w,x,iDelay):ii[k];
-   const float delayedQ=delay>0?shifted(std::vector<float>(qq.begin()+size_t(y)*w,qq.begin()+size_t(y+1)*w),w,x,qDelay):qq[k];
+   if(amount>0){const float first=shifted(lum,size_t(y)*w,w,x,echoDelay);yy=yy*(1.0f-amount*.18f)+first*amount*.15f;const float second=shifted(lum,size_t(y)*w,w,x,secondDelay);yy+=second*amount*.06f;}
+   const float delayedI=delay>0?shifted(ii,size_t(y)*w,w,x,iDelay):ii[k];
+   const float delayedQ=delay>0?shifted(qq,size_t(y)*w,w,x,qDelay):qq[k];
    outY[k]=yy;outI[k]=delay>0?ii[k]*.35f+delayedI*.65f:ii[k];outQ[k]=delay>0?qq[k]*.45f+delayedQ*.55f:qq[k];
   }
   for(int y=0;y<h;++y)for(int x=0;x<w;++x){const size_t k=size_t(y)*w+x;const float*px=src.rgba+y*src.rowStrideFloats+x*4;float*out=dst.rgba+y*dst.rowStrideFloats+x*4;const float a=px[3];if(a<=1e-6f){std::copy_n(px,4,out);continue;}RGB rgb=yiqToRgb({outY[k],outI[k],outQ[k]});if(p.premultipliedAlpha){rgb.r*=a;rgb.g*=a;rgb.b*=a;}out[0]=rgb.r;out[1]=rgb.g;out[2]=rgb.b;out[3]=a;}
