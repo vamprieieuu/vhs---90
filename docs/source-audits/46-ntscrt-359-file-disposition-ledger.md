@@ -37,12 +37,12 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtApp/CrtAppApp.swift` | 6259 | content-reviewed | Reviewed SwiftUI app bootstrap, renderer setup, menu/window and connect-to-Claude UI. macOS app shell, no effect code. |
 | `Sources/CrtApp/ExportFormat.swift` | 1171 | content-reviewed | Reviewed H.264/HEVC/ProRes/GIF export format selection. App exporter metadata only. |
 | `Sources/CrtApp/FeedbackPresets.swift` | 2305 | content-reviewed | Reviewed separate Screen Loop feedback preset discovery/save path and `kind` discriminator; not one of the 40 normal looks and not analog tape. |
-| `Sources/CrtApp/NeutralValues.swift` | 7105 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/NtscSettingsModel.swift` | 8519 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/ParamGates.swift` | 7368 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Paths.swift` | 5052 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/Timeline.swift` | 7300 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/UpdateChecker.swift` | 7858 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
+| `Sources/CrtApp/NeutralValues.swift` | 7105 | content-reviewed | Reviewed per-control neutral/reset values for NTSC and CRT shader parameters. UI reset policy only; not VHS tape behavior. |
+| `Sources/CrtApp/NtscSettingsModel.swift` | 8519 | content-reviewed | Reviewed dynamic ntsc-rs descriptor parser, control grouping/labels and legacy VHS controls. The source app explicitly hides ntsc-rs tape-speed/head-switch/tracking filters because the VCR panel replaces them with physical tape/deck simulation; preserve this separation in VHS-90. |
+| `Sources/CrtApp/ParamGates.swift` | 7368 | content-reviewed | Reviewed empirically measured shader-parameter gating rules and input-resolution requirements. CRT shader UI enable/disable hints, not analog tape engine. |
+| `Sources/CrtApp/Paths.swift` | 5052 | content-reviewed | Reviewed macOS bundle/vendor/env path discovery for Metal, ntsc-rs, shaders and presets. App packaging utility only. |
+| `Sources/CrtApp/Timeline.swift` | 7300 | content-reviewed | Reviewed whole-state keyframe snapshots, easing, numeric interpolation and discrete bool/choice handling. AE host keyframes replace this timeline in the native plug-in. |
+| `Sources/CrtApp/UpdateChecker.swift` | 7858 | content-reviewed | Reviewed GitHub release-feed checks and update-notification UI. No rendering or effect code. |
 | `Sources/CrtApp/Views/ConnectClaudeView.swift` | 4915 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `Sources/CrtApp/Views/ContentView.swift` | 159354 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `Sources/CrtApp/Views/CropPanel.swift` | 4230 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
