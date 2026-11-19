@@ -25,11 +25,11 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtApp/AppState+Export.swift` | 8347 | content-reviewed | Reviewed movie/GIF/PNG export routing and async status handling; app export orchestration only, no AE render kernel. |
 | `Sources/CrtApp/AppState+Howlaround.swift` | 17019 | content-reviewed | Reviewed Howlaround export sizing, draft scheduling, render cancellation and feedback-preset load/save. Separate Screen Loop feedback effect/export workflow, not VHS tape engine. |
 | `Sources/CrtApp/AppState.swift` | 102696 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/BuiltInPresets.swift` | 1572 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/CLI/CLIHelp.swift` | 2255 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/CLI/ConnectSelfTest.swift` | 3187 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/CLI/DescribeCommand.swift` | 19368 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
-| `Sources/CrtApp/CLI/Launch.swift` | 3557 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
+| `Sources/CrtApp/BuiltInPresets.swift` | 1572 | content-reviewed | Reviewed dynamic JSON preset-folder discovery and natural sorting; app menu resource loader, no effect code. |
+| `Sources/CrtApp/CLI/CLIHelp.swift` | 2255 | content-reviewed | Reviewed CLI command/option contract; command-line documentation only. |
+| `Sources/CrtApp/CLI/ConnectSelfTest.swift` | 3187 | content-reviewed | Reviewed Claude Desktop connection self-test and UI snapshot harness; test-only integration. |
+| `Sources/CrtApp/CLI/DescribeCommand.swift` | 19368 | content-reviewed | Reviewed JSON stage/control descriptions and preset summaries; useful documentation/schema reference but MCP/CLI output wrapper, no render kernel. |
+| `Sources/CrtApp/CLI/Launch.swift` | 3557 | content-reviewed | Reviewed executable routing, stdout/stderr separation and CLI entry point; app launcher only. |
 | `Sources/CrtApp/CLI/LookSettings.swift` | 31419 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `Sources/CrtApp/CLI/MCPServer.swift` | 40664 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
 | `Sources/CrtApp/CLI/RenderCommand.swift` | 21865 | platform-review-pending | App/UI/CLI/MCP wrapper; native AE reuse decision pending |
