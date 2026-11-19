@@ -62,19 +62,21 @@ inline float evaluateMask(const DamageRegion& r, float u, float v,
     // regions (for example Head Switching with Bottom Edge Y near 0) clip
     // naturally instead of being pulled back into the image.
 
-    const float dx = std::fabs(u - cx);
-    const float dy = std::fabs(v - cy);
+    const float dx=u-cx,dy=v-cy;
+    const float ca=std::cos(r.angleRadians),sa=std::sin(r.angleRadians);
+    const float along=std::fabs(dx*ca+dy*sa);
+    const float across=std::fabs(-dx*sa+dy*ca);
     switch (r.shape) {
         case RegionShape::HorizontalBand:
-            return edgeMask(dy, std::max(0.0f, r.height) * 0.5f, r.feather)
-                 * edgeMask(dx, std::max(0.0f, r.width) * 0.5f, r.feather);
+            return edgeMask(across,std::max(0.0f,r.height)*0.5f,r.feather)
+                 * edgeMask(along,std::max(0.0f,r.width)*0.5f,r.feather);
         case RegionShape::VerticalBand:
-            return edgeMask(dx, std::max(0.0f, r.width) * 0.5f, r.feather)
-                 * edgeMask(dy, std::max(0.0f, r.height) * 0.5f, r.feather);
+            return edgeMask(across,std::max(0.0f,r.width)*0.5f,r.feather)
+                 * edgeMask(along,std::max(0.0f,r.height)*0.5f,r.feather);
         case RegionShape::Rectangle:
         default:
-            return edgeMask(dx, std::max(0.0f, r.width) * 0.5f, r.feather)
-                 * edgeMask(dy, std::max(0.0f, r.height) * 0.5f, r.feather);
+            return edgeMask(along,std::max(0.0f,r.width)*0.5f,r.feather)
+                 * edgeMask(across,std::max(0.0f,r.height)*0.5f,r.feather);
     }
 }
 inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
@@ -189,6 +191,7 @@ bool processDamageRegions(ConstImageView src, ImageView dst,
                 for (std::size_t i = 0; i < params.regionCount; ++i) {
                     const DamageRegion& r = params.regions[i];
                     if (!r.enabled || r.intensity <= 0.0f) continue;
+                    if (!std::isfinite(r.angleRadians)) return false;
                     const float mask = evaluateMask(r, u, v, params.timeSeconds);
                     if (mask <= 0.0f) continue;
                     RGB regionOut = out;
