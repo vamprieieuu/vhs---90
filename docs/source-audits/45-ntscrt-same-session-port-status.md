@@ -29,11 +29,11 @@ CI:
 - picture-search speed and relock path;
 - arbitrary-frame deterministic replay, with no process-global mutable state.
 
-The AE Tracking Servo control is wired into the engine. Pulse quality and false-pulse probability currently use proxy values from existing controls; the exact upstream `tape_at` control-edge material sample, full field phase history and source value-noise interpolation are not yet ported. Therefore this is a first integrated PI-servo adaptation, not a bit-for-bit transport port.
+The AE Tracking Servo control is wired into the engine. An optional physical control-track path now samples the NTSCRT control-head location (79.244 mm along track, y=0.35 mm) using the same tape material map, then applies remanence-normalized amplitude and spacing loss to pulse detection; crease lift can create false pulses. The AE adapter enables this path and passes the selected tape speed. Remaining deviations: pulse servo still uses a simplified frame-domain replay rather than the upstream line-domain capstan/motor/stick-slip model, exact source 64-bit noise/value interpolation and full phase/history snapshots. Therefore this is a first integrated PI-servo adaptation, not a bit-for-bit transport port.
 
 ### 3. Physical tape material map
 
-`VHS90TapeSurfaceEngine` now exposes `sampleTapeSurfaceAtMm(xMm, yMm, params)` in the NTSCRT coordinate convention (millimetres along tape and across the 12.65 mm tape width). The raster adapter maps field rows along the helical track, horizontal samples along the NTSC line, and field origin using the 33.35 mm/speed field advance and 5.97° track angle. The sampler ports the upstream deterministic 32-bit hash/value-noise pattern and the principal `tape_at` mechanisms: remanence/wear variation, pinholes, flakes and shed, lengthwise scratches, creases, edge lift, mold colonies and Vaseline film. `TapeSurfaceSample` now reports shed as well as magnetization, spacing lift, roughness and film.
+`VHS90TapeSurfaceEngine` now exposes `sampleTapeSurfaceAtMm(xMm, yMm, params)` in the NTSCRT coordinate convention (millimetres along tape and across the 12.65 mm tape width). The raster adapter maps field rows along the helical track, horizontal samples over the active NTSC line interval (9.4–62.056 µs), and field origin using the 33.35 mm/speed field advance, selected SP/LP/EP speed and 5.97° track angle. The sampler ports the upstream deterministic 32-bit hash/value-noise pattern and the principal `tape_at` mechanisms: remanence/wear variation, pinholes, flakes and shed, lengthwise scratches, creases, edge lift, mold colonies and Vaseline film. `TapeSurfaceSample` now reports shed as well as magnetization, spacing lift, roughness and film.
 
 This is a C++ adaptation, not bit-identical parity yet: the VHS-90 controls are mapped onto NTSCRT material parameters rather than using the upstream `TapeParams::new` curves/top-end transforms, and sticky-binder/transport stick-slip coupling is not yet ported. The raster sampling path now uses physical track coordinates, but the image-domain renderer still approximates the RF chain.
 
@@ -41,11 +41,11 @@ This is a C++ adaptation, not bit-identical parity yet: the VHS-90 controls are 
 
 `HeadConditionParams` can enable `usePhysicalTapeSamples`. In this mode each active head field samples 12 evenly spaced points along the physical helical track, averages tape shed and film, and feeds those values into deterministic debris pickup/lodging/clean-off and asymmetric grease transfer/decay. The default remains the earlier proxy path unless the flag is enabled. Tests explicitly exercise the physical sampling path.
 
-The deck is still not a complete source `DeckSimulator` port: it replays from field zero rather than retaining NTSCRT's rolling 12-entry history/snapshot cache, and the AE adapter does not yet expose or call this optional head-condition stage.
+The physical head-sampling path is now enabled by the AE parameter adapter when Head Condition is active; the selected SP/LP/EP format is passed to the tape sampler. The deck is still not a complete source `DeckSimulator` port: it replays from field zero rather than retaining NTSCRT's rolling 12-entry history/snapshot cache.
 
 ## Verification
 
-Latest verified CI: [run 466](https://github.com/vamprieieuu/vhs---90/actions/runs/44620865591) — success. CMake built the Linux host-independent C++ core and CTest passed 27/27, including physical tape-coordinate determinism and 12-position head sampling. This does not validate Windows/MSVC, AE SDK compilation, PiPL, AEX loading, live AE rendering or MFR.
+Latest verified core CI at that checkpoint: [run 466](https://github.com/vamprieieuu/vhs---90/actions/runs/44620865591) — success, 27/27. Subsequent physical control-track sampling and AE parameter wiring passed [run 471](https://github.com/vamprieieuu/vhs---90/actions/runs/44621261865), 27/27. SP/LP/EP field-advance and active-line coordinate refinements are being revalidated in the latest workflow; the AE SDK adapter itself is not compiled by this Linux core workflow. This does not validate Windows/MSVC, AE SDK compilation, PiPL, AEX loading, live AE rendering or MFR.
 
 ## Preset disposition
 
