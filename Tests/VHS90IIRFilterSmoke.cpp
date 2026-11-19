@@ -56,6 +56,15 @@ int main() {
     std::vector<float> identity(src.size()); ImageView id{identity.data(),w,h,w*4};
     assert(processYiqBandwidth(si,id,bypass)); assert(identity==src);
 
+    // Separate vertical luma bandwidth smooths scanline transitions without changing alpha.
+    constexpr int vw=4,vh=4;
+    std::vector<float> verticalSrc(vw*vh*4),verticalDst(verticalSrc.size());
+    for(int y=0;y<vh;++y)for(int x=0;x<vw;++x){size_t k=(y*vw+x)*4;const float v=(y&1)?0.0f:1.0f;verticalSrc[k]=verticalSrc[k+1]=verticalSrc[k+2]=v;verticalSrc[k+3]=1.0f;}
+    ConstImageView vsi{verticalSrc.data(),vw,vh,vw*4};ImageView vdi{verticalDst.data(),vw,vh,vw*4};
+    YiqBandwidthParams vp;vp.iCutoffHz=0;vp.qCutoffHz=0;vp.lumaCutoffHz=0;vp.verticalLumaRadiusRows=1;vp.verticalLumaSigmaRows=.8f;vp.premultipliedAlpha=false;
+    assert(processYiqBandwidth(vsi,vdi,vp));assert(verticalDst!=verticalSrc);
+    for(size_t k=3;k<verticalDst.size();k+=4)assert(verticalDst[k]==1.0f);
+
     YiqBandwidthParams butter=p; butter.design=IIRFilterDesign::Butterworth2;
     std::vector<float> butterOut(src.size()); ImageView bo{butterOut.data(),w,h,w*4};
     assert(processYiqBandwidth(si,bo,butter));
