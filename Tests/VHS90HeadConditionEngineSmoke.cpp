@@ -13,4 +13,6 @@ int main(){using namespace vhs90;constexpr int w=40,h=24;std::vector<float>s(w*h
  assert(processHeadCondition(in,earlyView,early));assert(processHeadCondition(in,lateView,late));assert(earlyOut!=lateOut);
  std::vector<float>semi=s,out(s.size());for(size_t i=0;i<semi.size();i+=4){semi[i]*=.35f;semi[i+1]*=.35f;semi[i+2]*=.35f;semi[i+3]=.35f;}
  ConstImageView si{semi.data(),w,h,w*4};ImageView so{out.data(),w,h,w*4};p.amount=1;assert(processHeadCondition(si,so,p));for(size_t i=3;i<out.size();i+=4)assert(std::fabs(out[i]-.35f)<1e-6f);
+ HeadConditionParams physical=p;physical.usePhysicalTapeSamples=true;physical.tapeSurface.defectDensity=1.0f;physical.tapeSurface.oxideLoss=1.4f;physical.tapeSurface.scratchDensity=2.0f;physical.tapeSurface.vaselineAmount=.9f;physical.tapeSurface.moldAmount=.8f;
+ std::vector<float>physicalOut(s.size());ImageView physicalView{physicalOut.data(),w,h,w*4};assert(processHeadCondition(in,physicalView,physical));assert(physicalOut!=a);
 }
