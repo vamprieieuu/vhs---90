@@ -47,6 +47,18 @@ int main() {
     assert(processCompositeRoundTrip(si,d2,pp));
     assert(one!=two);
 
+    std::vector<float> vhsVertical(src.size()),vhsSmear(src.size()),vhsCombined(src.size());
+    ImageView vv{vhsVertical.data(),w,h,w*4}, sv{vhsSmear.data(),w,h,w*4}, cv{vhsCombined.data(),w,h,w*4};
+    CompositeParams vhs=p; vhs.verticalChromaBlendEnabled=true; vhs.verticalChromaBlendAmount=1.0f;
+    assert(processCompositeRoundTrip(si,vv,vhs));
+    vhs=p; vhs.lumaSmearEnabled=true; vhs.lumaSmear.strength=1.0f;
+    vhs.lumaSmear.tapCount=16; vhs.lumaSmear.highlightStrength=0.25f;
+    assert(processCompositeRoundTrip(si,sv,vhs));
+    vhs.verticalChromaBlendEnabled=true; vhs.verticalChromaBlendAmount=0.75f;
+    assert(processCompositeRoundTrip(si,cv,vhs));
+    assert(vhsVertical!=boxOut && vhsSmear!=boxOut && vhsCombined!=boxOut);
+    for(size_t i=3;i<vhsCombined.size();i+=4) assert(std::fabs(vhsCombined[i]-1.0f)<1e-6f);
+
     std::vector<float> semi=src, semiOut(src.size());
     for(size_t i=0;i<semi.size();i+=4) { semi[i]*=0.35f; semi[i+1]*=0.35f; semi[i+2]*=0.35f; semi[i+3]=0.35f; }
     ConstImageView ssi{semi.data(),w,h,w*4}; ImageView sso{semiOut.data(),w,h,w*4};
