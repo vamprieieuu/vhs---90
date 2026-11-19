@@ -21,7 +21,7 @@ TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams&p) n
     const int64_t ix=int64_t(std::floor(u/cu)),iy=int64_t(std::floor(v/cv));
     TapeSurfaceSample out;
     const float density=std::clamp(p.defectDensity,0.0f,1.0f);
-    for(int oy=-1;oy<=1;++oy)for(int ox=-1;ox<=1;++ox){
+    for(int oy=-1;oy<=1;++oy)for(int ox=-3;ox<=3;++ox){
         const int64_t cx=ix+ox,cy=iy+oy;
         const uint64_t h=hashCell(p.seed,cx,cy);
         if(unit(h)>density*0.42f)continue;
