@@ -70,41 +70,41 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtAppBridge/include/librashader.h` | 108825 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `Sources/CrtAppBridge/include/librashader_ld.h` | 70783 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `Sources/CrtAppBridge/include/module.modulemap` | 79 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtCodec/DigitalCodec.swift` | 31137 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCodec/DigitalVideoParams.swift` | 18748 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCodec/DigitalVideoRenderer.swift` | 38039 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCodec/Video1Codec.swift` | 10694 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/ChainInputCache.swift` | 4145 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/CrtCodecExport.swift` | 207 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCodec/DigitalCodec.swift` | 31137 | content-reviewed | Reviewed full codec architecture and core DCT/motion search/residual/reconstruction/loss/deblock paths. This is a separate digital block-transform/d datamosh codec, not analog VHS tape; keep as an optional independent subsystem, not merged into the tape engine. |
+| `Sources/CrtCodec/DigitalVideoParams.swift` | 18748 | content-reviewed | Reviewed independent Digital stage parameter schema, codec/chroma choices and format presets. Digital compression controls; no direct analog VHS engine port. |
+| `Sources/CrtCodec/DigitalVideoRenderer.swift` | 38039 | content-reviewed | Reviewed capture timing, camera/sensor optics, codec state progression, keyframe/checkpoint rerun and RGB reconstruction. Digital codec/camera pipeline; not analog tape. |
+| `Sources/CrtCodec/Video1Codec.swift` | 10694 | content-reviewed | Reviewed Microsoft Video 1 4×4 block modes, 5:5:5 palette quantization, skip/fill/two/eight-color coding and loss persistence. Optional digital codec only; no analog tape port. |
+| `Sources/CrtCore/ChainInputCache.swift` | 4145 | content-reviewed | Reviewed generation/downscale-stamped frame cache and thread-safe preview probes. App RAM-preview optimization; not part of the native effect kernel. |
+| `Sources/CrtCore/CrtCodecExport.swift` | 207 | content-reviewed | Reviewed module re-export only; no implementation to port. |
 | `Sources/CrtCore/Deck.swift` | 7542 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
-| `Sources/CrtCore/DigitalStage.swift` | 12116 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/Downscaler.swift` | 11854 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/GifExporter.swift` | 19879 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/DigitalStage.swift` | 12116 | content-reviewed | Reviewed Metal digital-stage orchestration, history-based background reruns and capture-frame sequencing. Separate digital subsystem and platform wrapper. |
+| `Sources/CrtCore/Downscaler.swift` | 11854 | content-reviewed | Reviewed nearest/nearest+/bilinear/bicubic/Lanczos/area Metal downscale kernels and separable minification. Potential standalone resampling reference; no VHS tape behavior. |
+| `Sources/CrtCore/GifExporter.swift` | 19879 | content-reviewed | Reviewed GIF export, frame pipeline assembly and ImageIO destination handling. App exporter, not plugin effect code. |
 | `Sources/CrtCore/GlitchParams.swift` | 27087 | content-reviewed | Full 30-control schema reviewed: reception, tape, deck, condition pickers, timing IDs and defaults. Source UI schema is reference; VHS-90 currently maps a subset to its existing AE controls. |
 | `Sources/CrtCore/GlitchRenderer.swift` | 14627 | content-reviewed | Metal-side simulation owner reviewed: deterministic forward stepping, timing-history resimulation, per-second snapshots, checkpoint-key invalidation and background rerun cancellation. Snapshot/cache semantics are portable; Metal rendering/thread dispatch is not. |
 | `Sources/CrtCore/GlitchStage.swift` | 21056 | content-reviewed | Metal wrapper and three-pass receiver shader orchestration reviewed (gate, chroma reference, compose), including uniform layout, VCR-before-TV ordering and CPU FieldPlan contract. Native AE requires a CPU C++ port, not direct Metal reuse. |
-| `Sources/CrtCore/Howlaround.swift` | 54180 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/HowlaroundPad.swift` | 7570 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/ImageIO.swift` | 4491 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/ImageStats.swift` | 1894 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/MetalContext.swift` | 1014 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/Mp4Exporter.swift` | 35617 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/Howlaround.swift` | 54180 | content-reviewed | Reviewed camera-to-TV feedback effect: 3D camera pose, TV feedback ring, blur, exposure meter, keying and run-up history. Separate CRT feedback effect, not part of analog VHS transport. |
+| `Sources/CrtCore/HowlaroundPad.swift` | 7570 | content-reviewed | Reviewed preview vanishing-point control geometry and drag/snap rules. UI-only geometry, no effect engine. |
+| `Sources/CrtCore/ImageIO.swift` | 4491 | content-reviewed | Reviewed Metal texture load/write/target/staging helpers. Platform I/O wrapper, not reusable analog signal code. |
+| `Sources/CrtCore/ImageStats.swift` | 1894 | content-reviewed | Reviewed row-modulation/luminance image measurement helpers used by tests and export checks. Test/diagnostic utility only. |
+| `Sources/CrtCore/MetalContext.swift` | 1014 | content-reviewed | Reviewed singleton Metal device/queue ownership and Downscaler construction. macOS GPU infrastructure, not portable to AE CPU core. |
+| `Sources/CrtCore/Mp4Exporter.swift` | 35617 | content-reviewed | Reviewed AVFoundation H.264/HEVC/ProRes export pipeline. App export subsystem, not plugin effect code. |
 | `Sources/CrtCore/NtscStage.swift` | 7626 | content-reviewed | Reviewed CPU/Metal bridge to ntsc-rs C API, including shared/managed texture synchronization and clean-frame caching. macOS wrapper only; VHS-90 already links its own AnalogNTSC C++ library. |
 | `Sources/CrtCore/Pipeline.swift` | 7476 | content-reviewed | Reviewed Metal downscale → shader-chain orchestration and frame input ownership. App-specific Metal/librashader integration; not part of physical tape engine. |
 | `Sources/CrtCore/PlaybackPipeline.swift` | 22040 | content-reviewed | Reviewed AVFoundation decode queue, two-filter pipelining, frame generation invalidation and buffer-backed texture pool. macOS playback infrastructure; no direct AE effect port. |
 | `Sources/CrtCore/Presets.swift` | 1375 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
-| `Sources/CrtCore/PreviewCompositor.swift` | 12012 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/PreviewGeometry.swift` | 4836 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/PreviewScaling.swift` | 7192 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/PreviewCompositor.swift` | 12012 | content-reviewed | Reviewed letterbox/zoom/pan/compare preview compositor and Metal render pipelines. UI preview-only. |
+| `Sources/CrtCore/PreviewGeometry.swift` | 4836 | content-reviewed | Reviewed pure drawable-to-texture mapping and texel-row math. Preview-only geometry; no tape processing. |
+| `Sources/CrtCore/PreviewScaling.swift` | 7192 | content-reviewed | Reviewed render/display scale planning and integer-grid constraints. Preview render policy, not tape engine. |
 | `Sources/CrtCore/Receiver.swift` | 48200 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
-| `Sources/CrtCore/ScanlineGrid.swift` | 6334 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/ShaderBypass.swift` | 8205 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
-| `Sources/CrtCore/SourceCrop.swift` | 9603 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/ScanlineGrid.swift` | 6334 | content-reviewed | Reviewed supersampling/integer scanline-grid output planning and area downsampling. CRT export utility, not VHS tape code. |
+| `Sources/CrtCore/ShaderBypass.swift` | 8205 | content-reviewed | Reviewed no-shader nearest enlargement and frame override plumbing. Preview/export presentation path, not analog signal engine. |
+| `Sources/CrtCore/SourceCrop.swift` | 9603 | content-reviewed | Reviewed crop/aspect/position and Metal buffer-backed crop helpers. Source-image geometry utility, not tape behavior. |
 | `Sources/CrtCore/Tape.swift` | 29129 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
 | `Sources/CrtCore/Transport.swift` | 13900 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
-| `Sources/CrtCore/UpdateCheck.swift` | 4189 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/UpdateCheck.swift` | 4189 | content-reviewed | Reviewed GitHub release version comparison and release-note parsing. Network/update UI utility, no port. |
 | `Sources/CrtCore/VcrStage.swift` | 59635 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
-| `Sources/CrtCore/VideoSource.swift` | 12672 | engine-review-pending | Potentially reusable signal/codec/engine code; content audit and port decision pending |
+| `Sources/CrtCore/VideoSource.swift` | 12672 | content-reviewed | Reviewed AVFoundation random/sequential frame readers and CVMetalTextureCache conversion. macOS media I/O infrastructure, not effect engine. |
 | `Sources/CrtSmoke/main.swift` | 13860 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `Sources/CrtSweep/main.swift` | 11373 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `Sources/CrtVcrProbe/main.swift` | 7379 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
