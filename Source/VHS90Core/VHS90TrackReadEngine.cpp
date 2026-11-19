@@ -6,6 +6,16 @@ namespace vhs90 {
 namespace {
 constexpr float kPi=3.14159265358979323846f;
 inline float sinc(float x) noexcept { return std::fabs(x)<1.0e-5f?1.0f:std::sin(x)/x; }
+inline float azimuthLoss(float overlapInSpTrackWidths,float frequencyMHz) noexcept {
+ // NTSCRT TapeFormat::azimuth_loss: x = pi * width_um * tan(12deg) / wavelength_um.
+ // The raster overlap is normalized to one 58 um SP track width.
+ constexpr float kTrackWidthUm=58.0f;
+ constexpr float kWritingSpeedUmPerUs=5.8f;
+ constexpr float kTanAzimuth=0.21255656f;
+ const float widthUm=overlapInSpTrackWidths*kTrackWidthUm;
+ const float x=kPi*widthUm*kTanAzimuth*frequencyMHz/kWritingSpeedUmPerUs;
+ return sinc(x);
+}
 inline bool valid(ConstImageView s,ImageView d) noexcept {
  return s.rgba&&d.rgba&&s.width>0&&s.height>0&&d.width==s.width&&d.height==s.height&&
  s.rowStrideFloats>=s.width*4&&d.rowStrideFloats>=d.width*4&&s.rgba!=d.rgba;
