@@ -58,6 +58,6 @@ License: permissive custom license; author says use is unrestricted and attribut
 
 ## Verification boundary
 
-- The fixed-point EQ engine and composite integration are in the current CMake test set; latest combined run must be checked after the coefficient-overflow fix and UI wiring.
-- Static AE parameter audit after this addition: 79 real parameter slots and 79 `PF_ADD_*` calls. This is not a Windows/MSVC AE SDK build or a live After Effects runtime test.
+- GitHub Actions run `44606767936` passed **25/25 CTest tests**, including the fixed-point equalizer and composite integration after the coefficient-overflow correction.
+- Static AE parameter audit after this addition: **79 real parameter slots and 79 `PF_ADD_*` calls**. This is not a Windows/MSVC AE SDK build or a live After Effects runtime test.
 - The 32-file NTSC-CRT source inventory is complete. The portable three-band EQ is integrated; bottom-only VHS aberration is intentionally represented by VHS-90's more flexible tracking/sync region modules rather than a second hard-coded bottom effect.
