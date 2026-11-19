@@ -14,6 +14,13 @@ struct TapeTransportParams {
     float trackingOffsetPixels=0.0f;
     float trackingSlopePixels=0.0f;
     float servoJitterPixels=0.0f;
+    // Deterministic control-track pulse/PI servo. All controls are normalized 0..1.
+    float controlTrackServoAmount=0.0f;
+    float controlTrackPulseStrength=1.0f;
+    float controlTrackPulseDropout=0.0f;
+    float controlTrackFalsePulseChance=0.0f;
+    float pictureSearchSpeed=1.0f;
+    float trackingTargetPixels=0.0f;
     float verticalScale=1.0f;
     std::uint32_t seed=1;
     std::int64_t frame=0;
