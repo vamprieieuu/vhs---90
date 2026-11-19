@@ -18,10 +18,10 @@ inline bool valid(ConstImageView s,ImageView d) noexcept {
 }
 bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams&p) noexcept {
  if(!valid(src,dst)||!std::isfinite(p.lumaAmount)||!std::isfinite(p.chromaAmount)||
-    !std::isfinite(p.compositeAmount)||!std::isfinite(p.hueBiasDegrees)||
+    !std::isfinite(p.compositeAmount)||!std::isfinite(p.chromaLoss)||!std::isfinite(p.hueBiasDegrees)||
     p.lumaAmount<0.0f||p.chromaAmount<0.0f||p.compositeAmount<0.0f) return false;
- const float ly=std::clamp(p.lumaAmount,0.0f,1.0f),ch=std::clamp(p.chromaAmount,0.0f,1.0f),co=std::clamp(p.compositeAmount,0.0f,1.0f);
- if(ly<=0.0f&&ch<=0.0f&&co<=0.0f){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
+ const float ly=std::clamp(p.lumaAmount,0.0f,1.0f),ch=std::clamp(p.chromaAmount,0.0f,1.0f),co=std::clamp(p.compositeAmount,0.0f,1.0f),loss=std::clamp(p.chromaLoss,0.0f,5000.0f)/65000.0f;
+ if(ly<=0.0f&&ch<=0.0f&&co<=0.0f&&loss<=0.0f){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
  const int lw=std::max(1,p.lumaCellWidth),lh=std::max(1,p.lumaCellHeight),cw=std::max(1,p.chromaCellWidth),chh=std::max(1,p.chromaCellHeight);
  const float angle=p.hueBiasDegrees*kPi/180.0f,di=std::cos(angle),dq=std::sin(angle);
  for(int y=0;y<src.height;++y){const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
@@ -32,6 +32,7 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
    if(ly>0){const float n=gaussian(std::uint32_t(x/lw),std::uint32_t(y/lh),p.seed^0xC0FFEE11u,p.frame);q.y+=n*ly*0.10f;}
    if(ch>0){const float n=gaussian(std::uint32_t(x/cw),std::uint32_t(y/chh),p.seed^0x55AA7733u,p.frame);q.i+=n*ch*0.10f*di;q.q+=n*ch*0.10f*dq;}
    if(co>0){const float n=gaussian(std::uint32_t(x),std::uint32_t(y),p.seed^0x1234ABCDu,p.frame);q.y+=n*co*0.035f;}
+   if(loss>0.0f&&hash01(0u,std::uint32_t(y),p.seed^0xC4A05EEDu,p.frame)<loss){q.i*=0.08f;q.q*=0.08f;}
    rgb=yiqToRgb(q);if(p.premultipliedAlpha){rgb.r*=a;rgb.g*=a;rgb.b*=a;}
    out[0]=rgb.r;out[1]=rgb.g;out[2]=rgb.b;out[3]=a;
   }
