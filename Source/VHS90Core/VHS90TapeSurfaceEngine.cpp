@@ -129,9 +129,20 @@ TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams&p) n
  const float fieldLine=(float(p.rasterVbiLines)+v*float(std::max(1,p.rasterActiveLines)))/totalLines;
  const float along=fieldLine*kTrackLengthMm+((kActiveStartUs+u*kActiveLengthUs)/kLinePeriodUs)*kLineLengthMm;
  const double fieldAdvance=kAdvancePerFieldMm/double(p.tapeSpeed+1u);
- const double x=double(p.frame*2)*fieldAdvance+double(along*std::cos(kTrackAngle));
- const float y=1.0f+along*std::sin(kTrackAngle);
- return sampleTapeSurfaceAtMm(x,y,p,true,true);
+ const double origin=double(p.frame*2)*fieldAdvance+double(along*std::cos(kTrackAngle));
+ const float centerY=1.0f+along*std::sin(kTrackAngle);
+ const float headWidthMm=p.tapeSpeed==0?0.058f:0.026f;
+ TapeSurfaceSample out{};out.magnetization=0.0f;
+ for(int k=0;k<4;++k){
+  const float across=(float(k)-1.5f)*0.25f*headWidthMm;
+  const double x=origin-double(across*std::sin(kTrackAngle));
+  const float y=centerY+across*std::cos(kTrackAngle);
+  const auto q=sampleTapeSurfaceAtMm(x,y,p,true,true);
+  out.magnetization+=q.magnetization*0.25f;out.spacingLift+=q.spacingLift*0.25f;
+  out.roughness+=q.roughness*0.25f;out.creaseLoss+=q.creaseLoss*0.25f;
+  out.film+=q.film*0.25f;out.shed+=q.shed*0.25f;
+ }
+ return out;
 }
 bool processTapeSurface(ConstImageView src,ImageView dst,const TapeSurfaceParams&p) noexcept {
  if(!valid(src,dst))return false;
