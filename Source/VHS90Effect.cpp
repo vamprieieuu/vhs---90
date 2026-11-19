@@ -429,7 +429,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             }
             if(s.tapeSurface>0) {
                 const float a=clamp01(s.tapeSurface/100.0f);
-                p.tapeSurfaceEnabled=true; p.tapeSurface.seed=ntscrtTapeSeed(0x90A115FAu); p.tapeSurface.frame=s.frame;
+                p.tapeSurfaceEnabled=true; p.tapeSurface.seed=ntscrtTapeSeed(1u); p.tapeSurface.frame=s.frame;
                 p.tapeSurface.defectDensity=ntscrtTapeDropoutAmount(a);
                 p.tapeSurface.oxideLoss=ntscrtTapeWearAmount(a);
                 p.tapeSurface.scratchDensity=ntscrtTapeScratchAmount(a);
