@@ -158,6 +158,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         }
 
         ConstImageView decodedView{decoded.data(),w,h,w*4};
+        std::vector<float> tapeDetailed;
+        if(p.tapeDetailEnabled) {
+            tapeDetailed.resize(count*4);
+            ImageView detailView{tapeDetailed.data(),w,h,w*4};
+            TapeDetailParams dp=p.tapeDetail;
+            dp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processTapeDetail(decodedView,detailView,dp)) return false;
+            decodedView={tapeDetailed.data(),w,h,w*4};
+        }
         std::vector<float> graded;
         if(p.imageGradeEnabled) {
             graded.resize(count*4);
