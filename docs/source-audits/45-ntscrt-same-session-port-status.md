@@ -63,7 +63,7 @@ The five Screen Loop presets require a dedicated feedback/reprojection stage; th
 
 ## Source audit coverage — honest status
 
-Content-level review in this work pass includes the Rust engine files below and the corresponding Swift reference implementations `Sources/CrtCore/{Tape,Deck,Transport,Receiver,VcrStage}.swift`, plus `Presets.swift`:
+Content-level review in this work pass includes the Rust engine files below and the corresponding Swift reference implementations `Sources/CrtCore/{Tape,Deck,Transport,Receiver,VcrStage}.swift`, plus `Presets.swift`, `GlitchParams.swift` and `GlitchStage.swift`:
 - `port/engine/src/glitch/transport.rs`
 - `port/engine/src/glitch/deck.rs`
 - `port/engine/src/glitch/tape.rs`
@@ -75,7 +75,7 @@ Content-level review in this work pass includes the Rust engine files below and 
 - `port/engine/src/glitch/glitch.wgsl`
 - relevant VHS-90 transport, track-read, head-condition, composite, effect adapter, CMake and smoke-test files.
 
-The 359-file ledger currently records 20 content-reviewed files, 45 parsed preset JSON files, 56 engine-review-pending files, 73 platform-review-pending files, 58 test/reference-pending files, 49 inventory-only files, 45 asset-inventory files and 13 metadata-inventory files. The remaining upstream Swift app, Rust UI/CLI/MCP, codec, media/export, shader, build, dependency, fixture and binary-asset files have not all received a line-by-line content review. They must be classified as reusable engine, platform-only, test/reference, generated/vendor, or irrelevant to native AE before the source audit can be marked complete.
+The 359-file ledger currently records 22 content-reviewed files, 45 parsed preset JSON files, 54 engine-review-pending files, 73 platform-review-pending files, 58 test/reference-pending files, 49 inventory-only files, 45 asset-inventory files and 13 metadata-inventory files. The remaining upstream Swift app, Rust UI/CLI/MCP, codec, media/export, shader, build, dependency, fixture and binary-asset files have not all received a line-by-line content review. They must be classified as reusable engine, platform-only, test/reference, generated/vendor, or irrelevant to native AE before the source audit can be marked complete.
 
 ## Still required before NTSCRT can be called finished
 
