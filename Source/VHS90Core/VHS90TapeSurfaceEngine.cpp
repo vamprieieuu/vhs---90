@@ -59,12 +59,6 @@ inline bool valid(ConstImageView s,ImageView d) noexcept {
 }
 inline bool inactive(const TapeSurfaceParams&p) noexcept { return p.defectDensity<=0.0f&&p.edgeLift<=0.0f&&p.surfaceRoughness<=0.0f&&p.oxideLoss<=0.0f&&p.scratchDensity<=0.0f&&p.creaseStrength<=0.0f&&p.moldAmount<=0.0f&&p.vaselineAmount<=0.0f&&p.pinholeAmount<=0.0f&&p.flakeAmount<=0.0f; }
 }
-namespace {
-float curve11(float knob,const float (&values)[11]) noexcept {
- const float x=std::clamp(knob,0.0f,1.0f)*10.0f;const int i=std::min(9,int(x));
- return values[i]+(values[i+1]-values[i])*(x-float(i));
-}
-}
 double tapeWidthMm() noexcept { return double(kTapeWidthMm); }
 double tapeTrackStartMm() noexcept { return double(kTrackStartMm); }
 double tapeTrackLengthMm() noexcept { return double(kTrackLengthMm); }
