@@ -308,7 +308,20 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             p.waveformCompositeEnabled=(s.signalModel==2 && s.colorSystem==1);
             if(p.waveformCompositeEnabled) {
                 auto& e=p.waveformComposite.effects;
-                e.random_seed=0x90A11E5Eu;
+                auto& d=p.waveformComposite.decoder;
+                const std::uint32_t frameSeed=0x90A11E5Eu+std::uint32_t(s.frame)*0x9E3779B9u;
+                e.random_seed=frameSeed;
+                d.random_seed=frameSeed^0x85EBCA6Bu;
+                const float speedLuma=(s.tapeSpeed==1)?4.2e6f:((s.tapeSpeed==2)?3.0e6f:2.0e6f);
+                const float speedI=(s.tapeSpeed==1)?1.1e6f:((s.tapeSpeed==2)?0.8e6f:0.6e6f);
+                const float speedQ=(s.tapeSpeed==1)?0.45e6f:((s.tapeSpeed==2)?0.35e6f:0.25e6f);
+                p.waveformComposite.signal.luma_cutoff_hz=speedLuma;
+                p.waveformComposite.signal.i_cutoff_hz=speedI;
+                p.waveformComposite.signal.q_cutoff_hz=speedQ;
+                d.saturation=1.0f;
+                d.h_lock_instability=clamp01(s.afcHunt/100.0f);
+                d.v_hold_instability=clamp01(s.vsyncNoise/100.0f);
+                d.burst_lock_instability=clamp01(s.colorPhaseDrift/100.0f);
                 e.rf_drift=clamp01(s.rfDrift/100.0f);
                 e.hum=clamp01(s.rfHum/100.0f);
                 e.am_nonlinearity=clamp01(s.rfAm/100.0f);
