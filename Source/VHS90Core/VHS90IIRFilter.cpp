@@ -99,6 +99,24 @@ inline RGB unassociate(RGB c,float a,bool premul) noexcept {
 }
 }
 
+YiqBandwidthParams makeVhsTapeBandwidth(VHS90TapeSpeed speed) noexcept {
+    YiqBandwidthParams p;
+    p.sampleRateHz=14318181.8f;
+    switch(speed) {
+        case VHS90TapeSpeed::LP:
+            p.lumaCutoffHz=1900000.0f;p.iCutoffHz=300000.0f;p.qCutoffHz=300000.0f;
+            p.iDelaySamples=12;p.qDelaySamples=12;break;
+        case VHS90TapeSpeed::EP:
+            p.lumaCutoffHz=1400000.0f;p.iCutoffHz=280000.0f;p.qCutoffHz=280000.0f;
+            p.iDelaySamples=14;p.qDelaySamples=14;break;
+        case VHS90TapeSpeed::SP:
+        default:
+            p.lumaCutoffHz=2400000.0f;p.iCutoffHz=320000.0f;p.qCutoffHz=320000.0f;
+            p.iDelaySamples=9;p.qDelaySamples=9;break;
+    }
+    return p;
+}
+
 bool processYiqBandwidth(ConstImageView src,ImageView dst,
                          const YiqBandwidthParams& p) noexcept {
     if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||
