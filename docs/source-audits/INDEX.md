@@ -37,6 +37,7 @@ These reports are based on the supplied vhs.zip archive and the linked VHS-90 re
 - 26-vhs-camera-reference-clips.md — Fxc6 and Gen 7 before/after camera clips.
 - 27-vhs-damage-lab-reference-specs.md — 20 prompt documents and 19 visual references.
 - 28-vhs90-region-engine-implementation.md — new arbitrary-region C++ module and sanitizer tests.
+- 29-vhs90-static-engine-implementation.md — procedural static modes and deterministic/alpha tests.
 
 ## Current project status
 
