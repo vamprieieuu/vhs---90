@@ -50,9 +50,9 @@ int main() {
     // RF instability is an independent post-decode module.
     std::vector<float> rfOnly(src.size());
     ImageView rfOnlyView{rfOnly.data(),w,h,w*4};
-    post=p;post.compositeSignalStrength=0.0f;post.inputBandwidthEnabled=false;post.outputBandwidthEnabled=false;
-    post.rfInstabilityEnabled=true;post.rfInstability.drift=.65f;post.rfInstability.hum=.4f;post.rfInstability.amNonlinearity=.7f;
-    assert(processCompositeRoundTrip(si,rfOnlyView,post));assert(rfOnly!=src);
+    CompositeParams rf=p;rf.compositeSignalStrength=0.0f;rf.inputBandwidthEnabled=false;rf.outputBandwidthEnabled=false;
+    rf.rfInstabilityEnabled=true;rf.rfInstability.drift=.65f;rf.rfInstability.hum=.4f;rf.rfInstability.amNonlinearity=.7f;
+    assert(processCompositeRoundTrip(si,rfOnlyView,rf));assert(rfOnly!=src);
 
     // Post-signal modules can run without forcing the composite encoder/decoder.
     std::vector<float> postOnly(src.size()),noiseOnly(src.size());
