@@ -69,9 +69,12 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             const std::size_t base=std::size_t(row)*w;
             for(int x=0;x<w;++x) {
                 const int phase=(x+xi)&3;
-                encoded[base+x]=y[base+x]+i[base+x]*kIMult[phase]+q[base+x]*kQMult[phase];
+                y[base+x]+=i[base+x]*kIMult[phase]+q[base+x]*kQMult[phase];
             }
         }
+
+        std::fill(i.begin(),i.end(),0.0f);
+        std::fill(q.begin(),q.end(),0.0f);
 
         std::vector<float> scratch(w);
         for(int row=0;row<h;++row) {
@@ -79,14 +82,14 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             const std::size_t base=std::size_t(row)*w;
             if(p.demodulator==CompositeDemodulator::Box || h<2) {
                 for(int x=0;x<w;++x) {
-                    const float c=encoded[base+std::min(x+2,w-1)];
-                    const float a0=x>0?encoded[base+x-1]:16.0f/255.0f;
-                    const float a1=encoded[base+x];
-                    const float a2=encoded[base+std::min(x+1,w-1)];
+                    const float c=y[base+std::min(x+2,w-1)];
+                    const float a0=x>0?y[base+x-1]:16.0f/255.0f;
+                    const float a1=y[base+x];
+                    const float a2=y[base+std::min(x+1,w-1)];
                     const float a3=encoded[base+std::min(x+2,w-1)];
                     scratch[x]=(a0+a1+a2+a3)*0.25f;
                     const float chroma=c-scratch[x];
-                    demodulateChroma(chroma,x,xi,decodedI.data()+base,decodedQ.data()+base,w);
+                    demodulateChroma(chroma,x,xi,i.data()+base,q.data()+base,w);
                 }
                 std::copy(scratch.begin(),scratch.end(),decodedY.begin()+base);
             } else {
@@ -96,9 +99,9 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
                     const float cur=encoded[base+x];
                     float blended=cur;
                     if(p.demodulator==CompositeDemodulator::OneLineComb) {
-                        blended=(cur+encoded[std::size_t(prev)*w+x])*0.5f;
+                        blended=(cur+y[std::size_t(prev)*w+x])*0.5f;
                     } else {
-                        blended=cur*0.5f+encoded[std::size_t(prev)*w+x]*0.25f+encoded[std::size_t(next)*w+x]*0.25f;
+                        blended=cur*0.5f+encoded[std::size_t(prev)*w+x]*0.25f+y[std::size_t(next)*w+x]*0.25f;
                     }
                     decodedY[base+x]=blended;
                     const float chroma=blended-cur;
@@ -111,7 +114,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         for(int row=0;row<h;++row) for(int x=0;x<w;++x) {
             const std::size_t idx=std::size_t(row)*w+x;
             const float alpha=src.rgba[row*src.rowStrideFloats+x*4+3];
-            RGB rgb=yiqToRgb({decodedY[idx],decodedI[idx],decodedQ[idx]});
+            RGB rgb=yiqToRgb({decodedY[idx],i[idx],q[idx]});
             if(p.premultipliedAlpha) { rgb.r*=alpha; rgb.g*=alpha; rgb.b*=alpha; }
             float* out=decoded.data()+idx*4;
             out[0]=rgb.r; out[1]=rgb.g; out[2]=rgb.b; out[3]=alpha;
