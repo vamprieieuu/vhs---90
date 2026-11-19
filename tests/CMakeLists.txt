@@ -24,3 +24,7 @@ target_link_libraries(vhs90_engine_integration_smoke PRIVATE
     vhs90_image_degradation
 )
 add_test(NAME vhs90_engine_integration_smoke COMMAND vhs90_engine_integration_smoke)
+
+add_executable(vhs90_bloom_smoke bloom_smoke.cpp)
+target_link_libraries(vhs90_bloom_smoke PRIVATE vhs90_bloom)
+add_test(NAME vhs90_bloom_smoke COMMAND vhs90_bloom_smoke)
