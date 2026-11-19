@@ -9,6 +9,7 @@ struct TapeSurfaceParams {
     float moldAmount=0.0f, vaselineAmount=0.0f, pinholeAmount=0.0f, flakeAmount=0.0f;
     float alongCellSize=0.018f, acrossCellSize=0.035f;
     std::uint32_t seed=1;
+    std::uint32_t tapeSpeed=0; // 0 SP, 1 LP, 2 EP
     std::int64_t frame=0;
     bool premultipliedAlpha=true;
 };
