@@ -221,6 +221,15 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processMultipathEcho(decodedView,multipathView,mp)) return false;
             decodedView={multipathProcessed.data(),w,h,w*4};
         }
+        std::vector<float> signalGhosted;
+        if(p.signalGhostEnabled) {
+            signalGhosted.resize(count*4);
+            ImageView ghostView{signalGhosted.data(),w,h,w*4};
+            SignalGhostParams gp=p.signalGhost;
+            gp.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processSignalGhost(decodedView,ghostView,gp)) return false;
+            decodedView={signalGhosted.data(),w,h,w*4};
+        }
         std::vector<float> impulseProcessed;
         if(!p.waveformCompositeEnabled && p.impulseNoiseEnabled) {
             impulseProcessed.resize(count*4);
