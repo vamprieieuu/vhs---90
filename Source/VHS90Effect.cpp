@@ -22,7 +22,7 @@
 namespace {
 enum ParamIndex {
     PARAM_INPUT=0, PARAM_MASTER, PARAM_SIGNAL_TOPIC, PARAM_COMPOSITE_AMOUNT,
-    PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_SIGNAL_MODEL, PARAM_TAPE_SPEED, PARAM_TAPE_DETAIL, PARAM_CHROMA_SHIFT, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
+    PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_SIGNAL_MODEL, PARAM_TAPE_SPEED, PARAM_TAPE_DETAIL, PARAM_TRACK_READ, PARAM_TRACK_MISALIGNMENT, PARAM_CHROMA_SHIFT, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
     PARAM_LUMA_NOISE, PARAM_CHROMA_NOISE, PARAM_COMPOSITE_NOISE, PARAM_NOISE_HUE,
     PARAM_RF_DRIFT, PARAM_RF_HUM, PARAM_RF_AM, PARAM_AGC_PUMP, PARAM_IMPULSE_NOISE, PARAM_DROPOUTS,
     PARAM_MULTIPATH_GAIN, PARAM_MULTIPATH_DELAY, PARAM_MULTIPATH_ENSEMBLE, PARAM_SIGNAL_GHOST, PARAM_CHROMA_DELAY, PARAM_CHROMA_LOSS,
@@ -40,7 +40,7 @@ enum ParamIndex {
     PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_COUNT
 };
 enum ParamDiskID {
-    ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_CHROMA_SHIFT,
+    ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT,
     ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_NOISE, ID_CHROMA_NOISE, ID_COMPOSITE_NOISE, ID_NOISE_HUE, ID_RF_DRIFT, ID_RF_HUM, ID_RF_AM, ID_AGC_PUMP, ID_IMPULSE_NOISE, ID_DROPOUTS,
     ID_MULTIPATH_GAIN, ID_MULTIPATH_DELAY, ID_MULTIPATH_ENSEMBLE, ID_SIGNAL_GHOST, ID_CHROMA_DELAY, ID_CHROMA_LOSS,
     ID_AFC_HUNT, ID_CHROMA_FLUTTER, ID_YC_CROSSTALK, ID_COLOR_PHASE_DRIFT, ID_COLOR_DRIFT,
@@ -63,7 +63,7 @@ static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35;
     A_long colorSystem=1, signalModel=1, tapeSpeed=1;
-    float tapeDetail=100.0f, chromaShift=0.0f;
+    float tapeDetail=100.0f, trackRead=0.0f, trackMisalignment=0.0f, chromaShift=0.0f;
     float chromaSubsample=0, verticalChroma=0, verticalLuma=0;
     float lumaNoise=0, chromaNoise=0, compositeNoise=0, noiseHue=0;
     float rfDrift=0, rfHum=0, rfAm=0, agcPump=0, impulseNoise=0, dropouts=0;
@@ -106,6 +106,8 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Signal Model",2,1,kSignalModelChoices,ID_SIGNAL_MODEL);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tape Speed",3,1,kTapeSpeedChoices,ID_TAPE_SPEED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Detail",6,100,6,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DETAIL);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Adjacent Track Crosstalk",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_READ);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Track Misalignment",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_MISALIGNMENT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",0,20,0,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Subsample / Bleed",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_SUBSAMPLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Chroma Delay",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_CHROMA);
@@ -206,7 +208,8 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_PAL_MODE,s.colorSystem); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_SIGNAL_MODEL,s.signalModel); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TAPE_SPEED,s.tapeSpeed); if(err!=PF_Err_NONE) return err;
-    READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
+    READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_TRACK_READ,trackRead);
+    READ_FLOAT(PARAM_TRACK_MISALIGNMENT,trackMisalignment); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
     READ_FLOAT(PARAM_CHROMA_SUBSAMPLE,chromaSubsample); READ_FLOAT(PARAM_VERTICAL_CHROMA,verticalChroma);
     READ_FLOAT(PARAM_VERTICAL_LUMA,verticalLuma);
     READ_FLOAT(PARAM_LUMA_NOISE,lumaNoise); READ_FLOAT(PARAM_CHROMA_NOISE,chromaNoise);
@@ -306,7 +309,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool compositeStages=s.tapeDetail<100||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0;
+        const bool compositeStages=s.tapeDetail<100||s.trackRead>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
         if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
@@ -320,6 +323,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             CompositeParams p;
             p.strength=master;
             if(s.tapeDetail<100) { p.tapeDetailEnabled=true; p.tapeDetail.detail=std::max(0.06f,s.tapeDetail/100.0f); p.tapeDetail.minimumWidth=48; }
+            if(s.trackRead>0) { p.trackReadEnabled=true; p.trackRead.amount=clamp01(s.trackRead/100.0f); p.trackRead.trackingOffset=s.trackMisalignment/100.0f; p.trackRead.speed=std::clamp(int(s.tapeSpeed)-1,0,2); }
             if(s.chromaShift>0) { p.chromaChannelShiftEnabled=true; p.chromaChannelShift.shiftPixels=s.chromaShift; } p.compositeSignalStrength=clamp01(s.composite/100.0f); p.frame=s.frame;
             p.inputBandwidthEnabled=(s.composite>0);
             p.outputBandwidthEnabled=(s.composite>0||s.verticalLuma>0);
@@ -624,6 +628,8 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.signalModel=params[PARAM_SIGNAL_MODEL]->u.pd.value;
     s.tapeSpeed=params[PARAM_TAPE_SPEED]->u.pd.value;
     s.tapeDetail=float(params[PARAM_TAPE_DETAIL]->u.fs_d.value);
+    s.trackRead=float(params[PARAM_TRACK_READ]->u.fs_d.value);
+    s.trackMisalignment=float(params[PARAM_TRACK_MISALIGNMENT]->u.fs_d.value);
     s.chromaShift=float(params[PARAM_CHROMA_SHIFT]->u.fs_d.value);
     s.chromaSubsample=float(params[PARAM_CHROMA_SUBSAMPLE]->u.fs_d.value);
     s.verticalChroma=float(params[PARAM_VERTICAL_CHROMA]->u.fs_d.value);
