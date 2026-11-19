@@ -56,6 +56,11 @@ int main() {
     std::vector<float> identityBlack(src.size()); ImageView dib{identityBlack.data(),w,h,w*4};
     assert(processStaticPattern(si,dib,piBlack));
     assert(identityBlack==src);
+    StaticParams pNoDensity; pNoDensity.mode=StaticPatternMode::FullFrameHorizontal;
+    pNoDensity.sourceMix=1.0f; pNoDensity.density=0.0f; pNoDensity.intensity=1.0f;
+    std::vector<float> noDensity(src.size()); ImageView dnd{noDensity.data(),w,h,w*4};
+    assert(processStaticPattern(si,dnd,pNoDensity));
+    assert(noDensity==src);
 
     std::vector<float> semi=src, semiOut(src.size());
     for(size_t i=0;i<semi.size();i+=4) { semi[i]*=0.4f; semi[i+1]*=0.4f; semi[i+2]*=0.4f; semi[i+3]=0.4f; }
