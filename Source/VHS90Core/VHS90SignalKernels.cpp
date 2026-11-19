@@ -88,6 +88,86 @@ bool processYiqChromaBlur(ConstImageView src,ImageView dst,float shift,float ble
     return true;
 }
 
+bool processChromaSubsample(ConstImageView src,ImageView dst,
+                            const ChromaSubsampleParams&p) noexcept {
+    if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||
+       dst.width!=src.width||dst.height!=src.height||
+       src.rowStrideFloats<src.width*4||dst.rowStrideFloats<dst.width*4||
+       src.rgba==dst.rgba||!std::isfinite(p.amount)||!std::isfinite(p.blurRadius)||
+       !std::isfinite(p.iOffsetPixels)||!std::isfinite(p.qOffsetPixels)||
+       p.amount<0.0f||p.blurRadius<0.0f) return false;
+    const float amount=std::min(1.0f,p.amount);
+    const int sx=std::max(1,std::min(8,p.horizontalFactor));
+    const int sy=std::max(1,std::min(8,p.verticalFactor));
+    const int w=src.width,h=src.height,cw=(w+sx-1)/sx,ch=(h+sy-1)/sy;
+    if(amount<=0.0f || (sx==1&&sy==1&&p.blurRadius<=0.0f&&
+       p.iOffsetPixels==0.0f&&p.qOffsetPixels==0.0f)) {
+        for(int y=0;y<h;++y) std::copy_n(src.rgba+y*src.rowStrideFloats,w*4,dst.rgba+y*dst.rowStrideFloats);
+        return true;
+    }
+    try {
+        std::vector<float> lowI(std::size_t(cw)*ch,0.0f),lowQ(lowI.size(),0.0f),coverage(lowI.size(),0.0f);
+        for(int cy=0;cy<ch;++cy) for(int cx=0;cx<cw;++cx) {
+            float si=0.0f,sq=0.0f,sa=0.0f;
+            for(int yy=cy*sy;yy<std::min(h,(cy+1)*sy);++yy) {
+                const float* row=src.rgba+yy*src.rowStrideFloats;
+                for(int xx=cx*sx;xx<std::min(w,(cx+1)*sx);++xx) {
+                    const float* px=row+xx*4; const float a=std::max(0.0f,px[3]);
+                    if(a<=1.0e-6f) continue;
+                    RGB rgb{px[0],px[1],px[2]};
+                    if(p.premultipliedAlpha) { rgb.r/=a;rgb.g/=a;rgb.b/=a; }
+                    const YIQ yiq=rgbToYiq(rgb);
+                    si+=yiq.i*a; sq+=yiq.q*a; sa+=a;
+                }
+            }
+            const std::size_t k=std::size_t(cy)*cw+cx;
+            coverage[k]=sa;
+            if(sa>1.0e-6f) { lowI[k]=si/sa;lowQ[k]=sq/sa; }
+        }
+        const int radius=std::clamp(int(std::ceil(p.blurRadius)),0,24);
+        if(radius>0) {
+            const float sigma=std::max(0.5f,p.blurRadius/float(sx));
+            std::vector<float> weights(std::size_t(radius*2+1));
+            float total=0.0f;
+            for(int d=-radius;d<=radius;++d) { const float q=std::exp(-float(d*d)/(2.0f*sigma*sigma));weights[std::size_t(d+radius)]=q;total+=q; }
+            for(float&v:weights)v/=total;
+            std::vector<float> blurI(lowI.size()),blurQ(lowQ.size());
+            for(int cy=0;cy<ch;++cy) for(int cx=0;cx<cw;++cx) {
+                float si=0.0f,sq=0.0f;
+                for(int d=-radius;d<=radius;++d) {
+                    const int xx=std::clamp(cx+d,0,cw-1);const float q=weights[std::size_t(d+radius)];
+                    si+=lowI[std::size_t(cy)*cw+xx]*q;sq+=lowQ[std::size_t(cy)*cw+xx]*q;
+                }
+                blurI[std::size_t(cy)*cw+cx]=si;blurQ[std::size_t(cy)*cw+cx]=sq;
+            }
+            lowI.swap(blurI);lowQ.swap(blurQ);
+        }
+        auto samplePlane=[&](const std::vector<float>&plane,float x,float y) noexcept {
+            x=std::clamp(x,0.0f,float(cw-1));y=std::clamp(y,0.0f,float(ch-1));
+            const int x0=int(x),y0=int(y),x1=std::min(x0+1,cw-1),y1=std::min(y0+1,ch-1);
+            const float fx=x-x0,fy=y-y0;
+            const float a=plane[std::size_t(y0)*cw+x0]+(plane[std::size_t(y0)*cw+x1]-plane[std::size_t(y0)*cw+x0])*fx;
+            const float b=plane[std::size_t(y1)*cw+x0]+(plane[std::size_t(y1)*cw+x1]-plane[std::size_t(y1)*cw+x0])*fx;
+            return a+(b-a)*fy;
+        };
+        for(int y=0;y<h;++y) {
+            const float* sr=src.rgba+y*src.rowStrideFloats;float* dr=dst.rgba+y*dst.rowStrideFloats;
+            for(int x=0;x<w;++x) {
+                const float* px=sr+x*4;float* out=dr+x*4;const float alpha=px[3];
+                if(alpha<=1.0e-6f) { std::copy_n(px,4,out);continue; }
+                RGB rgb{px[0],px[1],px[2]};if(p.premultipliedAlpha){rgb.r/=alpha;rgb.g/=alpha;rgb.b/=alpha;}
+                const YIQ original=rgbToYiq(rgb);
+                const float ii=samplePlane(lowI,float(x)/sx-p.iOffsetPixels/float(sx),float(y)/sy);
+                const float qq=samplePlane(lowQ,float(x)/sx-p.qOffsetPixels/float(sx),float(y)/sy);
+                RGB result=yiqToRgb({original.y,original.i+(ii-original.i)*amount,original.q+(qq-original.q)*amount});
+                if(p.premultipliedAlpha){result.r*=alpha;result.g*=alpha;result.b*=alpha;}
+                out[0]=result.r;out[1]=result.g;out[2]=result.b;out[3]=alpha;
+            }
+        }
+        return true;
+    } catch(...) { return false; }
+}
+
 bool processVerticalChromaBlend(ConstImageView src,ImageView dst,
                                 const VerticalChromaBlendParams& p) noexcept {
     if(!src.rgba||!dst.rgba||src.width<=0||src.height<=0||
