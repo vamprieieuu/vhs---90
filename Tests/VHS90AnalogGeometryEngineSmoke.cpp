@@ -17,4 +17,9 @@ int main(){using namespace vhs90;constexpr int w=40,h=24;std::vector<float>s(w*h
     ImageView fieldAView{fieldA.data(),w,h,w*4},fieldBView{fieldB.data(),w,h,w*4};
     assert(processAnalogGeometry(si,fieldAView,interlace));assert(processAnalogGeometry(si,fieldBView,interlace));
     assert(fieldA==fieldB&&fieldA!=s);
+    AnalogGeometryParams roll;roll.verticalRoll=.75f;roll.frame=11;roll.seed=9;
+    std::vector<float> rollA(s.size()),rollB(s.size());
+    ImageView rollAView{rollA.data(),w,h,w*4},rollBView{rollB.data(),w,h,w*4};
+    assert(processAnalogGeometry(si,rollAView,roll));assert(processAnalogGeometry(si,rollBView,roll));
+    assert(rollA==rollB&&rollA!=s);
  return 0;}
