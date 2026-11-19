@@ -47,6 +47,19 @@ int main() {
     assert(processCompositeRoundTrip(si,d2,pp));
     assert(one!=two);
 
+    std::vector<float> transportComposite(src.size()),surfaceComposite(src.size()),bothComposite(src.size());
+    ImageView tcv{transportComposite.data(),w,h,w*4}, scv{surfaceComposite.data(),w,h,w*4}, bcv{bothComposite.data(),w,h,w*4};
+    CompositeParams physical=p; physical.tapeTransportEnabled=true; physical.tapeTransport.frame=4;
+    physical.tapeTransport.drumFlutterPixels=1.2f; physical.tapeTransport.flutterPixels=.4f;
+    assert(processCompositeRoundTrip(si,tcv,physical));
+    physical=p; physical.tapeSurfaceEnabled=true; physical.tapeSurface.frame=4;
+    physical.tapeSurface.defectDensity=.8f; physical.tapeSurface.edgeLift=.15f;
+    assert(processCompositeRoundTrip(si,scv,physical));
+    physical.tapeTransportEnabled=true; physical.tapeTransport.drumFlutterPixels=.8f;
+    assert(processCompositeRoundTrip(si,bcv,physical));
+    assert(transportComposite!=boxOut && surfaceComposite!=boxOut && bothComposite!=boxOut);
+    for(size_t i=3;i<bothComposite.size();i+=4) assert(std::fabs(bothComposite[i]-1.0f)<1e-6f);
+
     std::vector<float> palOutput(src.size()),palNoSwitch(src.size());
     ImageView palView{palOutput.data(),w,h,w*4},palNoView{palNoSwitch.data(),w,h,w*4};
     CompositeParams pal=p; pal.palMode=true; pal.palSwitch=true;
