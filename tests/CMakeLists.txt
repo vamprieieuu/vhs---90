@@ -1,0 +1,26 @@
+enable_testing()
+
+add_executable(vhs90_region_effects_smoke region_effects_smoke.cpp)
+target_link_libraries(vhs90_region_effects_smoke PRIVATE vhs90_region_effects)
+add_test(NAME vhs90_region_effects_smoke COMMAND vhs90_region_effects_smoke)
+
+add_executable(vhs90_signal_pipeline_smoke signal_pipeline_smoke.cpp)
+target_link_libraries(vhs90_signal_pipeline_smoke PRIVATE vhs90_analog_signal)
+add_test(NAME vhs90_signal_pipeline_smoke COMMAND vhs90_signal_pipeline_smoke)
+
+add_executable(vhs90_tape_surface_smoke tape_surface_smoke.cpp)
+target_link_libraries(vhs90_tape_surface_smoke PRIVATE vhs90_tape_surface)
+add_test(NAME vhs90_tape_surface_smoke COMMAND vhs90_tape_surface_smoke)
+
+add_executable(vhs90_image_degradation_smoke image_degradation_smoke.cpp)
+target_link_libraries(vhs90_image_degradation_smoke PRIVATE vhs90_image_degradation)
+add_test(NAME vhs90_image_degradation_smoke COMMAND vhs90_image_degradation_smoke)
+
+add_executable(vhs90_engine_integration_smoke engine_integration_smoke.cpp)
+target_link_libraries(vhs90_engine_integration_smoke PRIVATE
+    vhs90_region_effects
+    vhs90_analog_signal
+    vhs90_tape_surface
+    vhs90_image_degradation
+)
+add_test(NAME vhs90_engine_integration_smoke COMMAND vhs90_engine_integration_smoke)
