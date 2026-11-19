@@ -51,6 +51,11 @@ int main() {
     StaticParams pi; pi.intensity=0.0f; pi.sourceMix=1.0f;
     assert(processStaticPattern(si,did,pi));
     assert(identity==src);
+    StaticParams piBlack; piBlack.mode=StaticPatternMode::StaticToBlackout;
+    piBlack.intensity=0.0f; piBlack.sourceMix=1.0f; piBlack.blackoutProbability=1.0f;
+    std::vector<float> identityBlack(src.size()); ImageView dib{identityBlack.data(),w,h,w*4};
+    assert(processStaticPattern(si,dib,piBlack));
+    assert(identityBlack==src);
 
     std::vector<float> semi=src, semiOut(src.size());
     for(size_t i=0;i<semi.size();i+=4) { semi[i]*=0.4f; semi[i+1]*=0.4f; semi[i+2]*=0.4f; semi[i+3]=0.4f; }
