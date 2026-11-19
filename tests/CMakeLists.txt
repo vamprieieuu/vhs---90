@@ -34,3 +34,7 @@ add_test(NAME vhs90_bloom_smoke COMMAND vhs90_bloom_smoke)
 add_executable(vhs90_tape_physics_smoke tape_physics_smoke.cpp)
 target_link_libraries(vhs90_tape_physics_smoke PRIVATE vhs90_tape_physics)
 add_test(NAME vhs90_tape_physics_smoke COMMAND vhs90_tape_physics_smoke)
+
+add_executable(vhs90_temporal_effects_smoke temporal_effects_smoke.cpp)
+target_link_libraries(vhs90_temporal_effects_smoke PRIVATE vhs90_temporal_effects)
+add_test(NAME vhs90_temporal_effects_smoke COMMAND vhs90_temporal_effects_smoke)
