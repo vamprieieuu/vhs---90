@@ -24,7 +24,7 @@ enum ParamIndex {
     PARAM_INPUT=0, PARAM_MASTER, PARAM_SIGNAL_TOPIC, PARAM_COMPOSITE_AMOUNT,
     PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_TAPE_SPEED, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
     PARAM_LUMA_NOISE, PARAM_CHROMA_NOISE, PARAM_COMPOSITE_NOISE, PARAM_NOISE_HUE,
-    PARAM_RF_DRIFT, PARAM_RF_HUM, PARAM_RF_AM, PARAM_IMPULSE_NOISE,
+    PARAM_RF_DRIFT, PARAM_RF_HUM, PARAM_RF_AM, PARAM_AGC_PUMP, PARAM_IMPULSE_NOISE,
     PARAM_MULTIPATH_GAIN, PARAM_MULTIPATH_DELAY, PARAM_MULTIPATH_ENSEMBLE,
     PARAM_AFC_HUNT, PARAM_CHROMA_FLUTTER, PARAM_YC_CROSSTALK,
     PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT,
@@ -38,7 +38,7 @@ enum ParamIndex {
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_TAPE_SPEED,
-    ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_NOISE, ID_CHROMA_NOISE, ID_COMPOSITE_NOISE, ID_NOISE_HUE, ID_RF_DRIFT, ID_RF_HUM, ID_RF_AM, ID_IMPULSE_NOISE,
+    ID_CHROMA_SUBSAMPLE, ID_VERTICAL_CHROMA, ID_VERTICAL_LUMA, ID_LUMA_NOISE, ID_CHROMA_NOISE, ID_COMPOSITE_NOISE, ID_NOISE_HUE, ID_RF_DRIFT, ID_RF_HUM, ID_RF_AM, ID_AGC_PUMP, ID_IMPULSE_NOISE,
     ID_MULTIPATH_GAIN, ID_MULTIPATH_DELAY, ID_MULTIPATH_ENSEMBLE,
     ID_AFC_HUNT, ID_CHROMA_FLUTTER, ID_YC_CROSSTALK, ID_LUMA_SMEAR, ID_BLOOM,
     ID_TAPE_SURFACE, ID_TAPE_TRANSPORT, ID_GEOMETRY, ID_SCANLINES, ID_STATIC_TOPIC,
@@ -58,7 +58,7 @@ struct RenderSettings {
     A_long colorSystem=1, tapeSpeed=1;
     float chromaSubsample=0, verticalChroma=0, verticalLuma=0;
     float lumaNoise=0, chromaNoise=0, compositeNoise=0, noiseHue=0;
-    float rfDrift=0, rfHum=0, rfAm=0, impulseNoise=0;
+    float rfDrift=0, rfHum=0, rfAm=0, agcPump=0, impulseNoise=0;
     float multipathGain=0, multipathDelay=24, multipathEnsemble=0;
     float afcHunt=0, chromaFlutter=0, ycCrosstalk=0, lumaSmear=0, bloom=0;
     float tapeSurface=0, tapeTransport=0, geometry=0, scanlines=0;
@@ -102,6 +102,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Drift",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_RF_DRIFT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Mains Hum",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_RF_HUM);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("AM Nonlinearity",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_RF_AM);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("AGC Pump",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_AGC_PUMP);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Impulse Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_IMPULSE_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Ghost Gain",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_MULTIPATH_GAIN);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Ghost Delay",1,200,1,200,24,1,PF_ValueDisplayFlag_NONE,0,ID_MULTIPATH_DELAY);
@@ -169,6 +170,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_LUMA_NOISE,lumaNoise); READ_FLOAT(PARAM_CHROMA_NOISE,chromaNoise);
     READ_FLOAT(PARAM_COMPOSITE_NOISE,compositeNoise); READ_FLOAT(PARAM_NOISE_HUE,noiseHue);
     READ_FLOAT(PARAM_RF_DRIFT,rfDrift); READ_FLOAT(PARAM_RF_HUM,rfHum); READ_FLOAT(PARAM_RF_AM,rfAm);
+    READ_FLOAT(PARAM_AGC_PUMP,agcPump);
     READ_FLOAT(PARAM_IMPULSE_NOISE,impulseNoise);
     READ_FLOAT(PARAM_MULTIPATH_GAIN,multipathGain); READ_FLOAT(PARAM_MULTIPATH_DELAY,multipathDelay);
     READ_FLOAT(PARAM_MULTIPATH_ENSEMBLE,multipathEnsemble);
@@ -254,7 +256,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool compositeStages=s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.impulseNoise>0||s.multipathGain>0||s.multipathEnsemble>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
+        const bool compositeStages=s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.multipathGain>0||s.multipathEnsemble>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.lumaSmear>0||s.bloom>0||s.tapeSurface>0||s.tapeTransport>0||s.geometry>0||s.scanlines>0;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
         if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
@@ -332,6 +334,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.rfInstability.drift=clamp01(s.rfDrift/100.0f);
                 p.rfInstability.hum=clamp01(s.rfHum/100.0f);
                 p.rfInstability.amNonlinearity=clamp01(s.rfAm/100.0f);
+                p.rfInstability.agcPump=clamp01(s.agcPump/100.0f);
             }
             if(s.lumaNoise>0||s.chromaNoise>0||s.compositeNoise>0) {
                 p.analogNoiseEnabled=true; p.analogNoise.seed=0x90A11E5Eu; p.analogNoise.frame=s.frame;
@@ -462,6 +465,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.rfDrift=float(params[PARAM_RF_DRIFT]->u.fs_d.value);
     s.rfHum=float(params[PARAM_RF_HUM]->u.fs_d.value);
     s.rfAm=float(params[PARAM_RF_AM]->u.fs_d.value);
+    s.agcPump=float(params[PARAM_AGC_PUMP]->u.fs_d.value);
     s.impulseNoise=float(params[PARAM_IMPULSE_NOISE]->u.fs_d.value);
     s.multipathGain=float(params[PARAM_MULTIPATH_GAIN]->u.fs_d.value);
     s.multipathDelay=float(params[PARAM_MULTIPATH_DELAY]->u.fs_d.value);
