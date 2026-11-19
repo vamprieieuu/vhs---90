@@ -27,5 +27,9 @@ int main() {
     LumaSmearParams smp; smp.strength=1.0f; smp.decay=0.3f; smp.offsetPx=1.0f; smp.premultipliedAlpha=false;
     assert(processLumaSmear(smi,smo,smp));
     assert(smearDst[2*4+0]>0.0f && smearDst[2*4+3]==1.0f);
+    smp.highlightThreshold=0.2f; smp.highlightStrength=0.5f; smp.tapCount=16;
+    std::fill(smearDst.begin(),smearDst.end(),0.0f);
+    assert(processLumaSmear(smi,smo,smp));
+    assert(smearDst[2*4+0]>=0.0f && smearDst[2*4+3]==1.0f);
     return 0;
 }
