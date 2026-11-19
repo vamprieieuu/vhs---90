@@ -48,6 +48,7 @@ These reports are based on the supplied vhs.zip archive and the linked VHS-90 re
 - 43-ntscrt-preset-inventory-and-transport-findings.md — all 45 upstream JSON presets parsed; source physics findings for transport, deck, tape, receiver and VCR stages.
 - 44-ntscrt-track-read-physics-port.md — adjacent-track overlap and azimuth-loss C++ port.
 - 45-ntscrt-same-session-port-status.md — current transport/head recurrence implementation, CI result, attribution and remaining unported engine stages.
+- 46-ntscrt-359-file-disposition-ledger.md — complete 359-path ledger with explicit reviewed/parsed/pending statuses; inventory is complete but content-level closure remains open.
 
 ## Current project status
 
