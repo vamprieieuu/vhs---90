@@ -106,3 +106,12 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Linux core CI only validates host-independent C++ modules and smoke tests. It does not compile the AE adapter or establish Windows/MSVC, PiPL, AEX loading, After Effects rendering or MFR success.
 - NTSCRT MIT attribution remains under ThirdParty/NTSCRT. Per-component upstream shader/runtime licenses were reviewed; GPL shader source is excluded from reuse by default.
 
+
+## Source audit 48 — URP-VHS-Retro-Effects
+
+- Fast-audited `vhs/github repos/URP-VHS-Retro-Effects-main/` from the user Library `vhs.zip`: 291 archive entries, including 144 Unity `.meta` sidecars and 147 substantive files.
+- Inspected all four C# scripts and the complete 343-line HLSL shader. Unity URP renderer plumbing and scene/assets were classified as host-specific/non-portable.
+- Ported the source's distinct multi-scale animated horizontal tape-noise algorithm into `VHS90AnalogNoiseEngine`; exposed `Tape Noise (Multi-Scale)` as a native AE Signal parameter and added deterministic/time-varying smoke coverage.
+- Existing VHS-90 chroma bleed/bandwidth, luma smear, edge enhancement/ringing, interlace/geometry and scanline engines already cover the other major source effects; no duplicate engines were added.
+- MIT attribution and license preserved in `ThirdParty/URP-VHS-Retro-Effects/`; full disposition in `docs/source-audits/48-urp-vhs-retro-effects.md`.
+- Linux CI for the port is pending final run; Windows/MSVC and AE-host validation are not claimed.
