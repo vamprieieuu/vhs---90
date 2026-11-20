@@ -3,11 +3,13 @@
 #include "VHS90DirectWriteText.h"
 #include <windows.h>
 #include <d2d1.h>
+#include <d2d1helper.h>
 #include <dwrite.h>
 #include <wincodec.h>
 #include <wrl/client.h>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <utility>
 namespace vhs90::win {
 namespace {
@@ -55,6 +57,19 @@ bool findFont(IDWriteFactory* factory, const wchar_t* familyName) noexcept {
 }
 float finiteClamp(float v, float lo, float hi, float fallback) noexcept {
     return std::isfinite(v) ? std::max(lo, std::min(hi, v)) : fallback;
+}
+DWRITE_READING_DIRECTION inferReadingDirection(const std::wstring& text) noexcept {
+    for (wchar_t ch : text) {
+        const unsigned int c = static_cast<unsigned int>(ch);
+        if ((c >= 0x0590u && c <= 0x08FFu) || (c >= 0xFB1Du && c <= 0xFDFFu) ||
+            (c >= 0xFE70u && c <= 0xFEFFu) || (c >= 0x10800u && c <= 0x10FFFu) ||
+            (c >= 0x1E800u && c <= 0x1EEFFu))
+            return DWRITE_READING_DIRECTION_RIGHT_TO_LEFT;
+        if ((c >= L'A' && c <= L'Z') || (c >= L'a' && c <= L'z') ||
+            (c >= 0x00C0u && c <= 0x02AFu) || (c >= 0x0370u && c <= 0x058Fu))
+            return DWRITE_READING_DIRECTION_LEFT_TO_RIGHT;
+    }
+    return DWRITE_READING_DIRECTION_LEFT_TO_RIGHT;
 }
 void compositePremultiplied(ImageView dst, const BYTE* bgra, UINT stride, bool dstPremul) noexcept {
     for (int y = 0; y < dst.height; ++y) {
@@ -150,6 +165,7 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
         }
         if (o.direction == TextDirection::RightToLeft) format->SetReadingDirection(DWRITE_READING_DIRECTION_RIGHT_TO_LEFT);
         else if (o.direction == TextDirection::LeftToRight) format->SetReadingDirection(DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+        else format->SetReadingDirection(inferReadingDirection(text));
         if (o.alignment == TextAlignment::Center) format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
         else if (o.alignment == TextAlignment::Trailing) format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
         else format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
@@ -161,7 +177,7 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
         const auto color = D2D1::ColorF(finiteClamp(o.red,0,1,1), finiteClamp(o.green,0,1,1),
                                         finiteClamp(o.blue,0,1,1), finiteClamp(o.opacity,0,1,1));
         hr = target->CreateSolidColorBrush(color, &brush); if (FAILED(hr)) return result;
-        target->BeginDraw(); target->Clear(D2D1::ColorF(0, 0.0f));
+        target->BeginDraw(); target->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
         target->DrawTextLayout(D2D1::Point2F(x,y), layout.Get(), brush.Get(), D2D1_DRAW_TEXT_OPTIONS_CLIP);
         hr = target->EndDraw(); if (FAILED(hr)) return result;
         ComPtr<IWICBitmapLock> lock; WICRect rect{0,0,dst.width,dst.height};
