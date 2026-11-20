@@ -7,18 +7,6 @@ on:
         description: "Optional downloadable URL for the original vhs.zip (SDK + fonts). Leave blank when vhs.zip is in the repository root."
         required: false
         type: string
-  push:
-    branches:
-      - work/osd-directwrite-integration-map
-    paths:
-      - 'CMakeLists.txt'
-      - 'build.ps1'
-      - 'Source/**'
-      - 'resources/**'
-      - 'Resources/Fonts/**'
-      - 'tools/**'
-      - '.github/workflows/windows-aex-build.yml'
-
 permissions:
   contents: write
 
