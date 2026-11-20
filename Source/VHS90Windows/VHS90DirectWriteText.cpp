@@ -173,7 +173,7 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
         hr = f.dwrite->CreateTextFormat(family.c_str(), nullptr, weight,
             DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", &format);
         if (FAILED(hr)) {
-            hr = f.dwrite->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+            hr = f.dwrite->CreateTextFormat(L"Segoe UI", nullptr, weight,
                 DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", &format);
             if (FAILED(hr)) return result;
             result.usedFallbackFont = true;
