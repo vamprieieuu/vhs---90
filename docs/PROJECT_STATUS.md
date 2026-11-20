@@ -314,4 +314,4 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Current runtime has no MSVC/Windows SDK toolchain, so no local VHS-90 PiPL/AEX build is possible. Continue with the Windows/MSVC build gate before claiming a test-ready plugin.
 
 
-- Latest static/core validation after the text jitter/font-family updates: VHS-90 Core CI run `44835315872` passed on commit `c07234be26fe28f8ce17a4be07fd50e31aa04fa7`. The matching Windows + Linux OSD Core/DirectWrite workflow `44835316039` was still running when this note was written. Neither workflow compiles the full AE effect adapter or creates an AEX.
+- Latest static/core validation after the text jitter/font-family updates: VHS-90 Core CI run `44835315872` passed on commit `c07234be26fe28f8ce17a4be07fd50e31aa04fa7`. The matching Windows + Linux OSD Core/DirectWrite workflow `44835316039` completed successfully (37/37 tests, including Windows `VHS90DirectWriteSmoke`). Neither workflow compiles the full AE effect adapter or creates an AEX.
