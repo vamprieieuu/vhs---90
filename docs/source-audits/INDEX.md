@@ -72,3 +72,5 @@ See docs/PROJECT_STATUS.md for the current build/integration boundary. The repos
 - 57-vhs-damage-lab-engines-and-camera-handoff.md — five Tracking renderer types, eight editable presets, four simultaneous tracking layers, five-mode Tear & Chroma with five independently configurable bands, five-mode Particle Pattern Engine, and 11 procedural static patterns; AE UI/render wiring and Linux CI 34/34 pass. Next: deeper VHS Cameras clip analysis.
 
 - 58-fxc6-gen7-camera-reference-deep-analysis.md — reopened all six VHS Camera files, re-sampled four clips, corrected Fxc6 alignment/metric caveats, analyzed Gen 7 temporal state cycling and measured after-only AAC audio; added separate FXC6 and Gen 7 Camera Profile recipes.
+
+- 61-ntscqt-spectral-ringing-preemphasis-exact-port-spec.md — source-code re-verification of both NTSC-QT frequency-domain ringing variants, the 720-sample response curve, Y/I/Q alternating-field application, pre-emphasis placement and explicit native FFT/fixture requirements; no false port-complete claim.
