@@ -20,7 +20,7 @@ int main() {
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="29.2.2000");
     v.year=1900;v.month=2;v.day=29; assert(!isValidVhsOsdDateTime(v));
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin).empty());
-    assert(vhsOsdLabel(VhsOsdLabel::Play,VhsOsdLanguage::Arabic)=="تشغيل");
+    assert(vhsOsdLabel(VhsOsdLabel::Play,VhsOsdLanguage::Arabic)=="تشغيل ▶");
     assert(vhsOsdLabel(VhsOsdLabel::Rewind,VhsOsdLanguage::English)=="REW ↶");
     assert(vhsOsdLabel(VhsOsdLabel::Error,VhsOsdLanguage::Bilingual)=="ERROR | خطأ");
     assert(localizeVhsOsdDigits("1994-01-21",VhsOsdDigitSet::ArabicIndic)=="١٩٩٤-٠١-٢١");
