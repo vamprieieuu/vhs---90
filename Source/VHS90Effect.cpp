@@ -56,7 +56,8 @@ enum ParamIndex {
     PARAM_OSD_LAYOUT_TOPIC, PARAM_OSD_DECK_MODE, PARAM_OSD_DATE_FORMAT, PARAM_OSD_REC_X, PARAM_OSD_REC_Y,
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
     PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
-    PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END, PARAM_COUNT
+    PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
+    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT, ID_CHROMA_REG_RED, ID_CHROMA_REG_BLUE,
@@ -83,7 +84,8 @@ enum ParamDiskID {
     ID_OSD_LAYOUT_TOPIC=9025, ID_OSD_DECK_MODE=9001, ID_OSD_DATE_FORMAT, ID_OSD_REC_X, ID_OSD_REC_Y,
     ID_OSD_STATUS_X, ID_OSD_STATUS_Y, ID_OSD_TIMESTAMP_X, ID_OSD_TIMESTAMP_Y,
     ID_OSD_COUNTER_TOPIC=9026, ID_OSD_COUNTER_FORMAT=9009, ID_OSD_COUNTER_AMOUNT, ID_OSD_COUNTER_X, ID_OSD_COUNTER_Y, ID_OSD_TEXT_DATA=9013,
-    ID_OSD_LOCALIZATION_TOPIC=9027, ID_OSD_LANGUAGE=9014, ID_OSD_DIGITS, ID_OSD_DATE_LAYOUT, ID_OSD_CLOCK_MODE, ID_OSD_MONTH_STYLE, ID_OSD_CLOCK_RUNS, ID_OSD_FONT, ID_OSD_EXTRA_LABEL, ID_OSD_EXTRA_X, ID_OSD_EXTRA_Y
+    ID_OSD_LOCALIZATION_TOPIC=9027, ID_OSD_LANGUAGE=9014, ID_OSD_DIGITS, ID_OSD_DATE_LAYOUT, ID_OSD_CLOCK_MODE, ID_OSD_MONTH_STYLE, ID_OSD_CLOCK_RUNS, ID_OSD_FONT, ID_OSD_EXTRA_LABEL, ID_OSD_EXTRA_X, ID_OSD_EXTRA_Y,
+    ID_OSD_WORDS_TOPIC=9028, ID_OSD_SHOW_TEXT, ID_OSD_SHOW_REC_LABEL, ID_OSD_SHOW_PLAY_LABEL, ID_OSD_SHOW_PAUSE_LABEL, ID_OSD_SHOW_STOP_LABEL, ID_OSD_SHOW_FF_LABEL, ID_OSD_SHOW_REW_LABEL, ID_OSD_SHOW_SPEED_LABEL, ID_OSD_SHOW_TAPE_LABEL, ID_OSD_SHOW_ERROR_LABEL, ID_OSD_SHOW_PROGRAM_LABEL, ID_OSD_SHOW_RES_LABEL, ID_OSD_SHOW_FORWARD_LABEL, ID_OSD_TEXT_GLOW, ID_OSD_SHOW_DATE, ID_OSD_WORDS_X, ID_OSD_WORDS_Y
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -147,6 +149,8 @@ struct RenderSettings {
     A_long osdDeckMode=1, osdDateFormat=1;
     A_long osdLanguage=1, osdDigits=1, osdDateLayout=1, osdClockMode=3, osdMonthStyle=1, osdClockRuns=1, osdFont=1, osdExtraLabel=1;
     float osdExtraX=50.0f, osdExtraY=50.0f;
+    A_long osdShowText=1, osdShowRecLabel=1, osdShowPlayLabel=1, osdShowPauseLabel=1, osdShowStopLabel=1, osdShowFfLabel=1, osdShowRewLabel=1, osdShowSpeedLabel=1, osdShowTapeLabel=0, osdShowErrorLabel=0, osdShowProgramLabel=0, osdShowResLabel=0, osdShowForwardLabel=0, osdTextGlow=0, osdShowDate=1;
+    float osdWordsX=50.0f, osdWordsY=50.0f;
     float osdRecX=2.2f, osdRecY=3.0f, osdStatusX=98.0f, osdStatusY=3.0f, osdTimestampX=98.0f, osdTimestampY=96.0f;
     A_long osdCounterFormat=1;
     float osdCounterAmount=0.0f, osdCounterX=2.2f, osdCounterY=96.0f;
@@ -839,6 +843,25 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Extra Label Horizontal Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_EXTRA_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Extra Label Vertical Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_EXTRA_Y);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_LOCALIZATION_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Text Words",ID_OSD_WORDS_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Show Text", "Enable", 1, 0, ID_OSD_SHOW_TEXT);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("REC Label", "Show", 1, 0, ID_OSD_SHOW_REC_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("PLAY", "Show", 1, 0, ID_OSD_SHOW_PLAY_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("PAUSE", "Show", 1, 0, ID_OSD_SHOW_PAUSE_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("STOP", "Show", 1, 0, ID_OSD_SHOW_STOP_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("FF", "Show", 1, 0, ID_OSD_SHOW_FF_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("REW", "Show", 1, 0, ID_OSD_SHOW_REW_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("SP / LP / EP", "Show", 1, 0, ID_OSD_SHOW_SPEED_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("TAPE", "Show", 0, 0, ID_OSD_SHOW_TAPE_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("ERROR", "Show", 0, 0, ID_OSD_SHOW_ERROR_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("P.O.1 / P01", "Show", 0, 0, ID_OSD_SHOW_PROGRAM_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("RES", "Show", 0, 0, ID_OSD_SHOW_RES_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("FORWARD", "Show", 0, 0, ID_OSD_SHOW_FORWARD_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Text Glow", "Enable", 0, 0, ID_OSD_TEXT_GLOW);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Show Date", "Enable", 1, 0, ID_OSD_SHOW_DATE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Word Group Horizontal Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_WORDS_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Word Group Vertical Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_WORDS_Y);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_WORDS_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -1016,6 +1039,22 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutCheckbox(in_data,PARAM_OSD_CLOCK_RUNS,s.osdClockRuns); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_OSD_FONT,s.osdFont); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_OSD_EXTRA_LABEL,s.osdExtraLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_TEXT,s.osdShowText); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_REC_LABEL,s.osdShowRecLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_PLAY_LABEL,s.osdShowPlayLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_PAUSE_LABEL,s.osdShowPauseLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_STOP_LABEL,s.osdShowStopLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_FF_LABEL,s.osdShowFfLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_REW_LABEL,s.osdShowRewLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_SPEED_LABEL,s.osdShowSpeedLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_TAPE_LABEL,s.osdShowTapeLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_ERROR_LABEL,s.osdShowErrorLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_PROGRAM_LABEL,s.osdShowProgramLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_RES_LABEL,s.osdShowResLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_FORWARD_LABEL,s.osdShowForwardLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_TEXT_GLOW,s.osdTextGlow); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_DATE,s.osdShowDate); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_OSD_WORDS_X,osdWordsX); READ_FLOAT(PARAM_OSD_WORDS_Y,osdWordsY);
     READ_FLOAT(PARAM_OSD_EXTRA_X,osdExtraX); READ_FLOAT(PARAM_OSD_EXTRA_Y,osdExtraY);
 #undef READ_FLOAT
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
@@ -1823,6 +1862,14 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.osdDateLayout=params[PARAM_OSD_DATE_LAYOUT]->u.pd.value; s.osdClockMode=params[PARAM_OSD_CLOCK_MODE]->u.pd.value;
     s.osdMonthStyle=params[PARAM_OSD_MONTH_STYLE]->u.pd.value; s.osdClockRuns=params[PARAM_OSD_CLOCK_RUNS]->u.bd.value?1:0; s.osdFont=params[PARAM_OSD_FONT]->u.pd.value;
     s.osdExtraLabel=params[PARAM_OSD_EXTRA_LABEL]->u.pd.value; s.osdExtraX=float(params[PARAM_OSD_EXTRA_X]->u.fs_d.value); s.osdExtraY=float(params[PARAM_OSD_EXTRA_Y]->u.fs_d.value);
+    s.osdShowText=params[PARAM_OSD_SHOW_TEXT]->u.bd.value?1:0; s.osdShowRecLabel=params[PARAM_OSD_SHOW_REC_LABEL]->u.bd.value?1:0;
+    s.osdShowPlayLabel=params[PARAM_OSD_SHOW_PLAY_LABEL]->u.bd.value?1:0; s.osdShowPauseLabel=params[PARAM_OSD_SHOW_PAUSE_LABEL]->u.bd.value?1:0;
+    s.osdShowStopLabel=params[PARAM_OSD_SHOW_STOP_LABEL]->u.bd.value?1:0; s.osdShowFfLabel=params[PARAM_OSD_SHOW_FF_LABEL]->u.bd.value?1:0;
+    s.osdShowRewLabel=params[PARAM_OSD_SHOW_REW_LABEL]->u.bd.value?1:0; s.osdShowSpeedLabel=params[PARAM_OSD_SHOW_SPEED_LABEL]->u.bd.value?1:0;
+    s.osdShowTapeLabel=params[PARAM_OSD_SHOW_TAPE_LABEL]->u.bd.value?1:0; s.osdShowErrorLabel=params[PARAM_OSD_SHOW_ERROR_LABEL]->u.bd.value?1:0;
+    s.osdShowProgramLabel=params[PARAM_OSD_SHOW_PROGRAM_LABEL]->u.bd.value?1:0; s.osdShowResLabel=params[PARAM_OSD_SHOW_RES_LABEL]->u.bd.value?1:0;
+    s.osdShowForwardLabel=params[PARAM_OSD_SHOW_FORWARD_LABEL]->u.bd.value?1:0; s.osdTextGlow=params[PARAM_OSD_TEXT_GLOW]->u.bd.value?1:0; s.osdShowDate=params[PARAM_OSD_SHOW_DATE]->u.bd.value?1:0;
+    s.osdWordsX=float(params[PARAM_OSD_WORDS_X]->u.fs_d.value); s.osdWordsY=float(params[PARAM_OSD_WORDS_Y]->u.fs_d.value);
     s.osdRecX=float(params[PARAM_OSD_REC_X]->u.fs_d.value); s.osdRecY=float(params[PARAM_OSD_REC_Y]->u.fs_d.value);
     s.osdStatusX=float(params[PARAM_OSD_STATUS_X]->u.fs_d.value); s.osdStatusY=float(params[PARAM_OSD_STATUS_Y]->u.fs_d.value);
     s.osdTimestampX=float(params[PARAM_OSD_TIMESTAMP_X]->u.fs_d.value); s.osdTimestampY=float(params[PARAM_OSD_TIMESTAMP_Y]->u.fs_d.value);
