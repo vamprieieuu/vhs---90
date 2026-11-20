@@ -1,0 +1,178 @@
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include "VHS90DirectWriteText.h"
+#include <windows.h>
+#include <d2d1.h>
+#include <dwrite.h>
+#include <wincodec.h>
+#include <wrl/client.h>
+#include <algorithm>
+#include <cmath>
+#include <utility>
+namespace vhs90::win {
+namespace {
+using Microsoft::WRL::ComPtr;
+struct Factories {
+    ComPtr<ID2D1Factory> d2d;
+    ComPtr<IDWriteFactory> dwrite;
+    HRESULT status = E_FAIL;
+    Factories() noexcept {
+        status = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, d2d.GetAddressOf());
+        if (FAILED(status)) return;
+        status = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+                                     reinterpret_cast<IUnknown**>(dwrite.GetAddressOf()));
+    }
+};
+Factories& factories() noexcept { static Factories instance; return instance; }
+class ComApartment {
+public:
+    ComApartment() noexcept {
+        const HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+        initialized_ = SUCCEEDED(hr);
+        valid_ = initialized_ || hr == RPC_E_CHANGED_MODE;
+    }
+    ~ComApartment() { if (initialized_) CoUninitialize(); }
+    bool valid() const noexcept { return valid_; }
+private:
+    bool initialized_ = false, valid_ = false;
+};
+bool utf8ToWide(const char* input, std::wstring& output) {
+    output.clear();
+    if (!input) return false;
+    const int bytes = static_cast<int>(strnlen_s(input, 1u << 20));
+    if (bytes <= 0) return false;
+    const int count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, input, bytes, nullptr, 0);
+    if (count <= 0) return false;
+    output.resize(static_cast<std::size_t>(count));
+    return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, input, bytes, output.data(), count) == count;
+}
+bool findFont(IDWriteFactory* factory, const wchar_t* familyName) noexcept {
+    if (!factory || !familyName || !*familyName) return false;
+    ComPtr<IDWriteFontCollection> collection;
+    if (FAILED(factory->GetSystemFontCollection(&collection, FALSE))) return false;
+    UINT32 index = 0; BOOL exists = FALSE;
+    return SUCCEEDED(collection->FindFamilyName(familyName, &index, &exists)) && exists;
+}
+float finiteClamp(float v, float lo, float hi, float fallback) noexcept {
+    return std::isfinite(v) ? std::max(lo, std::min(hi, v)) : fallback;
+}
+void compositePremultiplied(ImageView dst, const BYTE* bgra, UINT stride, bool dstPremul) noexcept {
+    for (int y = 0; y < dst.height; ++y) {
+        const BYTE* row = bgra + static_cast<std::size_t>(y) * stride;
+        float* out = dst.rgba + static_cast<std::ptrdiff_t>(y) * dst.rowStrideFloats;
+        for (int x = 0; x < dst.width; ++x) {
+            const BYTE* p = row + static_cast<std::size_t>(x) * 4;
+            const float a = p[3] / 255.0f;
+            if (a <= 0.00001f) continue;
+            const float sr = p[2] / 255.0f, sg = p[1] / 255.0f, sb = p[0] / 255.0f;
+            float* q = out + static_cast<std::ptrdiff_t>(x) * 4;
+            const float da = std::max(0.0f, std::min(1.0f, q[3]));
+            const float oa = a + da * (1.0f - a);
+            if (dstPremul) {
+                q[0] = sr + q[0] * (1.0f - a);
+                q[1] = sg + q[1] * (1.0f - a);
+                q[2] = sb + q[2] * (1.0f - a);
+            } else {
+                const float inv = oa > 1.0e-8f ? 1.0f / oa : 0.0f;
+                q[0] = (sr + q[0] * da * (1.0f - a)) * inv;
+                q[1] = (sg + q[1] * da * (1.0f - a)) * inv;
+                q[2] = (sb + q[2] * da * (1.0f - a)) * inv;
+            }
+            q[3] = oa;
+        }
+    }
+}
+} // namespace
+bool isDirectWriteAvailable() noexcept {
+    const auto& f = factories(); return SUCCEEDED(f.status) && f.d2d && f.dwrite;
+}
+std::vector<std::wstring> enumerateSystemFontFamilies() {
+    std::vector<std::wstring> names;
+    ComApartment apartment; if (!apartment.valid()) return names;
+    auto& f = factories(); if (FAILED(f.status) || !f.dwrite) return names;
+    ComPtr<IDWriteFontCollection> collection;
+    if (FAILED(f.dwrite->GetSystemFontCollection(&collection, FALSE))) return names;
+    const UINT32 count = collection->GetFontFamilyCount(); names.reserve(count);
+    for (UINT32 i = 0; i < count; ++i) {
+        ComPtr<IDWriteFontFamily> family; ComPtr<IDWriteLocalizedStrings> strings;
+        if (FAILED(collection->GetFontFamily(i, &family)) ||
+            FAILED(family->GetFamilyNames(&strings)) || strings->GetCount() == 0) continue;
+        UINT32 index = 0; BOOL exists = FALSE;
+        if (FAILED(strings->FindLocaleName(L"en-us", &index, &exists)) || !exists) index = 0;
+        UINT32 length = 0; if (FAILED(strings->GetStringLength(index, &length))) continue;
+        std::wstring name(static_cast<std::size_t>(length) + 1, L'\0');
+        if (SUCCEEDED(strings->GetString(index, name.data(), length + 1))) {
+            name.resize(length); names.push_back(std::move(name));
+        }
+    }
+    return names;
+}
+DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOptions& o) noexcept {
+    DirectWriteTextResult result{};
+    if (!dst.rgba || dst.width <= 0 || dst.height <= 0 ||
+        dst.rowStrideFloats < static_cast<std::ptrdiff_t>(dst.width) * 4 || !o.utf8Text || !*o.utf8Text)
+        return result;
+    try {
+        ComApartment apartment; if (!apartment.valid()) return result;
+        auto& f = factories(); if (FAILED(f.status) || !f.d2d || !f.dwrite) return result;
+        std::wstring text, family;
+        if (!utf8ToWide(o.utf8Text, text)) return result;
+        if (!utf8ToWide(o.utf8FontFamily ? o.utf8FontFamily : "Segoe UI", family)) family = L"Segoe UI";
+        result.requestedFontFound = findFont(f.dwrite.Get(), family.c_str());
+        result.usedFallbackFont = !result.requestedFontFound;
+        ComPtr<IWICImagingFactory> wic;
+        HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wic));
+        if (FAILED(hr)) return result;
+        ComPtr<IWICBitmap> bitmap;
+        hr = wic->CreateBitmap(static_cast<UINT>(dst.width), static_cast<UINT>(dst.height),
+                               GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnLoad, &bitmap);
+        if (FAILED(hr)) return result;
+        ComPtr<ID2D1RenderTarget> target;
+        const auto props = D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT,
+            D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED));
+        hr = f.d2d->CreateWicBitmapRenderTarget(bitmap.Get(), props, &target);
+        if (FAILED(hr)) return result;
+        const float x = finiteClamp(o.x, -static_cast<float>(dst.width), static_cast<float>(dst.width), 0.0f);
+        const float y = finiteClamp(o.y, -static_cast<float>(dst.height), static_cast<float>(dst.height), 0.0f);
+        const float mw = finiteClamp(o.maxWidth, 0.0f, static_cast<float>(dst.width), 0.0f);
+        const float mh = finiteClamp(o.maxHeight, 0.0f, static_cast<float>(dst.height), 0.0f);
+        const float lw = mw > 0.0f ? mw : std::max(1.0f, static_cast<float>(dst.width) - std::max(0.0f, x));
+        const float lh = mh > 0.0f ? mh : std::max(1.0f, static_cast<float>(dst.height) - std::max(0.0f, y));
+        const float fs = finiteClamp(o.fontSize, 1.0f, 512.0f, 28.0f);
+        ComPtr<IDWriteTextFormat> format;
+        hr = f.dwrite->CreateTextFormat(family.c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+            DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", &format);
+        if (FAILED(hr)) {
+            hr = f.dwrite->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+                DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", &format);
+            if (FAILED(hr)) return result;
+            result.usedFallbackFont = true;
+        }
+        if (o.direction == TextDirection::RightToLeft) format->SetReadingDirection(DWRITE_READING_DIRECTION_RIGHT_TO_LEFT);
+        else if (o.direction == TextDirection::LeftToRight) format->SetReadingDirection(DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+        if (o.alignment == TextAlignment::Center) format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+        else if (o.alignment == TextAlignment::Trailing) format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+        else format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+        format->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+        ComPtr<IDWriteTextLayout> layout;
+        hr = f.dwrite->CreateTextLayout(text.c_str(), static_cast<UINT32>(text.size()), format.Get(), lw, lh, &layout);
+        if (FAILED(hr)) return result;
+        ComPtr<ID2D1SolidColorBrush> brush;
+        const auto color = D2D1::ColorF(finiteClamp(o.red,0,1,1), finiteClamp(o.green,0,1,1),
+                                        finiteClamp(o.blue,0,1,1), finiteClamp(o.opacity,0,1,1));
+        hr = target->CreateSolidColorBrush(color, &brush); if (FAILED(hr)) return result;
+        target->BeginDraw(); target->Clear(D2D1::ColorF(0, 0.0f));
+        target->DrawTextLayout(D2D1::Point2F(x,y), layout.Get(), brush.Get(), D2D1_DRAW_TEXT_OPTIONS_CLIP);
+        hr = target->EndDraw(); if (FAILED(hr)) return result;
+        ComPtr<IWICBitmapLock> lock; WICRect rect{0,0,dst.width,dst.height};
+        hr = bitmap->Lock(&rect, WICBitmapLockRead, &lock); if (FAILED(hr)) return result;
+        UINT size = 0, stride = 0; BYTE* pixels = nullptr;
+        hr = lock->GetStride(&stride); if (FAILED(hr)) return result;
+        hr = lock->GetDataPointer(&size, &pixels);
+        if (FAILED(hr) || !pixels || stride < static_cast<UINT>(dst.width)*4 ||
+            size < stride*static_cast<UINT>(dst.height)) return result;
+        compositePremultiplied(dst, pixels, stride, o.premultipliedDestination);
+        result.rendered = true; return result;
+    } catch (...) { return result; }
+}
+} // namespace vhs90::win
