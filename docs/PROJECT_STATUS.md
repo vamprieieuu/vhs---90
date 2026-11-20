@@ -102,7 +102,7 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 
 ### CI and host boundary
 
-- The previous Linux core workflow passed run 561 after the tape geometry helper was added. A later correction changed the track origin to the upstream 1.0 mm value; runs 567/568 exposed a stale/incorrect test expectation, which was corrected in commit 7c07cfe. The follow-up workflow is run 572: https://github.com/vamprieieuu/vhs---90/actions/runs/44779518318. Do not mark this correction verified until that run reports success.
+- The previous Linux core workflow passed run 561 after the tape geometry helper was added. A later correction changed the track origin to the upstream 1.0 mm value; runs 567/568 exposed a stale/incorrect test expectation, which was corrected in commit 7c07cfe. Follow-up Linux core CI run 572 passed after the correction, with all 28/28 CTest tests: https://github.com/vamprieieuu/vhs---90/actions/runs/44779518318.
 - Linux core CI only validates host-independent C++ modules and smoke tests. It does not compile the AE adapter or establish Windows/MSVC, PiPL, AEX loading, After Effects rendering or MFR success.
 - NTSCRT MIT attribution remains under ThirdParty/NTSCRT. Per-component upstream shader/runtime licenses were reviewed; GPL shader source is excluded from reuse by default.
 
