@@ -25,4 +25,10 @@ int main(){using namespace vhs90;constexpr int w=48,h=24;std::vector<float>s(w*h
  std::vector<float> phaseA(s.size()),phaseB(s.size()),phaseOff(s.size());ImageView pa{phaseA.data(),w,h,w*4},pb{phaseB.data(),w,h,w*4},po{phaseOff.data(),w,h,w*4};
  assert(processAnalogNoise(si,pa,phase));assert(processAnalogNoise(si,pb,phase));assert(phaseA==phaseB&&phaseA!=s);
  phase.chromaPhaseNoise=0.0f;assert(processAnalogNoise(si,po,phase));assert(phaseOff==s);
+
+ AnalogNoiseParams vhs6;vhs6.grainAmount=.75f;vhs6.grainSize=3;vhs6.lumaAmount=.6f;vhs6.chromaAmount=.5f;vhs6.shadowBias=.8f;vhs6.noiseDetail=.7f;vhs6.seed=123;vhs6.frame=15;
+ std::vector<float> vhs6a(s.size()),vhs6b(s.size()),vhs6c(s.size()),vhs6off(s.size());ImageView v6a{vhs6a.data(),w,h,w*4},v6b{vhs6b.data(),w,h,w*4},v6c{vhs6c.data(),w,h,w*4},v6o{vhs6off.data(),w,h,w*4};
+ assert(processAnalogNoise(si,v6a,vhs6));assert(processAnalogNoise(si,v6b,vhs6));assert(vhs6a==vhs6b&&vhs6a!=s);
+ vhs6.seed++;assert(processAnalogNoise(si,v6c,vhs6));assert(vhs6a!=vhs6c);
+ vhs6.proceduralNoiseEnabled=false;assert(processAnalogNoise(si,v6o,vhs6));assert(vhs6off==s);
  return 0;}
