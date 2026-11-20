@@ -11,6 +11,7 @@
 #include "VHS90StaticEngine.h"
 #include "VHS90IIRFilter.h"
 #include "VHS90CompositeEngine.h"
+#include "VHS90OsdEngine.h"
 #include "VHS90SyncEngine.h"
 #include <algorithm>
 #include <cmath>
@@ -37,7 +38,7 @@ enum ParamIndex {
     PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_ANGLE, PARAM_TRACKING_MOTION_X,
     PARAM_TRACKING_MOTION_Y, PARAM_TRACKING_SERVO, PARAM_TRACKING_TEAR,
     PARAM_TRACKING_END, PARAM_HEAD_TOPIC, PARAM_HEAD_AMOUNT, PARAM_HEAD_BOTTOM_Y,
-    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_TAPE_BACK_TENSION, PARAM_TAPE_NOISE, PARAM_PHYSICAL_TOPIC, PARAM_MAGNET_MOMENT, PARAM_MAGNET_DISTANCE, PARAM_GROUND_LOOP, PARAM_MAINS_HUM, PARAM_RF_FIELD, PARAM_RF_PICKUP, PARAM_PHYSICAL_END, PARAM_PYVHS_TOPIC, PARAM_PYVHS_LUMA_COMPRESSION, PARAM_PYVHS_CHROMA_COMPRESSION, PARAM_PYVHS_LUMA_NOISE, PARAM_PYVHS_CHROMA_NOISE, PARAM_PYVHS_CHROMA_WAVE, PARAM_PYVHS_GENERATION, PARAM_PYVHS_END, PARAM_COUNT
+    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_TAPE_BACK_TENSION, PARAM_TAPE_NOISE, PARAM_PHYSICAL_TOPIC, PARAM_MAGNET_MOMENT, PARAM_MAGNET_DISTANCE, PARAM_GROUND_LOOP, PARAM_MAINS_HUM, PARAM_RF_FIELD, PARAM_RF_PICKUP, PARAM_PHYSICAL_END, PARAM_PYVHS_TOPIC, PARAM_PYVHS_LUMA_COMPRESSION, PARAM_PYVHS_CHROMA_COMPRESSION, PARAM_PYVHS_LUMA_NOISE, PARAM_PYVHS_CHROMA_NOISE, PARAM_PYVHS_CHROMA_WAVE, PARAM_PYVHS_GENERATION, PARAM_PYVHS_END, PARAM_OSD_TOPIC, PARAM_OSD_AMOUNT, PARAM_OSD_REC, PARAM_OSD_PLAY, PARAM_OSD_TIMESTAMP, PARAM_OSD_OPACITY, PARAM_OSD_SCALE, PARAM_OSD_GLITCH, PARAM_OSD_GHOST, PARAM_OSD_REC_BLINK, PARAM_OSD_TIME_SPEED, PARAM_OSD_YEAR, PARAM_OSD_MONTH, PARAM_OSD_DAY, PARAM_OSD_HOUR, PARAM_OSD_MINUTE, PARAM_OSD_SECOND, PARAM_OSD_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT,
@@ -53,7 +54,7 @@ enum ParamDiskID {
     ID_TRACKING_HEIGHT, ID_TRACKING_ANGLE, ID_TRACKING_MOTION_X, ID_TRACKING_MOTION_Y,
     ID_TRACKING_SERVO, ID_TRACKING_TEAR, ID_HEAD_TOPIC, ID_HEAD_AMOUNT,
     ID_HEAD_Y, ID_HEAD_HEIGHT, ID_HEAD_SHIFT, ID_HEAD_CONDITION,
-    ID_TAPE_MATERIAL_TOPIC, ID_TAPE_WEAR, ID_TAPE_DROPOUTS, ID_TAPE_SCRATCHES, ID_TAPE_CREASES, ID_TAPE_EDGE, ID_TAPE_MOLD, ID_TAPE_VASELINE, ID_TAPE_STICKY, ID_TAPE_SEED, ID_TAPE_BACK_TENSION, ID_TAPE_NOISE, ID_PHYSICAL_TOPIC, ID_MAGNET_MOMENT, ID_MAGNET_DISTANCE, ID_GROUND_LOOP, ID_MAINS_HUM, ID_RF_FIELD, ID_RF_PICKUP, ID_PYVHS_TOPIC, ID_PYVHS_LUMA_COMPRESSION, ID_PYVHS_CHROMA_COMPRESSION, ID_PYVHS_LUMA_NOISE, ID_PYVHS_CHROMA_NOISE, ID_PYVHS_CHROMA_WAVE, ID_PYVHS_GENERATION
+    ID_TAPE_MATERIAL_TOPIC, ID_TAPE_WEAR, ID_TAPE_DROPOUTS, ID_TAPE_SCRATCHES, ID_TAPE_CREASES, ID_TAPE_EDGE, ID_TAPE_MOLD, ID_TAPE_VASELINE, ID_TAPE_STICKY, ID_TAPE_SEED, ID_TAPE_BACK_TENSION, ID_TAPE_NOISE, ID_PHYSICAL_TOPIC, ID_MAGNET_MOMENT, ID_MAGNET_DISTANCE, ID_GROUND_LOOP, ID_MAINS_HUM, ID_RF_FIELD, ID_RF_PICKUP, ID_PYVHS_TOPIC, ID_PYVHS_LUMA_COMPRESSION, ID_PYVHS_CHROMA_COMPRESSION, ID_PYVHS_LUMA_NOISE, ID_PYVHS_CHROMA_NOISE, ID_PYVHS_CHROMA_WAVE, ID_PYVHS_GENERATION, ID_OSD_TOPIC, ID_OSD_AMOUNT, ID_OSD_REC, ID_OSD_PLAY, ID_OSD_TIMESTAMP, ID_OSD_OPACITY, ID_OSD_SCALE, ID_OSD_GLITCH, ID_OSD_GHOST, ID_OSD_REC_BLINK, ID_OSD_TIME_SPEED, ID_OSD_YEAR, ID_OSD_MONTH, ID_OSD_DAY, ID_OSD_HOUR, ID_OSD_MINUTE, ID_OSD_SECOND
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -83,6 +84,8 @@ struct RenderSettings {
     float tapeNoise=0;
     float magnetMoment=0.0f, magnetDistance=6.0f, groundLoop=0.0f, mainsHum=0.0f, rfField=0.0f, rfPickup=0.0f;
     float pyVhsLumaCompression=1.0f, pyVhsChromaCompression=1.0f, pyVhsLumaNoise=0.0f, pyVhsChromaNoise=0.0f, pyVhsChromaWave=0.0f, pyVhsGeneration=1.0f;
+    float osdAmount=0.0f, osdRec=100.0f, osdPlay=100.0f, osdTimestamp=100.0f, osdOpacity=82.0f, osdScale=100.0f, osdGlitch=50.0f, osdGhost=35.0f, osdRecBlink=1.4f, osdTimeSpeed=1.0f;
+    float osdYear=1994.0f, osdMonth=6.0f, osdDay=11.0f, osdHour=12.0f, osdMinute=0.0f, osdSecond=0.0f;
     bool previousFrameAvailable=false;
     std::int64_t frame=0;
     double timeSeconds=0;
@@ -218,6 +221,24 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Wave",0,2,0,2,0,2,PF_ValueDisplayFlag_NONE,0,ID_PYVHS_CHROMA_WAVE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Generation",0,5,0,5,1,2,PF_ValueDisplayFlag_NONE,0,ID_PYVHS_GENERATION);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PYVHS_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Camcorder OSD",ID_OSD_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("OSD Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("REC Indicator",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_REC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("PLAY / SP Status",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_PLAY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Date / Time",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TIMESTAMP);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("OSD Opacity",0,100,0,100,82,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_OPACITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("OSD Size",35,300,35,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_SCALE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Text Jitter",0,200,0,200,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_GLITCH);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Text Ghost",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_GHOST);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("REC Blink (Hz)",0,4,0,4,1.4,2,PF_ValueDisplayFlag_NONE,0,ID_OSD_REC_BLINK);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Timestamp Speed",0,10,0,10,1,2,PF_ValueDisplayFlag_NONE,0,ID_OSD_TIME_SPEED);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Start Year",1900,2199,1900,2199,1994,0,PF_ValueDisplayFlag_NONE,0,ID_OSD_YEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Start Month",1,12,1,12,6,0,PF_ValueDisplayFlag_NONE,0,ID_OSD_MONTH);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Start Day",1,31,1,31,11,0,PF_ValueDisplayFlag_NONE,0,ID_OSD_DAY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Start Hour",0,23,0,23,12,0,PF_ValueDisplayFlag_NONE,0,ID_OSD_HOUR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Start Minute",0,59,0,59,0,0,PF_ValueDisplayFlag_NONE,0,ID_OSD_MINUTE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Start Second",0,59,0,59,0,0,PF_ValueDisplayFlag_NONE,0,ID_OSD_SECOND);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -287,6 +308,11 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_PYVHS_LUMA_COMPRESSION,pyVhsLumaCompression); READ_FLOAT(PARAM_PYVHS_CHROMA_COMPRESSION,pyVhsChromaCompression);
     READ_FLOAT(PARAM_PYVHS_LUMA_NOISE,pyVhsLumaNoise); READ_FLOAT(PARAM_PYVHS_CHROMA_NOISE,pyVhsChromaNoise);
     READ_FLOAT(PARAM_PYVHS_CHROMA_WAVE,pyVhsChromaWave); READ_FLOAT(PARAM_PYVHS_GENERATION,pyVhsGeneration);
+    READ_FLOAT(PARAM_OSD_AMOUNT,osdAmount); READ_FLOAT(PARAM_OSD_REC,osdRec); READ_FLOAT(PARAM_OSD_PLAY,osdPlay); READ_FLOAT(PARAM_OSD_TIMESTAMP,osdTimestamp);
+    READ_FLOAT(PARAM_OSD_OPACITY,osdOpacity); READ_FLOAT(PARAM_OSD_SCALE,osdScale); READ_FLOAT(PARAM_OSD_GLITCH,osdGlitch); READ_FLOAT(PARAM_OSD_GHOST,osdGhost);
+    READ_FLOAT(PARAM_OSD_REC_BLINK,osdRecBlink); READ_FLOAT(PARAM_OSD_TIME_SPEED,osdTimeSpeed);
+    READ_FLOAT(PARAM_OSD_YEAR,osdYear); READ_FLOAT(PARAM_OSD_MONTH,osdMonth); READ_FLOAT(PARAM_OSD_DAY,osdDay);
+    READ_FLOAT(PARAM_OSD_HOUR,osdHour); READ_FLOAT(PARAM_OSD_MINUTE,osdMinute); READ_FLOAT(PARAM_OSD_SECOND,osdSecond);
 #undef READ_FLOAT
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
@@ -355,8 +381,9 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
         const bool compositeStages=s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.pyVhsLumaCompression>1.0001f||s.pyVhsChromaCompression>1.0001f||s.pyVhsLumaNoise>0||s.pyVhsChromaNoise>0||s.pyVhsChromaWave>0;
-        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0;
-        if(master<=0||!any) { CopyRegion(input,output,format); return PF_Err_NONE; }
+        const bool osdEnabled=s.osdAmount>0.0f;
+        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0||osdEnabled;
+        if(!any||(master<=0.0f&&!osdEnabled)) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
         std::vector<float> previousPixels;
@@ -364,7 +391,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             if(!ConvertInputWorld(previousInput,format,previousPixels)) previousPixels.clear();
         }
         working=source; scratch.resize(source.size());
-        if(compositeStages) {
+        if(compositeStages&&master>0.0f) {
             CompositeParams p;
             p.strength=master;
             if(s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0) {
@@ -600,7 +627,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             if(!processCompositeRoundTrip(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
-        if(s.staticAmount>0) {
+        if(master>0.0f&&s.staticAmount>0) {
             StaticParams p; p.intensity=clamp01(s.staticAmount/100.0f*master);
             p.sourceMix=1.0f; p.density=clamp01(s.staticDensity/100.0f); p.seed=0x905A71C1u;
             p.frame=s.frame; p.premultipliedAlpha=true;
@@ -608,14 +635,14 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             if(!processStaticPattern(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
-        if(s.sync>0) {
+        if(master>0.0f&&s.sync>0) {
             SyncCollapseParams p; p.strength=clamp01(s.sync/100.0f*master);
             p.frame=s.frame; p.timeSeconds=s.timeSeconds; p.seed=0x90C011A5u;
             ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
             if(!processSyncCollapse(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
-        if(s.trackingAmount>0||s.headAmount>0) {
+        if(master>0.0f&&(s.trackingAmount>0||s.headAmount>0)) {
             DamageRegion regions[2]; std::size_t count=0;
             if(s.trackingAmount>0) {
                 DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
@@ -639,6 +666,21 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
             ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
             if(!processDamageRegions(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
+        }
+        if(osdEnabled) {
+            VhsOsdParams op;
+            op.amount=clamp01(s.osdAmount/100.0f); op.opacity=clamp01(s.osdOpacity/100.0f);
+            op.scale=std::max(0.35f,s.osdScale/100.0f); op.glitch=std::max(0.0f,s.osdGlitch/100.0f);
+            op.ghost=clamp01(s.osdGhost/100.0f); op.recAmount=clamp01(s.osdRec/100.0f);
+            op.playAmount=clamp01(s.osdPlay/100.0f); op.timestampAmount=clamp01(s.osdTimestamp/100.0f);
+            op.recBlinkHz=std::max(0.0f,s.osdRecBlink); op.timestampSpeed=std::max(0.0f,s.osdTimeSpeed);
+            op.timeSeconds=s.timeSeconds; op.framesPerSecond=s.frameRate; op.frame=s.frame;
+            op.startYear=static_cast<int>(std::lround(s.osdYear)); op.startMonth=static_cast<int>(std::lround(s.osdMonth));
+            op.startDay=static_cast<int>(std::lround(s.osdDay)); op.startHour=static_cast<int>(std::lround(s.osdHour));
+            op.startMinute=static_cast<int>(std::lround(s.osdMinute)); op.startSecond=static_cast<int>(std::lround(s.osdSecond));
+            op.seed=0x9050D5u; op.premultipliedAlpha=true;
+            ImageView osdView{working.data(),w,h,w*4};
+            if(!applyVhsOsd(osdView,op)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
         }
         for(int y=0;y<output->height;++y) for(int x=0;x<output->width;++x) {
             const int sx=output->origin_x+x-input->origin_x, sy=output->origin_y+y-input->origin_y;
@@ -794,6 +836,13 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.headY=float(params[PARAM_HEAD_BOTTOM_Y]->u.fs_d.value);
     s.headHeight=float(params[PARAM_HEAD_HEIGHT]->u.fs_d.value);
     s.headShift=float(params[PARAM_HEAD_SHIFT]->u.fs_d.value);
+    s.osdAmount=float(params[PARAM_OSD_AMOUNT]->u.fs_d.value); s.osdRec=float(params[PARAM_OSD_REC]->u.fs_d.value);
+    s.osdPlay=float(params[PARAM_OSD_PLAY]->u.fs_d.value); s.osdTimestamp=float(params[PARAM_OSD_TIMESTAMP]->u.fs_d.value);
+    s.osdOpacity=float(params[PARAM_OSD_OPACITY]->u.fs_d.value); s.osdScale=float(params[PARAM_OSD_SCALE]->u.fs_d.value);
+    s.osdGlitch=float(params[PARAM_OSD_GLITCH]->u.fs_d.value); s.osdGhost=float(params[PARAM_OSD_GHOST]->u.fs_d.value);
+    s.osdRecBlink=float(params[PARAM_OSD_REC_BLINK]->u.fs_d.value); s.osdTimeSpeed=float(params[PARAM_OSD_TIME_SPEED]->u.fs_d.value);
+    s.osdYear=float(params[PARAM_OSD_YEAR]->u.fs_d.value); s.osdMonth=float(params[PARAM_OSD_MONTH]->u.fs_d.value); s.osdDay=float(params[PARAM_OSD_DAY]->u.fs_d.value);
+    s.osdHour=float(params[PARAM_OSD_HOUR]->u.fs_d.value); s.osdMinute=float(params[PARAM_OSD_MINUTE]->u.fs_d.value); s.osdSecond=float(params[PARAM_OSD_SECOND]->u.fs_d.value);
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
     s.frameRate=(in_data->time_step>0&&in_data->time_scale>0)?float(in_data->time_scale)/float(in_data->time_step):29.97f;
