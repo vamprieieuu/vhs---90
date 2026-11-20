@@ -34,4 +34,8 @@ int main(){using namespace vhs90;constexpr int w=48,h=24;std::vector<float>s(w*h
  vhs6.noiseDetail=.7f;vhs6.grainSize=5;assert(processAnalogNoise(si,v6c,vhs6));assert(vhs6a!=vhs6c);
  vhs6.grainSize=3;vhs6.shadowBias=0.0f;assert(processAnalogNoise(si,v6c,vhs6));assert(vhs6a!=vhs6c);
  vhs6.proceduralNoiseEnabled=false;assert(processAnalogNoise(si,v6o,vhs6));assert(vhs6off==s);
+ AnalogNoiseParams hue;hue.hueNoiseAmount=.85f;hue.proceduralNoiseEnabled=false;hue.seed=654;hue.frame=12;
+ std::vector<float> hueA(s.size()),hueB(s.size()),hueC(s.size());ImageView ha{hueA.data(),w,h,w*4},hb{hueB.data(),w,h,w*4},hc{hueC.data(),w,h,w*4};
+ assert(processAnalogNoise(si,ha,hue));assert(processAnalogNoise(si,hb,hue));assert(hueA==hueB&&hueA!=s);
+ hue.seed++;assert(processAnalogNoise(si,hc,hue));assert(hueA!=hueC);
  return 0;}
