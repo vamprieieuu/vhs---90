@@ -30,7 +30,7 @@ inline bool valid(ConstImageView s,ImageView d) noexcept {
 }
 bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams&p) noexcept {
  if(!valid(src,dst)||!std::isfinite(p.lumaAmount)||!std::isfinite(p.grainAmount)||
-    !std::isfinite(p.noiseDetail)||!std::isfinite(p.shadowBias)||!std::isfinite(p.chromaAmount)||
+    !std::isfinite(p.noiseDetail)||!std::isfinite(p.shadowBias)||!std::isfinite(p.chromaAmount)||!std::isfinite(p.hueNoiseAmount)||
     !std::isfinite(p.compositeAmount)||!std::isfinite(p.chromaLoss)||!std::isfinite(p.chromaPhaseNoise)||
     !std::isfinite(p.hueBiasDegrees)||!std::isfinite(p.tapeLineAmount)||!std::isfinite(p.tapeLineSpeed)||
     !std::isfinite(p.framesPerSecond)||p.lumaAmount<0.0f||p.grainAmount<0.0f||
@@ -39,10 +39,11 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
  const float grain=p.proceduralNoiseEnabled?std::clamp(p.grainAmount,0.0f,1.0f):0.0f;
  const float detail=std::clamp(p.noiseDetail,0.0f,1.0f),shadowBias=std::clamp(p.shadowBias,0.0f,1.0f);
  const float ch=p.proceduralNoiseEnabled?std::clamp(p.chromaAmount,0.0f,1.0f):0.0f;
+ const float hueNoise=std::clamp(p.hueNoiseAmount,0.0f,1.0f);
  const float co=std::clamp(p.compositeAmount,0.0f,1.0f);
  const float loss=std::clamp(p.chromaLoss,0.0f,5000.0f)/65000.0f;
  const float tape=std::clamp(p.tapeLineAmount,0.0f,1.0f),phaseNoise=std::clamp(p.chromaPhaseNoise,0.0f,1.0f);
- if(grain<=0.0f&&ly<=0.0f&&ch<=0.0f&&co<=0.0f&&loss<=0.0f&&tape<=0.0f&&phaseNoise<=0.0f) {
+ if(grain<=0.0f&&ly<=0.0f&&ch<=0.0f&&hueNoise<=0.0f&&co<=0.0f&&loss<=0.0f&&tape<=0.0f&&phaseNoise<=0.0f) {
   for(int y=0;y<src.height;++y) std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);
   return true;
  }
@@ -72,6 +73,7 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
     if(line*(mask*mask*mask+0.3f)>=1.0f-tape) q.y+=0.22f*tape;
    }
    if(phaseNoise>0.0f) { const float qi=q.i*phaseCos-q.q*phaseSin,qq=q.i*phaseSin+q.q*phaseCos;q.i=qi;q.q=qq; }
+   if(hueNoise>0.0f) { const float a=(hash01(std::uint32_t(x),std::uint32_t(y),p.seed^0xA3C59AC3u,p.frame)-0.5f)*hueNoise*0.50f; const float cs=std::cos(a),sn=std::sin(a); const float ni=q.i*cs-q.q*sn,nq=q.i*sn+q.q*cs;q.i=ni;q.q=nq; }
    rgb=yiqToRgb(q);
    // VHS6RIFT's original procedural-noise model, ported to normalized RGBA.
    if(grain>0.0f||ly>0.0f||ch>0.0f) {
