@@ -42,7 +42,7 @@ bool utf8ToWide(const char* input, std::wstring& output) {
     output.clear();
     if (!input) return false;
     std::size_t boundedLength = 0;
-    while (boundedLength < (1u << 20) && input[boundedLength] != '\\0') ++boundedLength;
+    while (boundedLength < (1u << 20) && input[boundedLength] != '\0') ++boundedLength;
     if (boundedLength == (1u << 20)) return false;
     const int bytes = static_cast<int>(boundedLength);
     if (bytes <= 0) return false;
