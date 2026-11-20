@@ -82,6 +82,7 @@ for needle in [
     "processDeviceConnections(in,out,dp)",
     "p.geometry.edgeWaveFrequency=s.edgeWaveFrequency",
     "p.imageGrade.chromaEdgeEnhancement=clamp01(s.chromaEdgeEnhance/100.0f);",
+    "p.imageGrade.chromaSharpenCutoffHz=s.tapeSpeed==3?560000.0f:(s.tapeSpeed==2?600000.0f:640000.0f);",
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
 
