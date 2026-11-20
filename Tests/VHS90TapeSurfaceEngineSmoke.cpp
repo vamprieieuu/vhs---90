@@ -50,4 +50,14 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  assert(std::fabs(ntscrtTapeAmountIn027(TapeDamageControl::EdgeDamage,1.0f)-1.45f)<1e-5f);
  assert(std::fabs(ntscrtTapeAmountIn027(TapeDamageControl::Creases,1.0f)-1.0f)<1e-5f);
  assert(std::fabs(ntscrtTransportFlutterAmount(1.0f)-5.0f)<1e-5f);
+ TapeMaterialControls material;material.master=100.0f;material.frame=23;material.cassetteSeed=1;material.tapeSpeed=2;material.trackingOffsetTracks=1.25f;
+ const auto mapped=makeTapeSurfaceParams(material);
+ assert(mapped.seed==7936u&&mapped.frame==23&&mapped.tapeSpeed==2u&&std::fabs(mapped.trackingOffsetTracks-1.25f)<1e-6f);
+ assert(std::fabs(mapped.oxideLoss-1.85f)<1e-5f&&std::fabs(mapped.defectDensity-3.0f)<1e-5f);
+ assert(std::fabs(mapped.scratchDensity-4.0f)<1e-5f&&std::fabs(mapped.creaseStrength-5.0f)<1e-5f&&std::fabs(mapped.edgeLift-1.45f)<1e-5f);
+ assert(std::fabs(mapped.moldAmount-1.0f)<1e-6f&&std::fabs(mapped.vaselineAmount-1.0f)<1e-6f&&std::fabs(mapped.debrisAmount-1.0f)<1e-6f);
+ material.wear=0.0f;material.dropouts=0.0f;material.scratches=0.0f;material.creases=0.0f;material.edgeDamage=0.0f;material.mold=0.0f;material.vaseline=0.0f;material.sticky=0.0f;
+ const auto clean=makeTapeSurfaceParams(material);assert(clean.oxideLoss==0.0f&&clean.defectDensity==0.0f&&clean.scratchDensity==0.0f&&clean.creaseStrength==0.0f&&clean.edgeLift==0.0f&&clean.moldAmount==0.0f&&clean.vaselineAmount==0.0f&&clean.debrisAmount==0.0f);
+ material.master=50.0f;material.wear=100.0f;material.dropouts=0.0f;material.cassetteSeed=7;material.tapeSpeed=99;material.trackingOffsetTracks=-99.0f;
+ const auto independent=makeTapeSurfaceParams(material);assert(std::fabs(independent.oxideLoss-ntscrtTapeWearAmount(.5f))<1e-5f&&independent.defectDensity==0.0f&&independent.seed==55450u&&independent.tapeSpeed==2u&&independent.trackingOffsetTracks==-8.0f);
  return 0;}
