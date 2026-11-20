@@ -102,7 +102,7 @@ Implementation commits:
 - Source inventory: 28 files, 5 directories; prior report 14 plus this expanded review cover the full folder.
 - OSD-before-composite static validator passed in CI run `44816473391`.
 - The OSD reorder's CMake build and all 32/32 CTest smoke tests passed in CI run `44816473391`.
-- The new RGB registration stage and alpha smoke test are in CI run `44816747950`; its static validator, CMake build and CTest results must be checked before declaring the new feature passed.
+- The new RGB registration stage and premultiplied-alpha smoke test passed in CI run `44816747950`: static AE/preset validator, CMake build and all 32/32 CTest smoke tests succeeded.
 - No Metal, CUDA, OFX host, DaVinci Resolve or Adobe AE Windows runtime test was performed.
 - Windows/MSVC AE SDK compilation, PiPL, AEX loading, AE visual tests and MFR remain global release gates.
 
@@ -110,7 +110,7 @@ Implementation commits:
 
 **vhs-main folder inventory and source review: complete (28/28 files).**  
 **OSD ordering: corrected and core CI passed (32/32).**  
-**Independent RGB channel registration: implemented; final CI pending.**  
+**Independent RGB channel registration: implemented and CI PASS (32/32).**  
 **LUT: no usable LUT data in supplied archive; no parser code copied.**  
 **AGPL-3.0-or-later: source code kept separate; no direct code port.**  
 **All eight source folders in the user's queue have now been audited or verified against their earlier completed integration reports.**
