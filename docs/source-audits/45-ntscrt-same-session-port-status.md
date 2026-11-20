@@ -1,91 +1,86 @@
-# NTSCRT — same-session port status and remaining audit
+# NTSCRT — same-session port status and remaining engineering work
 
 Date: 2026-11-20  
 Upstream: https://github.com/finnmckenty/NTSCRT  
 Target: https://github.com/vamprieieuu/vhs---90
 
-## Verified repository inventory
+## Verified source audit
 
-The upstream recursive tree was fetched with `truncated=false`: 359 file blobs and 59 directory entries. All 45 JSON files in `presets/` were fetched and parsed. The inventory and preset parse are complete; the 359-file content-level audit is not complete. Many files are UI, platform glue, test fixtures, build scripts, binary images, dependency locks or generated license data and should be dispositioned separately rather than blindly copied into a native AE effect.
+The upstream recursive Git tree is complete: 359 file blobs, 59 directory entries, truncated=false. Every blob has now been read or inspected in its appropriate form and assigned a specific disposition in [46-ntscrt-359-file-disposition-ledger.md](46-ntscrt-359-file-disposition-ledger.md):
+
+- 314 rows: content-reviewed (engine, Swift app, Rust platform app, tests, fixtures/tools, docs/scripts, dependency/license metadata and binary assets).
+- 45 rows: semantic-reviewed (all JSON looks; per-preset stage classification and migration decision in [47-ntscrt-preset-semantic-migration.md](47-ntscrt-preset-semantic-migration.md)).
+- 0 pending rows.
+
+This closes the file-by-file audit/disposition task. It does not mean all upstream code is portable or all algorithms have been ported. UI, CLI/MCP, Media Foundation, Metal/WGPU, digital codec and Screen Loop code are explicitly distinguished from analog VHS engine code.
 
 ## Implemented and integrated
 
 ### 1. Adjacent track read
 
-`VHS90TrackReadEngine.cpp` now uses the NTSCRT physical overlap model and opposite-azimuth sinc attenuation. The attenuation uses 4.0 MHz FM and the color-under carrier `40 / 63.556 MHz`, and adjacent samples are positioned relative to the active center track. It remains an image-domain read approximation: it does not yet sample the physical tape material map or create sample-domain RF.
-
-CI:
-- Run 439 — passed.
-- Run 440 — passed.
+VHS90TrackReadEngine uses the NTSCRT physical overlap model and opposite-azimuth sinc attenuation. The attenuation uses 4.0 MHz FM and 40/63.556 MHz color-under, adjacent samples are positioned relative to the active center track, overlap shares remain absolute relative to a 58 µm SP track, source round-away-from-zero center selection is used, and neighboring raster rows include VBI-scaled track offset. This remains an image-domain read approximation; it does not yet sample a full sample-domain RF tape chain.
 
 ### 2. Control-track servo
 
-`VHS90TapeTransportEngine` now includes a deterministic render-local replay of the control-track PI loop:
+VHS90TapeTransportEngine has deterministic render-local replay of a control-track PI loop:
 - proportional pulse correction coefficient 0.377;
 - integral coefficient 0.0986 with ±0.15 clamp;
-- missing-pulse hold behavior;
-- false-pulse injection;
-- pulse-strength/dropout controls;
-- picture-search speed and relock path;
-- arbitrary-frame deterministic replay, with no process-global mutable state.
+- missing-pulse hold, false-pulse injection and pulse-strength/dropout controls;
+- picture-search speed and relock approximation;
+- arbitrary-frame deterministic replay without process-global mutable state.
 
-The AE Tracking Servo control is wired into the engine. An optional physical control-track path now samples the NTSCRT control-head location (79.244 mm along track, y=0.35 mm) using the same tape material map, then applies remanence-normalized amplitude and spacing loss to pulse detection; crease lift can create false pulses. The AE adapter enables this path and passes the selected tape speed. Remaining deviations: pulse servo still uses a simplified frame-domain replay rather than the upstream line-domain capstan/motor/stick-slip model, exact source 64-bit noise/value interpolation and full phase/history snapshots. Therefore this is a first integrated PI-servo adaptation, not a bit-for-bit transport port.
-
-### Track-read refinement
-
-The C++ `VHS90TrackReadEngine` now matches the source `TapeFormat::read` geometry more closely: it retains absolute overlap shares normalized to a 58 µm SP track (rather than renormalizing all overlaps to 1), applies separate azimuth-sinc attenuation at 4.0 MHz FM and 40/63.556 MHz color-under, uses the source round-away-from-zero center-track selection, and offsets neighboring raster rows by `track_offset_lines × raster_scale` (including VBI). This preserves the narrower LP/EP head's lower absolute read share. Smoke tests cover centered SP identity and EP absolute-share attenuation.
+The AE adapter connects Tracking Servo and physical control-track tape sampling at the upstream control-head location (79.244 mm along track, y=0.35 mm). It applies remanence-normalized amplitude and spacing loss to pulse detection; crease lift can create false pulses. Remaining deviations: simplified frame-domain replay instead of the full line-domain capstan/motor/stick-slip model, exact source 64-bit noise/value interpolation and complete phase/history snapshots.
 
 ### 3. Physical tape material map
 
-`VHS90TapeSurfaceEngine` now exposes `sampleTapeSurfaceAtMm(xMm, yMm, params)` in the NTSCRT coordinate convention (millimetres along tape and across the 12.65 mm tape width). The raster adapter maps field rows along the helical track, horizontal samples over the active NTSC line interval (9.4–62.056 µs), and field origin using the 33.35 mm/speed field advance, selected SP/LP/EP speed and 5.97° track angle. The sampler ports the upstream deterministic 32-bit hash/value-noise pattern and the principal `tape_at` mechanisms: remanence/wear variation, pinholes, flakes and shed, lengthwise scratches, creases, edge lift, mold colonies and Vaseline film. The raster sampler averages four physical samples across the selected SP (58 µm) or LP/EP (26 µm) head width, offset sideways by the configured track-pitch misalignment; it includes active-picture start timing and the raster's VBI line offset. The head-state and control-track paths call the same point sampler with `detail=false, flakes=true`, matching the source's sync/deck sampling mode. `TapeSurfaceSample` now reports shed as well as magnetization, spacing lift, roughness and film.
+VHS90TapeSurfaceEngine exposes sampleTapeSurfaceAtMm(xMm,yMm) in NTSCRT millimetre coordinates. The raster adapter maps field rows along the helical track, horizontal samples over the active NTSC line interval (9.4–62.056 µs), and field origin using 33.35 mm/speed field advance, selected SP/LP/EP speed and 5.97° track angle.
 
-This is a C++ adaptation, not bit-identical parity yet: the measured wear/dropout/scratch/edge response curves, crease top-end transform and tape-seed transform are ported and used by the AE adapter, but VHS-90 still exposes one master Tape Surface slider rather than independent upstream tape knobs. Sticky-binder/transport stick-slip coupling and source-level seed control are not yet complete; the AE adapter currently uses the upstream default cassette seed (tape_seed=1, transformed to 7936), not a user-selectable cassette control. The C++ tape defaults are now clean/zero-damage unless the AE Tape Surface control is enabled. The raster sampling path now uses physical track coordinates, but the image-domain renderer still approximates the RF chain.
+Important geometry correction: upstream TapeGeometry::TRACK_START is **1.0 mm**, not 1.52 mm. The C++ constant and smoke expectations have been corrected to 1.0 mm; the track rises about 10.1 mm over its length at 5.97°.
+
+The sampler ports the upstream deterministic 32-bit hash/value-noise pattern and principal tape_at mechanisms: remanence/wear variation, pinholes, flakes/shed, lengthwise scratches, creases, edge lift, mold colonies and Vaseline film. The raster sampler averages four physical samples across the selected SP (58 µm) or LP/EP (26 µm) head width, offset sideways by configured track-pitch misalignment. Head-state and control-track paths use detail-off/flake-on sampling, matching the source deck/sync sampling mode. TapeSurfaceSample reports shed as well as magnetization, spacing lift, roughness and film.
+
+This remains an adaptation, not yet sample-by-sample bit-identical parity: the source measured wear/dropout/scratch/edge curves, crease top-end transform and tape-seed transform are ported, but the AE UI still has one master Tape Surface control rather than independent upstream tape knobs. Sticky-binder/transport stick-slip coupling and user-selectable cassette seed remain incomplete. The image-domain renderer still approximates the RF chain.
 
 ### 4. Two-head deck recurrence with physical tape sampling
 
-`HeadConditionParams` can enable `usePhysicalTapeSamples`. In this mode each active head field samples 12 evenly spaced points along the physical helical track, averages tape shed and film, and feeds those values into deterministic debris pickup/lodging/clean-off and asymmetric grease transfer/decay. The default remains the earlier proxy path unless the flag is enabled. Tests explicitly exercise the physical sampling path.
+HeadConditionParams supports usePhysicalTapeSamples. When enabled, each active head field samples 12 evenly spaced points along the physical helical track, averages tape shed and film, and feeds deterministic debris pickup/lodging/clean-off and asymmetric grease transfer/decay. The AE adapter enables this when Head Condition is active and passes selected tape speed. Head efficiency affects FM and color-under; color-only compensation follows source DeckParams::color_boost.
 
-The physical head-sampling path is now enabled by the AE parameter adapter when Head Condition is active; the selected SP/LP/EP format is passed to the tape sampler. Head efficiency is applied to both FM and color-under, and color-only compensation now follows the source `DeckParams::color_boost` formula (tape remanence, baseline head wear, spacing and gap) rather than canceling dirt/debris losses. The source Swift `DeckSimulator` was reviewed: it samples 12 points per active field with detail disabled and flakes enabled, accumulates per-head debris/grease, and retains the entering states of the last 12 fields. VHS-90 ports the 12-point sampling and recurrence but still lacks the source's 12-entry rolling snapshot/history behavior. The deck is still not a complete source `DeckSimulator` port: it replays from field zero rather than retaining NTSCRT's rolling 12-entry history/snapshot cache.
+The source Swift DeckSimulator was reviewed: it samples 12 points per active field with detail disabled and flakes enabled and retains entering states of the last 12 fields. VHS-90 ports the 12-point sampling and recurrence but still lacks the source rolling 12-entry snapshot/history cache; it replays from field zero.
+
+### 5. VCR coefficient/helper layer
+
+VHS90VcrSignalEngine contains helper coefficients for the source 28.636 MHz sample rate, 1820 samples/line, channel gain/CNR, 64×81 spacing bank, 95-tap analytic FM bandpass, Butterworth low-pass, emphasis/de-emphasis shelves, input trap and chroma-delay calculation. These helpers are tested but are not yet consumed by a complete record/playback image pipeline.
 
 ## Verification
 
-Latest verified core CI: [run 520](https://github.com/vamprieieuu/vhs---90/actions/runs/44623626784) — success, CMake core build and CTest 28/28, including physical tape coordinate/detail/flake/tracking-offset behavior, clean default tape state, SP/LP/EP mapping, measured tape response curves, seed transform, 12-point deck sampling, physical control-track path, deck color compensation and VCR coefficient helpers. The AE SDK adapter itself is not compiled by this Linux core workflow. This does not validate Windows/MSVC, AE SDK compilation, PiPL, AEX loading, live AE rendering or MFR.
+- Linux host-independent core CI run 561 passed after the tape geometry helper was first added: https://github.com/vamprieieuu/vhs---90/actions/runs/44626248722
+- The source track-start correction changed 1.52 mm to 1.0 mm. Runs 567/568 exposed a stale old-start assertion and then an incorrect track-rise expectation; both were corrected in commit 7c07cfe.
+- Follow-up Linux core CI is run 572: https://github.com/vamprieieuu/vhs---90/actions/runs/44779518318. Treat the corrected geometry as pending verification until this run concludes successfully.
+- The Linux workflow validates only host-independent C++ core and smoke tests. It does not compile the AE adapter or prove Windows/MSVC, AE SDK, PiPL, AEX loading, live AE render or MFR.
 
-## Preset disposition
+## Preset migration disposition
 
-45/45 preset JSON files were parsed. They divide into:
-- VHS/deck/tape conditions and look presets;
-- frame/timeline-driven glitch sequences;
-- digital codec/downscale looks that do not represent analog tape;
-- five `Screen Loop` feedback/reprojection presets with a separate schema.
+All 45 JSON presets were semantically reviewed. The report 47 classifies:
+- physical VCR/tape/deck looks that are useful candidates for the current analog engines;
+- receiver/sync animation looks requiring parameter mapping and host keyframes;
+- NTSC-only looks whose effects live in ntsc.settings even when a preset name says “Glitch”;
+- seven digital-camera/codec looks excluded from the analog VHS port;
+- five Screen Loop feedback looks excluded as a separate effect;
+- CRT shader and downscale settings that are separate stages/host behavior.
 
-The five Screen Loop presets require a dedicated feedback/reprojection stage; their parameters should not be flattened into the current tape or sync controls. Preset names and parameter mappings remain to be migrated into VHS-90 after the relevant engines exist.
-
-## Source audit coverage — honest status
-
-Content-level review in this work pass includes the Rust engine files below and the corresponding Swift reference implementations `Sources/CrtCore/{Tape,Deck,Transport,Receiver,VcrStage}.swift`, plus `Presets.swift`, `GlitchParams.swift`, `GlitchStage.swift`, `GlitchRenderer.swift`, `NtscStage.swift`, `Pipeline.swift`, `PlaybackPipeline.swift` and `port/engine/src/glitch/stage.rs`:
-- `port/engine/src/glitch/transport.rs`
-- `port/engine/src/glitch/deck.rs`
-- `port/engine/src/glitch/tape.rs`
-- `port/engine/src/glitch/receiver.rs`
-- `port/engine/src/glitch/vcr.rs`
-- `port/engine/src/glitch/vcr.wgsl`
-- `port/engine/src/glitch/params.rs`
-- `port/engine/src/glitch/mod.rs`
-- `port/engine/src/glitch/glitch.wgsl`
-- relevant VHS-90 transport, track-read, head-condition, composite, effect adapter, CMake and smoke-test files.
-
-The 359-file ledger currently records 149 content-reviewed files, 45 parsed preset JSON files, zero engine-review-pending and zero platform-review-pending files, 58 test/reference-pending files, 49 inventory-only files, 45 asset-inventory files and 13 metadata-inventory files. The remaining upstream Swift app, Rust UI/CLI/MCP, codec, media/export, shader, build, dependency, fixture and binary-asset files have not all received a line-by-line content review. They must be classified as reusable engine, platform-only, test/reference, generated/vendor, or irrelevant to native AE before the source audit can be marked complete.
-
-## Still required before NTSCRT can be called finished
-
-1. Finish physical tape map parity: expose source-equivalent independent tape knobs and user-controlled tape seed (the measured response curves and seed transform are now ported); implement sticky-binder/transport stick-slip coupling; verify sample-by-sample against upstream reference outputs.
-2. Complete deck parity: verify source-compatible field indexing and physical 12-point sample aggregation; port the bounded rolling 12-field history/snapshot semantics. The physical sample path is now enabled from the AE parameter adapter when Head Condition is active, but Windows/AE execution is not yet validated.
-3. Port the RF/FM/color-under chain from `VcrStage.swift` / `vcr.wgsl`. The source is an 8× color-subcarrier signal path (28.6 MHz, 1820 samples per line) with nine kernels: `vcr_record`, `vcr_tape`, `vcr_magnet`, `vcr_play`, `vcr_fmband`, `vcr_line`, `vcr_comb`, `vcr_acc`, `vcr_out`. It includes composite-copy trap/chroma separation, FM pre-emphasis/clipping, color-under heterodyning, four material samples across the head width per segment, three-track azimuth-weighted magnetization, a 64-level spacing/gap filter bank, analytic FM bandpass, instantaneous-frequency demodulation, zero-phase luma/chroma filters, de-emphasis, dropout hold/compensation, one-line chroma comb, ACC/APC and color killer. The coefficient/helper layer is now ported into `VHS90VcrSignalEngine`: 28.636 MHz sample rate, 1820 samples/line, channel gain/CNR, 64×81 spacing bank, 95-tap analytic FM bandpass, Butterworth low-pass, emphasis/de-emphasis shelves, input trap and chroma-delay calculation. These helpers are tested but not yet consumed by a record/playback image pipeline. No C++ VHS-90 engine currently reproduces the complete sample-domain chain.
-4. Port receiver sync and color-reference loops from `Receiver.swift` / `receiver.rs` and `glitch.wgsl`. The source receiver is a stateful line-by-line television model: 2 s warmup; sync separator probability from signal/noise and hum; horizontal AFC PI/VCO with cycle slipping; vertical integrator and injection-locked oscillator; burst-key phase follower; per-field chroma PLL, ACC and color-killer; 12-field/line history snapshots and deterministic resimulation. Current VHS-90 `SyncCollapseEngine` and `ReceiverInstabilityEngine` remain pixel-domain/procedural effects, not this circuit model.
-5. Build a file-by-file disposition ledger for all 359 upstream files, including a reason for every non-port.
-6. Complete source parity tests and visual frame comparisons, then Windows/MSVC + AE SDK build and live After Effects/MFR validation.
+Normal look timeline keys are whole-state NTSC/shader snapshots with easing. They must be converted to AE host keyframes for the controls actually implemented. JSON parsing alone is not a native preset migration.
 
 ## Licensing
 
-NTSCRT is MIT-licensed. The license and attribution are now preserved in `ThirdParty/NTSCRT/LICENSE` and `ThirdParty/NTSCRT/README.md`. Do not remove these notices when redistributing substantial copied or adapted portions.
+NTSCRT is MIT-licensed. Attribution and license are preserved in ThirdParty/NTSCRT. Dependency and shader notices were reviewed: ntsc-rs has permissive MIT/ISC/Apache options; librashader runtime is MPL-2.0; bundled shader licenses vary and include GPL-2.0/3.0. GPL-covered shader sources are not copied into VHS-90 by default.
+
+## Still required before NTSCRT-derived implementation can be called complete
+
+1. Expose independent source-equivalent tape knobs and user-selectable tape seed in the AE UI; implement sticky-binder/transport stick-slip coupling.
+2. Verify tape material sample parity against upstream point outputs across positions, seeds, damage combinations and SP/LP/EP.
+3. Complete the nine-stage sample-domain RF/FM/color-under record/playback chain: vcr_record, vcr_tape, vcr_magnet, vcr_play, vcr_fmband, vcr_line, vcr_comb, vcr_acc and vcr_out.
+4. Complete receiver sync/color-reference parity: line/field timing, sync separator, horizontal AFC/VCO, vertical integrator, burst phase, chroma PLL, ACC/color killer and deterministic rolling history.
+5. Port source 12-field rolling deck/head snapshot semantics and transport history/replay.
+6. Convert selected analog presets into native VHS-90/AE presets, map supported parameters and translate timeline snapshots/easing to host keyframes; do not port digital/Screen Loop looks into the tape engine.
+7. Run deterministic source-vs-C++ point/field/frame comparisons and visual reference comparisons.
+8. Build the optional AEX target on Windows x64/MSVC with the exact AE SDK, validate PiPL and load/render/MFR in After Effects. No Windows or AE-host validation is currently claimed.
