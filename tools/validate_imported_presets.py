@@ -45,6 +45,7 @@ required_reads = [
     "READ_FLOAT(PARAM_CAMERA_INTENSITY,cameraIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_INTENSITY,ntscRsIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_PHASE_NOISE,ntscRsPhaseNoise)",
+    "READ_FLOAT(PARAM_SIGNAL_HUE_NOISE,signalHueNoise)",
     "READ_FLOAT(PARAM_DEVICE_CONNECTION_AMOUNT,deviceConnectionAmount)",
     "READ_FLOAT(PARAM_DEVICE_CONNECTION_DENSITY,deviceConnectionDensity)",
     "READ_FLOAT(PARAM_DEVICE_CONNECTION_SIZE,deviceConnectionSize)",
@@ -73,8 +74,10 @@ for needle in [
     "p.analogNoise.grainAmount=clamp01(s.vhs6RiftGrain/100.0f);",
     "p.analogNoise.shadowBias=clamp01(s.vhs6RiftShadowBias/100.0f);",
     "p.analogNoise.noiseDetail=clamp01(s.vhs6RiftNoiseDetail/100.0f);",
+    "p.analogNoise.hueNoiseAmount=clamp01(s.signalHueNoise/100.0f);",
     "dp.amount=clamp01(s.deviceConnectionAmount/100.0f*master);",
     "dp.seed=static_cast<std::uint32_t>(std::clamp(std::lround(s.deviceConnectionSeed),1l,32767l));",
+    "s.signalHueNoise>0",
     "processDeviceConnections(in,out,dp)",
     "p.geometry.edgeWaveFrequency=s.edgeWaveFrequency",
 ]:
