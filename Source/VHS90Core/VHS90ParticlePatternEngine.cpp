@@ -70,9 +70,9 @@ bool processParticlePattern(ConstImageView src,ImageView dst,const ParticlePatte
             if(p.mode==ParticlePatternMode::BottomWeightedStreaks)
                 distribution*=0.25f+0.75f*v*v;
             if(event>=clamp01(density*distribution)) {
-                const float base=p.backgroundLuma*(1.0f-sourceMix)+sp[0]*sourceMix;
-                const float baseG=p.backgroundLuma*(1.0f-sourceMix)+sp[1]*sourceMix;
-                const float baseB=p.backgroundLuma*(1.0f-sourceMix)+sp[2]*sourceMix;
+                const float base=p.backgroundLuma*(1.0f-sourceMix)*(p.premultipliedAlpha?alpha:1.0f)+sp[0]*sourceMix;
+                const float baseG=p.backgroundLuma*(1.0f-sourceMix)*(p.premultipliedAlpha?alpha:1.0f)+sp[1]*sourceMix;
+                const float baseB=p.backgroundLuma*(1.0f-sourceMix)*(p.premultipliedAlpha?alpha:1.0f)+sp[2]*sourceMix;
                 dp[0]=base;dp[1]=baseG;dp[2]=baseB;dp[3]=alpha;
                 continue;
             }
@@ -104,9 +104,9 @@ bool processParticlePattern(ConstImageView src,ImageView dst,const ParticlePatte
             const float norm=std::sqrt((along*along)/(halfLong*halfLong)+(across*across)/(halfShort*halfShort));
             float mask=smoothCoverage(norm,1.0f);
             if(mask<=0.0f) {
-                const float base=p.backgroundLuma*(1.0f-sourceMix)+sp[0]*sourceMix;
-                const float baseG=p.backgroundLuma*(1.0f-sourceMix)+sp[1]*sourceMix;
-                const float baseB=p.backgroundLuma*(1.0f-sourceMix)+sp[2]*sourceMix;
+                const float base=p.backgroundLuma*(1.0f-sourceMix)*(p.premultipliedAlpha?alpha:1.0f)+sp[0]*sourceMix;
+                const float baseG=p.backgroundLuma*(1.0f-sourceMix)*(p.premultipliedAlpha?alpha:1.0f)+sp[1]*sourceMix;
+                const float baseB=p.backgroundLuma*(1.0f-sourceMix)*(p.premultipliedAlpha?alpha:1.0f)+sp[2]*sourceMix;
                 dp[0]=base;dp[1]=baseG;dp[2]=baseB;dp[3]=alpha;
                 continue;
             }
@@ -125,9 +125,9 @@ bool processParticlePattern(ConstImageView src,ImageView dst,const ParticlePatte
                 pg=particle*(1.0f-chroma)+clampf(hg*1.6f,0.0f,1.8f)*particle*chroma;
                 pb=particle*(1.0f-chroma)+clampf(hb*1.6f,0.0f,1.8f)*particle*chroma;
             }
-            const float baseR=p.backgroundLuma*(1.0f-sourceMix)+sp[0]*sourceMix;
-            const float baseG=p.backgroundLuma*(1.0f-sourceMix)+sp[1]*sourceMix;
-            const float baseB=p.backgroundLuma*(1.0f-sourceMix)+sp[2]*sourceMix;
+            const float baseR=p.backgroundLuma*(1.0f-sourceMix)*(p.premultipliedAlpha?alpha:1.0f)+sp[0]*sourceMix;
+            const float baseG=p.backgroundLuma*(1.0f-sourceMix)*(p.premultipliedAlpha?alpha:1.0f)+sp[1]*sourceMix;
+            const float baseB=p.backgroundLuma*(1.0f-sourceMix)*(p.premultipliedAlpha?alpha:1.0f)+sp[2]*sourceMix;
             const float a=clamp01(mask*intensity);
             const float pa=p.premultipliedAlpha?alpha:1.0f;
             dp[0]=baseR+(pr*pa-baseR)*a;
