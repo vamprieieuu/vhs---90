@@ -204,7 +204,7 @@ if(VHS90_BUILD_AE_PLUGIN)
         VERBATIM
     )
 
-    add_library(VHS90 MODULE Source/VHS90Effect.cpp "${VHS90_PIPL_RC}")
+    add_library(VHS90 MODULE Source/VHS90Effect.cpp Source/VHS90Windows/VHS90OsdArbitraryData.cpp "${VHS90_PIPL_RC}")
     target_link_libraries(VHS90 PRIVATE VHS90Core VHS90DirectWrite)
     target_include_directories(VHS90 PRIVATE
         "${VHS90_AE_HEADERS}"
