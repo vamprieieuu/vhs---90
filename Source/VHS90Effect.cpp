@@ -1154,7 +1154,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             op.tapeSpeed=std::clamp<A_long>(s.tapeSpeed,1,3);
             op.recX=s.osdRecX; op.recY=s.osdRecY; op.statusX=s.osdStatusX; op.statusY=s.osdStatusY;
             op.timestampX=s.osdTimestampX; op.timestampY=s.osdTimestampY;
-            op.showTapeCounter=s.osdCounterAmount>0.0f; op.tapeCounterAmount=clamp01(s.osdCounterAmount/100.0f);
+            op.showTapeCounter=s.osdCounterAmount>0.0f && s.osdShowText!=0; op.tapeCounterAmount=clamp01(s.osdCounterAmount/100.0f);
             op.tapeCounterFormat=static_cast<VhsTapeCounterFormat>(std::clamp<A_long>(s.osdCounterFormat,1,3));
             op.tapeCounterX=s.osdCounterX; op.tapeCounterY=s.osdCounterY;
             op.seed=0x9050D5u; op.premultipliedAlpha=true;
@@ -1180,72 +1180,108 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 options.direction=language==VhsOsdLanguage::Arabic?
                     vhs90::win::TextDirection::RightToLeft:vhs90::win::TextDirection::Auto;
                 options.alignment=alignment; options.premultipliedDestination=true;
+                if(s.osdTextGlow) {
+                    const float glowAlpha=clamp01(alpha*0.24f);
+                    for(int gy=-1;gy<=1;gy+=2) for(int gx=-1;gx<=1;gx+=2) {
+                        auto glow=options;
+                        glow.x=std::max(0.0f,options.x+float(gx));
+                        glow.y=std::max(0.0f,options.y+float(gy));
+                        glow.red=0.55f; glow.green=0.82f; glow.blue=1.0f;
+                        glow.opacity=glowAlpha;
+                        const auto glowResult=vhs90::win::drawDirectWriteText(osdView,glow);
+                        if(!glowResult.rendered) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+                    }
+                }
                 const auto result=vhs90::win::drawDirectWriteText(osdView,options);
                 return result.rendered?PF_Err_NONE:PF_Err_INTERNAL_STRUCT_DAMAGED;
             };
-            const int osdCell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,op.scale))));\n            const float textSize=7.0f*float(osdCell);
-            if(s.osdRec>0.0f) {
-                const std::string rec=vhsOsdLabel(VhsOsdLabel::Record,language);
-                const float x=float(w)*s.osdRecX/100.0f+5.0f*float(osdCell);
-                const float y=float(h)*s.osdRecY/100.0f;
-                const PF_Err e=drawOsdText(rec,x,y,textSize,op.opacity*op.amount*op.recAmount,
-                    vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
-            }
-            if(s.osdPlay>0.0f) {
-                VhsOsdLabel deck=VhsOsdLabel::Play;
-                switch(op.deckMode) {
-                    case VhsDeckMode::Pause: deck=VhsOsdLabel::Pause; break;
-                    case VhsDeckMode::Stop: deck=VhsOsdLabel::Stop; break;
-                    case VhsDeckMode::FastForward: deck=VhsOsdLabel::FastForward; break;
-                    case VhsDeckMode::Rewind: deck=VhsOsdLabel::Rewind; break;
-                    default: break;
+            const int osdCell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,op.scale))));
+            const float textSize=7.0f*float(osdCell);
+            if(s.osdShowText) {
+                if(s.osdRec>0.0f && s.osdShowRecLabel) {
+                    const std::string rec=vhsOsdLabel(VhsOsdLabel::Record,language);
+                    const float x=float(w)*s.osdRecX/100.0f+5.0f*float(osdCell);
+                    const float y=float(h)*s.osdRecY/100.0f;
+                    const PF_Err e=drawOsdText(rec,x,y,textSize,op.opacity*op.amount*op.recAmount,
+                        vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
                 }
-                const std::string status=vhsOsdLabel(deck,language);
-                const std::string speed=vhsOsdLabel(s.tapeSpeed==3?VhsOsdLabel::TapeSpeedEP:
-                    (s.tapeSpeed==2?VhsOsdLabel::TapeSpeedLP:VhsOsdLabel::TapeSpeedSP),language);
-                const float sx=float(w)*s.osdStatusX/100.0f;
-                const float sy=float(h)*s.osdStatusY/100.0f;
-                const PF_Err e=drawOsdText(status,0.0f,sy,textSize,
-                    op.opacity*op.amount*op.playAmount,vhs90::win::TextAlignment::Trailing,sx);
-                if(e!=PF_Err_NONE) return e;
-                const PF_Err se=drawOsdText(speed,0.0f,sy+textSize*1.25f,textSize*0.72f,op.opacity*op.amount*op.playAmount,
-                    vhs90::win::TextAlignment::Trailing,sx); if(se!=PF_Err_NONE) return se;
-            }
-            if(s.osdTimestamp>0.0f) {
-                VhsOsdDateTime dt;
-                dt.year=static_cast<int>(std::lround(s.osdYear));
-                dt.month=static_cast<int>(std::lround(s.osdMonth));
-                dt.day=static_cast<int>(std::lround(s.osdDay));
-                dt.hour=static_cast<int>(std::lround(s.osdHour));
-                dt.minute=static_cast<int>(std::lround(s.osdMinute));
-                dt.second=static_cast<int>(std::lround(s.osdSecond));
-                dt.elapsedSeconds=s.timeSeconds*std::max(0.0f,s.osdTimeSpeed);
-                dt.clockRuns=s.osdClockRuns!=0;
-                dt.dateFormat=static_cast<VhsOsdDateFormat>(std::clamp<A_long>(s.osdDateLayout,1,4));
-                dt.timeMode=static_cast<VhsOsdTimeMode>(std::clamp<A_long>(s.osdClockMode,1,3)-1);
-                dt.monthStyle=static_cast<VhsOsdMonthStyle>(std::clamp<A_long>(s.osdMonthStyle,1,2)-1);
-                const std::string stamp=formatVhsOsdDateTime(dt,language,digits);
-                const float x=float(w)*s.osdTimestampX/100.0f;
-                const float y=float(h)*s.osdTimestampY/100.0f-textSize;
-                const PF_Err e=drawOsdText(stamp,0.0f,y,textSize,
-                    op.opacity*op.amount*op.timestampAmount,vhs90::win::TextAlignment::Trailing,x);
-                if(e!=PF_Err_NONE) return e;
-            }
-            static constexpr VhsOsdLabel kExtraLabels[]={
-                VhsOsdLabel::Tape,VhsOsdLabel::Error,VhsOsdLabel::Program01,VhsOsdLabel::Resolution,
-                VhsOsdLabel::Forward,VhsOsdLabel::Eject,VhsOsdLabel::Search,VhsOsdLabel::Tracking,
-                VhsOsdLabel::Auto,VhsOsdLabel::Channel,VhsOsdLabel::Camera,VhsOsdLabel::Deck,
-                VhsOsdLabel::Timer,VhsOsdLabel::Stereo,VhsOsdLabel::Slow,VhsOsdLabel::Still,VhsOsdLabel::Memory};
-            if(s.osdExtraLabel>=2&&s.osdExtraLabel<=18) {
-                const std::string extra=vhsOsdLabel(kExtraLabels[s.osdExtraLabel-2],language);
-                const float x=float(w)*s.osdExtraX/100.0f;
-                const float y=float(h)*s.osdExtraY/100.0f;
-                const PF_Err e=drawOsdText(extra,x,y,textSize,op.opacity*op.amount,
-                    vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
-            }
-            if(!s.osdText.empty()) {
-                const PF_Err e=drawOsdText(s.osdText,24.0f,24.0f,textSize,op.opacity*op.amount,
-                    vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
+                if(s.osdPlay>0.0f) {
+                    bool showDeck=false;
+                    VhsOsdLabel deck=VhsOsdLabel::Play;
+                    switch(op.deckMode) {
+                        case VhsDeckMode::Pause: deck=VhsOsdLabel::Pause; showDeck=s.osdShowPauseLabel!=0; break;
+                        case VhsDeckMode::Stop: deck=VhsOsdLabel::Stop; showDeck=s.osdShowStopLabel!=0; break;
+                        case VhsDeckMode::FastForward: deck=VhsOsdLabel::FastForward; showDeck=s.osdShowFfLabel!=0; break;
+                        case VhsDeckMode::Rewind: deck=VhsOsdLabel::Rewind; showDeck=s.osdShowRewLabel!=0; break;
+                        default: showDeck=s.osdShowPlayLabel!=0; break;
+                    }
+                    const float sx=float(w)*s.osdStatusX/100.0f;
+                    const float sy=float(h)*s.osdStatusY/100.0f;
+                    if(showDeck) {
+                        const std::string status=vhsOsdLabel(deck,language);
+                        const PF_Err e=drawOsdText(status,0.0f,sy,textSize,
+                            op.opacity*op.amount*op.playAmount,vhs90::win::TextAlignment::Trailing,sx);
+                        if(e!=PF_Err_NONE) return e;
+                    }
+                    if(s.osdShowSpeedLabel) {
+                        const std::string speed=vhsOsdLabel(s.tapeSpeed==3?VhsOsdLabel::TapeSpeedEP:
+                            (s.tapeSpeed==2?VhsOsdLabel::TapeSpeedLP:VhsOsdLabel::TapeSpeedSP),language);
+                        const PF_Err se=drawOsdText(speed,0.0f,sy+textSize*1.25f,textSize*0.72f,
+                            op.opacity*op.amount*op.playAmount,vhs90::win::TextAlignment::Trailing,sx);
+                        if(se!=PF_Err_NONE) return se;
+                    }
+                }
+                if(s.osdTimestamp>0.0f && s.osdShowDate) {
+                    VhsOsdDateTime dt;
+                    dt.year=static_cast<int>(std::lround(s.osdYear));
+                    dt.month=static_cast<int>(std::lround(s.osdMonth));
+                    dt.day=static_cast<int>(std::lround(s.osdDay));
+                    dt.hour=static_cast<int>(std::lround(s.osdHour));
+                    dt.minute=static_cast<int>(std::lround(s.osdMinute));
+                    dt.second=static_cast<int>(std::lround(s.osdSecond));
+                    dt.elapsedSeconds=s.timeSeconds*std::max(0.0f,s.osdTimeSpeed);
+                    dt.clockRuns=s.osdClockRuns!=0;
+                    dt.dateFormat=static_cast<VhsOsdDateFormat>(std::clamp<A_long>(s.osdDateLayout,1,4));
+                    dt.timeMode=static_cast<VhsOsdTimeMode>(std::clamp<A_long>(s.osdClockMode,1,3)-1);
+                    dt.monthStyle=static_cast<VhsOsdMonthStyle>(std::clamp<A_long>(s.osdMonthStyle,1,2)-1);
+                    const std::string stamp=formatVhsOsdDateTime(dt,language,digits);
+                    const float x=float(w)*s.osdTimestampX/100.0f;
+                    const float y=float(h)*s.osdTimestampY/100.0f-textSize;
+                    const PF_Err e=drawOsdText(stamp,0.0f,y,textSize,
+                        op.opacity*op.amount*op.timestampAmount,vhs90::win::TextAlignment::Trailing,x);
+                    if(e!=PF_Err_NONE) return e;
+                }
+                float wordY=float(h)*s.osdWordsY/100.0f;
+                const float wordX=float(w)*s.osdWordsX/100.0f;
+                auto drawWord=[&](bool enabled,VhsOsdLabel label)->PF_Err {
+                    if(!enabled) return PF_Err_NONE;
+                    const std::string word=vhsOsdLabel(label,language);
+                    const PF_Err e=drawOsdText(word,wordX,wordY,textSize,op.opacity*op.amount,
+                        vhs90::win::TextAlignment::Leading);
+                    if(e==PF_Err_NONE) wordY+=textSize*1.25f;
+                    return e;
+                };
+                PF_Err wordErr=drawWord(s.osdShowTapeLabel!=0,VhsOsdLabel::Tape); if(wordErr!=PF_Err_NONE)return wordErr;
+                wordErr=drawWord(s.osdShowErrorLabel!=0,VhsOsdLabel::Error); if(wordErr!=PF_Err_NONE)return wordErr;
+                wordErr=drawWord(s.osdShowProgramLabel!=0,VhsOsdLabel::Program01); if(wordErr!=PF_Err_NONE)return wordErr;
+                wordErr=drawWord(s.osdShowResLabel!=0,VhsOsdLabel::Resolution); if(wordErr!=PF_Err_NONE)return wordErr;
+                wordErr=drawWord(s.osdShowForwardLabel!=0,VhsOsdLabel::Forward); if(wordErr!=PF_Err_NONE)return wordErr;
+                if(s.osdExtraLabel>=2&&s.osdExtraLabel<=18) {
+                    static constexpr VhsOsdLabel kExtraLabels[]={
+                        VhsOsdLabel::Tape,VhsOsdLabel::Error,VhsOsdLabel::Program01,VhsOsdLabel::Resolution,
+                        VhsOsdLabel::Forward,VhsOsdLabel::Eject,VhsOsdLabel::Search,VhsOsdLabel::Tracking,
+                        VhsOsdLabel::Auto,VhsOsdLabel::Channel,VhsOsdLabel::Camera,VhsOsdLabel::Deck,
+                        VhsOsdLabel::Timer,VhsOsdLabel::Stereo,VhsOsdLabel::Slow,VhsOsdLabel::Still,VhsOsdLabel::Memory};
+                    const std::string extra=vhsOsdLabel(kExtraLabels[s.osdExtraLabel-2],language);
+                    const float x=float(w)*s.osdExtraX/100.0f;
+                    const float y=float(h)*s.osdExtraY/100.0f;
+                    const PF_Err e=drawOsdText(extra,x,y,textSize,op.opacity*op.amount,
+                        vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
+                }
+                if(!s.osdText.empty()) {
+                    const PF_Err e=drawOsdText(s.osdText,24.0f,24.0f,textSize,op.opacity*op.amount,
+                        vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
+                }
             }
         }
         if(compositeStages&&master>0.0f) {
