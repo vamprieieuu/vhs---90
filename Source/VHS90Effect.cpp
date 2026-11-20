@@ -1170,7 +1170,10 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 "Arabic Childhood ver1","Arial Narrow","Evogria","K Kamran","Maqroo",
                 "Milan Display","Nasma","Real Vhs Font","RooyinFree",
                 "YR Sponge Arabic","ZIAN Black"};
-            const char* osdFont=kOsdFontFamilies[std::clamp<A_long>(s.osdFont-1,0,14)];
+            const A_long osdFontIndex=std::clamp<A_long>(s.osdFont-1,0,14);
+            const char* osdFont=kOsdFontFamilies[osdFontIndex];
+            static constexpr std::uint16_t kOsdFontWeights[]={400,400,400,400,400,700,400,400,400,900,400,400,700,400,900};
+            const auto osdFontWeight=kOsdFontWeights[osdFontIndex];
             const auto language=static_cast<VhsOsdLanguage>(std::clamp<A_long>(s.osdLanguage-1,0,2));
             const auto digits=static_cast<VhsOsdDigitSet>(std::clamp<A_long>(s.osdDigits-1,0,2));
             const int osdCell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,op.scale))));
@@ -1178,7 +1181,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                                  vhs90::win::TextAlignment alignment,float rightEdge=0.0f) -> PF_Err {
                 if(text.empty()||alpha<=0.001f) return PF_Err_NONE;
                 vhs90::win::DirectWriteTextOptions options;
-                options.utf8Text=text.c_str(); options.utf8FontFamily=osdFont;
+                options.utf8Text=text.c_str(); options.utf8FontFamily=osdFont; options.fontWeight=osdFontWeight;
                 const double phase=double(s.frame)*0.7548776662466927+double(s.vhs6RiftNoiseSeed)*0.000123;
                 const float jitterX=std::sin(phase*12.9898)*op.glitch*float(osdCell)*0.45f;
                 const float jitterY=std::cos(phase*78.233)*op.glitch*float(osdCell)*0.22f;
