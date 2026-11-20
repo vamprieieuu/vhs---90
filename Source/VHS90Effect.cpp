@@ -361,6 +361,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.physicalInterference.magnetDistanceCm=s.magnetDistance;
                 p.physicalInterference.groundLoopMillivolts=s.groundLoop;
                 p.physicalInterference.mainsHumAmount=clamp01(s.mainsHum/100.0f);
+                p.physicalInterference.mainsFrequencyHz=(s.colorSystem==2)?50.0f:60.0f;
                 p.physicalInterference.rfFieldVPerM=s.rfField;
                 p.physicalInterference.rfPickupAmount=clamp01(s.rfPickup/100.0f);
                 p.physicalInterference.framesPerSecond=s.frameRate;
