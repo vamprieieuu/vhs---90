@@ -51,6 +51,7 @@ float magneticHeadSignalGain(const PhysicalInterferenceParams& p) noexcept {
 float magneticTapeEraseFraction(const PhysicalInterferenceParams& p) noexcept {
     const float b = dipoleAxialFieldTesla(p.magnetMomentAm2,
                                           std::max(0.01f, p.magnetDistanceCm) * 0.01f);
+    if (b <= 0.0f) return 0.0f;
     const float h = b / kMu0;
     const float hc = std::max(1.0f, finiteOr(p.tapeCoercivityAm, 52000.0f));
     const float spread = std::clamp(finiteOr(p.tapeSwitchingSpread, 0.30f), 0.02f, 1.0f);
