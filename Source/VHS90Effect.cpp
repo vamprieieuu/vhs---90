@@ -1179,7 +1179,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 if(text.empty()||alpha<=0.001f) return PF_Err_NONE;
                 vhs90::win::DirectWriteTextOptions options;
                 options.utf8Text=text.c_str(); options.utf8FontFamily=osdFont;
-                const double phase=double(s.frame)*0.7548776662466927+double(s.randomSeed)*0.000123;
+                const double phase=double(s.frame)*0.7548776662466927+double(s.vhs6RiftNoiseSeed)*0.000123;
                 const float jitterX=std::sin(phase*12.9898)*op.glitch*float(osdCell)*0.45f;
                 const float jitterY=std::cos(phase*78.233)*op.glitch*float(osdCell)*0.22f;
                 options.x=std::max(0.0f,x+jitterX); options.y=std::max(0.0f,y+jitterY);
