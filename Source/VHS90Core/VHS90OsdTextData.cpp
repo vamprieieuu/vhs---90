@@ -23,7 +23,8 @@ bool isValidOsdUtf8(std::string_view s) noexcept {
     std::size_t i=0;
     while (i<s.size()) {
         const auto c=static_cast<std::uint8_t>(s[i]);
-        if (c==0) return false; // OSD strings are NUL-terminated at host/UI boundaries.\n        if (c<=0x7f) { ++i; continue; }
+        if (c==0) return false; // OSD strings are NUL-terminated at host/UI boundaries.
+        if (c<=0x7f) { ++i; continue; }
         std::uint32_t cp=0; std::size_t n=0;
         if (c>=0xc2 && c<=0xdf) { cp=c&0x1f; n=2; }
         else if (c>=0xe0 && c<=0xef) { cp=c&0x0f; n=3; }
