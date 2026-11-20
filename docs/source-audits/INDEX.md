@@ -74,3 +74,5 @@ See docs/PROJECT_STATUS.md for the current build/integration boundary. The repos
 - 58-fxc6-gen7-camera-reference-deep-analysis.md — reopened all six VHS Camera files, re-sampled four clips, corrected Fxc6 alignment/metric caveats, analyzed Gen 7 temporal state cycling and measured after-only AAC audio; added separate FXC6 and Gen 7 Camera Profile recipes.
 
 - 61-ntscqt-spectral-ringing-preemphasis-exact-port-spec.md — source-code re-verification of both NTSC-QT frequency-domain ringing variants, the 720-sample response curve, Y/I/Q alternating-field application, pre-emphasis placement and explicit native FFT/fixture requirements; no false port-complete claim.
+
+- 62-osd-directwrite-arabic-vhs-tape-implementation-spec.md — re-verified current pre-VHS OSD insertion point, 5×7 bitmap limitations, smoke-test coverage and supplied font license metadata; specifies DirectWrite Arabic/RTL, eligible fonts, full VHS Tape parity and required tests. No font-backed renderer is claimed complete.
