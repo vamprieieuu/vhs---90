@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include "VHS90DirectWriteText.h"
+#include "VHS90FontsResource.h"
 #include <windows.h>
 #include <d2d1.h>
 #include <d2d1helper.h>
@@ -51,8 +52,8 @@ bool ensureBundledFonts() noexcept {
 
         struct FontResource { WORD id; const wchar_t* filename; };
         constexpr FontResource fonts[] = {
-            {501, L"Rooyin_Free_Bold.ttf"},
-            {502, L"Sponge_Arabic_Regular.otf"}
+            {VHS90_RESOURCE_ROOYIN_FONT, L"Rooyin_Free_Bold.ttf"},
+            {VHS90_RESOURCE_SPONGE_ARABIC_FONT, L"Sponge_Arabic_Regular.otf"}
         };
         bool anyLoaded = false;
         for (const auto& font : fonts) {
