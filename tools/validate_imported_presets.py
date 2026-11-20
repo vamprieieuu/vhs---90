@@ -45,6 +45,12 @@ required_reads = [
     "READ_FLOAT(PARAM_CAMERA_INTENSITY,cameraIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_INTENSITY,ntscRsIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_PHASE_NOISE,ntscRsPhaseNoise)",
+    "READ_FLOAT(PARAM_DEVICE_CONNECTION_AMOUNT,deviceConnectionAmount)",
+    "READ_FLOAT(PARAM_DEVICE_CONNECTION_DENSITY,deviceConnectionDensity)",
+    "READ_FLOAT(PARAM_DEVICE_CONNECTION_SIZE,deviceConnectionSize)",
+    "READ_FLOAT(PARAM_DEVICE_CONNECTION_SPEED,deviceConnectionSpeed)",
+    "READ_FLOAT(PARAM_DEVICE_CONNECTION_DISTRIBUTION,deviceConnectionDistribution)",
+    "READ_FLOAT(PARAM_DEVICE_CONNECTION_SEED,deviceConnectionSeed)",
     "READ_FLOAT(PARAM_VHS6RIFT_GRAIN,vhs6RiftGrain)",
     "READ_FLOAT(PARAM_VHS6RIFT_GRAIN_SIZE,vhs6RiftGrainSize)",
     "READ_FLOAT(PARAM_VHS6RIFT_NOISE_DETAIL,vhs6RiftNoiseDetail)",
@@ -67,6 +73,9 @@ for needle in [
     "p.analogNoise.grainAmount=clamp01(s.vhs6RiftGrain/100.0f);",
     "p.analogNoise.shadowBias=clamp01(s.vhs6RiftShadowBias/100.0f);",
     "p.analogNoise.noiseDetail=clamp01(s.vhs6RiftNoiseDetail/100.0f);",
+    "dp.amount=clamp01(s.deviceConnectionAmount/100.0f*master);",
+    "dp.seed=static_cast<std::uint32_t>(std::clamp(std::lround(s.deviceConnectionSeed),1l,32767l));",
+    "processDeviceConnections(in,out,dp)",
     "p.geometry.edgeWaveFrequency=s.edgeWaveFrequency",
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
@@ -80,4 +89,4 @@ assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {s
 
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: 16 VHS6RIFT style presets, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
-print("PASS: VHS6RIFT procedural grain/luma/chroma controls, seed, and NTSC-RS engine controls are wired.")
+print("PASS: VHS6RIFT procedural grain/luma/chroma controls, Signal device-connection overlay, and NTSC-RS engine controls are wired.")
