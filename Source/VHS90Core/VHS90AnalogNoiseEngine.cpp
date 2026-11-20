@@ -27,7 +27,6 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
     p.lumaAmount<0.0f||p.chromaAmount<0.0f||p.compositeAmount<0.0f||p.tapeLineAmount<0.0f||p.framesPerSecond<=0.0f) return false;
  const float ly=std::clamp(p.lumaAmount,0.0f,1.0f),ch=std::clamp(p.chromaAmount,0.0f,1.0f),co=std::clamp(p.compositeAmount,0.0f,1.0f),loss=std::clamp(p.chromaLoss,0.0f,5000.0f)/65000.0f,tape=std::clamp(p.tapeLineAmount,0.0f,1.0f),phaseNoise=std::clamp(p.chromaPhaseNoise,0.0f,1.0f);
  if(ly<=0.0f&&ch<=0.0f&&co<=0.0f&&loss<=0.0f&&tape<=0.0f&&phaseNoise<=0.0f){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
- const int lw=std::max(1,p.lumaCellWidth),lh=std::max(1,p.lumaCellHeight),cw=std::max(1,p.chromaCellWidth),chh=std::max(1,p.chromaCellHeight);
  const float angle=p.hueBiasDegrees*kPi/180.0f,di=std::cos(angle),dq=std::sin(angle);
  const float time=float(p.frame)*p.tapeLineSpeed/p.framesPerSecond;
  for(int y=0;y<src.height;++y){const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
