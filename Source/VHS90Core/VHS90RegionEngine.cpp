@@ -99,11 +99,47 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
     const float shiftY = (n - 0.5f) * r.verticalShiftPx;
     if (r.kind == RegionKind::TrackingNoise) {
         const float servo=smoothServoNoise(y,r.servoSmoothnessPx,regionSeed+0x165667b1u,p.frame,r.servoEpochFrames);
-        shiftX += (servo-0.5f)*2.0f*r.servoDriftPx;
         const float tearEvent=hashCell(cx,cy,regionSeed+0xd3a2646cu,p.frame);
-        if (tearEvent<clamp01(r.tearProbability)) {
-            const float tearDirection=hashCell(cx+7,cy+11,regionSeed+0x9e3779b9u,p.frame);
-            shiftX += (tearDirection-0.5f)*2.0f*r.tearShiftPx;
+        const float tearDirection=hashCell(cx+7,cy+11,regionSeed+0x9e3779b9u,p.frame);
+        switch (r.trackingProfile) {
+            case TrackingProfile::ServoSweep:
+                // VHS6RIFT-derived clustered scanline jitter, servo drift and discrete tear slips.
+                shiftX += (servo-0.5f)*2.0f*r.servoDriftPx;
+                if (tearEvent<clamp01(r.tearProbability)) shiftX += (tearDirection-0.5f)*2.0f*r.tearShiftPx;
+                break;
+            case TrackingProfile::RfWave: {
+                // NTSC-R-derived anisotropic RF wave: smooth row-correlated motion plus fine horizontal snow.
+                const float broad=valueNoise1D(y/std::max(1.0f,r.servoSmoothnessPx*2.5f),regionSeed+0x51ed270bu,p.frame/4);
+                const float fine=rowN-0.5f;
+                shiftX += (broad-0.5f)*2.0f*r.servoDriftPx + fine*r.waveAmplitudePx*0.65f;
+                if (tearEvent<clamp01(r.tearProbability*0.45f)) shiftX += (tearDirection-0.5f)*r.tearShiftPx;
+                break;
+            }
+            case TrackingProfile::CompositeRibbon: {
+                // Crates-style layered tracking ribbon: multi-scale row field and segmented displacement jumps.
+                const float f1=valueNoise1D(y/std::max(1.0f,r.servoSmoothnessPx),regionSeed+0x243f6a88u,p.frame/3);
+                const float f2=valueNoise1D(y/std::max(1.0f,r.servoSmoothnessPx*0.22f),regionSeed+0xb7e15162u,p.frame);
+                const float ribbon=(f1-0.5f)*1.35f+(f2-0.5f)*0.65f;
+                const float segment=hashCell(cx/3,cy,regionSeed+0x94d049bbu,p.frame);
+                shiftX += ribbon*r.servoDriftPx*2.0f;
+                if(segment<clamp01(r.tearProbability)) shiftX += (tearDirection-0.5f)*2.0f*r.tearShiftPx;
+                break;
+            }
+            case TrackingProfile::TapeFlutter: {
+                // VHSPro-inspired slow tape flutter, independent from the shared Snow and Edge Wave stages.
+                const float slow=std::sin(static_cast<float>(p.timeSeconds)*1.7f + y/std::max(1.0f,r.servoSmoothnessPx*3.0f));
+                const float slip=valueNoise1D(y/std::max(1.0f,r.servoSmoothnessPx*1.8f),regionSeed+0x68bc21ebu,p.frame/12);
+                shiftX += slow*r.servoDriftPx*0.9f + (slip-0.5f)*r.servoDriftPx*1.4f;
+                if(tearEvent<clamp01(r.tearProbability*0.25f)) shiftX += (tearDirection-0.5f)*r.tearShiftPx*1.5f;
+                break;
+            }
+            case TrackingProfile::FourEdgeCrawl: {
+                // Damage-Lab spatial model: irregular edge crawl with independently seeded row/column structure.
+                const float edgeNoise=valueNoise1D((r.shape==RegionShape::VerticalBand?x:y)/std::max(1.0f,r.servoSmoothnessPx),regionSeed+0x85ebca6bu,p.frame/2);
+                shiftX += (edgeNoise-0.5f)*r.servoDriftPx*2.4f + (rowN-0.5f)*r.waveAmplitudePx;
+                if(tearEvent<clamp01(r.tearProbability)) shiftX += (tearDirection-0.5f)*r.tearShiftPx*1.25f;
+                break;
+            }
         }
     } else {
         const float tear = hashCell(0, iy / 2, regionSeed + 0x9e3779b9u, p.frame);
