@@ -86,10 +86,10 @@ void stamp(const VhsOsdParams& p,double elapsed,char* out,std::size_t cap) noexc
 bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
  if(!im.rgba||im.width<=0||im.height<=0||im.rowStrideFloats<std::ptrdiff_t(im.width)*4)return false;
  if(!std::isfinite(p.amount)||!std::isfinite(p.opacity)||!std::isfinite(p.scale)||!std::isfinite(p.glitch)||
- !std::isfinite(p.ghost)||!std::isfinite(p.recAmount)||!std::isfinite(p.playAmount)||!std::isfinite(p.timestampAmount)||
+ !std::isfinite(p.ghost)||!std::isfinite(p.recAmount)||!std::isfinite(p.playAmount)||!std::isfinite(p.timestampAmount)||!std::isfinite(p.batteryAmount)||
  !std::isfinite(p.recBlinkHz)||!std::isfinite(p.recColorR)||!std::isfinite(p.recColorG)||!std::isfinite(p.recColorB)||!std::isfinite(p.timestampSpeed)||!std::isfinite(p.timeSeconds)||!std::isfinite(p.framesPerSecond))return false;
  const float amount=c01(p.amount),opacity=c01(p.opacity);
- if(amount<=0||opacity<=0||(!p.showRec&&!p.showPlay&&!p.showTimestamp))return true;
+ if(amount<=0||opacity<=0||(!p.showRec&&!p.showPlay&&!p.showTimestamp&&!p.showBattery))return true;
  const int w=im.width,h=im.height;
  const int cell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,p.scale))));
  const int small=std::max(1,int(std::lround(cell*0.75f))),mx=std::max(8,int(std::lround(w*0.022f))),my=std::max(6,int(std::lround(h*0.03f)));
@@ -109,6 +109,17 @@ bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
  if(p.showTimestamp&&p.timestampAmount>0){char t[40]{};stamp(p,std::max(0.0,p.timeSeconds)*std::max(0.0f,p.timestampSpeed),t,sizeof(t));
   const float a=amount*opacity*c01(p.timestampAmount);const int x=std::max(0,w-mx-width(t,small)+dx),y=std::max(0,h-my-7*small+dy);
   textDraw(im,t,x,y,small,a,pm);if(gx&&gh>0.002f)textDraw(im,t,x,y,small,a*gh,pm,gx);
+ }
+ if(p.showBattery&&p.batteryAmount>0.001f){
+  const float a=amount*opacity*c01(p.batteryAmount);
+  const int bw=14*small,bh=7*small,x=w-mx-bw+dx,y=my+18*small+dy,th=std::max(1,small);
+  for(int xx=0;xx<bw;++xx){pixel(im,x+xx,y,TR,TG,TB,a,pm);pixel(im,x+xx,y+bh-1,TR,TG,TB,a,pm);}
+  for(int yy=0;yy<bh;++yy){pixel(im,x,y+yy,TR,TG,TB,a,pm);pixel(im,x+bw-1,y+yy,TR,TG,TB,a,pm);}
+  for(int yy=bh/3;yy<(2*bh)/3;++yy)pixel(im,x+bw,y+yy,TR,TG,TB,a,pm);
+  const int innerW=bw-4*th,innerH=bh-2*th,segments=3,gap=std::max(1,th/2);
+  const int segmentW=std::max(1,(innerW-2*gap)/segments),filled=int(std::lround(float(segments)*c01(p.batteryAmount)));
+  for(int n=0;n<filled;++n)for(int yy=0;yy<innerH;++yy)for(int xx=0;xx<segmentW;++xx)
+   pixel(im,x+2*th+n*(segmentW+gap)+xx,y+th+yy,TR,TG,TB,a,pm);
  }
  return true;
 }
