@@ -115,23 +115,23 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `TestAssets/flat-gray.png` | 1968 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `TestAssets/game-frame.png` | 3329 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `TestAssets/testpattern.png` | 6117 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `Tests/CrtCoreTests/ChainInputCacheTests.swift` | 3464 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/DigitalVideoTests.swift` | 31342 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/ExportGlitchTests.swift` | 7100 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/ExportShaderToggleTests.swift` | 9748 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/FieldLinesTests.swift` | 2043 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/GlitchStageTests.swift` | 16672 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/HowlaroundTests.swift` | 30180 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/NtscChainTests.swift` | 5639 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/PreviewCompositorTests.swift` | 7115 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/PreviewGeometryTests.swift` | 7005 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/PreviewScalingTests.swift` | 8378 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/ReceiverSimulatorTests.swift` | 22470 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/ShaderBypassTests.swift` | 4692 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/SourceCropTests.swift` | 16449 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/UpdateCheckTests.swift` | 2351 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/VcrTests.swift` | 18869 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `Tests/CrtCoreTests/Video1Tests.swift` | 5519 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `Tests/CrtCoreTests/ChainInputCacheTests.swift` | 3464 | content-reviewed | Reviewed 4 cache stamp/generation/budget/range tests (22 assertions); app preview cache only, no VHS engine parity. |
+| `Tests/CrtCoreTests/DigitalVideoTests.swift` | 31342 | content-reviewed | Reviewed 29 digital codec/camera/timing/keyframe/replay/performance tests (90 assertions); separate digital codec stage, not analog tape. |
+| `Tests/CrtCoreTests/ExportGlitchTests.swift` | 7100 | content-reviewed | Reviewed 3 still/GIF/video export glitch-stage integration tests; verifies per-frame keyframes reach exported receiver stage. |
+| `Tests/CrtCoreTests/ExportShaderToggleTests.swift` | 9748 | content-reviewed | Reviewed 5 still/video/GIF export toggle tests; catches shader bypass regressions, not VHS transport. |
+| `Tests/CrtCoreTests/FieldLinesTests.swift` | 2043 | content-reviewed | Reviewed 3 field-line/supersample geometry tests; raster geometry only. |
+| `Tests/CrtCoreTests/GlitchStageTests.swift` | 16672 | content-reviewed | Reviewed 13 GPU glitch stage tests (29 assertions): healthy identity, vertical roll/blanking, tearing, ghost/color delay, color killer, caption line, brightness below black, seek/replay determinism and retune reruns. |
+| `Tests/CrtCoreTests/HowlaroundTests.swift` | 30180 | content-reviewed | Reviewed 26 Screen Loop tests (133 assertions): camera/tunnel geometry, framing, run-up, loop, hands, keyframes, deterministic render and cancellation. Separate effect, not VHS. |
+| `Tests/CrtCoreTests/NtscChainTests.swift` | 5639 | content-reviewed | Reviewed playback/export chain-input equivalence test across frame paths and resolutions; NTSC pipeline integration only. |
+| `Tests/CrtCoreTests/PreviewCompositorTests.swift` | 7115 | content-reviewed | Reviewed 3 offscreen preview compositor tests (13 assertions): odd letterbox rows, scanline sampling and fill-mode sizing. |
+| `Tests/CrtCoreTests/PreviewGeometryTests.swift` | 7005 | content-reviewed | Reviewed 6 preview geometry tests (22 assertions): letterbox integer offsets, texel row mapping, zoom, pan and visible picture. |
+| `Tests/CrtCoreTests/PreviewScalingTests.swift` | 8378 | content-reviewed | Reviewed 10 preview scaler tests (25 assertions): integer multiples, texture budget, scanline floor and small drawable fallback. |
+| `Tests/CrtCoreTests/ReceiverSimulatorTests.swift` | 22470 | content-reviewed | Reviewed 25 receiver simulator tests: identity, vertical/horizontal hold, rolling, tearing, head-switch flagging/AFC, weak signal/noise, hum, two-head dirt, tape/VCR gating, deterministic replay, search/tracking, tension, sticky tape, chewed control track, wear and EP sync. |
+| `Tests/CrtCoreTests/ShaderBypassTests.swift` | 4692 | content-reviewed | Reviewed 4 CRT shader bypass tests (5 assertions): exact nearest scaling, fractional enlargement brightness, downscale order and flat-field identity. |
+| `Tests/CrtCoreTests/SourceCropTests.swift` | 16449 | content-reviewed | Reviewed 10 crop geometry/GPU/decode/playback/export tests (82 assertions); crop input pipeline only. |
+| `Tests/CrtCoreTests/UpdateCheckTests.swift` | 2351 | content-reviewed | Reviewed 3 release-version/parser tests (15 assertions); update metadata only. |
+| `Tests/CrtCoreTests/VcrTests.swift` | 18869 | content-reviewed | Reviewed 16 VCR tests: clean/worn tape response, edge-biased mold, consistent tape sampling, deck debris clog/shedding/cleaning, head vaseline transfer, legacy knob mapping, spacing-vs-color loss, EP noise/comb behavior, wear, burst-overlap behavior, copy degradation, alternating-head dirt and measured monotonic curves. |
+| `Tests/CrtCoreTests/Video1Tests.swift` | 5519 | content-reviewed | Reviewed 6 Microsoft Video 1 block codec tests (18 assertions); digital codec only. |
 | `Vendor/ntscrs-capi/Cargo.lock` | 5720 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
 | `Vendor/ntscrs-capi/Cargo.toml` | 396 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `Vendor/ntscrs-capi/src/lib.rs` | 8906 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
@@ -220,7 +220,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/engine/src/ntsc_ui.rs` | 8599 | content-reviewed | Reviewed NTSC parameter descriptor, labels/defaults and UI metadata from ntsc-rs; existing VHS-90 AnalogNTSC wrapper is separate. |
 | `port/engine/src/preview.rs` | 7456 | content-reviewed | Reviewed WGPU preview surface/pipeline and texture upload/readback; preview-only host infrastructure. |
 | `port/engine/src/timeline.rs` | 9204 | content-reviewed | Reviewed keyframe sorting, segment lookup, easing and typed parameter interpolation. AE host animation replaces this app timeline in the plugin. |
-| `port/engine/tests/digital.rs` | 7713 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/engine/tests/digital.rs` | 7713 | content-reviewed | Reviewed 4 Rust digital-stage integration tests (13 assertions); capture geometry, stage ordering and parameter filtering. |
 | `port/engine/tests/fixtures/glitch/dub.args` | 69 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
 | `port/engine/tests/fixtures/glitch/dub.json` | 128086 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
 | `port/engine/tests/fixtures/glitch/healthy.args` | 5 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
@@ -242,10 +242,10 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/engine/tests/fixtures/glitch/weak.args` | 25 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
 | `port/engine/tests/fixtures/glitch/weak.json` | 29833 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
 | `port/engine/tests/fixtures/mac-launch-look.json` | 5128 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/glitch_parity.rs` | 5194 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/howl.rs` | 3637 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/mac_parity.rs` | 3393 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/preview_paths.rs` | 5457 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/engine/tests/glitch_parity.rs` | 5194 | content-reviewed | Reviewed Rust receiver parity fixture test: compares every row, color reference, VCR lines/head state and generations against Swift reference JSON fixtures. |
+| `port/engine/tests/howl.rs` | 3637 | content-reviewed | Reviewed 2 GPU Screen Loop integration/determinism tests; unrelated to VHS tape engine. |
+| `port/engine/tests/mac_parity.rs` | 3393 | content-reviewed | Reviewed 3 Windows launch-look parity tests against Mac-generated JSON defaults for NTSC and preset settings. |
+| `port/engine/tests/preview_paths.rs` | 5457 | content-reviewed | Reviewed 3 playback path parity tests: baked preview, worker-produced CPU stages and unseen digital frames; host pipeline only. |
 | `port/fetch-librashader.sh` | 1053 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `port/librashader-wgpu-push-constants.patch` | 1610 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
 | `port/licenses/rust-crates-windows.txt` | 665879 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
