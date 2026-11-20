@@ -11,7 +11,11 @@ enum class StaticPatternMode : std::uint8_t {
     BottomWeightedStreaks = 3,
     MonochromeStreaks = 4,
     SplitBandChromatic = 5,
-    StaticToBlackout = 6
+    StaticToBlackout = 6,
+    DarkFieldLumaStreaks = 7,
+    MultiPhaseGreenLine = 8,
+    TwoStageAngularRibbon = 9,
+    DiagonalSyncCollapse = 10
 };
 
 struct StaticParams {
@@ -30,6 +34,11 @@ struct StaticParams {
     float flicker = 0.06f;
     float animationSpeed = 1.0f;
     float blackoutProbability = 0.08f;
+    float angleDegrees = 24.0f;
+    float ribbonWidth = 0.12f;
+    float greenLineAmount = 0.75f;
+    int phaseCount = 3;
+    float diagonalShiftPx = 12.0f;
     int blackoutDurationFrames = 4;
     bool animated = true;
     bool premultipliedAlpha = true;
