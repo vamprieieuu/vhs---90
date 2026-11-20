@@ -70,3 +70,5 @@ See docs/PROJECT_STATUS.md for the current build/integration boundary. The repos
 - 56-tracking-variants-and-damage-lab-checkpoint.md — five distinct Tracking Noise renderer models and evidence mapping for VHS6RIFT, NTSC-R, Crates VHS Master, VHSPro and VHS Damage Lab; AE selector wired; CI validator/build/32-of-32 tests pass. Records remaining multi-layer UI, Particle Pattern and Tear & Chroma integration gates.
 
 - 57-vhs-damage-lab-engines-and-camera-handoff.md — five Tracking renderer types, eight editable presets, four simultaneous tracking layers, five-mode Tear & Chroma with five independently configurable bands, five-mode Particle Pattern Engine, and 11 procedural static patterns; AE UI/render wiring and Linux CI 34/34 pass. Next: deeper VHS Cameras clip analysis.
+
+- 58-fxc6-gen7-camera-reference-deep-analysis.md — reopened all six VHS Camera files, re-sampled four clips, corrected Fxc6 alignment/metric caveats, analyzed Gen 7 temporal state cycling and measured after-only AAC audio; added separate FXC6 and Gen 7 Camera Profile recipes.
