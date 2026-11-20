@@ -8,20 +8,20 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 
 | Upstream path | Bytes | Status | Disposition |
 |---|---:|---|---|
-| `.gitattributes` | 73 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `.github/workflows/mcp-registry.yml` | 2764 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `.github/workflows/windows-port.yml` | 7655 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `.gitignore` | 532 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `.gitmodules` | 215 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `.gitattributes` | 73 | content-reviewed | Reviewed Git line-ending policy for Windows command launchers; repository metadata only. |
+| `.github/workflows/mcp-registry.yml` | 2764 | content-reviewed | Reviewed OIDC-based release publication to MCP Registry; packaging automation only. |
+| `.github/workflows/windows-port.yml` | 7655 | content-reviewed | Reviewed full Windows D3D12 WARP build, shader/reference tests, CLI/MCP checks and artifact packaging. This is an independent Rust/wgpu desktop build, not a native After Effects target. |
+| `.gitignore` | 532 | content-reviewed | Reviewed generated Swift/Rust/build outputs and locally built vendor binaries; no engine content. |
+| `.gitmodules` | 215 | content-reviewed | Reviewed ntsc-rs and slang-shaders submodule origins; their code/licenses are separate dependencies and must not be treated as NTSCRT-authored code. |
 | `Assets/AppIcon.icns` | 1419876 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `Assets/icon-1024.png` | 617475 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `Assets/icon-source.png` | 636923 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `CertificateSigningRequest.certSigningRequest` | 964 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `DEVELOPMENT.md` | 80655 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `CertificateSigningRequest.certSigningRequest` | 964 | content-reviewed | Reviewed PEM certificate signing request; signing identity artifact only, contains no effect code and must not be copied into VHS-90. |
+| `DEVELOPMENT.md` | 80655 | content-reviewed | Reviewed 451-line development guide: pipeline order, VCR/tape physical model, measured controls, head/transport behavior, build/probe commands and performance notes. Strong algorithm and tuning reference; implementation lives in audited Tape/Deck/Transport/VcrStage files. |
 | `LICENSE` | 1069 | content-reviewed | Read during this audit pass |
 | `NTSCRT july 27.webp` | 80040 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `Package.swift` | 3983 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `README.md` | 19946 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `README.md` | 19946 | content-reviewed | Reviewed product pipeline, stages, preset behavior, platform scope, dependencies and MIT/third-party license boundaries; no additional render kernel. |
 | `Sources/CrtApp/AppState+Export.swift` | 8347 | content-reviewed | Reviewed movie/GIF/PNG export routing and async status handling; app export orchestration only, no AE render kernel. |
 | `Sources/CrtApp/AppState+Howlaround.swift` | 17019 | content-reviewed | Reviewed Howlaround export sizing, draft scheduling, render cancellation and feedback-preset load/save. Separate Screen Loop feedback effect/export workflow, not VHS tape engine. |
 | `Sources/CrtApp/AppState.swift` | 102696 | content-reviewed | Reviewed main SwiftUI app state: source/crop, preset/look migration, VCR and reception toggles, frame/keyframe state, preview invalidation and export routing. App orchestration only; core algorithms live in CrtCore/port/engine. |
@@ -65,13 +65,13 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtApp/Views/VanishingPointPad.swift` | 12645 | content-reviewed | Reviewed Screen Loop camera vanishing-point/drift pad and hit geometry; separate feedback UI. |
 | `Sources/CrtApp/Views/VcrPanel.swift` | 3795 | content-reviewed | Reviewed tape/deck condition pickers and parameter group UI. Confirms VCR controls are independent tape/deck physical conditions, not NTSC filter controls. |
 | `Sources/CrtApp/Views/ViewPalette.swift` | 3389 | content-reviewed | Reviewed compare/integer-scale/animate/zoom preview-only controls; these do not affect exported pixels. |
-| `Sources/CrtAppBridge/LibrashaderBridge.m` | 7857 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtAppBridge/NtscRsBridge.m` | 4603 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtAppBridge/include/LibrashaderBridge.h` | 2340 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtAppBridge/include/NtscRsBridge.h` | 1790 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtAppBridge/include/librashader.h` | 108825 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtAppBridge/include/librashader_ld.h` | 70783 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtAppBridge/include/module.modulemap` | 79 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `Sources/CrtAppBridge/LibrashaderBridge.m` | 7857 | content-reviewed | Reviewed dynamic librashader Metal ABI loader, chain creation, texture processing, parameter descriptors and runtime error handling; Metal-specific bridge cannot be reused by AE CPU core. |
+| `Sources/CrtAppBridge/NtscRsBridge.m` | 4603 | content-reviewed | Reviewed dynamic C ABI loader and Objective-C wrapper for ntsc-rs JSON settings/frame processing; portable algorithm is upstream ntsc-rs, while this bridge is macOS-specific. |
+| `Sources/CrtAppBridge/include/LibrashaderBridge.h` | 2340 | content-reviewed | Reviewed Objective-C/Metal public bridge declarations; macOS-only interface. |
+| `Sources/CrtAppBridge/include/NtscRsBridge.h` | 1790 | content-reviewed | Reviewed Objective-C NTSC wrapper declarations; macOS-only interface. |
+| `Sources/CrtAppBridge/include/librashader.h` | 108825 | content-reviewed | Reviewed vendored upstream librashader C API header (MIT); generic shader runtime ABI, no VHS analog behavior and no AE CPU implementation. |
+| `Sources/CrtAppBridge/include/librashader_ld.h` | 70783 | content-reviewed | Reviewed vendored upstream librashader dynamic-loading header (MIT); platform/runtime binding declarations only. |
+| `Sources/CrtAppBridge/include/module.modulemap` | 79 | content-reviewed | Reviewed Clang module map exporting the bridge umbrella header; build metadata only. |
 | `Sources/CrtCodec/DigitalCodec.swift` | 31137 | content-reviewed | Reviewed full codec architecture and core DCT/motion search/residual/reconstruction/loss/deblock paths. This is a separate digital block-transform/d datamosh codec, not analog VHS tape; keep as an optional independent subsystem, not merged into the tape engine. |
 | `Sources/CrtCodec/DigitalVideoParams.swift` | 18748 | content-reviewed | Reviewed independent Digital stage parameter schema, codec/chroma choices and format presets. Digital compression controls; no direct analog VHS engine port. |
 | `Sources/CrtCodec/DigitalVideoRenderer.swift` | 38039 | content-reviewed | Reviewed capture timing, camera/sensor optics, codec state progression, keyframe/checkpoint rerun and RGB reconstruction. Digital codec/camera pipeline; not analog tape. |
@@ -107,10 +107,10 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtCore/UpdateCheck.swift` | 4189 | content-reviewed | Reviewed GitHub release version comparison and release-note parsing. Network/update UI utility, no port. |
 | `Sources/CrtCore/VcrStage.swift` | 59635 | content-reviewed | Read in this pass; disposition and C++ reuse decision recorded in report 45 (Swift/Metal source is reference, not directly compiled into the AE plug-in) |
 | `Sources/CrtCore/VideoSource.swift` | 12672 | content-reviewed | Reviewed AVFoundation random/sequential frame readers and CVMetalTextureCache conversion. macOS media I/O infrastructure, not effect engine. |
-| `Sources/CrtSmoke/main.swift` | 13860 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtSweep/main.swift` | 11373 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtVcrProbe/main.swift` | 7379 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Sources/CrtVideoSmoke/VideoSmoke.swift` | 3633 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `Sources/CrtSmoke/main.swift` | 13860 | content-reviewed | Reviewed headless single-image NTSC/downscale/CRT shader smoke renderer; macOS Metal validation utility, not shipping effect code. |
+| `Sources/CrtSweep/main.swift` | 11373 | content-reviewed | Reviewed automated shader parameter sweep and min/max pixel-effect measurement, including animation-only detection; calibration tooling only. |
+| `Sources/CrtVcrProbe/main.swift` | 7379 | content-reviewed | Reviewed sequential headless VCR/glitch renderer with contact sheets and luma/noise SNR measurements; useful visual calibration methodology, not effect kernel. |
+| `Sources/CrtVideoSmoke/VideoSmoke.swift` | 3633 | content-reviewed | Reviewed async MP4 export smoke tool, codec/bitrate options and progress/error reporting; macOS exporter validation only. |
 | `THIRD_PARTY_NOTICES.md` | 4097 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
 | `TestAssets/flat-gray.png` | 1968 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `TestAssets/game-frame.png` | 3329 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
@@ -133,11 +133,11 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Tests/CrtCoreTests/VcrTests.swift` | 18869 | content-reviewed | Reviewed 16 VCR tests: clean/worn tape response, edge-biased mold, consistent tape sampling, deck debris clog/shedding/cleaning, head vaseline transfer, legacy knob mapping, spacing-vs-color loss, EP noise/comb behavior, wear, burst-overlap behavior, copy degradation, alternating-head dirt and measured monotonic curves. |
 | `Tests/CrtCoreTests/Video1Tests.swift` | 5519 | content-reviewed | Reviewed 6 Microsoft Video 1 block codec tests (18 assertions); digital codec only. |
 | `Vendor/ntscrs-capi/Cargo.lock` | 5720 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `Vendor/ntscrs-capi/Cargo.toml` | 396 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `Vendor/ntscrs-capi/src/lib.rs` | 8906 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `Vendor/ntscrs-capi/Cargo.toml` | 396 | content-reviewed | Reviewed standalone Rust cdylib manifest and dependency on the ntsc-rs submodule; wrapper build metadata only. |
+| `Vendor/ntscrs-capi/src/lib.rs` | 8906 | content-reviewed | Reviewed full C ABI around ntsc-rs: opaque settings instances, descriptor/JSON conversion, BGRA/RGBA frame processing, stride handling and panic containment. Upstream NTSC core is separate; ABI wrapper not ported. |
 | `docs/header.webp` | 80040 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `docs/screenshot.webp` | 179882 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `docs/windows-port-plan.md` | 14827 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `docs/windows-port-plan.md` | 14827 | content-reviewed | Reviewed Windows architecture decisions, WARP validation strategy, pipeline split and settled platform scope; confirms Rust/wgpu desktop app is distinct from the native macOS app. |
 | `licenses/Apache-2.0.txt` | 10140 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
 | `licenses/GPL-2.0.txt` | 15220 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
 | `licenses/GPL-3.0.txt` | 34903 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
@@ -149,8 +149,8 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `mcpb/server/launch.cmd` | 1823 | content-reviewed | Reviewed Windows MCP launcher and bundled executable resolution; app deployment wrapper only. |
 | `mcpb/server/launch.sh` | 1093 | content-reviewed | Reviewed macOS/Linux MCP launcher and bundled executable resolution; app deployment wrapper only. |
 | `port/Cargo.lock` | 137943 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `port/Cargo.toml` | 1040 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/README.md` | 5184 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `port/Cargo.toml` | 1040 | content-reviewed | Reviewed Rust workspace members and pinned ntsc-rs/librashader dependencies; Windows-port workspace metadata only. |
+| `port/README.md` | 5184 | content-reviewed | Reviewed Windows port architecture, build/tests, reference parity and VM instructions; no unique effect algorithm. |
 | `port/app/Cargo.toml` | 1357 | content-reviewed | Reviewed eframe/egui app, media and CLI dependencies; platform app manifest only. |
 | `port/app/build.rs` | 578 | content-reviewed | Reviewed Windows resource/version embedding; build metadata only. |
 | `port/app/icon-256.png` | 92660 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
@@ -246,22 +246,22 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/engine/tests/howl.rs` | 3637 | content-reviewed | Reviewed 2 GPU Screen Loop integration/determinism tests; unrelated to VHS tape engine. |
 | `port/engine/tests/mac_parity.rs` | 3393 | content-reviewed | Reviewed 3 Windows launch-look parity tests against Mac-generated JSON defaults for NTSC and preset settings. |
 | `port/engine/tests/preview_paths.rs` | 5457 | content-reviewed | Reviewed 3 playback path parity tests: baked preview, worker-produced CPU stages and unseen digital frames; host pipeline only. |
-| `port/fetch-librashader.sh` | 1053 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/librashader-wgpu-push-constants.patch` | 1610 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `port/fetch-librashader.sh` | 1053 | content-reviewed | Reviewed pinned librashader checkout and compatibility patch application; third-party dependency acquisition only. |
+| `port/librashader-wgpu-push-constants.patch` | 1610 | content-reviewed | Reviewed narrowly scoped upstream wgpu push-constant pipeline-layout fix; third-party renderer compatibility patch, not VHS behavior. |
 | `port/licenses/rust-crates-windows.txt` | 665879 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `port/media/Cargo.toml` | 580 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/media/src/bin/probe.rs` | 2674 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/media/src/lib.rs` | 8312 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/media/src/mf.rs` | 10917 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/media/src/mf_writer.rs` | 9166 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/package-readme.txt` | 1291 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/scripts/cli-check.py` | 13257 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `port/media/Cargo.toml` | 580 | content-reviewed | Reviewed Windows Media Foundation media crate manifest and target-specific dependencies; platform adapter metadata. |
+| `port/media/src/bin/probe.rs` | 2674 | content-reviewed | Reviewed Media Foundation decode/encode diagnostic CLI and timing output; platform media test tool. |
+| `port/media/src/lib.rs` | 8312 | content-reviewed | Reviewed frame/time indexing, orientation rotation, image reading and video writer abstraction; generic Windows media I/O, not effect processing. |
+| `port/media/src/mf.rs` | 10917 | content-reviewed | Reviewed Media Foundation source-reader startup, format negotiation, timestamp seeking, RGB32 decode, padded row pitch and rotation handling; Windows-only media adapter. |
+| `port/media/src/mf_writer.rs` | 9166 | content-reviewed | Reviewed Media Foundation sink writer for H.264/HEVC, timestamped RGB32 frames and AAC audio interleaving; Windows-only exporter. |
+| `port/package-readme.txt` | 1291 | content-reviewed | Reviewed Windows preview install/use/export instructions and bundled resource requirements; release documentation only. |
+| `port/scripts/cli-check.py` | 13257 | content-reviewed | Reviewed end-to-end CLI/MCP integration harness covering help, describe, looks, still/video/GIF rendering, errors, save-look and JSON-RPC job lifecycle; integration validation only. |
 | `port/scripts/gen-licenses.py` | 4005 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `port/scripts/glitch-ref-render/main.swift` | 2499 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/scripts/glitch-ref/main.swift` | 2204 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/scripts/make-glitch-refs.sh` | 2924 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/scripts/make-look-refs.py` | 3946 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `port/scripts/sync-mcp-text.py` | 2280 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `port/scripts/glitch-ref-render/main.swift` | 2499 | content-reviewed | Reviewed macOS Metal reference-image renderer for the Glitch stage; parity fixture generation utility. |
+| `port/scripts/glitch-ref/main.swift` | 2204 | content-reviewed | Reviewed macOS receiver field-plan JSON reference generator; test fixture utility. |
+| `port/scripts/make-glitch-refs.sh` | 2924 | content-reviewed | Reviewed script compiling Mac receiver/VCR sources and producing field-plan/render fixtures across healthy, search, tracking, tape and transport cases; parity generation only. |
+| `port/scripts/make-look-refs.py` | 3946 | content-reviewed | Reviewed bundled-look reference renderer orchestration and platform compatibility filtering; preset parity tooling only. |
+| `port/scripts/sync-mcp-text.py` | 2280 | content-reviewed | Reviewed deterministic synchronization of MCP server guide text from Swift to Rust Windows app; documentation generation only. |
 | `port/spike/Cargo.toml` | 298 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
 | `port/spike/examples/preview-bench.rs` | 3552 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
 | `port/spike/ref-mac/crt-aperture-ntsc.png` | 1821846 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
@@ -355,18 +355,18 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `presets/glitchy block video.json` | 5268 | parsed | Fetched and JSON-parsed; semantic migration still pending |
 | `presets/glitchy streaming video with noise.json` | 5295 | parsed | Fetched and JSON-parsed; semantic migration still pending |
 | `presets/glitchy streaming video.json` | 5185 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `scripts/build-ntscrs.sh` | 1375 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `scripts/check-control-strength.py` | 13381 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `scripts/check-export-toggles.sh` | 2353 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `scripts/check-zoom-scanlines.sh` | 3540 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `scripts/control-strength-baseline.json` | 10753 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `scripts/build-ntscrs.sh` | 1375 | content-reviewed | Reviewed universal macOS Rust C-ABI build and placement of ntscrs dylib; platform build script only. |
+| `scripts/check-control-strength.py` | 13381 | content-reviewed | Reviewed full automated min/mid/max visible-strength measurement across NTSC, Glitch, VCR and Digital stages against JSON baselines; valuable calibration method, not render code. |
+| `scripts/check-export-toggles.sh` | 2353 | content-reviewed | Reviewed export shader-toggle regression runner; test orchestration only. |
+| `scripts/check-zoom-scanlines.sh` | 3540 | content-reviewed | Reviewed preview zoom/scanline regression test orchestration; test tooling only. |
+| `scripts/control-strength-baseline.json` | 10753 | content-reviewed | Reviewed measured visible-control strength and curve baseline data; tuning evidence, not executable effect code. |
 | `scripts/gen-rust-licenses.py` | 4716 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `scripts/make-mcpb.sh` | 1037 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `scripts/make-release.sh` | 8984 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `scripts/test.sh` | 1018 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `scripts/win-vm.sh` | 1486 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `scripts/wrap-app.sh` | 5626 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
-| `server.json` | 756 | inventory-only | Build/docs/scripts/vendor/support file; inspect and disposition before closing audit |
+| `scripts/make-mcpb.sh` | 1037 | content-reviewed | Reviewed Claude Desktop MCP bundle assembly; packaging only. |
+| `scripts/make-release.sh` | 8984 | content-reviewed | Reviewed version/tag/release asset packaging workflow; release automation only. |
+| `scripts/test.sh` | 1018 | content-reviewed | Reviewed aggregate macOS build/test/smoke/sweep/control-strength verification script; test orchestration only. |
+| `scripts/win-vm.sh` | 1486 | content-reviewed | Reviewed Parallels Windows VM PowerShell command wrapper; local developer infrastructure only. |
+| `scripts/wrap-app.sh` | 5626 | content-reviewed | Reviewed macOS app bundle assembly and placement of shaders/presets/dylibs/licenses; packaging only. |
+| `server.json` | 756 | content-reviewed | Reviewed MCP Registry server metadata and package identity; registry descriptor only. |
 
 ## Closure rule
 
