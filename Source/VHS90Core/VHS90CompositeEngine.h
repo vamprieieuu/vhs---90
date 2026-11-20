@@ -21,6 +21,7 @@
 #include "VHS90TrackReadEngine.h"
 #include "VHS90HeadConditionEngine.h"
 #include "VHS90TapeTransportEngine.h"
+#include "VHS90PhysicalInterferenceEngine.h"
 #include <cstdint>
 
 namespace vhs90 {
@@ -66,6 +67,8 @@ struct CompositeParams {
     MultipathEchoParams multipathEcho{};
     bool receiverInstabilityEnabled = false;
     ReceiverInstabilityParams receiverInstability{};
+    bool physicalInterferenceEnabled = false;
+    PhysicalInterferenceParams physicalInterference{};
     bool imageGradeEnabled = false;
     ImageGradeParams imageGrade{};
     bool tapeDetailEnabled = false;
