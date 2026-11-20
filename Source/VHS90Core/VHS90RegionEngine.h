@@ -16,6 +16,15 @@ enum class RegionShape : std::uint8_t {
     Rectangle = 2
 };
 
+// Distinct signal-generation models. These are real processing variants, not color-only presets.
+enum class TrackingProfile : std::uint8_t {
+    ServoSweep = 0,
+    RfWave = 1,
+    CompositeRibbon = 2,
+    TapeFlutter = 3,
+    FourEdgeCrawl = 4
+};
+
 // All position and size values are normalized to [0,1] frame coordinates.
 // HorizontalBand uses width for horizontal span and height for thickness.
 // VerticalBand uses width for thickness and height for vertical span.
@@ -24,6 +33,7 @@ struct DamageRegion {
     bool enabled = true;
     RegionKind kind = RegionKind::TrackingNoise;
     RegionShape shape = RegionShape::HorizontalBand;
+    TrackingProfile trackingProfile = TrackingProfile::ServoSweep;
 
     float centerX = 0.5f;
     float centerY = 0.5f;
