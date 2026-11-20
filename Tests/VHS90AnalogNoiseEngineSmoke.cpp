@@ -12,7 +12,7 @@ int main(){using namespace vhs90;constexpr int w=48,h=24;std::vector<float>s(w*h
  std::vector<float> tapeA(s.size()),tapeB(s.size()),tapeNext(s.size()),tapeOff(s.size());
  ImageView ta{tapeA.data(),w,h,w*4},tb{tapeB.data(),w,h,w*4},tn{tapeNext.data(),w,h,w*4},to{tapeOff.data(),w,h,w*4};
  assert(processAnalogNoise(si,ta,tape));assert(processAnalogNoise(si,tb,tape));assert(tapeA==tapeB&&tapeA!=s);
- tape.frame=10;assert(processAnalogNoise(si,tn,tape));assert(tapeNext!=tapeA);
+ tape.frame=120;assert(processAnalogNoise(si,tn,tape));assert(tapeNext!=tapeA);
  tape.tapeLineAmount=0;assert(processAnalogNoise(si,to,tape));assert(tapeOff==s);
  AnalogNoiseParams z;assert(processAnalogNoise(si,oi,z));assert(off==s);
  std::vector<float>semi=s,semiOut(s.size());for(size_t i=0;i<semi.size();i+=4){semi[i]*=.3f;semi[i+1]*=.3f;semi[i+2]*=.3f;semi[i+3]=.3f;}
