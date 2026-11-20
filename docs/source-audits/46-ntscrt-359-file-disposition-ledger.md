@@ -2,9 +2,9 @@
 
 Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 359 blobs, 59 directory entries, `truncated=false`.
 
-**Important:** this is a complete path/size disposition ledger, not a completed content audit. Only rows marked `content-reviewed` were read in this audit pass. The 45 JSON preset files were fetched and parsed, but their conversion to VHS-90 presets is pending. Every other row is explicitly left open with a reason; do not interpret inventory status as code review or port completion.
+**Audit result:** all 359 upstream file blobs have been read or inspected in their appropriate form and now have a specific disposition. The 314 source, app, test, support, documentation, dependency, license and binary-asset rows are marked `content-reviewed`; all 45 preset JSON files are marked `semantic-reviewed` with per-look stage classification and migration decisions in [47-ntscrt-preset-semantic-migration.md](47-ntscrt-preset-semantic-migration.md). A disposition is not a claim that every upstream subsystem has been ported.
 
-**Current disposition counts:** 149 content-reviewed; 45 preset JSON parsed; zero engine-review-pending; zero platform-review-pending; 58 test/reference-pending; 49 inventory-only; 45 asset-inventory; 13 metadata-inventory. The code/engine and app/platform content passes now have dispositions, but the full 359-file audit remains open until tests/references, inventory-only files, binary assets, metadata and preset-by-preset semantics are closed.
+**Current disposition counts:** 314 content-reviewed; 45 semantic-reviewed; 0 pending rows. The audit ledger is closed. The implementation/port is not closed: documented physical sampling, full receiver/RF chain, preset conversion and Windows/AE-host validation gaps remain separate engineering work.
 
 | Upstream path | Bytes | Status | Disposition |
 |---|---:|---|---|
