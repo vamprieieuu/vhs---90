@@ -59,6 +59,8 @@ bool processStaticPattern(ConstImageView src,ImageView dst,
     const bool blackout=p.mode==StaticPatternMode::StaticToBlackout &&
         hashCell(static_cast<int>(blackoutTick),0,p.seed+0x27d4eb2fu,0)<clamp01(p.blackoutProbability);
     const float frameFlicker=1.0f-clamp01(p.flicker)*hashCell(0,0,p.seed+0x165667b1u,tick);
+    const float angle=p.angleDegrees*0.01745329251994329577f;
+    const float ca=std::cos(angle),sa=std::sin(angle);
     const float sourceMix=clamp01(p.sourceMix);
     const float intensity=clamp01(p.intensity);
 
@@ -83,8 +85,51 @@ bool processStaticPattern(ConstImageView src,ImageView dst,
                 float lumaNoise=0.0f;
                 float chromaI=0.0f;
                 float chromaQ=0.0f;
+                float greenBoost=0.0f;
+                bool pixelBlackout=blackout;
 
                 switch(p.mode) {
+                    case StaticPatternMode::DarkFieldLumaStreaks:
+                        lumaNoise=horizontal*p.lumaAmount+speckle*p.lumaAmount*0.35f;
+                        break;
+                    case StaticPatternMode::MultiPhaseGreenLine: {
+                        const int phases=std::max(2,p.phaseCount);
+                        const int phase=static_cast<int>((std::max<std::int64_t>(0,p.frame)+y/3)%phases);
+                        lumaNoise=horizontal*p.lumaAmount*(phase==0?1.0f:0.35f);
+                        const float line=hashCell(0,y/2,p.seed+0x51ed270bu,tick);
+                        if(phase==0&&line>0.42f) greenBoost=clamp01(p.greenLineAmount)*(0.35f+line*0.65f);
+                        chromaI=(hashCell(cx+7,cy+3,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount;
+                        break;
+                    }
+                    case StaticPatternMode::TwoStageAngularRibbon: {
+                        const float fx=float(x)/float(std::max(1,src.width-1));
+                        const float fy=float(y)/float(std::max(1,src.height-1));
+                        const float rx=fx*ca+fy*sa;
+                        const float ry=-fx*sa+fy*ca;
+                        const float ribbon=std::fabs(ry-(0.45f+0.045f*std::sin(rx*18.0f+float(tick)*0.08f)));
+                        const bool topStage=fy<clamp01(p.topBandHeight);
+                        const bool ribbonStage=ribbon<clampf(p.ribbonWidth,0.005f,0.5f);
+                        if(topStage||ribbonStage) {
+                            lumaNoise=horizontal*p.lumaAmount*(topStage?0.7f:1.0f);
+                            chromaI=(hashCell(cx+5,cy+9,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*2.0f;
+                            chromaQ=(hashCell(cx+13,cy+17,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*2.0f;
+                        }
+                        break;
+                    }
+                    case StaticPatternMode::DiagonalSyncCollapse: {
+                        const float fx=float(x)/float(std::max(1,src.width-1));
+                        const float fy=float(y)/float(std::max(1,src.height-1));
+                        const float diag=fy-fx*std::tan(angle)-float(tick)*0.0015f;
+                        const float band=1.0f-smooth01(std::fabs(diag-0.28f)/std::max(0.005f,p.ribbonWidth));
+                        if(band>0.0f) {
+                            lumaNoise=horizontal*p.lumaAmount*band;
+                            const float collapse=hashCell(x/4,y/2,p.seed+0x27d4eb2fu,tick);
+                            if(collapse<clamp01(p.blackoutProbability)*band) pixelBlackout=true;
+                            chromaI=(hashCell(cx+3,cy+11,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*band*2.0f;
+                            chromaQ=(hashCell(cx+17,cy+7,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*band*2.0f;
+                        }
+                        break;
+                    }
                     case StaticPatternMode::DarkFieldSpeckles:
                         lumaNoise=speckle*p.lumaAmount;
                         chromaI=(hashCell(cx+7,cy+3,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*2.0f;
@@ -137,11 +182,12 @@ bool processStaticPattern(ConstImageView src,ImageView dst,
                     q.i+=chromaI*noiseWeight;
                     q.q+=chromaQ*noiseWeight;
                     out=yiqToRgb(q);
+                    out.g+=greenBoost*noiseWeight;
                 } else {
                     out=base;
                 }
 
-                if(blackout) {
+                if(pixelBlackout) {
                     out.r=0.0f; out.g=0.0f; out.b=0.0f;
                 }
                 if(p.premultipliedAlpha) {
