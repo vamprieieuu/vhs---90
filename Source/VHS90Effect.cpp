@@ -144,7 +144,7 @@ struct RenderSettings {
     float osdAmount=0.0f, osdRec=100.0f, osdPlay=100.0f, osdTimestamp=100.0f, osdOpacity=82.0f, osdScale=100.0f, osdGlitch=50.0f, osdGhost=35.0f, osdRecBlink=1.4f, osdTimeSpeed=1.0f;
     float osdYear=1994.0f, osdMonth=6.0f, osdDay=11.0f, osdHour=12.0f, osdMinute=0.0f, osdSecond=0.0f;
     A_long osdDeckMode=1, osdDateFormat=1;
-    A_long osdLanguage=0, osdDigits=0, osdDateLayout=1, osdClockMode=2, osdMonthStyle=0, osdClockRuns=1, osdFont=0;
+    A_long osdLanguage=1, osdDigits=1, osdDateLayout=1, osdClockMode=3, osdMonthStyle=1, osdClockRuns=1, osdFont=1;
     float osdRecX=2.2f, osdRecY=3.0f, osdStatusX=98.0f, osdStatusY=3.0f, osdTimestampX=98.0f, osdTimestampY=96.0f;
     A_long osdCounterFormat=1;
     float osdCounterAmount=0.0f, osdCounterX=2.2f, osdCounterY=96.0f;
@@ -1117,17 +1117,17 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             static constexpr const char* kOsdFontFamilies[]={
                 "Segoe UI","Real Vhs Font Regular","RooyinFree Bold","YR Sponge Arabic",
                 "A Naskh Tahrir","K Kamran","Maqroo Regular","ZIAN Black"};
-            const char* osdFont=kOsdFontFamilies[std::clamp<A_long>(s.osdFont,0,7)];
-            const auto language=static_cast<VhsOsdLanguage>(std::clamp<A_long>(s.osdLanguage,0,2));
-            const auto digits=static_cast<VhsOsdDigitSet>(std::clamp<A_long>(s.osdDigits,0,2));
+            const char* osdFont=kOsdFontFamilies[std::clamp<A_long>(s.osdFont-1,0,7)];
+            const auto language=static_cast<VhsOsdLanguage>(std::clamp<A_long>(s.osdLanguage-1,0,2));
+            const auto digits=static_cast<VhsOsdDigitSet>(std::clamp<A_long>(s.osdDigits-1,0,2));
             auto drawOsdText=[&](const std::string& text,float x,float y,float size,float alpha,
-                                 vhs90::win::TextAlignment alignment) -> PF_Err {
+                                 vhs90::win::TextAlignment alignment,float rightEdge=0.0f) -> PF_Err {
                 if(text.empty()||alpha<=0.001f) return PF_Err_NONE;
                 vhs90::win::DirectWriteTextOptions options;
                 options.utf8Text=text.c_str(); options.utf8FontFamily=osdFont;
                 options.x=std::max(0.0f,x); options.y=std::max(0.0f,y);
                 options.fontSize=std::max(8.0f,size);
-                options.maxWidth=std::max(1.0f,float(w)-options.x);
+                options.maxWidth=std::max(1.0f,rightEdge>0.0f?rightEdge-options.x:float(w)-options.x);
                 options.maxHeight=std::max(1.0f,float(h)-options.y);
                 options.red=1.0f; options.green=1.0f; options.blue=1.0f;
                 options.opacity=clamp01(alpha);
@@ -1137,10 +1137,10 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 const auto result=vhs90::win::drawDirectWriteText(osdView,options);
                 return result.rendered?PF_Err_NONE:PF_Err_INTERNAL_STRUCT_DAMAGED;
             };
-            const float textSize=std::max(14.0f,22.0f*op.scale);
+            const int osdCell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,op.scale))));\n            const float textSize=7.0f*float(osdCell);
             if(s.osdRec>0.0f) {
                 const std::string rec=vhsOsdLabel(VhsOsdLabel::Record,language);
-                const float x=float(w)*s.osdRecX/100.0f+textSize*2.4f;
+                const float x=float(w)*s.osdRecX/100.0f+5.0f*float(osdCell);
                 const float y=float(h)*s.osdRecY/100.0f;
                 const PF_Err e=drawOsdText(rec,x,y,textSize,op.opacity*op.amount*op.recAmount,
                     vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
@@ -1159,12 +1159,11 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                     (s.tapeSpeed==2?VhsOsdLabel::TapeSpeedLP:VhsOsdLabel::TapeSpeedSP),language);
                 const float sx=float(w)*s.osdStatusX/100.0f;
                 const float sy=float(h)*s.osdStatusY/100.0f;
-                const PF_Err e=drawOsdText(status,sx-textSize*float(status.size())*0.62f,sy,textSize,
-                    op.opacity*op.amount*op.playAmount,vhs90::win::TextAlignment::Trailing);
+                const PF_Err e=drawOsdText(status,0.0f,sy,textSize,
+                    op.opacity*op.amount*op.playAmount,vhs90::win::TextAlignment::Trailing,sx);
                 if(e!=PF_Err_NONE) return e;
-                const PF_Err se=drawOsdText(speed,sx-textSize*float(speed.size())*0.45f,
-                    sy+textSize*1.25f,textSize*0.72f,op.opacity*op.amount*op.playAmount,
-                    vhs90::win::TextAlignment::Trailing); if(se!=PF_Err_NONE) return se;
+                const PF_Err se=drawOsdText(speed,0.0f,sy+textSize*1.25f,textSize*0.72f,op.opacity*op.amount*op.playAmount,
+                    vhs90::win::TextAlignment::Trailing,sx); if(se!=PF_Err_NONE) return se;
             }
             if(s.osdTimestamp>0.0f) {
                 VhsOsdDateTime dt;
@@ -1182,8 +1181,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 const std::string stamp=formatVhsOsdDateTime(dt,language,digits);
                 const float x=float(w)*s.osdTimestampX/100.0f;
                 const float y=float(h)*s.osdTimestampY/100.0f-textSize;
-                const PF_Err e=drawOsdText(stamp,x-textSize*float(stamp.size())*0.62f,y,textSize,
-                    op.opacity*op.amount*op.timestampAmount,vhs90::win::TextAlignment::Trailing);
+                const PF_Err e=drawOsdText(stamp,0.0f,y,textSize,
+                    op.opacity*op.amount*op.timestampAmount,vhs90::win::TextAlignment::Trailing,x);
                 if(e!=PF_Err_NONE) return e;
             }
             if(!s.osdText.empty()) {
