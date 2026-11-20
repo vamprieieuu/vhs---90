@@ -623,7 +623,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Generation",0,5,0,5,1,2,PF_ValueDisplayFlag_NONE,0,ID_PYVHS_GENERATION);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PYVHS_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Camcorder OSD",ID_OSD_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("OSD Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("OSD Mix / Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("REC Indicator",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_REC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("PLAY / SP Status",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_PLAY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Date / Time",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TIMESTAMP);
@@ -1178,7 +1178,10 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 if(text.empty()||alpha<=0.001f) return PF_Err_NONE;
                 vhs90::win::DirectWriteTextOptions options;
                 options.utf8Text=text.c_str(); options.utf8FontFamily=osdFont;
-                options.x=std::max(0.0f,x); options.y=std::max(0.0f,y);
+                const double phase=double(s.frame)*0.7548776662466927+double(s.randomSeed)*0.000123;
+                const float jitterX=std::sin(phase*12.9898)*op.glitch*float(osdCell)*0.45f;
+                const float jitterY=std::cos(phase*78.233)*op.glitch*float(osdCell)*0.22f;
+                options.x=std::max(0.0f,x+jitterX); options.y=std::max(0.0f,y+jitterY);
                 options.fontSize=std::max(8.0f,size);
                 options.maxWidth=std::max(1.0f,rightEdge>0.0f?rightEdge-options.x:float(w)-options.x);
                 options.maxHeight=std::max(1.0f,float(h)-options.y);
@@ -1187,6 +1190,19 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 options.direction=language==VhsOsdLanguage::Arabic?
                     vhs90::win::TextDirection::RightToLeft:vhs90::win::TextDirection::Auto;
                 options.alignment=alignment; options.premultipliedDestination=true;
+                if(op.ghost>0.002f) {
+                    const float ghostOffset=std::max(1.0f,options.fontSize*0.12f*op.ghost);
+                    auto ghostA=options; ghostA.x=std::max(0.0f,options.x+ghostOffset);
+                    ghostA.red=0.15f; ghostA.green=0.78f; ghostA.blue=1.0f;
+                    ghostA.opacity=clamp01(alpha*op.ghost*0.28f);
+                    const auto ghostResultA=vhs90::win::drawDirectWriteText(osdView,ghostA);
+                    if(!ghostResultA.rendered) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+                    auto ghostB=options; ghostB.x=std::max(0.0f,options.x-ghostOffset);
+                    ghostB.red=1.0f; ghostB.green=0.22f; ghostB.blue=0.45f;
+                    ghostB.opacity=clamp01(alpha*op.ghost*0.18f);
+                    const auto ghostResultB=vhs90::win::drawDirectWriteText(osdView,ghostB);
+                    if(!ghostResultB.rendered) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+                }
                 if(s.osdTextGlow) {
                     const float glowAlpha=clamp01(alpha*0.48f*clamp01(s.osdTextGlowAmount/100.0f));
                     const float glowRadius=std::max(1.0f,std::round(options.fontSize*0.08f));
