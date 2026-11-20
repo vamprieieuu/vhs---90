@@ -19,3 +19,7 @@ After Effects arbitrary data supports persistent custom data, but does not provi
 
 ## Validation
 The CMake smoke test target includes this test. CI execution and an actual After Effects render test must be confirmed separately; this document does not claim either has passed.
+
+
+## DirectWrite bounded-surface improvement
+The Windows DirectWrite adapter was changed to allocate its WIC render target to the requested text bounds / remaining visible region rather than the full destination frame. Compositing now touches only that rectangle. A Windows smoke assertion checks that a bounded label leaves all pixels outside its requested rectangle unchanged. This removes the full-frame WIC allocation cost for small labels, but the adapter is still not invoked by the effect's OSD render path.
