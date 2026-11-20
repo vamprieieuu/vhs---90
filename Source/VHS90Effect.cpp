@@ -16,6 +16,7 @@
 #include "VHS90ChromaShiftEngine.h"
 #include "VHS90OsdEngine.h"
 #include "VHS90OsdArbitraryData.h"
+#include "VHS90DirectWriteText.h"
 #include "VHS90DeviceConnectionEngine.h"
 #include "VHS90SyncEngine.h"
 #include <algorithm>
@@ -137,6 +138,7 @@ struct RenderSettings {
     float osdRecX=2.2f, osdRecY=3.0f, osdStatusX=98.0f, osdStatusY=3.0f, osdTimestampX=98.0f, osdTimestampY=96.0f;
     A_long osdCounterFormat=1;
     float osdCounterAmount=0.0f, osdCounterX=2.2f, osdCounterY=96.0f;
+    std::string osdText;
     float vhs6RiftGrain=0.0f, vhs6RiftGrainSize=2.0f, vhs6RiftNoiseDetail=50.0f, vhs6RiftShadowBias=65.0f, vhs6RiftNoiseSeed=1.0f;
     bool vhs6RiftNoiseEnable=true;
     float signalHueNoise=0.0f;
@@ -838,6 +840,16 @@ static PF_Err CheckoutPopup(PF_InData* in_data,A_long index,A_long& value) {
     value=param.u.pd.value;
     return PF_CHECKIN_PARAM(in_data,&param);
 }
+static PF_Err CheckoutOsdText(PF_InData* in_data, std::string& value) {
+    PF_ParamDef param; AEFX_CLR_STRUCT(param);
+    PF_Err err=PF_CHECKOUT_PARAM(in_data,PARAM_OSD_TEXT_DATA,in_data->current_time,
+        in_data->time_step,in_data->time_scale,&param);
+    if(err!=PF_Err_NONE) return err;
+    err=VHS90ReadOsdText(in_data,param.u.arb_d.value,value);
+    const PF_Err checkin=PF_CHECKIN_PARAM(in_data,&param);
+    return err!=PF_Err_NONE?err:checkin;
+}
+
 static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     PF_Err err=PF_Err_NONE;
 #define READ_FLOAT(I,F) do { err=CheckoutFloat(in_data,(I),s.F); if(err!=PF_Err_NONE) return err; } while(0)
@@ -971,6 +983,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     PF_ParamDef noiseEnable; AEFX_CLR_STRUCT(noiseEnable); err=PF_CHECKOUT_PARAM(in_data,PARAM_VHS6RIFT_NOISE_ENABLE,in_data->current_time,in_data->time_step,in_data->time_scale,&noiseEnable); if(err!=PF_Err_NONE) return err; s.vhs6RiftNoiseEnable=noiseEnable.u.bd.value!=0; err=PF_CHECKIN_PARAM(in_data,&noiseEnable); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_EDGE_WAVE_FREQUENCY,edgeWaveFrequency); READ_FLOAT(PARAM_EDGE_WAVE_SPEED,edgeWaveSpeed); READ_FLOAT(PARAM_EDGE_WAVE_DETAIL,edgeWaveDetail);
     READ_FLOAT(PARAM_CHROMA_EDGE_ENHANCE,chromaEdgeEnhance);
+    err=CheckoutOsdText(in_data,s.osdText); if(err!=PF_Err_NONE) return err;
 #undef READ_FLOAT
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
@@ -1074,6 +1087,23 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             op.seed=0x9050D5u; op.premultipliedAlpha=true;
             ImageView osdView{working.data(),w,h,w*4};
             if(!applyVhsOsd(osdView,op)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            if(!s.osdText.empty()) {
+                vhs90::win::DirectWriteTextOptions textOptions;
+                textOptions.utf8Text=s.osdText.c_str();
+                textOptions.utf8FontFamily="Segoe UI";
+                textOptions.x=24.0f;
+                textOptions.y=24.0f;
+                textOptions.fontSize=std::max(14.0f,22.0f*op.scale);
+                textOptions.maxWidth=std::max(1.0f,float(w)-textOptions.x);
+                textOptions.maxHeight=std::max(1.0f,float(h)-textOptions.y);
+                textOptions.red=1.0f; textOptions.green=1.0f; textOptions.blue=1.0f;
+                textOptions.opacity=op.opacity*op.amount;
+                textOptions.direction=vhs90::win::TextDirection::Auto;
+                textOptions.alignment=vhs90::win::TextAlignment::Leading;
+                textOptions.premultipliedDestination=true;
+                const auto textResult=vhs90::win::drawDirectWriteText(osdView,textOptions);
+                if(!textResult.rendered) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            }
         }
         if(compositeStages&&master>0.0f) {
             CompositeParams p;
@@ -1690,6 +1720,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.osdTimestampX=float(params[PARAM_OSD_TIMESTAMP_X]->u.fs_d.value); s.osdTimestampY=float(params[PARAM_OSD_TIMESTAMP_Y]->u.fs_d.value);
     s.osdCounterFormat=params[PARAM_OSD_COUNTER_FORMAT]->u.pd.value;
     s.osdCounterAmount=float(params[PARAM_OSD_COUNTER_AMOUNT]->u.fs_d.value);
+    { const PF_Err textErr=VHS90ReadOsdText(in_data,params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,s.osdText); if(textErr!=PF_Err_NONE) return textErr; }
     s.osdCounterX=float(params[PARAM_OSD_COUNTER_X]->u.fs_d.value); s.osdCounterY=float(params[PARAM_OSD_COUNTER_Y]->u.fs_d.value);
     s.osdRecColorR=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.red); s.osdRecColorG=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.green); s.osdRecColorB=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.blue);
     s.vhsStyle=params[PARAM_VHS_STYLE]->u.pd.value; s.vhsStyleIntensity=float(params[PARAM_VHS_STYLE_INTENSITY]->u.fs_d.value);
