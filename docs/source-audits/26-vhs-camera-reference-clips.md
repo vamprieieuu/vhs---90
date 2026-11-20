@@ -54,3 +54,11 @@ The supplied note explicitly asks to study the increased noise/background sound,
 - Fxc6 visual comparisons and Gen 7 before/after stills were inspected.
 - The processed Gen 7 audio stream was extracted and measured; original audio is absent, so no before/after audio comparison is claimed.
 - No source camera clip was altered.
+
+## Deep reinspection addendum (2026-11-20)
+
+The six files were re-opened and all four videos were re-probed and sampled again. See the expanded report docs/source-audits/58-fxc6-gen7-camera-reference-deep-analysis.md for timestamped findings, audio measurements and camera-profile mapping.
+
+Important qualification: the Fxc6 split-screen halves are not independently exported, aligned source/output frames. The earlier aggregate half-frame edge-energy/detail comparison is not sufficient to claim that the processed half has lower edge energy or exact detail loss; grain itself raises high-frequency/Laplacian measures. Treat Fxc6 as a cool blue/cyan, grainy, softened direct-capture look and calibrate with controlled AE source/render pairs.
+
+The Gen 7 after clip cycles between teal/yellow colorized frames, dense dark monochrome wavy-static frames and cleaner recovery frames. It is not a simple monotonic amount ramp in the supplied screen recording. The after clip has AAC stereo audio, but the before clip has no audio, so no before/after muffling or noise-rise curve can be measured.
