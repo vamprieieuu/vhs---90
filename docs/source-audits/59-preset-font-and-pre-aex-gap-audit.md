@@ -72,6 +72,24 @@ The supplied archive contains exactly 15 font binaries under `vhs/fonts/`; no ad
 - `RealVhsFontRegular-WyV0z.ttf` is a Latin/display face with 55 glyphs and no Arabic shaping tables. It is VHS-themed by name/design, but the supplied evidence does not prove it is an exact font used by a particular Sony/JVC/Panasonic/other camcorder.
 - No manufacturer-specific original camera OSD font was recovered from VHSTape; its binary strings do not expose a font family.
 
+### VHS Tape OSD controls recovered from the actual AEX binary
+
+The supplied `VHSTape.aex` binary contains a larger OSD/transport interface than VHS-90 currently exposes. Recovered parameter labels and choices include:
+
+- Deck Mode: Play / Pause / Stop / Fast Forward / Rewind.
+- Deck Mode Position: Top Left / Top Right / Bottom Left / Bottom Right.
+- Tape Speed: SP / LP / EP, with an independent position.
+- Counter visibility, position and Counter Offset (seconds).
+- Text Size.
+- Date Stamp / Show Date.
+- Time format: Off / 12-Hour / 24-Hour.
+- Date Position and four date formats: `JAN. 21 1994`, `1.21.1994`, `21.1.1994`, `1994.1.21`.
+- Full English month names January–December and abbreviated names JAN–DEC.
+- Day, Year, Hour, Minute, Clock Runs, Random Seed and Mix.
+- Rendered status strings include `PLAY >`, `PAUSE =`, `STOP #`, `FF >>` and `REW <<`.
+
+The binary does not expose a font-family name or font selector. It contains bitmap-like glyph/icon data and the above strings, but this is not enough evidence to name a manufacturer font. VHS-90 currently exposes only REC/PLAY/SP, a fixed ISO-style timestamp and battery; it does not yet reproduce the full VHS Tape deck-state/counter/date layout. The exact bitmap glyph data should be reverse-engineered separately before claiming pixel-identical font parity.
+
 ### Current implementation versus requested Text system
 
 The current `VHS90OsdEngine.cpp` still uses a hard-coded 5×7 bitmap glyph switch for digits, A–Z and a few punctuation marks. It draws fixed REC/PLAY/SP/date-time/battery elements. It does not load the supplied font files and does not support arbitrary user-entered text.
