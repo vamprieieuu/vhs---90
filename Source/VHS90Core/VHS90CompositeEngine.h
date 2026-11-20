@@ -22,6 +22,7 @@
 #include "VHS90HeadConditionEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include "VHS90PhysicalInterferenceEngine.h"
+#include "VHS90PyVhsGenerationEngine.h"
 #include <cstdint>
 
 namespace vhs90 {
@@ -69,6 +70,8 @@ struct CompositeParams {
     ReceiverInstabilityParams receiverInstability{};
     bool physicalInterferenceEnabled = false;
     PhysicalInterferenceParams physicalInterference{};
+    bool pyVhsGenerationEnabled = false;
+    PyVhsGenerationParams pyVhsGeneration{};
     bool imageGradeEnabled = false;
     ImageGradeParams imageGrade{};
     bool tapeDetailEnabled = false;
