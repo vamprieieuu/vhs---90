@@ -175,3 +175,11 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Latest workflow run `44816026051` passed the imported-preset/AE static validator, CMake build and all 32/32 CTest smoke tests; GitHub Actions was still completing post-job cleanup at last poll: https://github.com/vamprieieuu/vhs---90/actions/runs/44816026051.
 - The next folder in the user's eight-folder sequence is `vhs.py-main`. Its archive contains a Python VHS image processor and browser UI; audit and reuse only native-compatible signal behavior, not the UI/runtime.
 - Windows/MSVC AE SDK build, PiPL, AEX loading, AE rendering and MFR remain global release gates.
+
+
+## Eight-folder queue — vhs.py-main closed (2026-11-20)
+
+- Expanded the earlier vhs.py audit to all 9 files. Confirmed the portable luma/chroma Lanczos compression, independent deterministic noise streams, generation scaling and row-dependent chroma wave are already integrated in `VHS90PyVhsGenerationEngine` and exposed by six AE controls. The 260-line Python engine was reviewed; UI, OpenCV/Eel/Tkinter wrapper, silent MP4 output and browser dependencies are not copied.
+- Confirmed the source's broken/dead DFT ringing helper is not a usable renderer stage; fixed right-edge green/black border is excluded; sharpening/blur behavior is covered by the existing Image Grade/CRT/luma-smear controls without claiming exact pixel parity. No duplicate engine added.
+- Report: `docs/source-audits/54-vhs-py-main-expanded-audit.md`. CI run `44816026051` passed validator, CMake build and 32/32 CTest tests.
+- The next and final folder in the user's eight-folder sequence is `vhs-main`. Inspect the exact `vhs-main` directory separately from `lost-signal-vhs-main`, which was already closed in report 51.
