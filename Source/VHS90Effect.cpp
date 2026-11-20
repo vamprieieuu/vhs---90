@@ -55,7 +55,7 @@ enum ParamIndex {
     PARAM_TEAR_BAND5_TOPIC, PARAM_TEAR_BAND5_AMOUNT, PARAM_TEAR_BAND5_Y, PARAM_TEAR_BAND5_HEIGHT, PARAM_TEAR_BAND5_SHIFT, PARAM_TEAR_BAND5_FRAGMENTATION, PARAM_TEAR_BAND5_CHROMA, PARAM_TEAR_BAND5_SMEAR, PARAM_TEAR_BAND5_DROPOUT, PARAM_TEAR_BAND5_END,
     PARAM_OSD_LAYOUT_TOPIC, PARAM_OSD_DECK_MODE, PARAM_OSD_DATE_FORMAT, PARAM_OSD_REC_X, PARAM_OSD_REC_Y,
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
-    PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
+    PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_OFFSET, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
     PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
     PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_COUNT
 };
@@ -83,7 +83,7 @@ enum ParamDiskID {
     ID_TEAR_BAND5_TOPIC, ID_TEAR_BAND5_AMOUNT, ID_TEAR_BAND5_Y, ID_TEAR_BAND5_HEIGHT, ID_TEAR_BAND5_SHIFT, ID_TEAR_BAND5_FRAGMENTATION, ID_TEAR_BAND5_CHROMA, ID_TEAR_BAND5_SMEAR, ID_TEAR_BAND5_DROPOUT,
     ID_OSD_LAYOUT_TOPIC=9025, ID_OSD_DECK_MODE=9001, ID_OSD_DATE_FORMAT, ID_OSD_REC_X, ID_OSD_REC_Y,
     ID_OSD_STATUS_X, ID_OSD_STATUS_Y, ID_OSD_TIMESTAMP_X, ID_OSD_TIMESTAMP_Y,
-    ID_OSD_COUNTER_TOPIC=9026, ID_OSD_COUNTER_FORMAT=9009, ID_OSD_COUNTER_AMOUNT, ID_OSD_COUNTER_X, ID_OSD_COUNTER_Y, ID_OSD_TEXT_DATA=9013,
+    ID_OSD_COUNTER_TOPIC=9026, ID_OSD_COUNTER_FORMAT=9009, ID_OSD_COUNTER_AMOUNT, ID_OSD_COUNTER_X, ID_OSD_COUNTER_Y, ID_OSD_COUNTER_OFFSET=9024, ID_OSD_TEXT_DATA=9013,
     ID_OSD_LOCALIZATION_TOPIC=9027, ID_OSD_LANGUAGE=9014, ID_OSD_DIGITS, ID_OSD_DATE_LAYOUT, ID_OSD_CLOCK_MODE, ID_OSD_MONTH_STYLE, ID_OSD_CLOCK_RUNS, ID_OSD_FONT, ID_OSD_EXTRA_LABEL, ID_OSD_EXTRA_X, ID_OSD_EXTRA_Y,
     ID_OSD_WORDS_TOPIC=9028, ID_OSD_SHOW_TEXT, ID_OSD_SHOW_REC_LABEL, ID_OSD_SHOW_PLAY_LABEL, ID_OSD_SHOW_PAUSE_LABEL, ID_OSD_SHOW_STOP_LABEL, ID_OSD_SHOW_FF_LABEL, ID_OSD_SHOW_REW_LABEL, ID_OSD_SHOW_SPEED_LABEL, ID_OSD_SHOW_TAPE_LABEL, ID_OSD_SHOW_ERROR_LABEL, ID_OSD_SHOW_PROGRAM_LABEL, ID_OSD_SHOW_RES_LABEL, ID_OSD_SHOW_FORWARD_LABEL, ID_OSD_TEXT_GLOW, ID_OSD_SHOW_DATE, ID_OSD_WORDS_X, ID_OSD_WORDS_Y
 };
@@ -153,7 +153,7 @@ struct RenderSettings {
     float osdWordsX=50.0f, osdWordsY=50.0f;
     float osdRecX=2.2f, osdRecY=3.0f, osdStatusX=98.0f, osdStatusY=3.0f, osdTimestampX=98.0f, osdTimestampY=96.0f;
     A_long osdCounterFormat=1;
-    float osdCounterAmount=0.0f, osdCounterX=2.2f, osdCounterY=96.0f;
+    float osdCounterAmount=0.0f, osdCounterX=2.2f, osdCounterY=96.0f, osdCounterOffset=0.0f;
     std::string osdText;
     float vhs6RiftGrain=0.0f, vhs6RiftGrainSize=2.0f, vhs6RiftNoiseDetail=50.0f, vhs6RiftShadowBias=65.0f, vhs6RiftNoiseSeed=1.0f;
     bool vhs6RiftNoiseEnable=true;
@@ -826,6 +826,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Horizontal Position",0,100,0,100,2.2,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Vertical Position",0,100,0,100,96,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Offset (seconds)",-3600,3600,-3600,3600,0,1,PF_ValueDisplayFlag_NONE,0,ID_OSD_COUNTER_OFFSET);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_COUNTER_TOPIC+100);
     PF_ArbitraryH osdTextDefault = nullptr;
     err = VHS90CreateOsdTextDefault(in_data, &osdTextDefault);
@@ -1011,7 +1012,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_OSD_STATUS_X,osdStatusX); READ_FLOAT(PARAM_OSD_STATUS_Y,osdStatusY);
     READ_FLOAT(PARAM_OSD_TIMESTAMP_X,osdTimestampX); READ_FLOAT(PARAM_OSD_TIMESTAMP_Y,osdTimestampY);
     err=CheckoutPopup(in_data,PARAM_OSD_COUNTER_FORMAT,s.osdCounterFormat); if(err!=PF_Err_NONE) return err;
-    READ_FLOAT(PARAM_OSD_COUNTER_AMOUNT,osdCounterAmount); READ_FLOAT(PARAM_OSD_COUNTER_X,osdCounterX); READ_FLOAT(PARAM_OSD_COUNTER_Y,osdCounterY);
+    READ_FLOAT(PARAM_OSD_COUNTER_AMOUNT,osdCounterAmount); READ_FLOAT(PARAM_OSD_COUNTER_OFFSET,osdCounterOffset); READ_FLOAT(PARAM_OSD_COUNTER_X,osdCounterX); READ_FLOAT(PARAM_OSD_COUNTER_Y,osdCounterY);
     PF_ParamDef recColor; AEFX_CLR_STRUCT(recColor);
     err=PF_CHECKOUT_PARAM(in_data,PARAM_OSD_REC_COLOR,in_data->current_time,in_data->time_step,in_data->time_scale,&recColor);
     if(err!=PF_Err_NONE) return err;
@@ -1150,7 +1151,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             op.recColorR=s.osdRecColorR/255.0f; op.recColorG=s.osdRecColorG/255.0f; op.recColorB=s.osdRecColorB/255.0f;
             op.deckMode=static_cast<VhsDeckMode>(std::clamp<A_long>(s.osdDeckMode,1,5));
             op.timestampFormat=static_cast<VhsTimestampFormat>(std::clamp<A_long>(s.osdDateFormat,1,5));
-            op.drawRecText=false; op.drawDeckText=false; op.drawTapeSpeedText=false; op.drawTimestampText=false;
+            op.drawRecText=false; op.drawDeckText=false; op.drawTapeSpeedText=false; op.drawTimestampText=false; op.drawTapeCounterText=false;
             op.tapeSpeed=std::clamp<A_long>(s.tapeSpeed,1,3);
             op.recX=s.osdRecX; op.recY=s.osdRecY; op.statusX=s.osdStatusX; op.statusY=s.osdStatusY;
             op.timestampX=s.osdTimestampX; op.timestampY=s.osdTimestampY;
@@ -1230,6 +1231,15 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                             op.opacity*op.amount*op.playAmount,vhs90::win::TextAlignment::Trailing,sx);
                         if(se!=PF_Err_NONE) return se;
                     }
+                }
+                if(s.osdCounterAmount>0.0f) {
+                    const std::string counter=formatVhsOsdCounter(s.frame,s.frameRate,s.osdCounterOffset,
+                        static_cast<int>(std::clamp<A_long>(s.osdCounterFormat,1,3)),digits);
+                    const float x=float(w)*s.osdCounterX/100.0f;
+                    const float y=float(h)*s.osdCounterY/100.0f-textSize*0.72f;
+                    const PF_Err e=drawOsdText(counter,x,y,textSize*0.72f,
+                        op.opacity*op.amount*clamp01(s.osdCounterAmount/100.0f),
+                        vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
                 }
                 if(s.osdTimestamp>0.0f && (s.osdShowDate || s.osdClockMode>1)) {
                     VhsOsdDateTime dt;
@@ -1910,7 +1920,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.osdStatusX=float(params[PARAM_OSD_STATUS_X]->u.fs_d.value); s.osdStatusY=float(params[PARAM_OSD_STATUS_Y]->u.fs_d.value);
     s.osdTimestampX=float(params[PARAM_OSD_TIMESTAMP_X]->u.fs_d.value); s.osdTimestampY=float(params[PARAM_OSD_TIMESTAMP_Y]->u.fs_d.value);
     s.osdCounterFormat=params[PARAM_OSD_COUNTER_FORMAT]->u.pd.value;
-    s.osdCounterAmount=float(params[PARAM_OSD_COUNTER_AMOUNT]->u.fs_d.value);
+    s.osdCounterAmount=float(params[PARAM_OSD_COUNTER_AMOUNT]->u.fs_d.value); s.osdCounterOffset=float(params[PARAM_OSD_COUNTER_OFFSET]->u.fs_d.value);
     { const PF_Err textErr=VHS90ReadOsdText(in_data,params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,s.osdText); if(textErr!=PF_Err_NONE) return textErr; }
     s.osdCounterX=float(params[PARAM_OSD_COUNTER_X]->u.fs_d.value); s.osdCounterY=float(params[PARAM_OSD_COUNTER_Y]->u.fs_d.value);
     s.osdRecColorR=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.red); s.osdRecColorG=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.green); s.osdRecColorB=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.blue);
