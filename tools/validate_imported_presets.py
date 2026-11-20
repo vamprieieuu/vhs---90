@@ -241,6 +241,13 @@ crates_cases = set(range(39, 55))
 assert crates_cases.issubset(style_cases), f"Missing Crates VHS Master recipes: {sorted(crates_cases-style_cases)}"
 assert "ApplyCratesMasterPreset(s,static_cast<int>(s.vhsStyle-39));" in source, "Crates presets must use the recovered source-value mapper"
 assert "kCrates[16][44]" in source, "Crates mapper must retain all 16 source looks and 44 mapped source fields"
+crates_start = source.find("static constexpr float kCrates[16][44]={")
+assert crates_start >= 0, "Missing Crates 16x44 source-value table"
+crates_end = source.find("\\n    };", crates_start)
+assert crates_end > crates_start, "Unterminated Crates source-value table"
+crates_rows = [line for line in source[crates_start:crates_end].splitlines() if line.lstrip().startswith("{")]
+assert len(crates_rows) == 16, f"Crates table must contain 16 source presets, got {len(crates_rows)}"
+assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 44 for line in crates_rows), "Every Crates preset must define all 44 mapped source values"
 vhspro_cases = set(range(55, 65))
 assert vhspro_cases.issubset(style_cases), f"Missing VHSPro recipes: {sorted(vhspro_cases-style_cases)}"
 vhscraft_cases = set(range(65, 73))
