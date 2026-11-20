@@ -6,6 +6,7 @@
 #include <d2d1.h>
 #include <d2d1helper.h>
 #include <dwrite.h>
+#include <dwrite_3.h>
 #include <wincodec.h>
 #include <wrl/client.h>
 #include <algorithm>
@@ -19,6 +20,8 @@ using Microsoft::WRL::ComPtr;
 struct Factories {
     ComPtr<ID2D1Factory> d2d;
     ComPtr<IDWriteFactory> dwrite;
+    ComPtr<IDWriteFactory5> dwrite5;
+    ComPtr<IDWriteFontCollection1> bundledCollection;
     HRESULT status = E_FAIL;
     Factories() noexcept {
         status = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, d2d.GetAddressOf());
@@ -70,18 +73,27 @@ bool ensureBundledFonts() noexcept {
             DWORD written = 0;
             const BOOL ok = WriteFile(file, data, bytes, &written, nullptr);
             CloseHandle(file);
-            if (ok && written == bytes && AddFontResourceExW(path.c_str(), FR_PRIVATE, nullptr) != 0)
-                anyLoaded = true;
+            if (ok && written == bytes) anyLoaded = true;
         }
-        if (anyLoaded) {
-            SendMessageW(HWND_BROADCAST, WM_FONTCHANGE, 0, 0);
-            auto& f = factories();
-            if (SUCCEEDED(f.status) && f.dwrite) {
-                ComPtr<IDWriteFontCollection> refreshed;
-                f.dwrite->GetSystemFontCollection(&refreshed, TRUE);
-            }
+        if (!anyLoaded) return false;
+        auto& f = factories();
+        if (FAILED(f.status) || !f.dwrite || FAILED(f.dwrite.As(&f.dwrite5)) || !f.dwrite5)
+            return false;
+        ComPtr<IDWriteFontSetBuilder1> builder;
+        if (FAILED(f.dwrite5->CreateFontSetBuilder(&builder)) || !builder) return false;
+        for (const auto& font : fonts) {
+            const std::wstring path = root + L"\\" + font.filename;
+            ComPtr<IDWriteFontFile> file;
+            if (FAILED(f.dwrite->CreateFontFileReference(path.c_str(), nullptr, &file)) || !file)
+                return false;
+            if (FAILED(builder->AddFontFile(file.Get()))) return false;
         }
-        return anyLoaded;
+        ComPtr<IDWriteFontSet> fontSet;
+        if (FAILED(builder->CreateFontSet(&fontSet)) || !fontSet) return false;
+        if (FAILED(f.dwrite5->CreateFontCollectionFromFontSet(fontSet.Get(),
+                f.bundledCollection.GetAddressOf()))) return false;
+        return static_cast<bool>(f.bundledCollection);
+
     }();
     return loaded;
 }
@@ -110,13 +122,24 @@ bool utf8ToWide(const char* input, std::wstring& output) {
     output.resize(static_cast<std::size_t>(count));
     return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, input, bytes, output.data(), count) == count;
 }
-bool findFont(IDWriteFactory* factory, const wchar_t* familyName) noexcept {
+bool findFont(IDWriteFactory* factory, const wchar_t* familyName,
+              ComPtr<IDWriteFontCollection>& selectedCollection) noexcept {
     ensureBundledFonts();
     if (!factory || !familyName || !*familyName) return false;
-    ComPtr<IDWriteFontCollection> collection;
-    if (FAILED(factory->GetSystemFontCollection(&collection, FALSE))) return false;
+    auto& f = factories();
     UINT32 index = 0; BOOL exists = FALSE;
-    return SUCCEEDED(collection->FindFamilyName(familyName, &index, &exists)) && exists;
+    if (f.bundledCollection &&
+        SUCCEEDED(f.bundledCollection->FindFamilyName(familyName, &index, &exists)) && exists) {
+        selectedCollection = f.bundledCollection;
+        return true;
+    }
+    ComPtr<IDWriteFontCollection> systemCollection;
+    if (FAILED(factory->GetSystemFontCollection(&systemCollection, FALSE))) return false;
+    exists = FALSE; index = 0;
+    if (FAILED(systemCollection->FindFamilyName(familyName, &index, &exists)) || !exists)
+        return false;
+    selectedCollection = systemCollection;
+    return true;
 }
 float finiteClamp(float v, float lo, float hi, float fallback) noexcept {
     return std::isfinite(v) ? std::max(lo, std::min(hi, v)) : fallback;
@@ -174,21 +197,28 @@ std::vector<std::wstring> enumerateSystemFontFamilies() {
     std::vector<std::wstring> names;
     ComApartment apartment; if (!apartment.valid()) return names;
     auto& f = factories(); if (FAILED(f.status) || !f.dwrite) return names;
-    ComPtr<IDWriteFontCollection> collection;
-    if (FAILED(f.dwrite->GetSystemFontCollection(&collection, FALSE))) return names;
-    const UINT32 count = collection->GetFontFamilyCount(); names.reserve(count);
-    for (UINT32 i = 0; i < count; ++i) {
-        ComPtr<IDWriteFontFamily> family; ComPtr<IDWriteLocalizedStrings> strings;
-        if (FAILED(collection->GetFontFamily(i, &family)) ||
-            FAILED(family->GetFamilyNames(&strings)) || strings->GetCount() == 0) continue;
-        UINT32 index = 0; BOOL exists = FALSE;
-        if (FAILED(strings->FindLocaleName(L"en-us", &index, &exists)) || !exists) index = 0;
-        UINT32 length = 0; if (FAILED(strings->GetStringLength(index, &length))) continue;
-        std::wstring name(static_cast<std::size_t>(length) + 1, L'\0');
-        if (SUCCEEDED(strings->GetString(index, name.data(), length + 1))) {
-            name.resize(length); names.push_back(std::move(name));
+    auto appendFamilies = [&names](IDWriteFontCollection* collection) {
+        if (!collection) return;
+        const UINT32 count = collection->GetFontFamilyCount();
+        for (UINT32 i = 0; i < count; ++i) {
+            ComPtr<IDWriteFontFamily> family; ComPtr<IDWriteLocalizedStrings> strings;
+            if (FAILED(collection->GetFontFamily(i, &family)) ||
+                FAILED(family->GetFamilyNames(&strings)) || strings->GetCount() == 0) continue;
+            UINT32 index = 0; BOOL exists = FALSE;
+            if (FAILED(strings->FindLocaleName(L"en-us", &index, &exists)) || !exists) index = 0;
+            UINT32 length = 0; if (FAILED(strings->GetStringLength(index, &length))) continue;
+            std::wstring name(static_cast<std::size_t>(length) + 1, L'\\0');
+            if (SUCCEEDED(strings->GetString(index, name.data(), length + 1))) {
+                name.resize(length);
+                if (std::find(names.begin(), names.end(), name) == names.end())
+                    names.push_back(std::move(name));
+            }
         }
-    }
+    };
+    ComPtr<IDWriteFontCollection> systemCollection;
+    if (SUCCEEDED(f.dwrite->GetSystemFontCollection(&systemCollection, FALSE)))
+        appendFamilies(systemCollection.Get());
+    if (f.bundledCollection) appendFamilies(f.bundledCollection.Get());
     return names;
 }
 DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOptions& o) noexcept {
@@ -202,8 +232,12 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
         std::wstring text, family;
         if (!utf8ToWide(o.utf8Text, text)) return result;
         if (!utf8ToWide(o.utf8FontFamily ? o.utf8FontFamily : "Segoe UI", family)) family = L"Segoe UI";
-        result.requestedFontFound = findFont(f.dwrite.Get(), family.c_str());
+        ComPtr<IDWriteFontCollection> selectedCollection;
+        result.requestedFontFound = findFont(f.dwrite.Get(), family.c_str(), selectedCollection);
         result.usedFallbackFont = !result.requestedFontFound;
+        if (!selectedCollection &&
+            FAILED(f.dwrite->GetSystemFontCollection(&selectedCollection, FALSE)))
+            return result;
         ComPtr<IWICImagingFactory> wic;
         HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wic));
         if (FAILED(hr)) return result;
@@ -232,7 +266,7 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
         ComPtr<IDWriteTextFormat> format;
         const auto weight=static_cast<DWRITE_FONT_WEIGHT>(std::clamp<std::uint16_t>(o.fontWeight,100,900));
         hr = f.dwrite->CreateTextFormat(family.c_str(), nullptr, weight,
-            DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", &format);
+            DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", selectedCollection.Get(), &format);
         if (FAILED(hr)) {
             hr = f.dwrite->CreateTextFormat(L"Segoe UI", nullptr, weight,
                 DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", &format);
