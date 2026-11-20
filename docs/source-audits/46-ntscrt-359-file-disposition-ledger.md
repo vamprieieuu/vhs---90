@@ -20,7 +20,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `DEVELOPMENT.md` | 80655 | content-reviewed | Reviewed 451-line development guide: pipeline order, VCR/tape physical model, measured controls, head/transport behavior, build/probe commands and performance notes. Strong algorithm and tuning reference; implementation lives in audited Tape/Deck/Transport/VcrStage files. |
 | `LICENSE` | 1069 | content-reviewed | Read during this audit pass |
 | `NTSCRT july 27.webp` | 80040 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `Package.swift` | 3983 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
+| `Package.swift` | 3983 | content-reviewed | Reviewed SwiftPM package/target graph, macOS 14 floor, Metal/AVFoundation/ImageIO dependencies, executables and test target composition. Confirms original host is macOS-specific. |
 | `README.md` | 19946 | content-reviewed | Reviewed product pipeline, stages, preset behavior, platform scope, dependencies and MIT/third-party license boundaries; no additional render kernel. |
 | `Sources/CrtApp/AppState+Export.swift` | 8347 | content-reviewed | Reviewed movie/GIF/PNG export routing and async status handling; app export orchestration only, no AE render kernel. |
 | `Sources/CrtApp/AppState+Howlaround.swift` | 17019 | content-reviewed | Reviewed Howlaround export sizing, draft scheduling, render cancellation and feedback-preset load/save. Separate Screen Loop feedback effect/export workflow, not VHS tape engine. |
@@ -111,7 +111,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtSweep/main.swift` | 11373 | content-reviewed | Reviewed automated shader parameter sweep and min/max pixel-effect measurement, including animation-only detection; calibration tooling only. |
 | `Sources/CrtVcrProbe/main.swift` | 7379 | content-reviewed | Reviewed sequential headless VCR/glitch renderer with contact sheets and luma/noise SNR measurements; useful visual calibration methodology, not effect kernel. |
 | `Sources/CrtVideoSmoke/VideoSmoke.swift` | 3633 | content-reviewed | Reviewed async MP4 export smoke tool, codec/bitrate options and progress/error reporting; macOS exporter validation only. |
-| `THIRD_PARTY_NOTICES.md` | 4097 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
+| `THIRD_PARTY_NOTICES.md` | 4097 | content-reviewed | Reviewed attribution and component licensing: ntsc-rs used under MIT from MIT/ISC/Apache options; librashader runtime MPL-2.0; shader collection has per-file licenses including GPL-2.0/3.0. Do not copy GPL shader sources into VHS-90; retain notices for any separately approved dependency. |
 | `TestAssets/flat-gray.png` | 1968 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `TestAssets/game-frame.png` | 3329 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `TestAssets/testpattern.png` | 6117 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
@@ -132,23 +132,23 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Tests/CrtCoreTests/UpdateCheckTests.swift` | 2351 | content-reviewed | Reviewed 3 release-version/parser tests (15 assertions); update metadata only. |
 | `Tests/CrtCoreTests/VcrTests.swift` | 18869 | content-reviewed | Reviewed 16 VCR tests: clean/worn tape response, edge-biased mold, consistent tape sampling, deck debris clog/shedding/cleaning, head vaseline transfer, legacy knob mapping, spacing-vs-color loss, EP noise/comb behavior, wear, burst-overlap behavior, copy degradation, alternating-head dirt and measured monotonic curves. |
 | `Tests/CrtCoreTests/Video1Tests.swift` | 5519 | content-reviewed | Reviewed 6 Microsoft Video 1 block codec tests (18 assertions); digital codec only. |
-| `Vendor/ntscrs-capi/Cargo.lock` | 5720 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
+| `Vendor/ntscrs-capi/Cargo.lock` | 5720 | content-reviewed | Reviewed pinned 27-package Rust dependency graph for ntsc-rs C ABI wrapper; reproducibility metadata only. |
 | `Vendor/ntscrs-capi/Cargo.toml` | 396 | content-reviewed | Reviewed standalone Rust cdylib manifest and dependency on the ntsc-rs submodule; wrapper build metadata only. |
 | `Vendor/ntscrs-capi/src/lib.rs` | 8906 | content-reviewed | Reviewed full C ABI around ntsc-rs: opaque settings instances, descriptor/JSON conversion, BGRA/RGBA frame processing, stride handling and panic containment. Upstream NTSC core is separate; ABI wrapper not ported. |
 | `docs/header.webp` | 80040 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `docs/screenshot.webp` | 179882 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `docs/windows-port-plan.md` | 14827 | content-reviewed | Reviewed Windows architecture decisions, WARP validation strategy, pipeline split and settled platform scope; confirms Rust/wgpu desktop app is distinct from the native macOS app. |
-| `licenses/Apache-2.0.txt` | 10140 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `licenses/GPL-2.0.txt` | 15220 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `licenses/GPL-3.0.txt` | 34903 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `licenses/MIT.txt` | 1151 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `licenses/MPL-2.0.txt` | 15383 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
-| `licenses/rust-crates.txt` | 527781 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
+| `licenses/Apache-2.0.txt` | 10140 | content-reviewed | Reviewed Apache-2.0 license terms; no engine source. |
+| `licenses/GPL-2.0.txt` | 15220 | content-reviewed | Reviewed GPL-2.0 text; applies to identified shader assets, not NTSCRT core. Exclude GPL-covered code/assets unless project licensing explicitly permits. |
+| `licenses/GPL-3.0.txt` | 34903 | content-reviewed | Reviewed GPL-3.0 text; applies to identified shader assets, not NTSCRT core. Exclude GPL-covered code/assets unless project licensing explicitly permits. |
+| `licenses/MIT.txt` | 1151 | content-reviewed | Reviewed MIT attribution/redistribution terms for bundled crate licenses. |
+| `licenses/MPL-2.0.txt` | 15383 | content-reviewed | Reviewed MPL-2.0 file-level copyleft terms for librashader runtime; do not silently merge into proprietary/native effect source. |
+| `licenses/rust-crates.txt` | 527781 | content-reviewed | Reviewed generated third-party crate inventory and declared license expressions for macOS bundled Rust libraries; dependency attribution evidence, not algorithm code. |
 | `mcpb/icon.png` | 249433 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `mcpb/manifest.json` | 4042 | content-reviewed | Reviewed MCP bundle metadata and server entry point; packaging manifest only. |
 | `mcpb/server/launch.cmd` | 1823 | content-reviewed | Reviewed Windows MCP launcher and bundled executable resolution; app deployment wrapper only. |
 | `mcpb/server/launch.sh` | 1093 | content-reviewed | Reviewed macOS/Linux MCP launcher and bundled executable resolution; app deployment wrapper only. |
-| `port/Cargo.lock` | 137943 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
+| `port/Cargo.lock` | 137943 | content-reviewed | Reviewed pinned 538-package Windows Rust dependency graph; build reproducibility metadata only. |
 | `port/Cargo.toml` | 1040 | content-reviewed | Reviewed Rust workspace members and pinned ntsc-rs/librashader dependencies; Windows-port workspace metadata only. |
 | `port/README.md` | 5184 | content-reviewed | Reviewed Windows port architecture, build/tests, reference parity and VM instructions; no unique effect algorithm. |
 | `port/app/Cargo.toml` | 1357 | content-reviewed | Reviewed eframe/egui app, media and CLI dependencies; platform app manifest only. |
@@ -248,7 +248,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/engine/tests/preview_paths.rs` | 5457 | content-reviewed | Reviewed 3 playback path parity tests: baked preview, worker-produced CPU stages and unseen digital frames; host pipeline only. |
 | `port/fetch-librashader.sh` | 1053 | content-reviewed | Reviewed pinned librashader checkout and compatibility patch application; third-party dependency acquisition only. |
 | `port/librashader-wgpu-push-constants.patch` | 1610 | content-reviewed | Reviewed narrowly scoped upstream wgpu push-constant pipeline-layout fix; third-party renderer compatibility patch, not VHS behavior. |
-| `port/licenses/rust-crates-windows.txt` | 665879 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
+| `port/licenses/rust-crates-windows.txt` | 665879 | content-reviewed | Reviewed generated Windows crate/license inventory; retain per-crate attribution and verify license obligations before redistributing bundled binaries. |
 | `port/media/Cargo.toml` | 580 | content-reviewed | Reviewed Windows Media Foundation media crate manifest and target-specific dependencies; platform adapter metadata. |
 | `port/media/src/bin/probe.rs` | 2674 | content-reviewed | Reviewed Media Foundation decode/encode diagnostic CLI and timing output; platform media test tool. |
 | `port/media/src/lib.rs` | 8312 | content-reviewed | Reviewed frame/time indexing, orientation rotation, image reading and video writer abstraction; generic Windows media I/O, not effect processing. |
@@ -256,7 +256,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/media/src/mf_writer.rs` | 9166 | content-reviewed | Reviewed Media Foundation sink writer for H.264/HEVC, timestamped RGB32 frames and AAC audio interleaving; Windows-only exporter. |
 | `port/package-readme.txt` | 1291 | content-reviewed | Reviewed Windows preview install/use/export instructions and bundled resource requirements; release documentation only. |
 | `port/scripts/cli-check.py` | 13257 | content-reviewed | Reviewed end-to-end CLI/MCP integration harness covering help, describe, looks, still/video/GIF rendering, errors, save-look and JSON-RPC job lifecycle; integration validation only. |
-| `port/scripts/gen-licenses.py` | 4005 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
+| `port/scripts/gen-licenses.py` | 4005 | content-reviewed | Reviewed Windows crate-license report generator; packaging/compliance utility only. |
 | `port/scripts/glitch-ref-render/main.swift` | 2499 | content-reviewed | Reviewed macOS Metal reference-image renderer for the Glitch stage; parity fixture generation utility. |
 | `port/scripts/glitch-ref/main.swift` | 2204 | content-reviewed | Reviewed macOS receiver field-plan JSON reference generator; test fixture utility. |
 | `port/scripts/make-glitch-refs.sh` | 2924 | content-reviewed | Reviewed script compiling Mac receiver/VCR sources and producing field-plan/render fixtures across healthy, search, tracking, tape and transport cases; parity generation only. |
@@ -360,7 +360,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `scripts/check-export-toggles.sh` | 2353 | content-reviewed | Reviewed export shader-toggle regression runner; test orchestration only. |
 | `scripts/check-zoom-scanlines.sh` | 3540 | content-reviewed | Reviewed preview zoom/scanline regression test orchestration; test tooling only. |
 | `scripts/control-strength-baseline.json` | 10753 | content-reviewed | Reviewed measured visible-control strength and curve baseline data; tuning evidence, not executable effect code. |
-| `scripts/gen-rust-licenses.py` | 4716 | metadata-inventory | Dependency/legal metadata inventoried; detailed dependency/license review pending |
+| `scripts/gen-rust-licenses.py` | 4716 | content-reviewed | Reviewed macOS crate-license report generator; packaging/compliance utility only. |
 | `scripts/make-mcpb.sh` | 1037 | content-reviewed | Reviewed Claude Desktop MCP bundle assembly; packaging only. |
 | `scripts/make-release.sh` | 8984 | content-reviewed | Reviewed version/tag/release asset packaging workflow; release automation only. |
 | `scripts/test.sh` | 1018 | content-reviewed | Reviewed aggregate macOS build/test/smoke/sweep/control-strength verification script; test orchestration only. |
