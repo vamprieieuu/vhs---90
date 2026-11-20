@@ -14,9 +14,9 @@ Branch: `work/osd-directwrite-integration-map`
 - Added Clock Runs behavior, with elapsed render time applied only when enabled.
 - Added localized tape counter formatting: six-digit frames, HH:MM:SS and HH:MM:SS:FF; added a seconds offset and an independent Show Counter toggle.
 - Added VHS labels/translations for PLAY, PAUSE, STOP, REC, FF, REW, SP/LP/EP, TAPE, ERROR, P.O.1/P01, RES, FORWARD, EJECT, SEARCH, TRACKING, AUTO, CH, CAM, DECK, TIMER, STEREO, SLOW, STILL and MEMORY.
-- Added AE controls for master Show Text, per-word visibility, Show Date, Show Counter, text glow, extra-label selection and group position.
+- Added AE controls for master Show Text, per-word visibility, Show Date, Show Counter, extra-label selection and group position. Text Size is independent of icon scale; Text Glow has an enable switch and intensity slider. Existing OSD Glitch/Ghost now also affect DirectWrite words with deterministic frame/seed jitter and chromatic ghost copies. OSD Amount is labelled OSD Mix / Amount.
 - Added a shared font-family selector containing all 15 supplied font families. The selected family is used by DirectWrite text for REC, deck status, speed, date/time, counter, auxiliary labels and optional OSD text.
-- The DirectWrite overlay remains in the existing OSD position: after bitmap/icon OSD generation and before the VHS composite/signal processing. Bitmap icons remain available while their English bitmap words are suppressed to prevent duplicate text.
+- The DirectWrite overlay remains in the existing OSD position: after bitmap/icon OSD generation and before the VHS composite/signal processing. Bitmap icons remain available while their English bitmap words are suppressed to prevent duplicate text. Text, date/time and counter share the selected font family, size, opacity/mix, jitter, ghost and glow controls.
 
 ## Parameter / host wiring
 
@@ -30,12 +30,12 @@ Branch: `work/osd-directwrite-integration-map`
 
 - Linux core CMake build and smoke tests passed after the battery OSD safe-margin correction (run `44834430499`).
 - Windows and Linux OSD Core / DirectWrite smoke workflow passed for the OSD engine and DirectWrite renderer (run `44834430462`). This validates those portable/core and Windows DirectWrite test targets, not the AE host adapter.
-- The localization smoke suite covers bilingual dates, month styles, digit conversion, 12/24-hour and clock-only output, leap-day rollover, counter formats/offsets, and key VHS labels. After the last test edits, Linux Core CI run `44834780888` passed 36/36 tests; Windows + Linux OSD Core/DirectWrite run `44834781058` passed 37/37 tests, including `VHS90DirectWriteSmoke` on Windows.
+- The localization smoke suite covers bilingual dates, month styles, digit conversion, 12/24-hour and clock-only output, leap-day rollover, counter formats/offsets, and key VHS labels. Linux Core CI run `44834780888` passed 36/36 tests; Windows + Linux OSD Core/DirectWrite run `44834781058` passed 37/37 tests, including `VHS90DirectWriteSmoke` on Windows. The latest AE static/core check on commit `c07234be26fe28f8ce17a4be07fd50e31aa04fa7` also passed; its separate Windows OSD/DirectWrite run is still in progress.
 - No MSVC build of `VHS90Effect.cpp`, PiPL generation, AEX artifact, After Effects 23.2.1 load/render, save/reopen, or MFR host test is claimed.
 
 ## Supplied fonts and redistribution
 
-The font selector includes all 15 supplied families, but the font binaries are not yet bundled into the public repository. The supplied manifest identifies `Rooyin_Free_Bold.ttf` and `Sponge_Arabic_Regular.otf` as OFL-eligible for full-file redistribution with their license notices. Several other fonts explicitly prohibit redistribution or have no verifiable redistribution license. Do not place restricted/unverified binaries in this public repository without permission. Font-backed Arabic rendering still needs packaging and actual Windows/AE visual validation.
+The font selector includes all 15 supplied families using their actual DirectWrite family names, but the font binaries are not yet bundled into the public repository. The supplied manifest identifies `Rooyin_Free_Bold.ttf` and `Sponge_Arabic_Regular.otf` as OFL-eligible for full-file redistribution with their license notices. Several other fonts explicitly prohibit redistribution or have no verifiable redistribution license. Do not place restricted/unverified binaries in this public repository without permission. Font-backed Arabic rendering still needs packaging and actual Windows/AE visual validation.
 
 ## Remaining OSD work
 
