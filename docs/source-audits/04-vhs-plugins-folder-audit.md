@@ -12,7 +12,7 @@ Archive folder: `vhs/plugins/` — 19 files total.
 
 | Plugin | Source-visible features | VHS-90 decision |
 |---|---|---|
-| Signal | Random seed, signal strength/amplification, cutoff, separate luma/chroma/hue noise, chroma loss, sharpen, device-to-device connections, SP/LP/EP, luma modulation, tape errors, TV/thick distortion, roll speed, vertical chroma blend, scanline blur | Existing VHS-90 signal/noise/tape/scanline modules already cover most signal-path functions. The Device-to-device connections feature was not present as a standalone renderer, so a native CPU network overlay was added. |
+| Signal | Random seed, signal strength/amplification, cutoff, separate luma/chroma/hue noise, chroma loss, sharpen, device-to-device connections, SP/LP/EP, luma modulation, tape errors, TV/thick distortion, roll speed, vertical chroma blend, scanline blur | Existing VHS-90 signal/noise/tape/scanline modules already cover most signal-path functions. The Device-to-device connections feature and a distinct stochastic Hue Noise control were not present as standalone renderers, so native CPU implementations were added. |
 | HEISEI VHS Demo | Independent luma bandwidth and I/Q chroma bandwidth, chroma crosstalk/shift, jitter frequency/amplitude, head-switching distortion/noise, dropout count/maximum length/intensity, scanlines | Mapped to existing composite bandwidth, receiver instability/crosstalk, geometry, head-switching, dropout, and scanline modules; no duplicate engine added. |
 | VHSCraft | Eight style presets; Classic/Cinematic tape styles; signal quality; noise/detail; color bleed; raw signal input/output; tape/static/color noise; bottom-noise region; damage strength; moving band and speed/height; distortion; horizontal jitter; ghosting; color-shift speed; random variation and modulation routing | Existing VHS-90 modules cover tape noise, static, moving bands, tracking regions, geometry/jitter, chroma shift/bleed, ghosting, and tape damage. Its OpenCL/GPU host path is not transplanted; CPU-first VHS-90 modules remain authoritative. The embedded color-grade helper uses a 33³ LUT interface but the archive does not include a standalone maintainable LUT asset/source package to transplant. |
 | VHS Pro | Presets: Default, Fresh Tape, Rental Copy, Worn Out, Bad Tracking, Home Camcorder, Color Bleed, Broadcast, Dubbed Copy, Music Video; tracking noise, tape wear, SP/LP/EP; embedded Rust symbols for NTSC, noise, shift, YIQ fielding | Signal/noise/shift/YIQ features substantially overlap the already-audited NTSC-RS core and VHS-90. Preset concepts map to existing style/look presets; no second Rust/GPU engine imported. |
@@ -26,7 +26,8 @@ Added `VHS90DeviceConnectionEngine` as a CPU renderer for animated device-to-dev
 - Deterministic seeded node placement with a controllable regular-to-random distribution.
 - Animated node drift and signal pulses, based on frame and frame rate (no global mutable state; safe for MFR/out-of-order frames).
 - Nearest-neighbour connections with bounded link distance, node size, density, speed, and amount controls.
-- Alpha-aware compositing; the original source alpha is retained.
+- Alpha-aware compositing; the original source alpha is retained, including partially transparent pixels.
+- Independent per-pixel YIQ Hue Noise from Signal, separate from the existing static Noise Hue phase-bias control and independently usable when procedural grain is disabled.
 - UI controls are grouped under Signal Network: Device Connections, Network Density, Node Size, Animation Speed, Distribution, and Network Random Seed.
 - Wired through the existing SmartFX and legacy render paths; the module is part of VHS90Core and has its own smoke test.
 
@@ -34,7 +35,7 @@ This is a VHS-90-native adaptation of the Signal plugin's exposed Device-to-devi
 
 ## Validation
 
-- New `VHS90DeviceConnectionEngineSmoke` covers deterministic output, frame animation, seed changes, density/distribution changes, zero-strength bypass, and alpha preservation.
-- GitHub Actions core build and smoke test run: https://github.com/vamprieieuu/vhs---90/actions/runs/44804046170 — passed.
+- New `VHS90DeviceConnectionEngineSmoke` covers deterministic output, frame animation, seed changes, density/distribution changes, zero-strength bypass, and opaque/translucent alpha preservation. AnalogNoiseEngineSmoke also covers independent Signal Hue Noise and its seed determinism.
+- GitHub Actions core build and smoke test run: https://github.com/vamprieieuu/vhs---90/actions/runs/44804046170 — passed for the initial network integration. Subsequent alpha/hue-noise changes are being revalidated by the latest Actions run.
 - Parameter wiring validator on the latest integration: https://github.com/vamprieieuu/vhs---90/actions/runs/44804069786 — validator passed; core build was still running when this report was written.
 - No Windows/MSVC After Effects SDK build or in-host visual comparison is claimed.
