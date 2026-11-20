@@ -41,6 +41,11 @@ required_reads = [
     "CheckoutPopup(in_data,PARAM_VHS_STYLE,s.vhsStyle)",
     "CheckoutPopup(in_data,PARAM_CAMERA_PROFILE,s.cameraProfile)",
     "CheckoutPopup(in_data,PARAM_NTSCRS_LOOK,s.ntscRsLook)",
+    "CheckoutPopup(in_data,PARAM_COMPOSITE_DECODER,s.compositeDecoder)",
+    "CheckoutCheckbox(in_data,PARAM_VHS_43_FRAME,s.vhs43Frame)",
+    "READ_FLOAT(PARAM_ROUNDED_OVERSCAN,roundedOverscan)",
+    "READ_FLOAT(PARAM_LENS_DISTORTION,lensDistortion)",
+    "READ_FLOAT(PARAM_DIGITAL_ZOOM,digitalZoom)",
     "READ_FLOAT(PARAM_VHS_STYLE_INTENSITY,vhsStyleIntensity)",
     "READ_FLOAT(PARAM_CAMERA_INTENSITY,cameraIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_INTENSITY,ntscRsIntensity)",
@@ -84,7 +89,14 @@ for needle in [
     "p.imageGrade.chromaEdgeEnhancement=clamp01(s.chromaEdgeEnhance/100.0f);",
     "p.imageGrade.chromaSharpenCutoffHz=s.tapeSpeed==3?560000.0f:(s.tapeSpeed==2?600000.0f:640000.0f);",
     "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
+    "p.geometry.vhs43Frame=s.vhs43Frame!=0;p.geometry.lensDistortion=s.lensDistortion/1000.0f;",
+    "p.geometry.roundedOverscan=clamp01(s.roundedOverscan/100.0f);",
+    "||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f",
+    "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
     "bi(s.compositeDecoder,1);b(s.composite,100);b(s.lumaNoise,v[0]*100);",
+    "kLostSignalProfiles[13][43]",
+    "b(s.lensDistortion,v[39]*1000.0f);bi(s.vhs43Frame,v[40]>0.5f?1.0f:0.0f);",
+    "if(s.vhsStyle<26){bi(s.vhs43Frame,0.0f);b(s.roundedOverscan,0.0f);b(s.lensDistortion,0.0f);b(s.digitalZoom,1.0f);}",
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
 
@@ -103,6 +115,8 @@ assert style_choices and len(style_choices.group(1).split("|")) == 38, "VHS Styl
 assert camera_cases == set(range(2, 11)), f"Missing VHS6RIFT camera profile cases: {sorted(set(range(2,11))-camera_cases)}"
 assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
 
+lost_table = re.search(r"kLostSignalProfiles\\[13\\]\\[43\\]=\\{([\\s\\S]*?)\\n    \\};", source)
+assert lost_table and len(re.findall(r"^\\s*\\{", lost_table.group(1), re.M)) == 13, "Lost Signal VHS profile table must contain 13 complete profiles"
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: 16 VHS6RIFT + 5 VHS Effect Add-on + 3 Composite Video Simulator VHS speed presets + 13 Lost Signal VHS v1.9 profiles, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
-print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening and Consumer Notch / One-Line Comb / Two-Line Comb decoder controls are wired.")
+print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening and Consumer Notch / One-Line Comb / Two-Line Comb decoder and VHS 4:3 frame/rounded overscan/lens/zoom controls are wired.")
