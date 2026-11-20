@@ -17,7 +17,7 @@ int main() {
     v.timeMode=VhsOsdTimeMode::TwelveHour; assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="21.1.1994  01:05:09 PM");
     assert(formatVhsOsdTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="01:05:09 PM");
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::Arabic,VhsOsdDigitSet::Persian)=="۲۱.۱.۱۹۹۴  ۰۱:۰۵:۰۹ م");
-    assert(formatVhsOsdTime(v,VhsOsdLanguage::Arabic,VhsOsdDigitSet::ArabicIndic)=="٠١:٠٥:٠٩ م");
+    assert(formatVhsOsdTime(v,VhsOsdLanguage::Arabic,VhsOsdDigitSet::ArabicIndic)=="٠١:٠٥:٠٩ م");\n    v.year=0; assert(formatVhsOsdTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="01:05:09 PM");
     v.timeMode=VhsOsdTimeMode::Off;v.year=2000;v.month=2;v.day=28;v.hour=23;v.minute=59;v.second=59;v.clockRuns=true;v.elapsedSeconds=2.0;v.dateFormat=VhsOsdDateFormat::NumericDayFirst;
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="29.2.2000");
     v.year=1900;v.month=2;v.day=29; assert(!isValidVhsOsdDateTime(v));
@@ -28,7 +28,7 @@ int main() {
     assert(formatVhsOsdCounter(0,30.0f,2.0,1,VhsOsdDigitSet::Latin)=="000060");
     assert(formatVhsOsdCounter(30,30.0f,-2.0,1,VhsOsdDigitSet::ArabicIndic)=="٠٠٠٠٠٠");
     assert(vhsOsdLabel(VhsOsdLabel::Play,VhsOsdLanguage::Arabic)=="تشغيل ▶");
-    assert(vhsOsdLabel(VhsOsdLabel::Rewind,VhsOsdLanguage::English)=="REW ↶");
+    assert(vhsOsdLabel(VhsOsdLabel::Rewind,VhsOsdLanguage::English)=="REW ↶");\n    assert(vhsOsdLabel(VhsOsdLabel::Program01,VhsOsdLanguage::English)=="P.O.1");\n    assert(vhsOsdLabel(VhsOsdLabel::Forward,VhsOsdLanguage::English)=="FORWARD →");
     assert(vhsOsdLabel(VhsOsdLabel::Error,VhsOsdLanguage::Bilingual)=="ERROR | خطأ");
     assert(localizeVhsOsdDigits("1994-01-21",VhsOsdDigitSet::ArabicIndic)=="١٩٩٤-٠١-٢١");
     return 0;
