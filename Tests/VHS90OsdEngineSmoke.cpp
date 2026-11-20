@@ -75,6 +75,14 @@ int main() {
     const auto ffDeck=renderDeck(VhsDeckMode::FastForward,1,VhsTimestampFormat::DateOnly,98,3,98,96);
     const auto rewindDeck=renderDeck(VhsDeckMode::Rewind,2,VhsTimestampFormat::TimeOnly,98,3,98,96);
     assert(playDeck!=pauseDeck && pauseDeck!=stopDeck && stopDeck!=ffDeck && ffDeck!=rewindDeck);
+    const auto spDeck=renderDeck(VhsDeckMode::Play,1,VhsTimestampFormat::Iso,98,3,98,96);
+    const auto lpDeck=renderDeck(VhsDeckMode::Play,2,VhsTimestampFormat::Iso,98,3,98,96);
+    const auto epDeck=renderDeck(VhsDeckMode::Play,3,VhsTimestampFormat::Iso,98,3,98,96);
+    assert(spDeck!=lpDeck && lpDeck!=epDeck);
+    const auto isoDeck=renderDeck(VhsDeckMode::Play,1,VhsTimestampFormat::Iso,98,3,98,96);
+    const auto usDeck=renderDeck(VhsDeckMode::Play,1,VhsTimestampFormat::MonthFirst,98,3,98,96);
+    const auto euDeck=renderDeck(VhsDeckMode::Play,1,VhsTimestampFormat::DayFirst,98,3,98,96);
+    assert(isoDeck!=usDeck && usDeck!=euDeck);
     const auto movedDeck=renderDeck(VhsDeckMode::Play,1,VhsTimestampFormat::Iso,70,35,50,50);
     assert(playDeck!=movedDeck);
     ImageView invalid{first.data(),w,h,w*4-1}; assert(!applyVhsOsd(invalid,p));
