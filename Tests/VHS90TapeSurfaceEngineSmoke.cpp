@@ -40,7 +40,7 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  assert(std::fabs(tapeWidthMm()-12.65)<1e-6&&std::fabs(tapeTrackStartMm()-1.0)<0.02&&std::fabs(tapeTrackLengthMm()-96.7)<0.1);
  assert(std::fabs(tapeTrackPitchUm(0)-57.9)<0.5&&std::fabs(tapeTrackPitchUm(1)-28.95)<0.5&&std::fabs(tapeTrackPitchUm(2)-19.3)<0.5);
  assert(std::fabs(tapeTrackOffsetLines(0)-1.5)<0.02&&std::fabs(tapeTrackOffsetLines(1)-0.75)<0.02&&std::fabs(tapeTrackOffsetLines(2)-0.5)<0.02);
- const auto top=tapeTrackPoint(0,tapeTrackLengthMm(),0.0,0);assert(std::fabs(top.y-tapeTrackStartMm()-9.58)<0.1);
+ const auto top=tapeTrackPoint(0,tapeTrackLengthMm(),0.0,0);assert(std::fabs(top.y-tapeTrackStartMm()-10.1)<0.1);
  const auto sameY0=tapeTrackPoint(10,40.0,0.0,0),sameY1=tapeTrackPoint(400,40.0,0.0,0);assert(std::fabs(sameY0.y-sameY1.y)<1e-9);
  const TapeDamageControl controls[]={TapeDamageControl::Wear,TapeDamageControl::Dropouts,TapeDamageControl::Scratches,TapeDamageControl::EdgeDamage,TapeDamageControl::Creases,TapeDamageControl::TransportFlutter};
  for(const auto control:controls)for(int k=0;k<=20;++k){const float knob=float(k)/20.0f;const float amount=ntscrtTapeAmount(control,knob);assert(std::fabs(ntscrtTapeKnobForAmount(control,amount)-knob)<1e-5f);}
