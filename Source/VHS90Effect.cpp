@@ -444,23 +444,14 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.tapeTransport.verticalScale=std::max(0.1f,float(h)/480.0f);
             }
             if(s.tapeSurface>0) {
-                const float master=clamp01(s.tapeSurface/100.0f);
-                const float wear=master*clamp01(s.tapeWear/100.0f);
-                const float dropouts=master*clamp01(s.tapeDropouts/100.0f);
-                const float scratches=master*clamp01(s.tapeScratches/100.0f);
-                const float creases=master*clamp01(s.tapeCreases/100.0f);
-                const float edge=master*clamp01(s.tapeEdge/100.0f);
-                p.tapeSurfaceEnabled=true; p.tapeSurface.seed=ntscrtTapeSeed(static_cast<std::uint32_t>(std::max(1.0f,std::min(10000.0f,std::round(s.tapeSeed))))); p.tapeSurface.frame=s.frame;
-                p.tapeSurface.defectDensity=ntscrtTapeAmount(TapeDamageControl::Dropouts,dropouts);
-                p.tapeSurface.oxideLoss=ntscrtTapeAmount(TapeDamageControl::Wear,wear);
-                p.tapeSurface.scratchDensity=ntscrtTapeAmount(TapeDamageControl::Scratches,scratches);
-                p.tapeSurface.creaseStrength=ntscrtTapeAmount(TapeDamageControl::Creases,creases);
-                p.tapeSurface.debrisAmount=master*clamp01(s.tapeSticky/100.0f);
-                p.tapeSurface.edgeLift=ntscrtTapeAmount(TapeDamageControl::EdgeDamage,edge);
-                p.tapeSurface.surfaceRoughness=0.0f;
-                p.tapeSurface.pinholeAmount=0.0f; p.tapeSurface.flakeAmount=0.0f;
-                p.tapeSurface.moldAmount=master*clamp01(s.tapeMold/100.0f);
-                p.tapeSurface.vaselineAmount=master*clamp01(s.tapeVaseline/100.0f);
+                TapeMaterialControls tc;
+                tc.master=s.tapeSurface; tc.wear=s.tapeWear; tc.dropouts=s.tapeDropouts;
+                tc.scratches=s.tapeScratches; tc.creases=s.tapeCreases; tc.edgeDamage=s.tapeEdge;
+                tc.mold=s.tapeMold; tc.vaseline=s.tapeVaseline; tc.sticky=s.tapeSticky;
+                tc.cassetteSeed=static_cast<std::uint32_t>(std::max(1.0f,std::min(10000.0f,std::round(s.tapeSeed))));
+                tc.tapeSpeed=static_cast<std::uint32_t>(std::clamp(int(s.tapeSpeed)-1,0,2));
+                tc.trackingOffsetTracks=p.trackRead.trackingOffset; tc.frame=s.frame;
+                p.tapeSurfaceEnabled=true; p.tapeSurface=makeTapeSurfaceParams(tc);
             }
             p.tapeSurface.tapeSpeed=static_cast<std::uint32_t>(std::clamp(int(s.tapeSpeed)-1,0,2));
             p.tapeSurface.trackingOffsetTracks=p.trackRead.trackingOffset;
