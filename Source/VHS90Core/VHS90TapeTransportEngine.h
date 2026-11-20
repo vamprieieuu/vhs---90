@@ -21,6 +21,7 @@ struct TapeTransportParams {
     float controlTrackFalsePulseChance=0.0f;
     float pictureSearchSpeed=1.0f;
     float trackingTargetPixels=0.0f;
+    float backTension=0.0f;
     float verticalScale=1.0f;
     bool usePhysicalControlTrackMap=false;
     TapeSurfaceParams controlTrackTape{};
