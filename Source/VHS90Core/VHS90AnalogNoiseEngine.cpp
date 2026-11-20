@@ -35,10 +35,10 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
     !std::isfinite(p.hueBiasDegrees)||!std::isfinite(p.tapeLineAmount)||!std::isfinite(p.tapeLineSpeed)||
     !std::isfinite(p.framesPerSecond)||p.lumaAmount<0.0f||p.grainAmount<0.0f||
     p.chromaAmount<0.0f||p.compositeAmount<0.0f||p.tapeLineAmount<0.0f||p.framesPerSecond<=0.0f) return false;
- const float ly=p.proceduralNoiseEnabled?std::clamp(p.lumaAmount,0.0f,1.0f):0.0f;
+ const float ly=std::clamp(p.lumaAmount,0.0f,1.0f);
  const float grain=p.proceduralNoiseEnabled?std::clamp(p.grainAmount,0.0f,1.0f):0.0f;
  const float detail=std::clamp(p.noiseDetail,0.0f,1.0f),shadowBias=std::clamp(p.shadowBias,0.0f,1.0f);
- const float ch=p.proceduralNoiseEnabled?std::clamp(p.chromaAmount,0.0f,1.0f):0.0f;
+ const float ch=std::clamp(p.chromaAmount,0.0f,1.0f);
  const float hueNoise=std::clamp(p.hueNoiseAmount,0.0f,1.0f);
  const float co=std::clamp(p.compositeAmount,0.0f,1.0f);
  const float loss=std::clamp(p.chromaLoss,0.0f,5000.0f)/65000.0f;
