@@ -36,6 +36,6 @@ This is a VHS-90-native adaptation of the Signal plugin's exposed Device-to-devi
 ## Validation
 
 - New `VHS90DeviceConnectionEngineSmoke` covers deterministic output, frame animation, seed changes, density/distribution changes, zero-strength bypass, and opaque/translucent alpha preservation. AnalogNoiseEngineSmoke also covers independent Signal Hue Noise and its seed determinism.
-- GitHub Actions core build and smoke test run: https://github.com/vamprieieuu/vhs---90/actions/runs/44804046170 — passed for the initial network integration. Subsequent alpha/hue-noise changes are being revalidated by the latest Actions run.
+- GitHub Actions core build and smoke test run: https://github.com/vamprieieuu/vhs---90/actions/runs/44804046170 — passed for the initial network integration. Final alpha/hue-noise/network integration validation: https://github.com/vamprieieuu/vhs---90/actions/runs/44804420942 — passed, including parameter wiring, C++ core build, and smoke tests.
 - Parameter wiring validator on the latest integration: https://github.com/vamprieieuu/vhs---90/actions/runs/44804069786 — validator passed; core build was still running when this report was written.
 - No Windows/MSVC After Effects SDK build or in-host visual comparison is claimed.
