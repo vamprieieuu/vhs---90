@@ -169,7 +169,8 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
         const float lh = static_cast<float>(bitmapHeight);
         const float fs = finiteClamp(o.fontSize, 1.0f, 512.0f, 28.0f);
         ComPtr<IDWriteTextFormat> format;
-        hr = f.dwrite->CreateTextFormat(family.c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+        const auto weight=static_cast<DWRITE_FONT_WEIGHT>(std::clamp<std::uint16_t>(o.fontWeight,100,900));
+        hr = f.dwrite->CreateTextFormat(family.c_str(), nullptr, weight,
             DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", &format);
         if (FAILED(hr)) {
             hr = f.dwrite->CreateTextFormat(L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
