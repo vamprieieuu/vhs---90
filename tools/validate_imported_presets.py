@@ -19,7 +19,11 @@ registered_ids = []
 for line in source.splitlines():
     if "PF_ADD_" not in line or "PF_ADD_INPUT" in line:
         continue
-    match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*\)", line)
+    if "PF_ADD_ARBITRARY2" in line:
+        # Arbitrary parameters carry REFCON after the persistent disk ID.
+        match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*,", line)
+    else:
+        match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*\)", line)
     if match:
         registered_ids.append(match.group(1))
 
