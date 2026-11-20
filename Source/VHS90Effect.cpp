@@ -654,6 +654,21 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_TEAR_BAND_COUNT,tearBandCount); READ_FLOAT(PARAM_TEAR_DISPLACEMENT,tearDisplacement);
     READ_FLOAT(PARAM_TEAR_FRAGMENTATION,tearFragmentation); READ_FLOAT(PARAM_TEAR_CHROMA_SHIFT,tearChromaShift);
     READ_FLOAT(PARAM_TEAR_SMEAR,tearSmear); READ_FLOAT(PARAM_TEAR_DROPOUT,tearDropout); READ_FLOAT(PARAM_TEAR_SEED,tearSeed);
+    READ_FLOAT(PARAM_TRACK_LAYER2_AMOUNT,trackingLayerAmount[0]); READ_FLOAT(PARAM_TRACK_LAYER2_X,trackingLayerX[0]); READ_FLOAT(PARAM_TRACK_LAYER2_Y,trackingLayerY[0]);
+    READ_FLOAT(PARAM_TRACK_LAYER2_WIDTH,trackingLayerWidth[0]); READ_FLOAT(PARAM_TRACK_LAYER2_HEIGHT,trackingLayerHeight[0]);
+    READ_FLOAT(PARAM_TRACK_LAYER2_SERVO,trackingLayerServo[0]); READ_FLOAT(PARAM_TRACK_LAYER2_SHIFT,trackingLayerShift[0]); READ_FLOAT(PARAM_TRACK_LAYER2_WAVE,trackingLayerWave[0]); READ_FLOAT(PARAM_TRACK_LAYER2_TEAR,trackingLayerTear[0]);
+    err=CheckoutPopup(in_data,PARAM_TRACK_LAYER2_PROFILE,s.trackingLayerProfile[0]); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_TRACK_LAYER2_SHAPE,s.trackingLayerShape[0]); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_TRACK_LAYER3_AMOUNT,trackingLayerAmount[1]); READ_FLOAT(PARAM_TRACK_LAYER3_X,trackingLayerX[1]); READ_FLOAT(PARAM_TRACK_LAYER3_Y,trackingLayerY[1]);
+    READ_FLOAT(PARAM_TRACK_LAYER3_WIDTH,trackingLayerWidth[1]); READ_FLOAT(PARAM_TRACK_LAYER3_HEIGHT,trackingLayerHeight[1]);
+    READ_FLOAT(PARAM_TRACK_LAYER3_SERVO,trackingLayerServo[1]); READ_FLOAT(PARAM_TRACK_LAYER3_SHIFT,trackingLayerShift[1]); READ_FLOAT(PARAM_TRACK_LAYER3_WAVE,trackingLayerWave[1]); READ_FLOAT(PARAM_TRACK_LAYER3_TEAR,trackingLayerTear[1]);
+    err=CheckoutPopup(in_data,PARAM_TRACK_LAYER3_PROFILE,s.trackingLayerProfile[1]); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_TRACK_LAYER3_SHAPE,s.trackingLayerShape[1]); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_TRACK_LAYER4_AMOUNT,trackingLayerAmount[2]); READ_FLOAT(PARAM_TRACK_LAYER4_X,trackingLayerX[2]); READ_FLOAT(PARAM_TRACK_LAYER4_Y,trackingLayerY[2]);
+    READ_FLOAT(PARAM_TRACK_LAYER4_WIDTH,trackingLayerWidth[2]); READ_FLOAT(PARAM_TRACK_LAYER4_HEIGHT,trackingLayerHeight[2]);
+    READ_FLOAT(PARAM_TRACK_LAYER4_SERVO,trackingLayerServo[2]); READ_FLOAT(PARAM_TRACK_LAYER4_SHIFT,trackingLayerShift[2]); READ_FLOAT(PARAM_TRACK_LAYER4_WAVE,trackingLayerWave[2]); READ_FLOAT(PARAM_TRACK_LAYER4_TEAR,trackingLayerTear[2]);
+    err=CheckoutPopup(in_data,PARAM_TRACK_LAYER4_PROFILE,s.trackingLayerProfile[2]); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_TRACK_LAYER4_SHAPE,s.trackingLayerShape[2]); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TEAR_CHROMA_MODE,s.tearChromaMode); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_HEAD_AMOUNT,headAmount); READ_FLOAT(PARAM_HEAD_BOTTOM_Y,headY);
     READ_FLOAT(PARAM_HEAD_HEIGHT,headHeight); READ_FLOAT(PARAM_HEAD_SHIFT,headShift);
@@ -759,7 +774,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         const float master=clamp01(s.master/100.0f);
         const bool compositeStages=s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.pyVhsLumaCompression>1.0001f||s.pyVhsChromaCompression>1.0001f||s.pyVhsLumaNoise>0||s.pyVhsChromaNoise>0||s.pyVhsChromaWave>0||s.ntscRsPhaseNoise>0;
         const bool osdEnabled=s.osdAmount>0.0f;
-        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.particleAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.headAmount>0||s.deviceConnectionAmount>0||s.redChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||osdEnabled;
+        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.particleAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.deviceConnectionAmount>0||s.redChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||osdEnabled;
         if(!any||(master<=0.0f&&!osdEnabled)) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
@@ -1088,8 +1103,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(!processSyncCollapse(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
-        if(master>0.0f&&(s.trackingAmount>0||s.headAmount>0)) {
-            DamageRegion regions[2]; std::size_t count=0;
+        if(master>0.0f&&(s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0)) {
+            DamageRegion regions[5]; std::size_t count=0;
             if(s.trackingAmount>0) {
                 DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
                 r.shape=static_cast<RegionShape>(std::max<A_long>(1,std::min<A_long>(3,s.trackingShape))-1);
@@ -1100,6 +1115,39 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.motionXPerSecond=s.trackingMotionX/100.0f; r.motionYPerSecond=s.trackingMotionY/100.0f;
                 r.servoDriftPx=s.trackingServo; r.tearProbability=clamp01(s.trackingTear/100.0f);
                 r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,4));
+            }
+            if(s.trackingLayerAmount[0]>0.0f) {
+                DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
+                r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.trackingLayerShape[0]-1,0,2));
+                r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingLayerProfile[0]-1,0,4));
+                r.centerX=clamp01(s.trackingLayerX[0]/100.0f); r.centerY=clamp01(s.trackingLayerY[0]/100.0f);
+                r.width=clamp01(s.trackingLayerWidth[0]/100.0f); r.height=clamp01(s.trackingLayerHeight[0]/100.0f);
+                r.intensity=clamp01(s.trackingLayerAmount[0]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[0];
+                r.maxShiftPx=s.trackingLayerShift[0]; r.waveAmplitudePx=s.trackingLayerWave[0];
+                r.tearProbability=clamp01(s.trackingLayerTear[0]/100.0f); r.tearShiftPx=s.trackingLayerShift[0]*1.5f;
+                r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1000u;
+            }
+            if(s.trackingLayerAmount[1]>0.0f) {
+                DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
+                r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.trackingLayerShape[1]-1,0,2));
+                r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingLayerProfile[1]-1,0,4));
+                r.centerX=clamp01(s.trackingLayerX[1]/100.0f); r.centerY=clamp01(s.trackingLayerY[1]/100.0f);
+                r.width=clamp01(s.trackingLayerWidth[1]/100.0f); r.height=clamp01(s.trackingLayerHeight[1]/100.0f);
+                r.intensity=clamp01(s.trackingLayerAmount[1]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[1];
+                r.maxShiftPx=s.trackingLayerShift[1]; r.waveAmplitudePx=s.trackingLayerWave[1];
+                r.tearProbability=clamp01(s.trackingLayerTear[1]/100.0f); r.tearShiftPx=s.trackingLayerShift[1]*1.5f;
+                r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1100u;
+            }
+            if(s.trackingLayerAmount[2]>0.0f) {
+                DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
+                r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.trackingLayerShape[2]-1,0,2));
+                r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingLayerProfile[2]-1,0,4));
+                r.centerX=clamp01(s.trackingLayerX[2]/100.0f); r.centerY=clamp01(s.trackingLayerY[2]/100.0f);
+                r.width=clamp01(s.trackingLayerWidth[2]/100.0f); r.height=clamp01(s.trackingLayerHeight[2]/100.0f);
+                r.intensity=clamp01(s.trackingLayerAmount[2]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[2];
+                r.maxShiftPx=s.trackingLayerShift[2]; r.waveAmplitudePx=s.trackingLayerWave[2];
+                r.tearProbability=clamp01(s.trackingLayerTear[2]/100.0f); r.tearShiftPx=s.trackingLayerShift[2]*1.5f;
+                r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1200u;
             }
             if(s.headAmount>0) {
                 DamageRegion& r=regions[count++]; r.kind=RegionKind::HeadSwitch; r.shape=RegionShape::HorizontalBand;
@@ -1305,6 +1353,24 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.tearDisplacement=float(params[PARAM_TEAR_DISPLACEMENT]->u.fs_d.value); s.tearFragmentation=float(params[PARAM_TEAR_FRAGMENTATION]->u.fs_d.value);
     s.tearChromaShift=float(params[PARAM_TEAR_CHROMA_SHIFT]->u.fs_d.value); s.tearSmear=float(params[PARAM_TEAR_SMEAR]->u.fs_d.value);
     s.tearDropout=float(params[PARAM_TEAR_DROPOUT]->u.fs_d.value); s.tearSeed=float(params[PARAM_TEAR_SEED]->u.fs_d.value);
+    s.trackingLayerAmount[0]=float(params[PARAM_TRACK_LAYER2_AMOUNT]->u.fs_d.value);
+    s.trackingLayerProfile[0]=params[PARAM_TRACK_LAYER2_PROFILE]->u.pd.value; s.trackingLayerShape[0]=params[PARAM_TRACK_LAYER2_SHAPE]->u.pd.value;
+    s.trackingLayerX[0]=float(params[PARAM_TRACK_LAYER2_X]->u.fs_d.value); s.trackingLayerY[0]=float(params[PARAM_TRACK_LAYER2_Y]->u.fs_d.value);
+    s.trackingLayerWidth[0]=float(params[PARAM_TRACK_LAYER2_WIDTH]->u.fs_d.value); s.trackingLayerHeight[0]=float(params[PARAM_TRACK_LAYER2_HEIGHT]->u.fs_d.value);
+    s.trackingLayerServo[0]=float(params[PARAM_TRACK_LAYER2_SERVO]->u.fs_d.value); s.trackingLayerShift[0]=float(params[PARAM_TRACK_LAYER2_SHIFT]->u.fs_d.value);
+    s.trackingLayerWave[0]=float(params[PARAM_TRACK_LAYER2_WAVE]->u.fs_d.value); s.trackingLayerTear[0]=float(params[PARAM_TRACK_LAYER2_TEAR]->u.fs_d.value);
+    s.trackingLayerAmount[1]=float(params[PARAM_TRACK_LAYER3_AMOUNT]->u.fs_d.value);
+    s.trackingLayerProfile[1]=params[PARAM_TRACK_LAYER3_PROFILE]->u.pd.value; s.trackingLayerShape[1]=params[PARAM_TRACK_LAYER3_SHAPE]->u.pd.value;
+    s.trackingLayerX[1]=float(params[PARAM_TRACK_LAYER3_X]->u.fs_d.value); s.trackingLayerY[1]=float(params[PARAM_TRACK_LAYER3_Y]->u.fs_d.value);
+    s.trackingLayerWidth[1]=float(params[PARAM_TRACK_LAYER3_WIDTH]->u.fs_d.value); s.trackingLayerHeight[1]=float(params[PARAM_TRACK_LAYER3_HEIGHT]->u.fs_d.value);
+    s.trackingLayerServo[1]=float(params[PARAM_TRACK_LAYER3_SERVO]->u.fs_d.value); s.trackingLayerShift[1]=float(params[PARAM_TRACK_LAYER3_SHIFT]->u.fs_d.value);
+    s.trackingLayerWave[1]=float(params[PARAM_TRACK_LAYER3_WAVE]->u.fs_d.value); s.trackingLayerTear[1]=float(params[PARAM_TRACK_LAYER3_TEAR]->u.fs_d.value);
+    s.trackingLayerAmount[2]=float(params[PARAM_TRACK_LAYER4_AMOUNT]->u.fs_d.value);
+    s.trackingLayerProfile[2]=params[PARAM_TRACK_LAYER4_PROFILE]->u.pd.value; s.trackingLayerShape[2]=params[PARAM_TRACK_LAYER4_SHAPE]->u.pd.value;
+    s.trackingLayerX[2]=float(params[PARAM_TRACK_LAYER4_X]->u.fs_d.value); s.trackingLayerY[2]=float(params[PARAM_TRACK_LAYER4_Y]->u.fs_d.value);
+    s.trackingLayerWidth[2]=float(params[PARAM_TRACK_LAYER4_WIDTH]->u.fs_d.value); s.trackingLayerHeight[2]=float(params[PARAM_TRACK_LAYER4_HEIGHT]->u.fs_d.value);
+    s.trackingLayerServo[2]=float(params[PARAM_TRACK_LAYER4_SERVO]->u.fs_d.value); s.trackingLayerShift[2]=float(params[PARAM_TRACK_LAYER4_SHIFT]->u.fs_d.value);
+    s.trackingLayerWave[2]=float(params[PARAM_TRACK_LAYER4_WAVE]->u.fs_d.value); s.trackingLayerTear[2]=float(params[PARAM_TRACK_LAYER4_TEAR]->u.fs_d.value);
     s.headAmount=float(params[PARAM_HEAD_AMOUNT]->u.fs_d.value);
     s.headY=float(params[PARAM_HEAD_BOTTOM_Y]->u.fs_d.value);
     s.headHeight=float(params[PARAM_HEAD_HEIGHT]->u.fs_d.value);
