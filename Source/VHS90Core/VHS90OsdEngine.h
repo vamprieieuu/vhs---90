@@ -24,7 +24,7 @@ struct VhsOsdParams {
     int startHour=12, startMinute=0, startSecond=0;
     bool showRec=true, showPlay=true, showTimestamp=true, showBattery=false, showTapeCounter=false;
     bool premultipliedAlpha=true;
-    bool drawRecText=true, drawDeckText=true, drawTapeSpeedText=true, drawTimestampText=true;
+    bool drawRecText=true, drawDeckText=true, drawTapeSpeedText=true, drawTimestampText=true, drawTapeCounterText=true;
 };
 bool applyVhsOsd(ImageView image,const VhsOsdParams& params) noexcept;
 } // namespace vhs90
