@@ -207,7 +207,7 @@ std::vector<std::wstring> enumerateSystemFontFamilies() {
             UINT32 index = 0; BOOL exists = FALSE;
             if (FAILED(strings->FindLocaleName(L"en-us", &index, &exists)) || !exists) index = 0;
             UINT32 length = 0; if (FAILED(strings->GetStringLength(index, &length))) continue;
-            std::wstring name(static_cast<std::size_t>(length) + 1, L'\\0');
+            std::wstring name(static_cast<std::size_t>(length) + 1, L'\0');
             if (SUCCEEDED(strings->GetString(index, name.data(), length + 1))) {
                 name.resize(length);
                 if (std::find(names.begin(), names.end(), name) == names.end())
