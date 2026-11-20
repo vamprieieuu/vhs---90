@@ -45,7 +45,7 @@ enum ParamIndex {
     PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_TAPE_BACK_TENSION, PARAM_TAPE_NOISE, PARAM_PHYSICAL_TOPIC, PARAM_MAGNET_MOMENT, PARAM_MAGNET_DISTANCE, PARAM_GROUND_LOOP, PARAM_MAINS_HUM, PARAM_RF_FIELD, PARAM_RF_PICKUP, PARAM_PHYSICAL_END, PARAM_PYVHS_TOPIC, PARAM_PYVHS_LUMA_COMPRESSION, PARAM_PYVHS_CHROMA_COMPRESSION, PARAM_PYVHS_LUMA_NOISE, PARAM_PYVHS_CHROMA_NOISE, PARAM_PYVHS_CHROMA_WAVE, PARAM_PYVHS_GENERATION, PARAM_PYVHS_END, PARAM_OSD_TOPIC, PARAM_OSD_AMOUNT, PARAM_OSD_REC, PARAM_OSD_PLAY, PARAM_OSD_TIMESTAMP, PARAM_OSD_OPACITY, PARAM_OSD_SCALE, PARAM_OSD_GLITCH, PARAM_OSD_GHOST, PARAM_OSD_REC_BLINK, PARAM_OSD_TIME_SPEED, PARAM_OSD_YEAR, PARAM_OSD_MONTH, PARAM_OSD_DAY, PARAM_OSD_HOUR, PARAM_OSD_MINUTE, PARAM_OSD_SECOND, PARAM_OSD_REC_COLOR, PARAM_OSD_END, PARAM_VHS_STYLE_TOPIC, PARAM_VHS_STYLE, PARAM_VHS_STYLE_INTENSITY, PARAM_CAMERA_PROFILE, PARAM_CAMERA_INTENSITY, PARAM_NTSCRS_TOPIC, PARAM_NTSCRS_LOOK, PARAM_NTSCRS_INTENSITY, PARAM_NTSCRS_PHASE_NOISE, PARAM_VHS6RIFT_GRAIN, PARAM_VHS6RIFT_GRAIN_SIZE, PARAM_VHS6RIFT_NOISE_DETAIL, PARAM_VHS6RIFT_SHADOW_BIAS, PARAM_VHS6RIFT_NOISE_ENABLE, PARAM_VHS6RIFT_NOISE_SEED, PARAM_SIGNAL_HUE_NOISE, PARAM_DEVICE_CONNECTION_TOPIC, PARAM_DEVICE_CONNECTION_AMOUNT, PARAM_DEVICE_CONNECTION_DENSITY, PARAM_DEVICE_CONNECTION_SIZE, PARAM_DEVICE_CONNECTION_SPEED, PARAM_DEVICE_CONNECTION_DISTRIBUTION, PARAM_DEVICE_CONNECTION_SEED, PARAM_DEVICE_CONNECTION_END, PARAM_VHS_PLAYBACK_TOPIC, PARAM_CHROMA_EDGE_ENHANCE, PARAM_VHS_PLAYBACK_END, PARAM_COMPOSITE_DECODER_TOPIC, PARAM_COMPOSITE_DECODER, PARAM_COMPOSITE_DECODER_END, PARAM_VHS_FRAME_TOPIC, PARAM_VHS_43_FRAME, PARAM_ROUNDED_OVERSCAN, PARAM_LENS_DISTORTION, PARAM_DIGITAL_ZOOM, PARAM_VHS_FRAME_END, PARAM_CAMCORDER_HUD_TOPIC, PARAM_OSD_BATTERY, PARAM_CAMCORDER_HUD_END, PARAM_FRAME_REPEAT_TOPIC, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_FRAME_REPEAT_END, PARAM_TRACKING_PROFILE, PARAM_PARTICLE_TOPIC, PARAM_PARTICLE_AMOUNT, PARAM_PARTICLE_MODE, PARAM_PARTICLE_DENSITY, PARAM_PARTICLE_SIZE, PARAM_PARTICLE_LENGTH, PARAM_PARTICLE_DISTRIBUTION, PARAM_PARTICLE_CHROMA, PARAM_PARTICLE_SPEED, PARAM_PARTICLE_SEED, PARAM_PARTICLE_SOURCE_MIX, PARAM_PARTICLE_BRIGHTNESS, PARAM_PARTICLE_CONTRAST, PARAM_PARTICLE_END, PARAM_TEAR_CHROMA_TOPIC, PARAM_TEAR_CHROMA_AMOUNT, PARAM_TEAR_CHROMA_MODE, PARAM_SPECTRAL_SMEAR, PARAM_SPECTRAL_HUE_SPREAD, PARAM_CHROMA_SATURATION, PARAM_SPECTRAL_CENTER_Y, PARAM_SPECTRAL_COVERAGE, PARAM_TEAR_BAND_START_Y, PARAM_TEAR_BAND_HEIGHT, PARAM_TEAR_BAND_COUNT, PARAM_TEAR_DISPLACEMENT, PARAM_TEAR_FRAGMENTATION, PARAM_TEAR_CHROMA_SHIFT, PARAM_TEAR_SMEAR, PARAM_TEAR_DROPOUT, PARAM_TEAR_SEED, PARAM_TEAR_CHROMA_END,
     PARAM_TRACK_LAYER2_TOPIC, PARAM_TRACK_LAYER2_AMOUNT, PARAM_TRACK_LAYER2_PROFILE, PARAM_TRACK_LAYER2_SHAPE, PARAM_TRACK_LAYER2_X, PARAM_TRACK_LAYER2_Y, PARAM_TRACK_LAYER2_WIDTH, PARAM_TRACK_LAYER2_HEIGHT, PARAM_TRACK_LAYER2_SERVO, PARAM_TRACK_LAYER2_SHIFT, PARAM_TRACK_LAYER2_WAVE, PARAM_TRACK_LAYER2_TEAR, PARAM_TRACK_LAYER2_END,
     PARAM_TRACK_LAYER3_TOPIC, PARAM_TRACK_LAYER3_AMOUNT, PARAM_TRACK_LAYER3_PROFILE, PARAM_TRACK_LAYER3_SHAPE, PARAM_TRACK_LAYER3_X, PARAM_TRACK_LAYER3_Y, PARAM_TRACK_LAYER3_WIDTH, PARAM_TRACK_LAYER3_HEIGHT, PARAM_TRACK_LAYER3_SERVO, PARAM_TRACK_LAYER3_SHIFT, PARAM_TRACK_LAYER3_WAVE, PARAM_TRACK_LAYER3_TEAR, PARAM_TRACK_LAYER3_END,
-    PARAM_TRACK_LAYER4_TOPIC, PARAM_TRACK_LAYER4_AMOUNT, PARAM_TRACK_LAYER4_PROFILE, PARAM_TRACK_LAYER4_SHAPE, PARAM_TRACK_LAYER4_X, PARAM_TRACK_LAYER4_Y, PARAM_TRACK_LAYER4_WIDTH, PARAM_TRACK_LAYER4_HEIGHT, PARAM_TRACK_LAYER4_SERVO, PARAM_TRACK_LAYER4_SHIFT, PARAM_TRACK_LAYER4_WAVE, PARAM_TRACK_LAYER4_TEAR, PARAM_TRACK_LAYER4_END, PARAM_COUNT
+    PARAM_TRACK_LAYER4_TOPIC, PARAM_TRACK_LAYER4_AMOUNT, PARAM_TRACK_LAYER4_PROFILE, PARAM_TRACK_LAYER4_SHAPE, PARAM_TRACK_LAYER4_X, PARAM_TRACK_LAYER4_Y, PARAM_TRACK_LAYER4_WIDTH, PARAM_TRACK_LAYER4_HEIGHT, PARAM_TRACK_LAYER4_SERVO, PARAM_TRACK_LAYER4_SHIFT, PARAM_TRACK_LAYER4_WAVE, PARAM_TRACK_LAYER4_TEAR, PARAM_TRACK_LAYER4_END, PARAM_TRACKING_PRESETS_TOPIC, PARAM_TRACKING_PRESET_BASE, PARAM_TRACKING_PRESET_2, PARAM_TRACKING_PRESET_3, PARAM_TRACKING_PRESET_4, PARAM_TRACKING_PRESETS_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT, ID_CHROMA_REG_RED, ID_CHROMA_REG_BLUE,
@@ -64,11 +64,12 @@ enum ParamDiskID {
     ID_TAPE_MATERIAL_TOPIC, ID_TAPE_WEAR, ID_TAPE_DROPOUTS, ID_TAPE_SCRATCHES, ID_TAPE_CREASES, ID_TAPE_EDGE, ID_TAPE_MOLD, ID_TAPE_VASELINE, ID_TAPE_STICKY, ID_TAPE_SEED, ID_TAPE_BACK_TENSION, ID_TAPE_NOISE, ID_PHYSICAL_TOPIC, ID_MAGNET_MOMENT, ID_MAGNET_DISTANCE, ID_GROUND_LOOP, ID_MAINS_HUM, ID_RF_FIELD, ID_RF_PICKUP, ID_PYVHS_TOPIC, ID_PYVHS_LUMA_COMPRESSION, ID_PYVHS_CHROMA_COMPRESSION, ID_PYVHS_LUMA_NOISE, ID_PYVHS_CHROMA_NOISE, ID_PYVHS_CHROMA_WAVE, ID_PYVHS_GENERATION, ID_OSD_TOPIC, ID_OSD_AMOUNT, ID_OSD_REC, ID_OSD_PLAY, ID_OSD_TIMESTAMP, ID_OSD_OPACITY, ID_OSD_SCALE, ID_OSD_GLITCH, ID_OSD_GHOST, ID_OSD_REC_BLINK, ID_OSD_TIME_SPEED, ID_OSD_YEAR, ID_OSD_MONTH, ID_OSD_DAY, ID_OSD_HOUR, ID_OSD_MINUTE, ID_OSD_SECOND, ID_OSD_REC_COLOR, ID_VHS_STYLE_TOPIC, ID_VHS_STYLE, ID_VHS_STYLE_INTENSITY, ID_CAMERA_PROFILE, ID_CAMERA_INTENSITY, ID_NTSCRS_TOPIC, ID_NTSCRS_LOOK, ID_NTSCRS_INTENSITY, ID_NTSCRS_PHASE_NOISE, ID_VHS6RIFT_GRAIN, ID_VHS6RIFT_GRAIN_SIZE, ID_VHS6RIFT_NOISE_DETAIL, ID_VHS6RIFT_SHADOW_BIAS, ID_VHS6RIFT_NOISE_ENABLE, ID_VHS6RIFT_NOISE_SEED, ID_SIGNAL_HUE_NOISE, ID_DEVICE_CONNECTION_TOPIC, ID_DEVICE_CONNECTION_AMOUNT, ID_DEVICE_CONNECTION_DENSITY, ID_DEVICE_CONNECTION_SIZE, ID_DEVICE_CONNECTION_SPEED, ID_DEVICE_CONNECTION_DISTRIBUTION, ID_DEVICE_CONNECTION_SEED, ID_VHS_PLAYBACK_TOPIC, ID_CHROMA_EDGE_ENHANCE, ID_COMPOSITE_DECODER_TOPIC, ID_COMPOSITE_DECODER, ID_VHS_FRAME_TOPIC, ID_VHS_43_FRAME, ID_ROUNDED_OVERSCAN, ID_LENS_DISTORTION, ID_DIGITAL_ZOOM, ID_CAMCORDER_HUD_TOPIC, ID_OSD_BATTERY, ID_FRAME_REPEAT_TOPIC, ID_FRAME_REPEAT_FREQUENCY, ID_FRAME_REPEAT_STRENGTH, ID_TRACKING_PROFILE, ID_PARTICLE_TOPIC, ID_PARTICLE_AMOUNT, ID_PARTICLE_MODE, ID_PARTICLE_DENSITY, ID_PARTICLE_SIZE, ID_PARTICLE_LENGTH, ID_PARTICLE_DISTRIBUTION, ID_PARTICLE_CHROMA, ID_PARTICLE_SPEED, ID_PARTICLE_SEED, ID_PARTICLE_SOURCE_MIX, ID_PARTICLE_BRIGHTNESS, ID_PARTICLE_CONTRAST, ID_TEAR_CHROMA_TOPIC, ID_TEAR_CHROMA_AMOUNT, ID_TEAR_CHROMA_MODE, ID_SPECTRAL_SMEAR, ID_SPECTRAL_HUE_SPREAD, ID_CHROMA_SATURATION, ID_SPECTRAL_CENTER_Y, ID_SPECTRAL_COVERAGE, ID_TEAR_BAND_START_Y, ID_TEAR_BAND_HEIGHT, ID_TEAR_BAND_COUNT, ID_TEAR_DISPLACEMENT, ID_TEAR_FRAGMENTATION, ID_TEAR_CHROMA_SHIFT, ID_TEAR_SMEAR, ID_TEAR_DROPOUT, ID_TEAR_SEED,
     ID_TRACK_LAYER2_TOPIC, ID_TRACK_LAYER2_AMOUNT, ID_TRACK_LAYER2_PROFILE, ID_TRACK_LAYER2_SHAPE, ID_TRACK_LAYER2_X, ID_TRACK_LAYER2_Y, ID_TRACK_LAYER2_WIDTH, ID_TRACK_LAYER2_HEIGHT, ID_TRACK_LAYER2_SERVO, ID_TRACK_LAYER2_SHIFT, ID_TRACK_LAYER2_WAVE, ID_TRACK_LAYER2_TEAR,
     ID_TRACK_LAYER3_TOPIC, ID_TRACK_LAYER3_AMOUNT, ID_TRACK_LAYER3_PROFILE, ID_TRACK_LAYER3_SHAPE, ID_TRACK_LAYER3_X, ID_TRACK_LAYER3_Y, ID_TRACK_LAYER3_WIDTH, ID_TRACK_LAYER3_HEIGHT, ID_TRACK_LAYER3_SERVO, ID_TRACK_LAYER3_SHIFT, ID_TRACK_LAYER3_WAVE, ID_TRACK_LAYER3_TEAR,
-    ID_TRACK_LAYER4_TOPIC, ID_TRACK_LAYER4_AMOUNT, ID_TRACK_LAYER4_PROFILE, ID_TRACK_LAYER4_SHAPE, ID_TRACK_LAYER4_X, ID_TRACK_LAYER4_Y, ID_TRACK_LAYER4_WIDTH, ID_TRACK_LAYER4_HEIGHT, ID_TRACK_LAYER4_SERVO, ID_TRACK_LAYER4_SHIFT, ID_TRACK_LAYER4_WAVE, ID_TRACK_LAYER4_TEAR
+    ID_TRACK_LAYER4_TOPIC, ID_TRACK_LAYER4_AMOUNT, ID_TRACK_LAYER4_PROFILE, ID_TRACK_LAYER4_SHAPE, ID_TRACK_LAYER4_X, ID_TRACK_LAYER4_Y, ID_TRACK_LAYER4_WIDTH, ID_TRACK_LAYER4_HEIGHT, ID_TRACK_LAYER4_SERVO, ID_TRACK_LAYER4_SHIFT, ID_TRACK_LAYER4_WAVE, ID_TRACK_LAYER4_TEAR, ID_TRACKING_PRESETS_TOPIC, ID_TRACKING_PRESET_BASE, ID_TRACKING_PRESET_2, ID_TRACKING_PRESET_3, ID_TRACKING_PRESET_4
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
 static char kTrackingProfileChoices[]="Servo Sweep|RF Wave|Composite Ribbon|Tape Flutter|Four-Edge Crawl";
+static char kTrackingPresetChoices[]="Custom|Fine Sweep|Fragmented Sweep|RF Snowline|Composite Flagging|Tape Flutter|Four-Edge Crawl|Full-Frame Breakdown";
 static char kParticleModeChoices[]="Dark-Field Speckles|Horizontal Fragments|Colored Speckles|Bottom-Weighted Streaks|Vertical Columns";
 static char kParticleDistributionChoices[]="Uniform|Top Weighted|Bottom Weighted|Center Weighted|Edge Weighted";
 static char kTearChromaModeChoices[]="Spectral Chroma Smear|Localized Headbleed|Chroma Streaks & Interleave|Multi-Band Tear|Spectral + Lower Tear";
@@ -97,7 +98,7 @@ struct RenderSettings {
     float tapeSurface=0, tapeTransport=0, geometry=0, interlace=0, verticalRoll=0, edgeWave=0, scanlines=0;
     float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
-    A_long trackingShape=3, trackingProfile=1, particleMode=1, particleDistribution=1;
+    A_long trackingShape=3, trackingProfile=1, particleMode=1, particleDistribution=1, trackingPresetBase=1, trackingLayerPreset[3]={3,4,5};
     A_long trackingLayerProfile[3]={2,3,4}, trackingLayerShape[3]={1,1,1};
     float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5};
     float particleAmount=0, particleDensity=18, particleSize=1.5f, particleLength=7, particleChroma=0, particleSpeed=1, particleSeed=1, particleSourceMix=100, particleBrightness=85, particleContrast=100;
@@ -129,6 +130,32 @@ inline float clamp01(float x) noexcept { return std::max(0.0f,std::min(1.0f,x));
 static float blendPreset(float current,float target,float intensity) noexcept {
     const float t=clamp01(intensity/100.0f);
     return current+(target-current)*t;
+}
+static void ApplyTrackingRecipe(DamageRegion& r,A_long preset) noexcept {
+    switch(preset) {
+        case 2: // Fine Sweep
+            r.maxShiftPx*=0.65f; r.waveAmplitudePx*=0.65f; r.tearProbability*=0.45f;
+            r.noiseDensity*=0.65f; r.chromaShiftPx*=0.6f; break;
+        case 3: // Fragmented Sweep
+            r.maxShiftPx*=1.25f; r.waveAmplitudePx*=1.2f; r.tearProbability=clamp01(r.tearProbability*1.7f);
+            r.tearShiftPx*=1.4f; r.noiseDensity*=1.25f; break;
+        case 4: // RF Snowline
+            r.noiseDensity=0.62f; r.noiseAmount=0.22f; r.waveAmplitudePx*=1.5f;
+            r.servoSmoothnessPx*=1.6f; r.chromaShiftPx*=0.5f; break;
+        case 5: // Composite Flagging
+            r.maxShiftPx*=1.6f; r.waveAmplitudePx*=1.8f; r.tearProbability=clamp01(r.tearProbability*1.3f);
+            r.tearShiftPx*=1.5f; r.chromaShiftPx*=2.0f; break;
+        case 6: // Tape Flutter
+            r.servoDriftPx*=0.55f; r.servoSmoothnessPx*=2.4f; r.waveFrequency*=0.65f;
+            r.tearProbability*=0.4f; break;
+        case 7: // Four-Edge Crawl
+            r.waveAmplitudePx*=1.8f; r.noiseDensity=0.4f; r.tearProbability*=0.7f;
+            r.chromaShiftPx*=1.4f; break;
+        case 8: // Full-Frame Breakdown recipe; geometry remains editable by the user.
+            r.maxShiftPx*=1.8f; r.noiseDensity=0.8f; r.noiseAmount=0.28f;
+            r.tearProbability=std::max(r.tearProbability,0.5f); break;
+        default: break;
+    }
 }
 static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     const float i=clamp01(s.vhsStyleIntensity/100.0f);
@@ -570,6 +597,12 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Wave Intensity",0,100,0,100,2,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_WAVE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_TEAR);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACK_LAYER4_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tracking Presets",ID_TRACKING_PRESETS_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Base Tracking Preset",8,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Layer 2 Preset",8,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Layer 3 Preset",8,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Layer 4 Preset",8,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACKING_PRESETS_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -640,6 +673,10 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_TRACKING_MOTION_X,trackingMotionX); READ_FLOAT(PARAM_TRACKING_MOTION_Y,trackingMotionY);
     READ_FLOAT(PARAM_TRACKING_SERVO,trackingServo); READ_FLOAT(PARAM_TRACKING_TEAR,trackingTear);
     err=CheckoutPopup(in_data,PARAM_TRACKING_PROFILE,s.trackingProfile); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_BASE,s.trackingPresetBase); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_2,s.trackingLayerPreset[0]); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_3,s.trackingLayerPreset[1]); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_4,s.trackingLayerPreset[2]); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_PARTICLE_AMOUNT,particleAmount); READ_FLOAT(PARAM_PARTICLE_DENSITY,particleDensity);
     READ_FLOAT(PARAM_PARTICLE_SIZE,particleSize); READ_FLOAT(PARAM_PARTICLE_LENGTH,particleLength);
     READ_FLOAT(PARAM_PARTICLE_CHROMA,particleChroma); READ_FLOAT(PARAM_PARTICLE_SPEED,particleSpeed);
@@ -1115,6 +1152,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.motionXPerSecond=s.trackingMotionX/100.0f; r.motionYPerSecond=s.trackingMotionY/100.0f;
                 r.servoDriftPx=s.trackingServo; r.tearProbability=clamp01(s.trackingTear/100.0f);
                 r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,4));
+                ApplyTrackingRecipe(r,s.trackingPresetBase);
             }
             if(s.trackingLayerAmount[0]>0.0f) {
                 DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
@@ -1125,7 +1163,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.intensity=clamp01(s.trackingLayerAmount[0]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[0];
                 r.maxShiftPx=s.trackingLayerShift[0]; r.waveAmplitudePx=s.trackingLayerWave[0];
                 r.tearProbability=clamp01(s.trackingLayerTear[0]/100.0f); r.tearShiftPx=s.trackingLayerShift[0]*1.5f;
-                r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1000u;
+                r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1000u; ApplyTrackingRecipe(r,s.trackingLayerPreset[0]);
             }
             if(s.trackingLayerAmount[1]>0.0f) {
                 DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
@@ -1136,7 +1174,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.intensity=clamp01(s.trackingLayerAmount[1]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[1];
                 r.maxShiftPx=s.trackingLayerShift[1]; r.waveAmplitudePx=s.trackingLayerWave[1];
                 r.tearProbability=clamp01(s.trackingLayerTear[1]/100.0f); r.tearShiftPx=s.trackingLayerShift[1]*1.5f;
-                r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1100u;
+                r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1100u; ApplyTrackingRecipe(r,s.trackingLayerPreset[1]);
             }
             if(s.trackingLayerAmount[2]>0.0f) {
                 DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
@@ -1147,7 +1185,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.intensity=clamp01(s.trackingLayerAmount[2]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[2];
                 r.maxShiftPx=s.trackingLayerShift[2]; r.waveAmplitudePx=s.trackingLayerWave[2];
                 r.tearProbability=clamp01(s.trackingLayerTear[2]/100.0f); r.tearShiftPx=s.trackingLayerShift[2]*1.5f;
-                r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1200u;
+                r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1200u; ApplyTrackingRecipe(r,s.trackingLayerPreset[2]);
             }
             if(s.headAmount>0) {
                 DamageRegion& r=regions[count++]; r.kind=RegionKind::HeadSwitch; r.shape=RegionShape::HorizontalBand;
@@ -1339,6 +1377,8 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.trackingServo=float(params[PARAM_TRACKING_SERVO]->u.fs_d.value);
     s.trackingTear=float(params[PARAM_TRACKING_TEAR]->u.fs_d.value);
     s.trackingProfile=params[PARAM_TRACKING_PROFILE]->u.pd.value;
+    s.trackingPresetBase=params[PARAM_TRACKING_PRESET_BASE]->u.pd.value;
+    s.trackingLayerPreset[0]=params[PARAM_TRACKING_PRESET_2]->u.pd.value; s.trackingLayerPreset[1]=params[PARAM_TRACKING_PRESET_3]->u.pd.value; s.trackingLayerPreset[2]=params[PARAM_TRACKING_PRESET_4]->u.pd.value;
     s.particleAmount=float(params[PARAM_PARTICLE_AMOUNT]->u.fs_d.value); s.particleMode=params[PARAM_PARTICLE_MODE]->u.pd.value;
     s.particleDensity=float(params[PARAM_PARTICLE_DENSITY]->u.fs_d.value); s.particleSize=float(params[PARAM_PARTICLE_SIZE]->u.fs_d.value);
     s.particleLength=float(params[PARAM_PARTICLE_LENGTH]->u.fs_d.value); s.particleDistribution=params[PARAM_PARTICLE_DISTRIBUTION]->u.pd.value;
