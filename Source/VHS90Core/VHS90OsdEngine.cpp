@@ -72,6 +72,19 @@ void civil(std::int64_t z,int& y,unsigned& m,unsigned& d) noexcept{
  const unsigned yo=(doe-doe/1460+doe/36524-doe/146096)/365;y=int(yo)+int(era*400);
  const unsigned doy=doe-(365*yo+yo/4-yo/100),mp=(5*doy+2)/153;d=doy-(153*mp+2)/5+1;m=mp<10?mp+3:mp-9;y+=(m<=2);
 }
+void tapeCounter(const VhsOsdParams& p,char* out,std::size_t cap) noexcept {
+ const double fps=std::isfinite(p.framesPerSecond)?std::max(1.0f,std::min(240.0f,p.framesPerSecond)):30.0;
+ const std::int64_t frame=std::max<std::int64_t>(0,p.frame);
+ const std::int64_t wholeSeconds=static_cast<std::int64_t>(std::floor(double(frame)/fps));
+ const int ff=static_cast<int>(frame-static_cast<std::int64_t>(std::floor(double(frame)/fps)*fps));
+ const int ss=static_cast<int>(wholeSeconds%60), mm=static_cast<int>((wholeSeconds/60)%60);
+ const std::int64_t hh=wholeSeconds/3600;
+ switch(p.tapeCounterFormat) {
+ case VhsTapeCounterFormat::HoursMinutesSeconds: std::snprintf(out,cap,"%02lld:%02d:%02d",static_cast<long long>(hh),mm,ss); break;
+ case VhsTapeCounterFormat::HoursMinutesSecondsFrames: std::snprintf(out,cap,"%02lld:%02d:%02d:%02d",static_cast<long long>(hh),mm,ss,ff); break;
+ default: std::snprintf(out,cap,"%06lld",static_cast<long long>(std::min<std::int64_t>(999999,frame))); break;
+ }
+}
 void stamp(const VhsOsdParams& p,double elapsed,char* out,std::size_t cap) noexcept{
  const int y=ci(p.startYear,1900,2199),mo=ci(p.startMonth,1,12),d=ci(p.startDay,1,31);
  const int hh=ci(p.startHour,0,23),mm=ci(p.startMinute,0,59),ss=ci(p.startSecond,0,59);
@@ -93,9 +106,9 @@ bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
  if(!im.rgba||im.width<=0||im.height<=0||im.rowStrideFloats<std::ptrdiff_t(im.width)*4)return false;
  if(!std::isfinite(p.amount)||!std::isfinite(p.opacity)||!std::isfinite(p.scale)||!std::isfinite(p.glitch)||
  !std::isfinite(p.ghost)||!std::isfinite(p.recAmount)||!std::isfinite(p.playAmount)||!std::isfinite(p.timestampAmount)||!std::isfinite(p.batteryAmount)||
- !std::isfinite(p.recBlinkHz)||!std::isfinite(p.recX)||!std::isfinite(p.recY)||!std::isfinite(p.statusX)||!std::isfinite(p.statusY)||!std::isfinite(p.timestampX)||!std::isfinite(p.timestampY)||!std::isfinite(p.recColorR)||!std::isfinite(p.recColorG)||!std::isfinite(p.recColorB)||!std::isfinite(p.timestampSpeed)||!std::isfinite(p.timeSeconds)||!std::isfinite(p.framesPerSecond))return false;
+ !std::isfinite(p.recBlinkHz)||!std::isfinite(p.tapeCounterAmount)||!std::isfinite(p.tapeCounterX)||!std::isfinite(p.tapeCounterY)||!std::isfinite(p.recX)||!std::isfinite(p.recY)||!std::isfinite(p.statusX)||!std::isfinite(p.statusY)||!std::isfinite(p.timestampX)||!std::isfinite(p.timestampY)||!std::isfinite(p.recColorR)||!std::isfinite(p.recColorG)||!std::isfinite(p.recColorB)||!std::isfinite(p.timestampSpeed)||!std::isfinite(p.timeSeconds)||!std::isfinite(p.framesPerSecond))return false;
  const float amount=c01(p.amount),opacity=c01(p.opacity);
- if(amount<=0||opacity<=0||(!p.showRec&&!p.showPlay&&!p.showTimestamp&&!p.showBattery))return true;
+ if(amount<=0||opacity<=0||(!p.showRec&&!p.showPlay&&!p.showTimestamp&&!p.showBattery&&!p.showTapeCounter))return true;
  const int w=im.width,h=im.height;
  const int cell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,p.scale))));
  const int small=std::max(1,int(std::lround(cell*0.75f)));
@@ -136,6 +149,14 @@ bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
  if(p.showTimestamp&&p.timestampAmount>0){char t[40]{};stamp(p,std::max(0.0,p.timeSeconds)*std::max(0.0f,p.timestampSpeed),t,sizeof(t));
   const float a=amount*opacity*c01(p.timestampAmount);const int x=ci(timestampX-width(t,small)+dx,0,w-1),y=ci(timestampY-7*small+dy,0,h-1);
   textDraw(im,t,x,y,small,a,pm);if(gx&&gh>0.002f)textDraw(im,t,x,y,small,a*gh,pm,gx);
+ }
+ if(p.showTapeCounter&&p.tapeCounterAmount>0.0f){
+  char counter[40]{}; tapeCounter(p,counter,sizeof(counter));
+  const float a=amount*opacity*c01(p.tapeCounterAmount);
+  const int x=ci(int(std::lround(w*c01(p.tapeCounterX/100.0f)))+dx,0,w-1);
+  const int y=ci(int(std::lround(h*c01(p.tapeCounterY/100.0f)))-7*small+dy,0,h-1);
+  textDraw(im,counter,x,y,small,a,pm);
+  if(gx&&gh>0.002f) textDraw(im,counter,x,y,small,a*gh,pm,gx);
  }
  if(p.showBattery&&p.batteryAmount>0.001f){
   const float a=amount*opacity*c01(p.batteryAmount);
