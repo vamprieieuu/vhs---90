@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static audit for imported VHS6RIFT, NTSC-RS, CVS and Lost Signal VHS preset/UI wiring."""
+"""Static audit for all currently wired VHS-90 source-derived preset families."""
 from pathlib import Path
 import re
 import sys
@@ -237,8 +237,14 @@ cvs_cases = set(range(23, 26))
 assert cvs_cases.issubset(style_cases), f"Missing Composite Video Simulator VHS SP/LP/EP cases: {sorted(cvs_cases-style_cases)}"
 lost_signal_cases = set(range(26, 39))
 assert lost_signal_cases.issubset(style_cases), f"Missing Lost Signal VHS v1.9 profiles: {sorted(lost_signal_cases-style_cases)}"
+crates_cases = set(range(39, 55))
+assert crates_cases.issubset(style_cases), f"Missing Crates VHS Master recipes: {sorted(crates_cases-style_cases)}"
+vhspro_cases = set(range(55, 65))
+assert vhspro_cases.issubset(style_cases), f"Missing VHSPro recipes: {sorted(vhspro_cases-style_cases)}"
+vhscraft_cases = set(range(65, 73))
+assert vhscraft_cases.issubset(style_cases), f"Missing VHSCraft recipes: {sorted(vhscraft_cases-style_cases)}"
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
-assert style_choices and len(style_choices.group(1).split("|")) == 38, "VHS Style popup must expose all 38 entries"
+assert style_choices and len(style_choices.group(1).split("|")) == 72, "VHS Style popup must expose all 72 entries"
 assert camera_cases == set(range(2, 13)), f"Missing VHS6RIFT and FXC6/Gen 7 camera profile cases: {sorted(set(range(2,13))-camera_cases)}"
 camera_choices = re.search(r'kCameraProfileChoices\[\]\s*=\s*"([^"]+)"', source)
 assert camera_choices and len(camera_choices.group(1).split("|")) == 12, "Camera Profile popup must expose Off plus 11 reference profiles"
@@ -256,5 +262,6 @@ lost_rows = [line for line in source[lost_start:lost_end].splitlines() if line.l
 assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 complete profiles, got {len(lost_rows)}"
 assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 45 for line in lost_rows), "Every Lost Signal VHS profile must define all 45 mapped values"
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
-print("PASS: 16 VHS6RIFT + 5 VHS Effect Add-on + 3 CVS speed presets + 13 Lost Signal profiles, 11 camera profiles including FXC6/Gen 7, and 10 NTSC-RS-derived looks.")
-print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening and Consumer Notch / One-Line Comb / Two-Line Comb decoder and VHS 4:3 frame/rounded overscan/lens/zoom and camcorder battery OSD and deterministic frame-repeat controls are wired.")
+print("PASS: 16 VHS6RIFT + 5 Add-on + 3 CVS + 13 Lost Signal + 16 Crates + 10 VHSPro + 8 VHSCraft = 71 named VHS Style recipes plus Custom (72 popup entries).")
+print("PASS: all 7 audited preset families have native menu entries and recipe cases; Crates/VHSPro/VHSCraft values are source-informed approximations where exact original parameter tuples were not recoverable.")
+print("PASS: camera profiles, NTSC-RS controls, VHS playback, decoder, frame geometry, camcorder OSD and deterministic frame-repeat controls remain wired.")
