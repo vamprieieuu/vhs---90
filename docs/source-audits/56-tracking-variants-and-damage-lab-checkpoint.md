@@ -59,7 +59,7 @@ Implementation commits:
 - ef0451d426c5e89e7f50ebe6b062191f725eada1 — static validator requires the selector and mapping.
 - e84d51dee740bf190ebad5c2eb2615f85f7dd820 — corrected the profile-distinctness test fixture to use spatially varying RGB input (uniform color cannot reveal displacement differences).
 
-CI for final commit e84d51d is pending at checkpoint creation. An earlier smoke run correctly exposed that the first distinctness fixture used a uniform-color source; the fixture was corrected, not waived.
+CI for final commit e84d51d passed: imported AE parameter validator, CMake build and all 32/32 CTest smoke tests succeeded in run 44818220252. An earlier smoke run correctly exposed that the first distinctness fixture used a uniform-color source; the fixture was corrected, not waived. Final run: https://github.com/vamprieieuu/vhs---90/actions/runs/44818220252.
 
 ## 4. VHS Damage Lab visual inventory reconfirmed
 
