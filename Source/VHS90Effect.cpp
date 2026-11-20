@@ -725,6 +725,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.imageGradeEnabled=true; p.imageGrade.seed=0x90A11E5Eu; p.imageGrade.frame=s.frame;
                 p.imageGrade.edgeEnhancement=clamp01(s.edgeEnhance/100.0f);
                 p.imageGrade.chromaEdgeEnhancement=clamp01(s.chromaEdgeEnhance/100.0f);
+                p.imageGrade.chromaSharpenCutoffHz=s.tapeSpeed==3?560000.0f:(s.tapeSpeed==2?600000.0f:640000.0f);
                 p.imageGrade.fade=clamp01(s.tapeFade/100.0f);
                 p.imageGrade.blackLift=clamp01(s.blackLift/100.0f);
                 p.imageGrade.contrast=s.gradeContrast/100.0f;
