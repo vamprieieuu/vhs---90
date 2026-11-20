@@ -51,7 +51,8 @@ enum ParamIndex {
     PARAM_TEAR_BAND4_TOPIC, PARAM_TEAR_BAND4_AMOUNT, PARAM_TEAR_BAND4_Y, PARAM_TEAR_BAND4_HEIGHT, PARAM_TEAR_BAND4_SHIFT, PARAM_TEAR_BAND4_FRAGMENTATION, PARAM_TEAR_BAND4_CHROMA, PARAM_TEAR_BAND4_SMEAR, PARAM_TEAR_BAND4_DROPOUT, PARAM_TEAR_BAND4_END,
     PARAM_TEAR_BAND5_TOPIC, PARAM_TEAR_BAND5_AMOUNT, PARAM_TEAR_BAND5_Y, PARAM_TEAR_BAND5_HEIGHT, PARAM_TEAR_BAND5_SHIFT, PARAM_TEAR_BAND5_FRAGMENTATION, PARAM_TEAR_BAND5_CHROMA, PARAM_TEAR_BAND5_SMEAR, PARAM_TEAR_BAND5_DROPOUT, PARAM_TEAR_BAND5_END,
     PARAM_OSD_DECK_MODE, PARAM_OSD_DATE_FORMAT, PARAM_OSD_REC_X, PARAM_OSD_REC_Y,
-    PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_COUNT
+    PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y,
+    PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT, ID_CHROMA_REG_RED, ID_CHROMA_REG_BLUE,
@@ -76,7 +77,8 @@ enum ParamDiskID {
     ID_TEAR_BAND4_TOPIC, ID_TEAR_BAND4_AMOUNT, ID_TEAR_BAND4_Y, ID_TEAR_BAND4_HEIGHT, ID_TEAR_BAND4_SHIFT, ID_TEAR_BAND4_FRAGMENTATION, ID_TEAR_BAND4_CHROMA, ID_TEAR_BAND4_SMEAR, ID_TEAR_BAND4_DROPOUT,
     ID_TEAR_BAND5_TOPIC, ID_TEAR_BAND5_AMOUNT, ID_TEAR_BAND5_Y, ID_TEAR_BAND5_HEIGHT, ID_TEAR_BAND5_SHIFT, ID_TEAR_BAND5_FRAGMENTATION, ID_TEAR_BAND5_CHROMA, ID_TEAR_BAND5_SMEAR, ID_TEAR_BAND5_DROPOUT,
     ID_OSD_DECK_MODE=9001, ID_OSD_DATE_FORMAT, ID_OSD_REC_X, ID_OSD_REC_Y,
-    ID_OSD_STATUS_X, ID_OSD_STATUS_Y, ID_OSD_TIMESTAMP_X, ID_OSD_TIMESTAMP_Y
+    ID_OSD_STATUS_X, ID_OSD_STATUS_Y, ID_OSD_TIMESTAMP_X, ID_OSD_TIMESTAMP_Y,
+    ID_OSD_COUNTER_FORMAT=9009, ID_OSD_COUNTER_AMOUNT, ID_OSD_COUNTER_X, ID_OSD_COUNTER_Y
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -95,6 +97,7 @@ static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
 static char kCompositeDecoderChoices[]="Consumer Notch|One-Line Comb|Two-Line Comb";
 static char kOsdDeckModeChoices[]="Play|Pause|Stop|Fast Forward|Rewind";
 static char kOsdDateFormatChoices[]="ISO Date + Time|US Date + Time|European Date + Time|Date Only|Time Only";
+static char kOsdCounterFormatChoices[]="Six-Digit Frames|HH:MM:SS|HH:MM:SS:FF";
 
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35, staticAngle=24, staticRibbonWidth=12, staticGreenLine=75, staticPhaseCount=3;
@@ -131,6 +134,8 @@ struct RenderSettings {
     float osdYear=1994.0f, osdMonth=6.0f, osdDay=11.0f, osdHour=12.0f, osdMinute=0.0f, osdSecond=0.0f;
     A_long osdDeckMode=1, osdDateFormat=1;
     float osdRecX=2.2f, osdRecY=3.0f, osdStatusX=98.0f, osdStatusY=3.0f, osdTimestampX=98.0f, osdTimestampY=96.0f;
+    A_long osdCounterFormat=1;
+    float osdCounterAmount=0.0f, osdCounterX=2.2f, osdCounterY=96.0f;
     float vhs6RiftGrain=0.0f, vhs6RiftGrainSize=2.0f, vhs6RiftNoiseDetail=50.0f, vhs6RiftShadowBias=65.0f, vhs6RiftNoiseSeed=1.0f;
     bool vhs6RiftNoiseEnable=true;
     float signalHueNoise=0.0f;
@@ -797,6 +802,12 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Timestamp Horizontal Position",0,100,0,100,98,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TIMESTAMP_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Timestamp Vertical Position",0,100,0,100,96,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TIMESTAMP_Y);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_DECK_MODE+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tape Counter",ID_OSD_COUNTER_FORMAT);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Counter Format",3,1,kOsdCounterFormatChoices,ID_OSD_COUNTER_FORMAT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Horizontal Position",0,100,0,100,2.2,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Vertical Position",0,100,0,100,96,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_Y);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_COUNTER_FORMAT+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -935,6 +946,8 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_OSD_REC_X,osdRecX); READ_FLOAT(PARAM_OSD_REC_Y,osdRecY);
     READ_FLOAT(PARAM_OSD_STATUS_X,osdStatusX); READ_FLOAT(PARAM_OSD_STATUS_Y,osdStatusY);
     READ_FLOAT(PARAM_OSD_TIMESTAMP_X,osdTimestampX); READ_FLOAT(PARAM_OSD_TIMESTAMP_Y,osdTimestampY);
+    err=CheckoutPopup(in_data,PARAM_OSD_COUNTER_FORMAT,s.osdCounterFormat); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_OSD_COUNTER_AMOUNT,osdCounterAmount); READ_FLOAT(PARAM_OSD_COUNTER_X,osdCounterX); READ_FLOAT(PARAM_OSD_COUNTER_Y,osdCounterY);
     PF_ParamDef recColor; AEFX_CLR_STRUCT(recColor);
     err=PF_CHECKOUT_PARAM(in_data,PARAM_OSD_REC_COLOR,in_data->current_time,in_data->time_step,in_data->time_scale,&recColor);
     if(err!=PF_Err_NONE) return err;
@@ -1050,6 +1063,9 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             op.tapeSpeed=std::clamp<A_long>(s.tapeSpeed,1,3);
             op.recX=s.osdRecX; op.recY=s.osdRecY; op.statusX=s.osdStatusX; op.statusY=s.osdStatusY;
             op.timestampX=s.osdTimestampX; op.timestampY=s.osdTimestampY;
+            op.showTapeCounter=s.osdCounterAmount>0.0f; op.tapeCounterAmount=clamp01(s.osdCounterAmount/100.0f);
+            op.tapeCounterFormat=static_cast<VhsTapeCounterFormat>(std::clamp<A_long>(s.osdCounterFormat,1,3));
+            op.tapeCounterX=s.osdCounterX; op.tapeCounterY=s.osdCounterY;
             op.seed=0x9050D5u; op.premultipliedAlpha=true;
             ImageView osdView{working.data(),w,h,w*4};
             if(!applyVhsOsd(osdView,op)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
@@ -1667,6 +1683,9 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.osdRecX=float(params[PARAM_OSD_REC_X]->u.fs_d.value); s.osdRecY=float(params[PARAM_OSD_REC_Y]->u.fs_d.value);
     s.osdStatusX=float(params[PARAM_OSD_STATUS_X]->u.fs_d.value); s.osdStatusY=float(params[PARAM_OSD_STATUS_Y]->u.fs_d.value);
     s.osdTimestampX=float(params[PARAM_OSD_TIMESTAMP_X]->u.fs_d.value); s.osdTimestampY=float(params[PARAM_OSD_TIMESTAMP_Y]->u.fs_d.value);
+    s.osdCounterFormat=params[PARAM_OSD_COUNTER_FORMAT]->u.pd.value;
+    s.osdCounterAmount=float(params[PARAM_OSD_COUNTER_AMOUNT]->u.fs_d.value);
+    s.osdCounterX=float(params[PARAM_OSD_COUNTER_X]->u.fs_d.value); s.osdCounterY=float(params[PARAM_OSD_COUNTER_Y]->u.fs_d.value);
     s.osdRecColorR=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.red); s.osdRecColorG=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.green); s.osdRecColorB=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.blue);
     s.vhsStyle=params[PARAM_VHS_STYLE]->u.pd.value; s.vhsStyleIntensity=float(params[PARAM_VHS_STYLE_INTENSITY]->u.fs_d.value);
     s.cameraProfile=params[PARAM_CAMERA_PROFILE]->u.pd.value; s.cameraIntensity=float(params[PARAM_CAMERA_INTENSITY]->u.fs_d.value);
