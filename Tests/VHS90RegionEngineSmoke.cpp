@@ -139,6 +139,27 @@ int main() {
     for(int aidx=0;aidx<5;++aidx) for(int bidx=aidx+1;bidx<5;++bidx)
         assert(profileOutputs[aidx]!=profileOutputs[bidx]);
 
+    // Four differently typed tracking regions can coexist in one render stack.
+    DamageRegion trackingStack[4];
+    for(int li=0;li<4;++li) {
+        DamageRegion& layer=trackingStack[li]; layer.kind=RegionKind::TrackingNoise;
+        layer.shape=li==3?RegionShape::VerticalBand:RegionShape::HorizontalBand;
+        layer.trackingProfile=static_cast<TrackingProfile>(li);
+        layer.centerX=li==3?.82f:.5f; layer.centerY=.18f+float(li)*.2f;
+        layer.width=li==3?.18f:1.0f; layer.height=li==3?1.0f:.16f;
+        layer.intensity=.7f; layer.maxShiftPx=8.0f+float(li)*3.0f;
+        layer.servoDriftPx=6.0f+float(li)*2.0f; layer.waveAmplitudePx=5.0f+float(li)*2.0f;
+        layer.tearProbability=.2f; layer.tearShiftPx=18.0f; layer.noiseAmount=.2f; layer.noiseDensity=.35f;
+        layer.seedOffset=std::uint32_t(0x1000+li*0x100);
+    }
+    std::vector<float> stackA(src.size()),stackB(src.size());
+    ImageView stackAv{stackA.data(),w,h,w*4},stackBv{stackB.data(),w,h,w*4};
+    RegionEngineParams stackParams; stackParams.regions=trackingStack; stackParams.regionCount=4;
+    stackParams.seed=0x9911u; stackParams.frame=24; stackParams.timeSeconds=.9;
+    assert(processDamageRegions(profileInput,stackAv,stackParams));
+    assert(processDamageRegions(profileInput,stackBv,stackParams));
+    assert(stackA==stackB && stackA!=profileSource);
+
     // Signed chroma displacement must work in both directions.
     std::vector<float> chromaSrc(src.size()),chromaOut(src.size(),0.0f);
     for(int y=0;y<h;++y) for(int x=0;x<w;++x) {
