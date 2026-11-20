@@ -15,7 +15,7 @@ VHS-90 selectively adapts physical VHS transport, tape, deck and VCR signal conc
 
 ## Known gaps — not a full source-equivalent port
 
-- VHS-90 now exposes independent AE controls for tape wear, dropouts, scratches, creases, edge damage, mold, Vaseline/binder film, sticky shed and cassette seed, with a master amount and source-calibrated curve mapping in VHS90TapeSurfaceEngine. Sticky-binder/transport stick-slip coupling and full sample-by-sample source parity remain incomplete.
+- VHS-90 now exposes independent AE controls for tape wear, dropouts, scratches, creases, edge damage, mold, Vaseline/binder film, sticky shed, cassette seed and back tension, with a master amount and source-calibrated curve mapping in VHS90TapeSurfaceEngine. VHS90TapeTransportEngine now uses deterministic source-style value noise for sticky drag, mold-dependent guide grip, three guide-lag channels, breakaway and back-tension strain. It replays a bounded recent field window, so full transport history/snapshot parity remains incomplete.
 - The deck recurrence replays from field zero and does not yet reproduce the upstream rolling 12-field state/snapshot cache.
 - The transport PI model is frame-domain and does not yet reproduce the complete upstream line-domain capstan, guide lag, tension, flutter, search phase and history model.
 - The nine-stage sample-domain RF/FM/color-under record/playback chain (`vcr_record`, `vcr_tape`, `vcr_magnet`, `vcr_play`, `vcr_fmband`, `vcr_line`, `vcr_comb`, `vcr_acc`, `vcr_out`) is not yet implemented; only its coefficient/helper layer is ported.
