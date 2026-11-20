@@ -3,6 +3,12 @@
 namespace vhs90 {
 struct AnalogNoiseParams {
     float lumaAmount=0.0f;
+    // VHS6RIFT procedural-noise controls (normalized UI values).
+    float grainAmount=0.0f;
+    float noiseDetail=0.5f;
+    float shadowBias=0.65f;
+    int grainSize=2;
+    bool proceduralNoiseEnabled=true;
     float chromaAmount=0.0f;
     float compositeAmount=0.0f;
     float chromaLoss=0.0f;
