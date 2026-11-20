@@ -423,15 +423,41 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             decodedView={analogGlowed.data(),w,h,w*4};
         }
 
+        const float rounded=std::clamp(p.geometry.roundedOverscan,0.0f,1.0f);
+        const float aspect=float(w)/float(h);
+        const float playbackWidth=p.geometry.vhs43Frame?std::min(1.0f,(4.0f/3.0f)/std::max(0.001f,aspect)):1.0f;
+        const float playbackLeft=0.5f-playbackWidth*0.5f;
+        const float playbackRight=0.5f+playbackWidth*0.5f;
         for(int row=0;row<h;++row) {
             const float* srcRow=src.rgba+row*src.rowStrideFloats;
             float* dstRow=dst.rgba+row*dst.rowStrideFloats;
             const float* procRow=decodedView.rgba+row*decodedView.rowStrideFloats;
+            const float frameV=h>1?float(row)/float(h-1):0.5f;
             for(int x=0;x<w;++x) {
                 const float* a=srcRow+x*4; const float* b=procRow+x*4; float* d=dstRow+x*4;
-                d[0]=a[0]+(b[0]-a[0])*strength;
-                d[1]=a[1]+(b[1]-a[1])*strength;
-                d[2]=a[2]+(b[2]-a[2])*strength;
+                const float u=w>1?float(x)/float(w-1):0.5f;
+                float frameMask=1.0f;
+                float frameU=u;
+                if(p.geometry.vhs43Frame) {
+                    frameMask=(u>=playbackLeft&&u<=playbackRight)?1.0f:0.0f;
+                    frameU=(u-playbackLeft)/std::max(1.0e-6f,playbackWidth);
+                }
+                float mask=frameMask;
+                if(rounded>0.0f) {
+                    const float rx=(frameU-0.5f)*(4.0f/3.0f);
+                    const float ry=frameV-0.5f;
+                    const float dx=std::fabs(rx)-0.620f,dy=std::fabs(ry)-0.455f;
+                    const float outsideX=std::max(dx,0.0f),outsideY=std::max(dy,0.0f);
+                    const float sd=std::sqrt(outsideX*outsideX+outsideY*outsideY)
+                                 +std::min(std::max(dx,dy),0.0f)-0.040f;
+                    const float t=std::clamp((sd+0.008f)/0.018f,0.0f,1.0f);
+                    const float smooth=t*t*(3.0f-2.0f*t);
+                    const float roundedMask=1.0f-smooth;
+                    mask*=1.0f+(roundedMask-1.0f)*rounded;
+                }
+                d[0]=(a[0]+(b[0]-a[0])*strength)*mask;
+                d[1]=(a[1]+(b[1]-a[1])*strength)*mask;
+                d[2]=(a[2]+(b[2]-a[2])*strength)*mask;
                 d[3]=a[3]+(b[3]-a[3])*strength;
             }
         }
