@@ -1,4 +1,0 @@
-#include "VHS90FontsResource.h"
-
-VHS90_RESOURCE_ROOYIN_FONT RCDATA "..\\Resources\\Fonts\\Rooyin_Free_Bold.ttf"
-VHS90_RESOURCE_SPONGE_ARABIC_FONT RCDATA "..\\Resources\\Fonts\\Sponge_Arabic_Regular.otf"
