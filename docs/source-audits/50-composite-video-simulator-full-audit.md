@@ -105,14 +105,15 @@ These are clearly labelled source-derived speed profiles, not claimed to be thre
 - The validator confirms 16 VHS6RIFT styles + 5 VHS Effect Add-on looks + 3 CVS VHS speed profiles, 9 camera profiles and 10 NTSC-RS-derived VHS looks.
 - Linux CMake build completed and all **32/32 VHS-90 core smoke tests passed**, including `VHS90ImageGradeEngineSmoke` with independent chroma enhancement and alpha preservation.
 - Passing CI run for the new chroma implementation and tests: https://github.com/vamprieieuu/vhs---90/actions/runs/44807065869
-- The latest follow-up validator run for the final UI/preset state must be confirmed before the folder is marked closed: https://github.com/vamprieieuu/vhs---90/actions/runs/44807131889
+- Final-state CI run passed, including the 153-slot parameter validator, CMake build and 32/32 core tests: https://github.com/vamprieieuu/vhs---90/actions/runs/44807131889
 - These Linux tests do not compile `VHS90Effect.cpp` against the Adobe SDK and do not establish Windows/MSVC, PiPL, AEX loading, in-host rendering or MFR success. Those remain global release gates.
 
 ## 7. Folder disposition
 
 **File audit: complete (36/36).**  
 **VHS-relevant behavior: mapped to existing native engines; independent chroma playback sharpening added.**  
-**Source speed modes: represented by three unified VHS-90 presets.**  
+**Source speed modes: represented by three unified VHS-90 presets.**
+**Final-state CI: passed (32/32 core tests + 153-slot AE parameter validation).**  
 **Unrelated utility/CRT/audio/raw-sample tools: classified and intentionally not mixed into the VHS tape engine.**  
 **GPL-2.0 distribution compatibility: flagged for project licensing review.**  
 **Windows/AE runtime validation: still pending globally.**
