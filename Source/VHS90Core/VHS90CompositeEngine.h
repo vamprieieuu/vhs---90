@@ -36,7 +36,8 @@ enum class CompositePhase : std::uint8_t {
 enum class CompositeDemodulator : std::uint8_t {
     Box = 0,
     OneLineComb = 1,
-    TwoLineComb = 2
+    TwoLineComb = 2,
+    ConsumerNotch = 3
 };
 
 struct CompositeParams {
