@@ -35,6 +35,17 @@ int main() {
     ImageView e{transparent.data(),w,h,w*4}; assert(applyVhsOsd(e,recOnly));
     bool alphaAdded=false; for(std::size_t i=3;i<transparent.size();i+=4) if(transparent[i]>0.1f){alphaAdded=true;break;}
     assert(alphaAdded);
+    std::vector<float> bluePixels(static_cast<std::size_t>(w)*h*4,0.0f);
+    for(std::size_t i=3;i<bluePixels.size();i+=4) bluePixels[i]=1.0f;
+    VhsOsdParams blue; blue.showPlay=false; blue.showTimestamp=false; blue.glitch=0.0f; blue.ghost=0.0f;
+    blue.recColorR=0.0f; blue.recColorG=0.1f; blue.recColorB=1.0f;
+    ImageView blueView{bluePixels.data(),w,h,w*4}; assert(applyVhsOsd(blueView,blue));
+    bool foundBlue=false;
+    for(int y=0;y<50&&!foundBlue;++y) for(int x=0;x<90;++x) {
+        const std::size_t i=(static_cast<std::size_t>(y)*w+x)*4;
+        if(bluePixels[i+2]>bluePixels[i]+0.5f){foundBlue=true;break;}
+    }
+    assert(foundBlue);
     ImageView invalid{first.data(),w,h,w*4-1}; assert(!applyVhsOsd(invalid,p));
     return 0;
 }

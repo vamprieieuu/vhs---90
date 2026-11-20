@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstdint>
 namespace vhs90 { namespace {
-constexpr float TR=232.0f/255.0f,TG=1.0f,TB=232.0f/255.0f,RR=1.0f,RG=46.0f/255.0f,RB=46.0f/255.0f;
+constexpr float TR=232.0f/255.0f,TG=1.0f,TB=232.0f/255.0f;
 inline float c01(float x) noexcept{return std::max(0.0f,std::min(1.0f,x));}
 inline int ci(int x,int a,int b) noexcept{return std::max(a,std::min(b,x));}
 inline std::uint32_t mix(std::uint32_t x) noexcept{x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;x^=x>>16;return x;}
@@ -54,8 +54,8 @@ int width(const char* t,int s) noexcept{int n=0;while(t[n])++n;return n?(n*6-1)*
 void textDraw(ImageView im,const char* t,int x,int y,int s,float a,bool pm,int dx=0) noexcept{
  for(int i=0;t[i];++i)charDraw(im,t[i],x+i*6*s+dx,y,s,TR,TG,TB,a,pm);
 }
-void dotDraw(ImageView im,int cx,int cy,int r,float a,bool pm) noexcept{
- for(int y=-r;y<=r;++y)for(int x=-r;x<=r;++x)if(x*x+y*y<=r*r)pixel(im,cx+x,cy+y,RR,RG,RB,a,pm);
+void dotDraw(ImageView im,int cx,int cy,int r,float a,bool pm,float cr,float cg,float cb) noexcept{
+ for(int y=-r;y<=r;++y)for(int x=-r;x<=r;++x)if(x*x+y*y<=r*r)pixel(im,cx+x,cy+y,cr,cg,cb,a,pm);
 }
 void triangle(ImageView im,int x,int y,int s,float a,bool pm) noexcept{
  constexpr int rows[7]={1,2,3,3,3,2,1};
@@ -87,7 +87,7 @@ bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
  if(!im.rgba||im.width<=0||im.height<=0||im.rowStrideFloats<std::ptrdiff_t(im.width)*4)return false;
  if(!std::isfinite(p.amount)||!std::isfinite(p.opacity)||!std::isfinite(p.scale)||!std::isfinite(p.glitch)||
  !std::isfinite(p.ghost)||!std::isfinite(p.recAmount)||!std::isfinite(p.playAmount)||!std::isfinite(p.timestampAmount)||
- !std::isfinite(p.recBlinkHz)||!std::isfinite(p.timestampSpeed)||!std::isfinite(p.timeSeconds)||!std::isfinite(p.framesPerSecond))return false;
+ !std::isfinite(p.recBlinkHz)||!std::isfinite(p.recColorR)||!std::isfinite(p.recColorG)||!std::isfinite(p.recColorB)||!std::isfinite(p.timestampSpeed)||!std::isfinite(p.timeSeconds)||!std::isfinite(p.framesPerSecond))return false;
  const float amount=c01(p.amount),opacity=c01(p.opacity);
  if(amount<=0||opacity<=0||(!p.showRec&&!p.showPlay&&!p.showTimestamp))return true;
  const int w=im.width,h=im.height;
@@ -99,7 +99,7 @@ bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
  if(p.showRec&&p.recAmount>0){
   float blink=1.0f;if(p.recBlinkHz>0&&p.framesPerSecond>0){const double ph=std::fmod(std::max(0.0,p.timeSeconds)*p.recBlinkHz,1.0);if(ph>=0.65){const double u=(ph-0.65)/0.35;blink=float(0.5-0.5*std::cos(2.0*3.14159265358979323846*u));}}
   const float a=amount*opacity*c01(p.recAmount)*blink;if(a>0.001f){const int r=std::max(2,cell*2),cx=mx+r+dx,cy=my+r/2+dy;
-   dotDraw(im,cx,cy,r,a,pm);if(gx&&gh>0.002f)dotDraw(im,cx+gx,cy,r,a*gh,pm);
+   dotDraw(im,cx,cy,r,a,pm,c01(p.recColorR),c01(p.recColorG),c01(p.recColorB));if(gx&&gh>0.002f)dotDraw(im,cx+gx,cy,r,a*gh,pm,c01(p.recColorR),c01(p.recColorG),c01(p.recColorB));
    textDraw(im,"REC",mx+2*r+cell+dx,my+dy,cell,a,pm);if(gx&&gh>0.002f)textDraw(im,"REC",mx+2*r+cell+dx,my+dy,cell,a*gh,pm,gx);
   }}
  if(p.showPlay&&p.playAmount>0){const float a=amount*opacity*c01(p.playAmount);const int pw=5*cell+width("PLAY",cell),x=w-mx-pw+dx;

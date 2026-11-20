@@ -6,6 +6,7 @@ struct VhsOsdParams {
     float amount=1.0f, opacity=0.82f, scale=1.0f, glitch=0.5f, ghost=0.35f;
     float recAmount=1.0f, playAmount=1.0f, timestampAmount=1.0f;
     float recBlinkHz=1.4f, timestampSpeed=1.0f;
+    float recColorR=1.0f, recColorG=46.0f/255.0f, recColorB=46.0f/255.0f;
     double timeSeconds=0.0;
     float framesPerSecond=29.97f;
     std::int64_t frame=0;
