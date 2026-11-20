@@ -38,7 +38,7 @@ enum ParamIndex {
     PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_ANGLE, PARAM_TRACKING_MOTION_X,
     PARAM_TRACKING_MOTION_Y, PARAM_TRACKING_SERVO, PARAM_TRACKING_TEAR,
     PARAM_TRACKING_END, PARAM_HEAD_TOPIC, PARAM_HEAD_AMOUNT, PARAM_HEAD_BOTTOM_Y,
-    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_TAPE_BACK_TENSION, PARAM_TAPE_NOISE, PARAM_PHYSICAL_TOPIC, PARAM_MAGNET_MOMENT, PARAM_MAGNET_DISTANCE, PARAM_GROUND_LOOP, PARAM_MAINS_HUM, PARAM_RF_FIELD, PARAM_RF_PICKUP, PARAM_PHYSICAL_END, PARAM_PYVHS_TOPIC, PARAM_PYVHS_LUMA_COMPRESSION, PARAM_PYVHS_CHROMA_COMPRESSION, PARAM_PYVHS_LUMA_NOISE, PARAM_PYVHS_CHROMA_NOISE, PARAM_PYVHS_CHROMA_WAVE, PARAM_PYVHS_GENERATION, PARAM_PYVHS_END, PARAM_OSD_TOPIC, PARAM_OSD_AMOUNT, PARAM_OSD_REC, PARAM_OSD_PLAY, PARAM_OSD_TIMESTAMP, PARAM_OSD_OPACITY, PARAM_OSD_SCALE, PARAM_OSD_GLITCH, PARAM_OSD_GHOST, PARAM_OSD_REC_BLINK, PARAM_OSD_TIME_SPEED, PARAM_OSD_YEAR, PARAM_OSD_MONTH, PARAM_OSD_DAY, PARAM_OSD_HOUR, PARAM_OSD_MINUTE, PARAM_OSD_SECOND, PARAM_OSD_REC_COLOR, PARAM_OSD_END, PARAM_COUNT
+    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_TAPE_BACK_TENSION, PARAM_TAPE_NOISE, PARAM_PHYSICAL_TOPIC, PARAM_MAGNET_MOMENT, PARAM_MAGNET_DISTANCE, PARAM_GROUND_LOOP, PARAM_MAINS_HUM, PARAM_RF_FIELD, PARAM_RF_PICKUP, PARAM_PHYSICAL_END, PARAM_PYVHS_TOPIC, PARAM_PYVHS_LUMA_COMPRESSION, PARAM_PYVHS_CHROMA_COMPRESSION, PARAM_PYVHS_LUMA_NOISE, PARAM_PYVHS_CHROMA_NOISE, PARAM_PYVHS_CHROMA_WAVE, PARAM_PYVHS_GENERATION, PARAM_PYVHS_END, PARAM_OSD_TOPIC, PARAM_OSD_AMOUNT, PARAM_OSD_REC, PARAM_OSD_PLAY, PARAM_OSD_TIMESTAMP, PARAM_OSD_OPACITY, PARAM_OSD_SCALE, PARAM_OSD_GLITCH, PARAM_OSD_GHOST, PARAM_OSD_REC_BLINK, PARAM_OSD_TIME_SPEED, PARAM_OSD_YEAR, PARAM_OSD_MONTH, PARAM_OSD_DAY, PARAM_OSD_HOUR, PARAM_OSD_MINUTE, PARAM_OSD_SECOND, PARAM_OSD_REC_COLOR, PARAM_OSD_END, PARAM_VHS_STYLE, PARAM_VHS_STYLE_INTENSITY, PARAM_CAMERA_PROFILE, PARAM_CAMERA_INTENSITY, PARAM_NTSCRS_LOOK, PARAM_NTSCRS_INTENSITY, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT,
@@ -54,12 +54,15 @@ enum ParamDiskID {
     ID_TRACKING_HEIGHT, ID_TRACKING_ANGLE, ID_TRACKING_MOTION_X, ID_TRACKING_MOTION_Y,
     ID_TRACKING_SERVO, ID_TRACKING_TEAR, ID_HEAD_TOPIC, ID_HEAD_AMOUNT,
     ID_HEAD_Y, ID_HEAD_HEIGHT, ID_HEAD_SHIFT, ID_HEAD_CONDITION,
-    ID_TAPE_MATERIAL_TOPIC, ID_TAPE_WEAR, ID_TAPE_DROPOUTS, ID_TAPE_SCRATCHES, ID_TAPE_CREASES, ID_TAPE_EDGE, ID_TAPE_MOLD, ID_TAPE_VASELINE, ID_TAPE_STICKY, ID_TAPE_SEED, ID_TAPE_BACK_TENSION, ID_TAPE_NOISE, ID_PHYSICAL_TOPIC, ID_MAGNET_MOMENT, ID_MAGNET_DISTANCE, ID_GROUND_LOOP, ID_MAINS_HUM, ID_RF_FIELD, ID_RF_PICKUP, ID_PYVHS_TOPIC, ID_PYVHS_LUMA_COMPRESSION, ID_PYVHS_CHROMA_COMPRESSION, ID_PYVHS_LUMA_NOISE, ID_PYVHS_CHROMA_NOISE, ID_PYVHS_CHROMA_WAVE, ID_PYVHS_GENERATION, ID_OSD_TOPIC, ID_OSD_AMOUNT, ID_OSD_REC, ID_OSD_PLAY, ID_OSD_TIMESTAMP, ID_OSD_OPACITY, ID_OSD_SCALE, ID_OSD_GLITCH, ID_OSD_GHOST, ID_OSD_REC_BLINK, ID_OSD_TIME_SPEED, ID_OSD_YEAR, ID_OSD_MONTH, ID_OSD_DAY, ID_OSD_HOUR, ID_OSD_MINUTE, ID_OSD_SECOND, ID_OSD_REC_COLOR
+    ID_TAPE_MATERIAL_TOPIC, ID_TAPE_WEAR, ID_TAPE_DROPOUTS, ID_TAPE_SCRATCHES, ID_TAPE_CREASES, ID_TAPE_EDGE, ID_TAPE_MOLD, ID_TAPE_VASELINE, ID_TAPE_STICKY, ID_TAPE_SEED, ID_TAPE_BACK_TENSION, ID_TAPE_NOISE, ID_PHYSICAL_TOPIC, ID_MAGNET_MOMENT, ID_MAGNET_DISTANCE, ID_GROUND_LOOP, ID_MAINS_HUM, ID_RF_FIELD, ID_RF_PICKUP, ID_PYVHS_TOPIC, ID_PYVHS_LUMA_COMPRESSION, ID_PYVHS_CHROMA_COMPRESSION, ID_PYVHS_LUMA_NOISE, ID_PYVHS_CHROMA_NOISE, ID_PYVHS_CHROMA_WAVE, ID_PYVHS_GENERATION, ID_OSD_TOPIC, ID_OSD_AMOUNT, ID_OSD_REC, ID_OSD_PLAY, ID_OSD_TIMESTAMP, ID_OSD_OPACITY, ID_OSD_SCALE, ID_OSD_GLITCH, ID_OSD_GHOST, ID_OSD_REC_BLINK, ID_OSD_TIME_SPEED, ID_OSD_YEAR, ID_OSD_MONTH, ID_OSD_DAY, ID_OSD_HOUR, ID_OSD_MINUTE, ID_OSD_SECOND, ID_OSD_REC_COLOR, ID_VHS_STYLE, ID_VHS_STYLE_INTENSITY, ID_CAMERA_PROFILE, ID_CAMERA_INTENSITY, ID_NTSCRS_LOOK, ID_NTSCRS_INTENSITY
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
+static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS Degradation|Bad Tracking|Very Bad Tracking|Unstable VCR Playback|Moving Band Noise|Tape Damage|Bottom Tape Damage|Static Interference|Color Bleed|Color Shift|Ghosting|Signal Loss|Severe Analog Glitch|Damaged Tape Playback";
+static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300";
+static char kNtscRsLookChoices[]="Custom|VHS-90 Natural NTSC|VHS-90 Home SP|VHS-90 LP Tape|VHS-90 EP Tape|VHS-90 Tracking Snow|VHS-90 Chroma Loss|VHS-90 Edge Wave|VHS-90 Field Blend|VHS-90 Composite Smear|VHS-90 Chroma Instability";
 static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
 
 struct RenderSettings {
@@ -87,12 +90,82 @@ struct RenderSettings {
     float osdAmount=0.0f, osdRec=100.0f, osdPlay=100.0f, osdTimestamp=100.0f, osdOpacity=82.0f, osdScale=100.0f, osdGlitch=50.0f, osdGhost=35.0f, osdRecBlink=1.4f, osdTimeSpeed=1.0f;
     float osdYear=1994.0f, osdMonth=6.0f, osdDay=11.0f, osdHour=12.0f, osdMinute=0.0f, osdSecond=0.0f;
     float osdRecColorR=255.0f, osdRecColorG=46.0f, osdRecColorB=46.0f;
+    A_long vhsStyle=1, cameraProfile=1, ntscRsLook=1;
+    float vhsStyleIntensity=100.0f, cameraIntensity=100.0f, ntscRsIntensity=100.0f;
     bool previousFrameAvailable=false;
     std::int64_t frame=0;
     double timeSeconds=0;
     float frameRate=29.97f;
 };
 inline float clamp01(float x) noexcept { return std::max(0.0f,std::min(1.0f,x)); }
+
+static float blendPreset(float current,float target,float intensity) noexcept {
+    const float t=clamp01(intensity/100.0f);
+    return current+(target-current)*t;
+}
+static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
+    const float i=clamp01(s.vhsStyleIntensity/100.0f);
+    if(s.vhsStyle<=1||i<=0.0f)return;
+    auto b=[&](float& v,float target){v=blendPreset(v,target,s.vhsStyleIntensity);};
+    switch(s.vhsStyle) {
+    case 2: b(s.composite,12);b(s.chromaSubsample,8);b(s.lumaNoise,3);b(s.chromaNoise,2);b(s.trackingAmount,4);b(s.headAmount,3);b(s.tapeSurface,2);break;
+    case 3: b(s.composite,24);b(s.chromaSubsample,22);b(s.chromaShift,3);b(s.tapeNoise,20);b(s.colorPhaseDrift,15);b(s.edgeEnhance,12);b(s.trackingAmount,10);b(s.geometry,6);b(s.headAmount,10);b(s.blackLift,10);break;
+    case 4: b(s.composite,45);b(s.chromaSubsample,45);b(s.chromaNoise,45);b(s.tapeNoise,60);b(s.trackingAmount,55);b(s.dropouts,60);b(s.geometry,30);b(s.headAmount,35);b(s.staticAmount,30);break;
+    case 5: b(s.trackingAmount,80);b(s.trackingHeight,18);b(s.trackingWidth,100);b(s.trackingServo,70);b(s.trackingTear,45);b(s.geometry,25);b(s.edgeWave,35);break;
+    case 6: b(s.trackingAmount,100);b(s.trackingHeight,30);b(s.trackingServo,95);b(s.trackingTear,85);b(s.verticalRoll,70);b(s.sync,60);b(s.staticAmount,65);b(s.dropouts,70);break;
+    case 7: b(s.tapeTransport,65);b(s.geometry,35);b(s.verticalRoll,25);b(s.colorDrift,35);b(s.colorPhaseDrift,28);b(s.rfDrift,35);break;
+    case 8: b(s.trackingAmount,45);b(s.trackingHeight,32);b(s.trackingWidth,100);b(s.trackingMotionY,35);b(s.trackingServo,45);b(s.staticAmount,35);break;
+    case 9: b(s.tapeSurface,75);b(s.tapeWear,75);b(s.tapeDropouts,80);b(s.tapeScratches,65);b(s.tapeCreases,75);b(s.dropouts,55);b(s.tapeNoise,35);break;
+    case 10: b(s.headAmount,100);b(s.headY,100);b(s.headHeight,45);b(s.headShift,65);b(s.trackingAmount,30);break;
+    case 11: b(s.staticAmount,85);b(s.staticDensity,80);b(s.lumaNoise,65);b(s.chromaNoise,70);b(s.compositeNoise,60);b(s.tapeNoise,45);break;
+    case 12: b(s.chromaSubsample,45);b(s.verticalChroma,35);b(s.chromaShift,12);b(s.gradeSaturation,145);break;
+    case 13: b(s.colorPhaseDrift,60);b(s.colorDrift,55);b(s.chromaFlutter,50);b(s.chromaShift,8);break;
+    case 14: b(s.multipathGain,55);b(s.multipathDelay,36);b(s.multipathEnsemble,50);b(s.signalGhost,65);b(s.temporalGhost,35);break;
+    case 15: b(s.sync,85);b(s.verticalRoll,75);b(s.staticAmount,50);b(s.blackLift,25);b(s.rfDrift,65);break;
+    case 16: b(s.trackingAmount,100);b(s.geometry,55);b(s.chromaSubsample,40);b(s.dropouts,85);b(s.staticAmount,70);b(s.chromaShift,12);b(s.sync,65);break;
+    case 17: b(s.dropouts,70);b(s.tapeSurface,75);b(s.tapeTransport,60);b(s.geometry,35);b(s.tapeNoise,50);b(s.ringing,45);b(s.headAmount,35);break;
+    default:break;
+    }
+}
+static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
+    const float i=clamp01(s.cameraIntensity/100.0f);
+    if(s.cameraProfile<=1||i<=0.0f)return;
+    auto b=[&](float& v,float target){v=blendPreset(v,target,s.cameraIntensity);};
+    switch(s.cameraProfile) {
+    case 2: b(s.tapeDetail,58);b(s.chromaSubsample,26);b(s.chromaShift,6);b(s.geometry,30);b(s.gradeSaturation,108);break;
+    case 3: b(s.tapeDetail,72);b(s.chromaSubsample,14);b(s.geometry,15);b(s.chromaShift,3);break;
+    case 4: b(s.tapeDetail,84);b(s.edgeEnhance,35);b(s.geometry,8);b(s.chromaSubsample,10);break;
+    case 5: b(s.tapeDetail,92);b(s.chromaSubsample,8);b(s.chromaShift,2);b(s.geometry,6);break;
+    case 6: b(s.tapeDetail,96);b(s.chromaSubsample,5);b(s.chromaShift,1);b(s.geometry,3);break;
+    case 7: b(s.tapeDetail,76);b(s.chromaSubsample,16);b(s.colorPhaseDrift,12);b(s.gradeSaturation,92);break;
+    case 8: b(s.tapeDetail,98);b(s.edgeEnhance,30);b(s.chromaSubsample,4);break;
+    case 9: b(s.tapeDetail,52);b(s.chromaSubsample,30);b(s.chromaShift,5);b(s.gradeBrightness,5);b(s.gradeSaturation,112);break;
+    case 10: b(s.tapeDetail,64);b(s.edgeEnhance,38);b(s.bloom,18);b(s.gradeSaturation,105);break;
+    default:break;
+    }
+}
+static void ApplyNtscRsVhsLook(RenderSettings& s) noexcept {
+    const float i=clamp01(s.ntscRsIntensity/100.0f);
+    if(s.ntscRsLook<=1||i<=0.0f)return;
+    auto b=[&](float& v,float target){v=blendPreset(v,target,s.ntscRsIntensity);};
+    switch(s.ntscRsLook) {
+    case 2: b(s.composite,32);b(s.tapeSpeed,1);b(s.tapeDetail,88);b(s.chromaSubsample,22);b(s.verticalChroma,18);b(s.lumaSmear,18);b(s.ringing,12);b(s.edgeWave,30);b(s.headAmount,6);b(s.trackingAmount,18);b(s.lumaNoise,2);b(s.chromaNoise,10);b(s.colorPhaseDrift,8);break;
+    case 3: b(s.composite,42);b(s.tapeSpeed,2);b(s.tapeDetail,72);b(s.chromaSubsample,35);b(s.verticalChroma,30);b(s.lumaSmear,25);b(s.edgeWave,42);b(s.headAmount,8);b(s.trackingAmount,22);b(s.chromaNoise,16);break;
+    case 4: b(s.composite,52);b(s.tapeSpeed,3);b(s.tapeDetail,58);b(s.chromaSubsample,48);b(s.verticalChroma,42);b(s.lumaSmear,34);b(s.edgeWave,55);b(s.headAmount,10);b(s.trackingAmount,28);b(s.chromaNoise,22);break;
+    case 5: b(s.trackingAmount,55);b(s.trackingHeight,16);b(s.trackingWidth,100);b(s.trackingServo,60);b(s.staticAmount,30);b(s.staticDensity,55);b(s.lumaNoise,20);b(s.headAmount,12);break;
+    case 6: b(s.chromaLoss,1600);b(s.chromaNoise,38);b(s.colorPhaseDrift,28);b(s.chromaFlutter,25);b(s.verticalChroma,42);break;
+    case 7: b(s.edgeWave,78);b(s.geometry,22);b(s.trackingAmount,12);b(s.trackingMotionY,22);break;
+    case 8: b(s.interlace,65);b(s.verticalChroma,55);b(s.geometry,10);b(s.temporalGhost,15);break;
+    case 9: b(s.composite,68);b(s.lumaSmear,48);b(s.ringing,22);b(s.chromaSubsample,25);b(s.verticalChroma,22);break;
+    case 10: b(s.colorPhaseDrift,42);b(s.chromaFlutter,38);b(s.colorDrift,36);b(s.chromaDelay,7);b(s.chromaNoise,18);break;
+    default:break;
+    }
+}
+static void ApplyVhsSourcePresets(RenderSettings& s) noexcept {
+    ApplyVhs6RiftStylePreset(s);
+    ApplyVhs6RiftCameraProfile(s);
+    ApplyNtscRsVhsLook(s);
+}
 static void DeletePreRenderData(void* data) { delete static_cast<RenderSettings*>(data); }
 
 static PF_Err GlobalSetup(PF_InData* in_data,PF_OutData* out_data) {
@@ -241,6 +314,16 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Start Second",0,59,0,59,0,0,PF_ValueDisplayFlag_NONE,0,ID_OSD_SECOND);
     AEFX_CLR_STRUCT(def); PF_ADD_COLOR("REC Lamp Color",255,46,46,ID_OSD_REC_COLOR);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS6RIFT Style & Camera Profiles",ID_VHS_STYLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",17,1,kVhsStyleChoices,ID_VHS_STYLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Style Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS_STYLE_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile",10,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_VHS_STYLE+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("NTSC-RS Signal Looks (VHS-90)",ID_NTSCRS_LOOK);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Signal Look",11,1,kNtscRsLookChoices,ID_NTSCRS_LOOK);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Look Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_NTSCRS_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_NTSCRS_LOOK+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -320,6 +403,12 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     if(err!=PF_Err_NONE) return err;
     s.osdRecColorR=float(recColor.u.cd.value.red); s.osdRecColorG=float(recColor.u.cd.value.green); s.osdRecColorB=float(recColor.u.cd.value.blue);
     err=PF_CHECKIN_PARAM(in_data,&recColor); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_VHS_STYLE,s.vhsStyle); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_VHS_STYLE_INTENSITY,vhsStyleIntensity);
+    err=CheckoutPopup(in_data,PARAM_CAMERA_PROFILE,s.cameraProfile); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_CAMERA_INTENSITY,cameraIntensity);
+    err=CheckoutPopup(in_data,PARAM_NTSCRS_LOOK,s.ntscRsLook); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_NTSCRS_INTENSITY,ntscRsIntensity);
 #undef READ_FLOAT
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
@@ -382,8 +471,9 @@ static void CopyRegion(const PF_EffectWorld* in,PF_EffectWorld* out,PF_PixelForm
     }
 }
 
-static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_EffectWorld* output,PF_PixelFormat format,PF_EffectWorld* previousInput=nullptr) {
+static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld* output,PF_PixelFormat format,PF_EffectWorld* previousInput=nullptr) {
     try {
+        ApplyVhsSourcePresets(s);
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
@@ -852,6 +942,9 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.osdYear=float(params[PARAM_OSD_YEAR]->u.fs_d.value); s.osdMonth=float(params[PARAM_OSD_MONTH]->u.fs_d.value); s.osdDay=float(params[PARAM_OSD_DAY]->u.fs_d.value);
     s.osdHour=float(params[PARAM_OSD_HOUR]->u.fs_d.value); s.osdMinute=float(params[PARAM_OSD_MINUTE]->u.fs_d.value); s.osdSecond=float(params[PARAM_OSD_SECOND]->u.fs_d.value);
     s.osdRecColorR=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.red); s.osdRecColorG=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.green); s.osdRecColorB=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.blue);
+    s.vhsStyle=params[PARAM_VHS_STYLE]->u.pd.value; s.vhsStyleIntensity=float(params[PARAM_VHS_STYLE_INTENSITY]->u.fs_d.value);
+    s.cameraProfile=params[PARAM_CAMERA_PROFILE]->u.pd.value; s.cameraIntensity=float(params[PARAM_CAMERA_INTENSITY]->u.fs_d.value);
+    s.ntscRsLook=params[PARAM_NTSCRS_LOOK]->u.pd.value; s.ntscRsIntensity=float(params[PARAM_NTSCRS_INTENSITY]->u.fs_d.value);
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
     s.frameRate=(in_data->time_step>0&&in_data->time_scale>0)?float(in_data->time_scale)/float(in_data->time_step):29.97f;
