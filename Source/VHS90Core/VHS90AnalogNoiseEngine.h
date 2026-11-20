@@ -10,6 +10,7 @@ struct AnalogNoiseParams {
     int grainSize=2;
     bool proceduralNoiseEnabled=true;
     float chromaAmount=0.0f;
+    float hueNoiseAmount=0.0f;
     float compositeAmount=0.0f;
     float chromaLoss=0.0f;
     float chromaPhaseNoise=0.0f;
