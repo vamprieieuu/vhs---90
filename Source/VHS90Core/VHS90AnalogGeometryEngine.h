@@ -16,6 +16,10 @@ struct AnalogGeometryParams {
     int edgeWaveDetail=2;
     float horizontalScale=1.0f;
     float verticalScale=1.0f;
+    bool vhs43Frame=false;
+    float lensDistortion=0.0f;
+    float digitalZoom=1.0f;
+    float roundedOverscan=0.0f; // final rounded-rectangle mask, applied after signal processing.
     std::uint32_t seed=1;
     std::int64_t frame=0;
 };
