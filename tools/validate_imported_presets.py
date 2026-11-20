@@ -136,6 +136,10 @@ assert style_choices and len(style_choices.group(1).split("|")) == 38, "VHS Styl
 assert camera_cases == set(range(2, 11)), f"Missing VHS6RIFT camera profile cases: {sorted(set(range(2,11))-camera_cases)}"
 assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
 
+osd_position = source.find("if(osdEnabled) {")
+composite_position = source.find("if(compositeStages&&master>0.0f) {")
+assert osd_position >= 0 and composite_position >= 0 and osd_position < composite_position, "OSD must be composited into the source before the VHS composite signal stage"
+
 lost_start = source.find("static constexpr float kLostSignalProfiles[13][45]={")
 assert lost_start >= 0, "Missing 13x45 Lost Signal VHS profile table"
 lost_end = source.find("\n    };", lost_start)
