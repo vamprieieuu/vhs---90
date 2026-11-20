@@ -239,6 +239,16 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             if(!processReceiverInstability(decodedView,receiverView,rp)) return false;
             decodedView={receiverProcessed.data(),w,h,w*4};
         }
+        std::vector<float> physicalInterferenceProcessed;
+        if(p.physicalInterferenceEnabled) {
+            physicalInterferenceProcessed.resize(count*4);
+            ImageView physicalView{physicalInterferenceProcessed.data(),w,h,w*4};
+            PhysicalInterferenceParams pp=p.physicalInterference;
+            pp.premultipliedAlpha=p.premultipliedAlpha;
+            pp.frame=p.frame;
+            if(!processPhysicalInterference(decodedView,physicalView,pp)) return false;
+            decodedView={physicalInterferenceProcessed.data(),w,h,w*4};
+        }
         std::vector<float> multipathProcessed;
         if(!p.waveformCompositeEnabled && p.multipathEchoEnabled) {
             multipathProcessed.resize(count*4);
