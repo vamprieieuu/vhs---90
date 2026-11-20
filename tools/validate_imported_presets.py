@@ -70,6 +70,11 @@ required_reads = [
     "READ_FLOAT(PARAM_EDGE_WAVE_SPEED,edgeWaveSpeed)",
     "READ_FLOAT(PARAM_EDGE_WAVE_DETAIL,edgeWaveDetail)",
     "READ_FLOAT(PARAM_CHROMA_EDGE_ENHANCE,chromaEdgeEnhance)",
+    "READ_FLOAT(PARAM_GRADE_I_GAIN,chromaIGain)",
+    "READ_FLOAT(PARAM_GRADE_Q_GAIN,chromaQGain)",
+    "READ_FLOAT(PARAM_GRADE_I_OFFSET,chromaIOffset)",
+    "READ_FLOAT(PARAM_GRADE_Q_OFFSET,chromaQOffset)",
+    "READ_FLOAT(PARAM_GRADE_CHROMA_QUANTIZATION,chromaQuantization)",
 ]
 for needle in required_reads:
     assert needle in source, f"Missing SmartFX parameter read: {needle}"
@@ -91,6 +96,9 @@ for needle in [
     "p.geometry.edgeWaveFrequency=s.edgeWaveFrequency",
     "p.imageGrade.chromaEdgeEnhancement=clamp01(s.chromaEdgeEnhance/100.0f);",
     "p.imageGrade.chromaSharpenCutoffHz=s.tapeSpeed==3?560000.0f:(s.tapeSpeed==2?600000.0f:640000.0f);",
+    "p.imageGrade.chromaIGain=s.chromaIGain/100.0f;p.imageGrade.chromaQGain=s.chromaQGain/100.0f;",
+    "p.imageGrade.chromaIOffset=s.chromaIOffset/200.0f;p.imageGrade.chromaQOffset=s.chromaQOffset/200.0f;",
+    "p.imageGrade.chromaQuantization=s.chromaQuantization/400.0f;",
     "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
     "p.geometry.vhs43Frame=s.vhs43Frame!=0;p.geometry.lensDistortion=s.lensDistortion/1000.0f;",
     "p.geometry.roundedOverscan=clamp01(s.roundedOverscan/100.0f);",
