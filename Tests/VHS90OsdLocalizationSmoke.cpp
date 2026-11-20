@@ -22,6 +22,11 @@ int main() {
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="29.2.2000");
     v.year=1900;v.month=2;v.day=29; assert(!isValidVhsOsdDateTime(v));
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin).empty());
+    assert(formatVhsOsdCounter(0,30.0f,0.0,1,VhsOsdDigitSet::Latin)=="000000");
+    assert(formatVhsOsdCounter(90,30.0f,0.0,2,VhsOsdDigitSet::Latin)=="00:00:03");
+    assert(formatVhsOsdCounter(35,30.0f,0.0,3,VhsOsdDigitSet::Latin)=="00:00:01:05");
+    assert(formatVhsOsdCounter(0,30.0f,2.0,1,VhsOsdDigitSet::Latin)=="000060");
+    assert(formatVhsOsdCounter(30,30.0f,-2.0,1,VhsOsdDigitSet::ArabicIndic)=="٠٠٠٠٠٠");
     assert(vhsOsdLabel(VhsOsdLabel::Play,VhsOsdLanguage::Arabic)=="تشغيل ▶");
     assert(vhsOsdLabel(VhsOsdLabel::Rewind,VhsOsdLanguage::English)=="REW ↶");
     assert(vhsOsdLabel(VhsOsdLabel::Error,VhsOsdLanguage::Bilingual)=="ERROR | خطأ");
