@@ -168,6 +168,59 @@ static void ApplyTrackingRecipe(DamageRegion& r,A_long preset) noexcept {
         default: break;
     }
 }
+static void ApplyCratesMasterPreset(RenderSettings& s,int preset) noexcept {
+    // Exact selected source fields recovered from the supplied CratesVHSMaster
+    // AEX metadata (44 of its 66 controls). Unrepresented source-only controls
+    // remain in the audit manifest; mappings below adapt them to VHS-90's DSP.
+    static constexpr float kCrates[16][44]={
+        {50,50,0,100,100,10,5,50,50,100,30,24,50,100,50,30,50,100,100,-5,0,0,5,19,50,294,22,40,100,50,540.2f,70,7,-10,10,100,15,11,56,75,75,75,100,100},
+        {5,1,0,200,100,20,5,50,50,100,30,0,50,100,50,30,50,100,100,-5,0,0,5,19,351,141,3,40,100,50,540.2f,70,7,-10,5,100,2,167,56,78.3f,100,100,100,100},
+        {5,1,0,30,100,20,0,74,50,100,6,0,50,100,50,30,50,100,100,-5,0,0,5,19,351,141,3,40,100,50,540.2f,44,7,-10,5,100,5,200,56,69.3f,72,183,100,100},
+        {50,50,0,100,100,10,12,100,68,110,6,6,50,100,100,30,92,38,100,173,-12,0,5,17,5,1049,3,40,100,50,270.3f,50,14,0,10,100,8,4,346,100,100,100,100,84},
+        {25,10,0,150,100,50,5,50,50,100,0,39,50,100,50,30,100,50,100,-5,0,0,5,19,351,141,3,40,100,97,540.2f,70,7,-10,10,100,15,11,56,50,197,43,100,100},
+        {50,50,0,100,100,40,15,45,159,100,30,67,50,13,93,30,50,100,100,50,0,0,5,215,351,141,3,40,124,78,540.2f,70,7,-10,10,100,15,11,56,70,100,50,90,130},
+        {50,50,0,543,100,10,5,50,268,100,30,39,50,100,200,30,205,100,100,-5,0,0,5,94,351,141,3,40,100,50,270.3f,70,7,-10,10,100,42,11,56,100,100,100,100,100},
+        {50,50,0,100,100,10,5,50,50,100,30,12,50,100,50,30,11,9,532,20,87,50,5,100,59,53,3,40,5,100,270.3f,70,7,-10,10,100,15,11,56,100,100,100,100,100},
+        {50,50,0,100,100,10,8,100,50,100,17,22,6.9f,797,50,30,50,100,1519,30,-12,100,5,19,133,92,3,40,100,50,540.2f,70,7,-10,10,100,15,11,56,61,100,100,100,100},
+        {50,50,0,150,100,20,15,100,100,100,17,22,6.9f,797,50,30,122,30,1519,30,-12,100,5,19,133,92,3,40,100,50,270.3f,70,7,-10,10,100,15,11,56,100,100,100,90,100},
+        {5,1,0,200,100,25,12,100,150,100,150,0,50,100,50,30,50,100,100,22,0,0,5,19,351,141,3,40,100,50,540.2f,70,7,-10,5,100,10,130,137,91,100,183,96,100},
+        {50,50,0,100,100,-49,0,86,103,100,31,8,50,100,92,30,50,100,100,108,-13.8f,-19,5,19,351,141,19,40,1836,46,270.3f,70,213,-10,10,100,42,11,56,100,100,100,100,100},
+        {50,50,0,100,100,-79,-11,77,50,100,30,39,18,100,67,122,50,100,100,-5,0,0,5,19,39,141,3,40,100,50,540.2f,70,7,-10,10,100,15,11,56,100,100,100,100,100},
+        {50,54,0,200,100,20,-9,50,50,100,14,0,50,100,79,30,50,100,100,40,38,0,5,19,21,329,3,40,14,50,540.2f,70,7,-10,5,100,15,23,56,90,143,150,104,117},
+        {50,50,0,200,100,36,4,49,50,100,30,20,13,100,50,30,50,100,17,772,0,0,44,14,21,597,3,40,22,50,540.2f,43,7,-10,33,100,15,11,56,75,75,75,100,100},
+        {50,50,0,100,100,3,0,0,50,100,30,39,50,100,78,110,15,100,100,13,0,0,5,40,25,319,3,40,100,80,540.2f,70,7,-10,10,100,9,52,56,75,75,75,100,138}
+    };
+    if(preset<0||preset>=16)return;
+    const float* v=kCrates[preset];
+    auto b=[&](float& dst,float value){dst=blendPreset(dst,value,s.vhsStyleIntensity);};
+    const float noise=v[0],distortion=v[1];
+    b(s.composite,std::clamp(noise*0.65f+distortion*0.35f,0.0f,100.0f));
+    b(s.lumaNoise,noise);b(s.chromaNoise,noise*0.8f);b(s.compositeNoise,noise);
+    b(s.lumaSmear,std::max(v[2],v[31]));
+    b(s.chromaSubsample,std::clamp((200.0f-v[3])*0.5f,0.0f,100.0f));
+    b(s.bloom,std::clamp(v[4]*v[5]/100.0f,0.0f,100.0f));
+    b(s.analogGlow,std::clamp(v[6]*1.5f,0.0f,100.0f));
+    b(s.gradeSaturation,v[7]*2.0f);
+    b(s.staticAmount,std::clamp(v[8]*0.5f,0.0f,100.0f));b(s.staticDensity,v[9]);
+    b(s.tapeNoise,v[10]);
+    b(s.headHeight,std::max(v[11],v[27]));b(s.headAmount,std::max(v[12],v[26]));
+    b(s.headShift,std::clamp(v[13]*0.125f,0.0f,100.0f));
+    b(s.impulseNoise,std::clamp((v[14]+v[15])*0.5f,0.0f,100.0f));
+    b(s.particleAmount,std::clamp(v[16]*0.5f,0.0f,100.0f));b(s.particleDensity,v[17]);
+    b(s.trackingAmount,std::clamp(v[18],0.0f,100.0f));
+    b(s.trackingServo,std::clamp(4.0f+std::fabs(v[19])*0.1f,0.0f,100.0f));
+    b(s.trackingHeight,std::clamp(std::fabs(v[20]),0.0f,100.0f));b(s.chromaLoss,v[21]);
+    b(s.geometry,std::clamp(v[22]+v[23]*0.3f,0.0f,100.0f));
+    b(s.edgeWave,std::clamp(v[24]/3.51f,0.0f,100.0f));
+    b(s.trackingWidth,std::clamp(v[25]/15.0f,0.0f,100.0f));
+    b(s.trackingTear,std::clamp(v[28]/18.36f,0.0f,100.0f));
+    b(s.verticalRoll,v[29]);b(s.scanlines,std::clamp(v[30]/5.402f,0.0f,100.0f));
+    b(s.multipathGain,std::clamp(v[32]/2.13f,0.0f,100.0f));b(s.chromaDelay,v[33]);
+    b(s.colorPhaseDrift,v[34]);b(s.chromaFlutter,std::clamp(v[35]*0.1f,0.0f,100.0f));
+    b(s.rfDrift,v[36]);b(s.rfField,v[37]);b(s.rfHum,std::clamp(v[38]/3.46f,0.0f,100.0f));
+    b(s.ringing,std::clamp(v[40]*0.5f,0.0f,100.0f));b(s.edgeEnhance,std::clamp(v[41]*0.5f,0.0f,100.0f));
+    b(s.gradeBrightness,v[42]-100.0f);b(s.gradeContrast,v[43]);
+}
 static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     const float i=clamp01(s.vhsStyleIntensity/100.0f);
     if(s.vhsStyle<=1||i<=0.0f)return;
@@ -292,38 +345,9 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     // VHS-90 recipes. The original embedded JSON was parsed in the audit, but
     // its per-preset payload is not checked into this repository; these are
     // source-informed parameter translations, not claimed byte-exact values.
-    case 39: // Archive Standard
-        b(s.composite,55);b(s.tapeDetail,78);b(s.chromaSubsample,24);b(s.lumaNoise,12);b(s.chromaNoise,12);b(s.tapeNoise,14);b(s.gradeSaturation,102);break;
-    case 40: // Studio Clean
-        b(s.composite,18);b(s.tapeDetail,98);b(s.chromaSubsample,8);b(s.lumaNoise,2);b(s.chromaNoise,2);b(s.tapeNoise,2);b(s.trackingAmount,0);b(s.headAmount,0);break;
-    case 41: // Edge Definition
-        b(s.tapeDetail,115);b(s.edgeEnhance,42);b(s.chromaEdgeEnhance,28);b(s.lumaSmear,4);b(s.ringing,8);break;
-    case 42: // Violet Transfer
-        b(s.gradeSaturation,112);b(s.chromaIGain,108);b(s.chromaQGain,122);b(s.chromaIOffset,-8);b(s.chromaQOffset,18);b(s.bloom,18);break;
-    case 43: // Soft Composite
-        b(s.tapeDetail,62);b(s.lumaSmear,32);b(s.chromaSubsample,34);b(s.verticalChroma,28);b(s.bloom,18);b(s.ringing,4);break;
-    case 44: // Green Phosphor
-        b(s.gradeSaturation,92);b(s.chromaIGain,92);b(s.chromaQGain,112);b(s.chromaIOffset,14);b(s.chromaQOffset,-10);b(s.gradeBrightness,2);break;
-    case 45: // Signal Corruption
-        b(s.composite,92);b(s.lumaNoise,72);b(s.chromaNoise,76);b(s.tapeNoise,78);b(s.sync,72);b(s.rfDrift,58);b(s.dropouts,62);b(s.trackingAmount,68);b(s.staticAmount,42);break;
-    case 46: // Tape Streaks
-        b(s.trackingAmount,76);b(s.trackingHeight,22);b(s.trackingServo,64);b(s.trackingTear,58);b(s.edgeWave,38);b(s.dropouts,35);break;
-    case 47: // Cool Transfer
-        b(s.gradeBrightness,1);b(s.gradeContrast,104);b(s.gradeSaturation,94);b(s.chromaIGain,94);b(s.chromaQGain,112);b(s.chromaIOffset,-5);b(s.chromaQOffset,8);break;
-    case 48: // Warm Transfer
-        b(s.gradeBrightness,2);b(s.gradeContrast,103);b(s.gradeSaturation,108);b(s.chromaIGain,112);b(s.chromaQGain,92);b(s.chromaIOffset,8);b(s.chromaQOffset,-5);break;
-    case 49: // Blue Halation
-        b(s.bloom,62);b(s.analogGlow,42);b(s.gradeSaturation,112);b(s.chromaIGain,92);b(s.chromaQGain,122);b(s.chromaQOffset,14);break;
-    case 50: // Signal Echo
-        b(s.multipathGain,58);b(s.multipathDelay,34);b(s.multipathEnsemble,55);b(s.signalGhost,64);b(s.temporalGhost,32);b(s.composite,72);break;
-    case 51: // Retro Grade
-        b(s.composite,48);b(s.tapeDetail,72);b(s.scanlines,28);b(s.gradeSaturation,82);b(s.gradeContrast,108);b(s.gradeBrightness,-2);b(s.colorDrift,18);break;
-    case 52: // Handheld Camcorder
-        b(s.composite,48);b(s.tapeDetail,72);b(s.chromaSubsample,32);b(s.chromaShift,5);b(s.geometry,16);b(s.flicker,12);b(s.lumaNoise,18);b(s.chromaNoise,20);b(s.osdAmount,45);break;
-    case 53: // Hue Instability
-        b(s.colorPhaseDrift,72);b(s.colorDrift,52);b(s.chromaFlutter,58);b(s.chromaShift,7);b(s.chromaNoise,35);b(s.noiseHue,24);break;
-    case 54: // Monochrome Transfer
-        b(s.gradeSaturation,0);b(s.chromaLoss,100);b(s.lumaNoise,18);b(s.tapeNoise,20);b(s.scanlines,24);b(s.tapeDetail,82);break;
+    case 39: case 40: case 41: case 42: case 43: case 44: case 45: case 46:
+    case 47: case 48: case 49: case 50: case 51: case 52: case 53: case 54:
+        ApplyCratesMasterPreset(s,static_cast<int>(s.vhsStyle-39));break;
     // VHSPro: ten recovered menu looks. The supplied decompilation preserves
     // labels but not reliable full slider tuples, so these native mappings
     // reproduce each look's intent and remain explicitly source-inspired.
