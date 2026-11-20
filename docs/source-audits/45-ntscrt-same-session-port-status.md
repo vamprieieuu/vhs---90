@@ -39,7 +39,7 @@ Important geometry correction: upstream TapeGeometry::TRACK_START is **1.0 mm**,
 
 The sampler ports the upstream deterministic 32-bit hash/value-noise pattern and principal tape_at mechanisms: remanence/wear variation, pinholes, flakes/shed, lengthwise scratches, creases, edge lift, mold colonies and Vaseline film. The raster sampler averages four physical samples across the selected SP (58 µm) or LP/EP (26 µm) head width, offset sideways by configured track-pitch misalignment. Head-state and control-track paths use detail-off/flake-on sampling, matching the source deck/sync sampling mode. TapeSurfaceSample reports shed as well as magnetization, spacing lift, roughness and film.
 
-This remains an adaptation, not yet sample-by-sample bit-identical parity: the source measured wear/dropout/scratch/edge curves, crease top-end transform and tape-seed transform are ported, but the AE UI still has one master Tape Surface control rather than independent upstream tape knobs. Sticky-binder/transport stick-slip coupling and user-selectable cassette seed remain incomplete. The image-domain renderer still approximates the RF chain.
+This remains an adaptation, not yet sample-by-sample bit-identical parity. The AE UI now exposes independent tape wear, dropouts, scratches, creases, edge damage, mold, Vaseline/binder film, sticky shed and cassette seed controls; the master amount scales them through a tested core mapping helper. Sticky-binder/transport stick-slip coupling and exact sample-by-sample upstream point parity remain incomplete. The image-domain renderer still approximates the RF chain.
 
 ### 4. Two-head deck recurrence with physical tape sampling
 
@@ -54,7 +54,7 @@ VHS90VcrSignalEngine contains helper coefficients for the source 28.636 MHz samp
 ## Verification
 
 - Linux host-independent core CI run 561 passed after the tape geometry helper was first added: https://github.com/vamprieieuu/vhs---90/actions/runs/44626248722
-- The source track-start correction changed 1.52 mm to 1.0 mm. Runs 567/568 exposed a stale old-start assertion and then an incorrect track-rise expectation; both were corrected in commit 7c07cfe.
+- The source track-start correction changed 1.52 mm to 1.0 mm. Runs 567/568 exposed stale/incorrect geometry expectations; those were corrected in commit 7c07cfe, and run 572 passed with 28/28 CTest tests.
 - Follow-up Linux core CI run 572 passed after the 1.0 mm correction: https://github.com/vamprieieuu/vhs---90/actions/runs/44779518318. The TapeSurface geometry assertion and all 28/28 CTest tests passed.
 - The Linux workflow validates only host-independent C++ core and smoke tests. It does not compile the AE adapter or prove Windows/MSVC, AE SDK, PiPL, AEX loading, live AE render or MFR.
 
@@ -76,7 +76,7 @@ NTSCRT is MIT-licensed. Attribution and license are preserved in ThirdParty/NTSC
 
 ## Still required before NTSCRT-derived implementation can be called complete
 
-1. Expose independent source-equivalent tape knobs and user-selectable tape seed in the AE UI; implement sticky-binder/transport stick-slip coupling.
+1. Implement sticky-binder/transport stick-slip coupling and complete exact source-equivalent tape parameter defaults, then verify independent AE control mappings against the source parameter model.
 2. Verify tape material sample parity against upstream point outputs across positions, seeds, damage combinations and SP/LP/EP.
 3. Complete the nine-stage sample-domain RF/FM/color-under record/playback chain: vcr_record, vcr_tape, vcr_magnet, vcr_play, vcr_fmband, vcr_line, vcr_comb, vcr_acc and vcr_out.
 4. Complete receiver sync/color-reference parity: line/field timing, sync separator, horizontal AFC/VCO, vertical integrator, burst phase, chroma PLL, ACC/color killer and deterministic rolling history.
