@@ -3,13 +3,13 @@
 Date: 2026-11-20  
 Input archive: `vhs.zip`  
 Exact source path: `vhs/github repos/VHS_effect_add-on-1.0.0/`  
-Source inventory: 20 entries (17 files + 3 directories)  
+Source inventory: 20 entries (18 files + 2 directories)  
 VHS-90 integration commit: `a452637e54e34ac7e83627587b548114224cd494`  
 Validator follow-up commit: `f79b45763c7a53a3407fa740b5efa116aca7e434`
 
 ## 1. Inventory and file disposition
 
-Every entry in this folder was inventoried and assigned a disposition. The three directories are structural containers; all 17 file entries were inspected/classified.
+Every entry in this folder was inventoried and assigned a disposition. The two directories are structural containers; all 18 file entries were inspected/classified.
 
 | Source path | Disposition |
 |---|---|
@@ -31,7 +31,6 @@ Every entry in this folder was inventoried and assigned a disposition. The three
 | `运行-命令行.bat` | CLI launcher classified; excluded. |
 | `运行-图形界面.bat` | GUI launcher classified; excluded. |
 | `运行-自检.bat` | Self-test launcher classified; excluded. |
-| `运行-命令行.bat` / `运行-图形界面.bat` / `运行-自检.bat` | All three launchers were inspected as wrappers only; no unique image-processing algorithm. |
 
 No separate project `LICENSE` file was present in the folder. README documents licenses for bundled third-party components, including a GPLv3 FFmpeg build, but that is not a license grant for copying the project's own Python source. Therefore no Python implementation was copied verbatim into VHS-90. The port below is a native parameter/behavior adaptation using VHS-90's independently maintained C++ engines. Preserve upstream attribution in this audit; do not bundle the source app's FFmpeg binary or Python dependencies.
 
