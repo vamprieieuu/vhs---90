@@ -9,8 +9,10 @@ int main() {
     assert(isDirectWriteAvailable());
     const auto families = enumerateSystemFontFamilies();
     assert(!families.empty());
+#if defined(VHS90_TEST_BUNDLED_FONTS)
     assert(std::find(families.begin(), families.end(), L"RooyinFree") != families.end());
     assert(std::find(families.begin(), families.end(), L"YR Sponge Arabic") != families.end());
+#endif
     constexpr int w=640, h=240;
     std::vector<float> pixels(static_cast<std::size_t>(w)*h*4,0.0f);
     for (std::size_t i=3;i<pixels.size();i+=4) pixels[i]=1.0f;
@@ -37,8 +39,9 @@ int main() {
     o.utf8Text = u8"السَّلَامُ عَلَيْكُمْ ١٢٣";
     o.direction = TextDirection::RightToLeft;
     assert(drawDirectWriteText({pixels.data(),w,h,w*4},o).rendered);
-    // Both OFL-cleared font families are embedded in the AEX and loaded
-    // privately by the current process (no machine-wide installation).
+#if defined(VHS90_TEST_BUNDLED_FONTS)
+    // Both OFL-cleared font families are embedded in this test executable
+    // and loaded privately by the current process (no machine-wide install).
     o.utf8Text = u8"تسجيل REC ١٢٣";
     o.utf8FontFamily = "RooyinFree";
     const auto rooyin = drawDirectWriteText({pixels.data(),w,h,w*4},o);
@@ -46,6 +49,7 @@ int main() {
     o.utf8FontFamily = "YR Sponge Arabic";
     const auto sponge = drawDirectWriteText({pixels.data(),w,h,w*4},o);
     assert(sponge.rendered && sponge.requestedFontFound && !sponge.usedFallbackFont);
+#endif
     o.utf8FontFamily = "Segoe UI";
     o.utf8Text = u8"VHS-90 اختبار عربي 123";
     o.direction = TextDirection::Auto;
