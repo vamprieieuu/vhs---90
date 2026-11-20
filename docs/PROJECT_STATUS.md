@@ -322,7 +322,7 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 ## Embedded fonts and direct AEX output (2026-11-21)
 
 - Added an AEX resource path for the two font files cleared by the supplied font audit: `Rooyin_Free_Bold.ttf` and `Sponge_Arabic_Regular.otf`. The original full files are retained; no subsetting or modification is performed.
-- Added private-process font extraction/registration in the DirectWrite backend, with Windows smoke checks that become mandatory when the font resources are present.
+- Added embedded font extraction and a DirectWrite custom font set/collection (rather than GDI private-font registration), with Windows smoke checks that become mandatory when the font resources are present.
 - Added the SIL OFL 1.1 text and per-font copyright notices at `Resources/Fonts/OFL-1.1.txt`.
 - `build.ps1` now extracts the two fonts and the complete Adobe SDK subtree from the exact VHS6RIFT path inside the original `vhs.zip` archive. It then configures the Windows/MSVC target and expects one output file at `build/VHS-90.aex`.
 - CMake output properties now suppress Visual Studio's default `Release/` subdirectory. The Windows AEX workflow publishes a raw `.aex` release asset and a one-file Actions artifact after a successful build.
