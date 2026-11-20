@@ -76,11 +76,11 @@ NTSCRT is MIT-licensed. Attribution and license are preserved in ThirdParty/NTSC
 
 ## Still required before NTSCRT-derived implementation can be called complete
 
-1. Implement sticky-binder/transport stick-slip coupling and complete exact source-equivalent tape parameter defaults; the new independent control mapping itself is covered by core smoke tests.
+1. Complete exact source-equivalent tape parameter defaults and verify all independent control curves against upstream fixtures. Sticky-binder drag, guide grip/lag, breakaway and back-tension strain are already integrated and smoke-tested; only their exact full-history parity remains open.
 2. Verify tape material sample parity against upstream point outputs across positions, seeds, damage combinations and SP/LP/EP.
 3. Complete the nine-stage sample-domain RF/FM/color-under record/playback chain: vcr_record, vcr_tape, vcr_magnet, vcr_play, vcr_fmband, vcr_line, vcr_comb, vcr_acc and vcr_out.
 4. Complete receiver sync/color-reference parity: line/field timing, sync separator, horizontal AFC/VCO, vertical integrator, burst phase, chroma PLL, ACC/color killer and deterministic rolling history.
-5. Port source 12-field rolling deck/head snapshot semantics and transport history/replay.
+5. Port source 12-field rolling deck/head snapshot semantics and full transport capstan/servo history/replay; current deck/transport use deterministic replay approximations.
 6. Convert selected analog presets into native VHS-90/AE presets, map supported parameters and translate timeline snapshots/easing to host keyframes; do not port digital/Screen Loop looks into the tape engine.
 7. Run deterministic source-vs-C++ point/field/frame comparisons and visual reference comparisons.
 8. Build the optional AEX target on Windows x64/MSVC with the exact AE SDK, validate PiPL and load/render/MFR in After Effects. No Windows or AE-host validation is currently claimed.
