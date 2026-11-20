@@ -111,6 +111,21 @@ std::string vhsOsdLabel(VhsOsdLabel label,VhsOsdLanguage language) {
     }
     return {};
 }
+std::string formatVhsOsdTime(const VhsOsdDateTime& v,VhsOsdLanguage language,VhsOsdDigitSet digits) {
+    if(!isValidVhsOsdDateTime(v) || static_cast<unsigned>(language)>static_cast<unsigned>(VhsOsdLanguage::Bilingual) ||
+       static_cast<unsigned>(digits)>static_cast<unsigned>(VhsOsdDigitSet::Persian) ||
+       static_cast<unsigned>(v.timeMode)>static_cast<unsigned>(VhsOsdTimeMode::TwentyFourHour)) return {};
+    int hour=v.hour, minute=v.minute, second=v.second;
+    if(v.clockRuns) {
+        const double whole=std::floor(v.elapsedSeconds);
+        if(whole>6400000000.0 || whole< -6400000000.0) return {};
+        const std::int64_t total=std::int64_t(hour)*3600+minute*60+second+static_cast<std::int64_t>(whole);
+        std::int64_t rem=total%86400;
+        if(rem<0) rem+=86400;
+        hour=static_cast<int>(rem/3600); minute=static_cast<int>((rem/60)%60); second=static_cast<int>(rem%60);
+    }
+    return timePart(hour,minute,second,v.timeMode,language,digits);
+}
 std::string formatVhsOsdDateTime(const VhsOsdDateTime& v,VhsOsdLanguage language,VhsOsdDigitSet digits) {
     if(!isValidVhsOsdDateTime(v)) return {};
     if(static_cast<unsigned>(language)>static_cast<unsigned>(VhsOsdLanguage::Bilingual)||
