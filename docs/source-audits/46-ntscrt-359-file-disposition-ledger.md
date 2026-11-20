@@ -310,51 +310,51 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/spike/src/bin/glitch-dump.rs` | 1811 | content-reviewed | Reviewed Rust receiver plan JSON dumper matching Mac field-plan schema, including row timing, VCR lines, chroma, picture gain and field metadata. |
 | `port/spike/src/bin/glitch-render.rs` | 1138 | content-reviewed | Reviewed Rust isolated Glitch stage still renderer for pixel-level comparison against Mac Metal reference renderer. |
 | `port/spike/src/main.rs` | 4775 | content-reviewed | Reviewed complete still-image parity spike mirroring Mac crt-smoke: preset loading, NTSC/downscale/CRT settings, self-test and override controls; not shipping AE plugin. |
-| `presets/2 second dirty VCR loop.json` | 84498 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/2 second glitch.json` | 40234 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/2 second glitches.json` | 108663 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/2 second mild glitch.json` | 63227 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/5 second blips.json` | 68286 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/90s VHS bootleg.json` | 5364 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/CD-ROM (low quality).json` | 4782 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Cheap camcorder.json` | 4754 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Chunky webcam.json` | 4698 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Clean CRT.json` | 3574 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Clean VHS.json` | 3554 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Damaged VHS - strong.json` | 5144 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Dirty VCR + CRT (vertical).json` | 5400 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Dirty VCR.json` | 5221 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Gentle waves loop.json` | 3555 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Glitch 1.json` | 34917 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Glitch 2.json` | 38121 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Glitch 3.json` | 38354 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Glitch loop 1.json` | 27441 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Glitch pop.json` | 41200 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/High Chroma static.json` | 3618 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Low Res.json` | 3549 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Medium VHS.json` | 3614 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Mild VHS.json` | 3510 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Noisy TV broadcast on VHS.json` | 5128 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Obliterated.json` | 3548 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Readable Text.json` | 3582 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Screen Loop/12 copies luma key.json` | 643 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Screen Loop/15 copies color drift.json` | 673 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Screen Loop/22 copies bottom left.json` | 633 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Screen Loop/7 copies slow luma.json` | 659 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Screen Loop/Bottom to top.json` | 632 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Static loop 1.json` | 30966 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Tracking Noise up.json` | 37932 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Two blips loop.json` | 31401 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/V Hold glitch.json` | 36381 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/VHS with color loss.json` | 5390 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Vertical Freak Out.json` | 28180 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Vertical spike loop.json` | 24283 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Very wavy.json` | 20635 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Wavy loop.json` | 3569 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/Webcam (low quality).json` | 4821 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/glitchy block video.json` | 5268 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/glitchy streaming video with noise.json` | 5295 | parsed | Fetched and JSON-parsed; semantic migration still pending |
-| `presets/glitchy streaming video.json` | 5185 | parsed | Fetched and JSON-parsed; semantic migration still pending |
+| `presets/2 second dirty VCR loop.json` | 84498 | semantic-reviewed | Semantic review: animated 2 s SP VCR look with tape/deck damage and tracking; NTSC whole-state snapshots also require AE keyframe conversion. |
+| `presets/2 second glitch.json` | 40234 | semantic-reviewed | Semantic review: receiver hold/ghost/signal animation plus NTSC and CRT; partial receiver mapping and full timeline conversion required. |
+| `presets/2 second glitches.json` | 108663 | semantic-reviewed | Semantic review: 26-key rapid receiver failure sequence; preserve per-event timing/easing and NTSC/CRT states. |
+| `presets/2 second mild glitch.json` | 63227 | semantic-reviewed | Semantic review: mild receiver/NTSC 2 s animation; keyframe snapshots, not static glitch values. |
+| `presets/5 second blips.json` | 68286 | semantic-reviewed | Semantic review: 5 s receiver blip sequence with NTSC changes; shader disabled, preserve 16 timeline snapshots. |
+| `presets/90s VHS bootleg.json` | 5364 | semantic-reviewed | Semantic review: static generation/tension/head/tape-damage look; high-value physical tape/deck preset candidate, CRT disabled. |
+| `presets/CD-ROM (low quality).json` | 4782 | semantic-reviewed | Semantic review: digital-only Video 1/block-codec look; exclude from analog VHS engine. |
+| `presets/Cheap camcorder.json` | 4754 | semantic-reviewed | Semantic review: digital-only camcorder response; exclude from analog VHS engine. |
+| `presets/Chunky webcam.json` | 4698 | semantic-reviewed | Semantic review: digital-only webcam compression/resolution look; exclude from analog VHS engine. |
+| `presets/Clean CRT.json` | 3574 | semantic-reviewed | Semantic review: CRT-only shader preset; no VHS/NTSC/receiver stage. |
+| `presets/Clean VHS.json` | 3554 | semantic-reviewed | Semantic review: NTSC-only clean tape signal baseline; no physical VCR damage stage. |
+| `presets/Damaged VHS - strong.json` | 5144 | semantic-reviewed | Semantic review: generation-3 VCR with tension, head switch, mold, scratches, sticky and edge damage; high-value physical candidate plus NTSC/CRT layers. |
+| `presets/Dirty VCR + CRT (vertical).json` | 5400 | semantic-reviewed | Semantic review: portrait generation-3 tape with heavy creases/dropouts/scratches/head wear; physical candidate plus separate NTSC/CRT and host sizing. |
+| `presets/Dirty VCR.json` | 5221 | semantic-reviewed | Semantic review: wear/mold/scratches/vaseline/creases/head dirt/mismatch/dropouts; static physical tape/deck candidate. |
+| `presets/Gentle waves loop.json` | 3555 | semantic-reviewed | Semantic review: NTSC edge-wave/chroma loop with CRT; no VCR receiver stage. |
+| `presets/Glitch 1.json` | 34917 | semantic-reviewed | Semantic review: despite filename, receiver glitch stage disabled; NTSC edge/chroma/head-switch display animation with CRT. |
+| `presets/Glitch 2.json` | 38121 | semantic-reviewed | Semantic review: NTSC static/snow/tracking-noise look at 128 px, CRT active; not physical VCR track read. |
+| `presets/Glitch 3.json` | 38354 | semantic-reviewed | Semantic review: NTSC head-switch display and tracking-noise animation; coordinate mapping differs from physical tape head switching. |
+| `presets/Glitch loop 1.json` | 27441 | semantic-reviewed | Semantic review: NTSC softness/edge and CRT glow pulse; 7 whole-state keys. |
+| `presets/Glitch pop.json` | 41200 | semantic-reviewed | Semantic review: NTSC blur/chroma-loss/edge-wave pulses; 11 keys, return-to-normal states matter. |
+| `presets/High Chroma static.json` | 3618 | semantic-reviewed | Semantic review: static NTSC colored-noise preset with CRT; signal noise, not tape surface damage. |
+| `presets/Low Res.json` | 3549 | semantic-reviewed | Semantic review: 128 px nearest downscale plus NTSC chroma bleed and CRT; host sizing plus signal-chain look. |
+| `presets/Medium VHS.json` | 3614 | semantic-reviewed | Semantic review: moderate NTSC bandwidth/noise/chroma bleed and CRT; signal baseline, not physical tape damage. |
+| `presets/Mild VHS.json` | 3510 | semantic-reviewed | Semantic review: light NTSC softness/noise with CRT; low-intensity signal baseline. |
+| `presets/Noisy TV broadcast on VHS.json` | 5128 | semantic-reviewed | Semantic review: VCR generation-3 EP/tension/head-switch/tape damage and NTSC active; digital map is disabled and must be ignored. |
+| `presets/Obliterated.json` | 3548 | semantic-reviewed | Semantic review: extreme static NTSC smear/chroma/noise and CRT; timeline enabled but has zero keys. |
+| `presets/Readable Text.json` | 3582 | semantic-reviewed | Semantic review: NTSC light VHS plus area downscale and Lanczos CRT; legibility-focused signal preset. |
+| `presets/Screen Loop/12 copies luma key.json` | 643 | semantic-reviewed | Semantic review: ntscrt-video-feedback schema, key inversion/zoom/turn/drift; separate Screen Loop effect, excluded. |
+| `presets/Screen Loop/15 copies color drift.json` | 673 | semantic-reviewed | Semantic review: 2 s camera-feedback composition with color/hue drift; separate effect, excluded. |
+| `presets/Screen Loop/22 copies bottom left.json` | 633 | semantic-reviewed | Semantic review: 22-copy bottom-left camera-feedback composition; separate effect, excluded. |
+| `presets/Screen Loop/7 copies slow luma.json` | 659 | semantic-reviewed | Semantic review: 2 s seven-copy slow-luma feedback composition; separate effect, excluded. |
+| `presets/Screen Loop/Bottom to top.json` | 632 | semantic-reviewed | Semantic review: bottom-to-top camera-feedback drift; separate effect, excluded. |
+| `presets/Static loop 1.json` | 30966 | semantic-reviewed | Semantic review: 2 s/12 fps NTSC noise/smear/fading-color animation with 8 keys; no VCR stage. |
+| `presets/Tracking Noise up.json` | 37932 | semantic-reviewed | Semantic review: 2 s/24 fps bottom-up tracking-noise region animation with 10 keys; translate region trajectory into VHS-90 arbitrary-position controls. |
+| `presets/Two blips loop.json` | 31401 | semantic-reviewed | Semantic review: two short NTSC edge-wave/blur pulses over 2 s; no VCR damage stage. |
+| `presets/V Hold glitch.json` | 36381 | semantic-reviewed | Semantic review: mixed receiver hold/crinkle/dropout/head-clog/search plus NTSC/CRT; preserve 8-key animation. |
+| `presets/VHS with color loss.json` | 5390 | semantic-reviewed | Semantic review: generation-3 EP VCR with tension/wear/scratches/creases/dropouts/head wear/tracking/flutter plus NTSC color loss; digital disabled. |
+| `presets/Vertical Freak Out.json` | 28180 | semantic-reviewed | Semantic review: 2 s/24 fps receiver vertical roll/horizontal slip/head-clog animation; 6 keys plus NTSC/CRT. |
+| `presets/Vertical spike loop.json` | 24283 | semantic-reviewed | Semantic review: NTSC vertical chroma smear/spikes and blur bursts; not physical track geometry. |
+| `presets/Very wavy.json` | 20635 | semantic-reviewed | Semantic review: 2 s/24 fps strong NTSC edge-wave animation; no VCR damage stage. |
+| `presets/Wavy loop.json` | 3569 | semantic-reviewed | Semantic review: static NTSC edge-wave/tracking-noise look; timeline enabled but zero keys. |
+| `presets/Webcam (low quality).json` | 4821 | semantic-reviewed | Semantic review: digital-only webcam camera/compression/noise/aliasing; exclude from analog VHS engine. |
+| `presets/glitchy block video.json` | 5268 | semantic-reviewed | Semantic review: digital-only Microsoft Video 1 block codec with long keyframe interval/data loss; exclude from analog VHS engine. |
+| `presets/glitchy streaming video with noise.json` | 5295 | semantic-reviewed | Semantic review: digital-only fixed-bitrate stream with long keyframe interval/data loss/noise; exclude from analog VHS engine. |
+| `presets/glitchy streaming video.json` | 5185 | semantic-reviewed | Semantic review: digital-only low-quality streaming compression/sharpening/moiré/data loss; exclude from analog VHS engine. |
 | `scripts/build-ntscrs.sh` | 1375 | content-reviewed | Reviewed universal macOS Rust C-ABI build and placement of ntscrs dylib; platform build script only. |
 | `scripts/check-control-strength.py` | 13381 | content-reviewed | Reviewed full automated min/mid/max visible-strength measurement across NTSC, Glitch, VCR and Digital stages against JSON baselines; valuable calibration method, not render code. |
 | `scripts/check-export-toggles.sh` | 2353 | content-reviewed | Reviewed export shader-toggle regression runner; test orchestration only. |
