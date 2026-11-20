@@ -55,7 +55,7 @@ VHS90VcrSignalEngine contains helper coefficients for the source 28.636 MHz samp
 
 - Linux host-independent core CI run 561 passed after the tape geometry helper was first added: https://github.com/vamprieieuu/vhs---90/actions/runs/44626248722
 - The source track-start correction changed 1.52 mm to 1.0 mm. Runs 567/568 exposed a stale old-start assertion and then an incorrect track-rise expectation; both were corrected in commit 7c07cfe.
-- Follow-up Linux core CI is run 572: https://github.com/vamprieieuu/vhs---90/actions/runs/44779518318. Treat the corrected geometry as pending verification until this run concludes successfully.
+- Follow-up Linux core CI run 572 passed after the 1.0 mm correction: https://github.com/vamprieieuu/vhs---90/actions/runs/44779518318. The TapeSurface geometry assertion and all 28/28 CTest tests passed.
 - The Linux workflow validates only host-independent C++ core and smoke tests. It does not compile the AE adapter or prove Windows/MSVC, AE SDK, PiPL, AEX loading, live AE render or MFR.
 
 ## Preset migration disposition
