@@ -87,6 +87,21 @@ PF_Err VHS90CreateOsdTextDefault(PF_InData* in_data,PF_ArbitraryH* out_handle) {
     return *out_handle ? PF_Err_NONE : PF_Err_OUT_OF_MEMORY;
 }
 
+PF_Err VHS90ReadOsdText(PF_InData* in_data, PF_ArbitraryH handle, std::string& utf8_text) {
+    if (!in_data || !handle) { utf8_text.clear(); return PF_Err_NONE; }
+    HandleSuiteScope scope(in_data);
+    const auto* hs = scope.get();
+    if (!hs) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+    std::vector<std::uint8_t> bytes;
+    if (!readBlob(hs, handle, bytes)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+    vhs90::OsdTextData parsed;
+    if (!vhs90::unflattenOsdText(bytes.data(), bytes.size(), parsed))
+        return PF_Err_INTERNAL_STRUCT_DAMAGED;
+    try { utf8_text = std::move(parsed.utf8); }
+    catch (...) { return PF_Err_OUT_OF_MEMORY; }
+    return PF_Err_NONE;
+}
+
 PF_Err VHS90OsdArbitraryCallback(PF_InData* in_data,PF_ArbParamsExtra* e) {
     if (!in_data || !e || e->id!=kOsdTextArbId) return PF_Err_BAD_CALLBACK_PARAM;
     HandleSuiteScope scope(in_data);
