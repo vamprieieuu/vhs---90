@@ -112,11 +112,11 @@ std::string vhsOsdLabel(VhsOsdLabel label,VhsOsdLanguage language) {
     return {};
 }
 std::string formatVhsOsdDateTime(const VhsOsdDateTime& v,VhsOsdLanguage language,VhsOsdDigitSet digits) {
-    if(!isValidVhsOsdDateTime(v)) return {};
+    if(!isValidVhsOsdDateTime(v)) return {};\n    if(static_cast<unsigned>(language)>static_cast<unsigned>(VhsOsdLanguage::Bilingual)||\n       static_cast<unsigned>(digits)>static_cast<unsigned>(VhsOsdDigitSet::Persian)||\n       static_cast<unsigned>(v.dateFormat)<static_cast<unsigned>(VhsOsdDateFormat::MonthDayYear)||\n       static_cast<unsigned>(v.dateFormat)>static_cast<unsigned>(VhsOsdDateFormat::YearMonth)||\n       static_cast<unsigned>(v.timeMode)>static_cast<unsigned>(VhsOsdTimeMode::TwentyFourHour)||\n       static_cast<unsigned>(v.monthStyle)>static_cast<unsigned>(VhsOsdMonthStyle::Full)) return {};
     std::int64_t dayOffset=0; int hour=v.hour,minute=v.minute,second=v.second;
     if(v.clockRuns) {
         const double whole=std::floor(v.elapsedSeconds);
-        if(whole>double(std::numeric_limits<std::int64_t>::max()/2)||whole<double(std::numeric_limits<std::int64_t>::min()/2)) return {};
+        // Keep calendar arithmetic inside the supported 1900-2100 range before converting to int64.\n        if(whole>6400000000.0||whole< -6400000000.0) return {};
         const std::int64_t total=std::int64_t(hour)*3600+minute*60+second+static_cast<std::int64_t>(whole);
         dayOffset=total/86400; std::int64_t rem=total%86400;
         if(rem<0){rem+=86400;--dayOffset;}
