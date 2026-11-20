@@ -19,7 +19,7 @@ registered_ids = []
 for line in source.splitlines():
     if "PF_ADD_" not in line or "PF_ADD_INPUT" in line:
         continue
-    match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*\\);", line)
+    match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*\)", line)
     if match:
         registered_ids.append(match.group(1))
 
@@ -62,9 +62,9 @@ for needle in [
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
 
-style_cases = set(map(int, re.findall(r"case (\d+): b\(s\\.", source[source.find("static void ApplyVhs6RiftStylePreset"):source.find("static void ApplyVhs6RiftCameraProfile")])))
-camera_cases = set(map(int, re.findall(r"case (\d+): b\(s\\.", source[source.find("static void ApplyVhs6RiftCameraProfile"):source.find("static void ApplyNtscRsVhsLook")])) )
-ntsc_cases = set(map(int, re.findall(r"case (\d+): b\(s\\.", source[source.find("static void ApplyNtscRsVhsLook"):source.find("static void ApplyVhsSourcePresets")])) )
+style_cases = set(map(int, re.findall(r"case (\d+):", source[source.find("static void ApplyVhs6RiftStylePreset"):source.find("static void ApplyVhs6RiftCameraProfile")])))
+camera_cases = set(map(int, re.findall(r"case (\d+):", source[source.find("static void ApplyVhs6RiftCameraProfile"):source.find("static void ApplyNtscRsVhsLook")])))
+ntsc_cases = set(map(int, re.findall(r"case (\d+):", source[source.find("static void ApplyNtscRsVhsLook"):source.find("static void ApplyVhsSourcePresets")])))
 assert style_cases == set(range(2, 18)), f"Missing VHS6RIFT style preset cases: {sorted(set(range(2,18))-style_cases)}"
 assert camera_cases == set(range(2, 11)), f"Missing VHS6RIFT camera profile cases: {sorted(set(range(2,11))-camera_cases)}"
 assert ntsc_cases == set(range(2, 11)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
