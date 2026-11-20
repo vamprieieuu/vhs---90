@@ -56,6 +56,27 @@ int main() {
         if(batteryPixels[i]>0.2f&&batteryPixels[i+1]>0.2f&&batteryPixels[i+2]>0.2f){foundBattery=true;break;}
     }
     assert(foundBattery);
+    // VHS deck transport modes and independently configurable OSD anchors.
+    auto renderDeck = [&](VhsDeckMode mode, int speed, VhsTimestampFormat format,
+                          float statusX, float statusY, float stampX, float stampY) {
+        std::vector<float> framePixels(static_cast<std::size_t>(w)*h*4,0.0f);
+        for(std::size_t i=3;i<framePixels.size();i+=4) framePixels[i]=1.0f;
+        VhsOsdParams deck;
+        deck.showRec=false; deck.showBattery=false; deck.glitch=0.0f; deck.ghost=0.0f;
+        deck.deckMode=mode; deck.tapeSpeed=speed; deck.timestampFormat=format;
+        deck.statusX=statusX; deck.statusY=statusY; deck.timestampX=stampX; deck.timestampY=stampY;
+        ImageView view{framePixels.data(),w,h,w*4};
+        assert(applyVhsOsd(view,deck));
+        return framePixels;
+    };
+    const auto playDeck=renderDeck(VhsDeckMode::Play,1,VhsTimestampFormat::Iso,98,3,98,96);
+    const auto pauseDeck=renderDeck(VhsDeckMode::Pause,2,VhsTimestampFormat::MonthFirst,98,3,98,96);
+    const auto stopDeck=renderDeck(VhsDeckMode::Stop,3,VhsTimestampFormat::DayFirst,98,3,98,96);
+    const auto ffDeck=renderDeck(VhsDeckMode::FastForward,1,VhsTimestampFormat::DateOnly,98,3,98,96);
+    const auto rewindDeck=renderDeck(VhsDeckMode::Rewind,2,VhsTimestampFormat::TimeOnly,98,3,98,96);
+    assert(playDeck!=pauseDeck && pauseDeck!=stopDeck && stopDeck!=ffDeck && ffDeck!=rewindDeck);
+    const auto movedDeck=renderDeck(VhsDeckMode::Play,1,VhsTimestampFormat::Iso,70,35,50,50);
+    assert(playDeck!=movedDeck);
     ImageView invalid{first.data(),w,h,w*4-1}; assert(!applyVhsOsd(invalid,p));
     return 0;
 }
