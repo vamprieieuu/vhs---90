@@ -43,11 +43,18 @@ void resizeHorizontal(const std::vector<float>& src, std::vector<float>& dst,
         }
     }
 }
-void compressChannel(std::vector<float>& channel, int width, int height, float factor) {
+void compressChannel(std::vector<float>& channel, int width, int height, float factor,
+                     float gaussianSigma, float gaussianMean, float uniformNoise,
+                     std::uint32_t seed, std::int64_t frame, std::uint32_t salt) {
     const int reduced = std::clamp(int(std::lround(float(width) / factor)), 1, width);
-    if (reduced == width) return;
     std::vector<float> low, restored;
     resizeHorizontal(channel, low, width, height, reduced);
+    const float inv255 = 1.0f / 255.0f;
+    for (int y = 0; y < height; ++y) for (int x = 0; x < reduced; ++x) {
+        const std::size_t i = std::size_t(y)*reduced+x;
+        low[i] += (gaussianMean + gaussianSigma*noiseGaussian(x,y,seed^salt,frame))*inv255;
+        low[i] += (hash01(std::uint32_t(x),std::uint32_t(y),seed^(salt+0x9E3779B9u),frame)*2.0f-1.0f)*uniformNoise*inv255;
+    }
     resizeHorizontal(low, restored, reduced, height, width);
     channel.swap(restored);
 }
@@ -89,10 +96,9 @@ bool processPyVhsGeneration(ConstImageView src, ImageView dst,
             cr[i] = (r-l)*0.713f;
             cb[i] = (b-l)*0.564f;
         }
-        compressChannel(yy, w, h, lc);
-        compressChannel(cr, w, h, cc);
-        compressChannel(cb, w, h, cc);
-        const float inv255 = 1.0f / 255.0f;
+        compressChannel(yy,w,h,lc,sigma,mean,0.0f,p.seed,p.frame,0x4C554D41u);
+        compressChannel(cr,w,h,cc,0.0f,0.0f,cnoise,p.seed,p.frame,0x43524E4Fu);
+        compressChannel(cb,w,h,cc,0.0f,0.0f,cnoise,p.seed,p.frame,0x43424E4Fu);
         std::vector<float> rowCr(static_cast<std::size_t>(w));
         std::vector<float> rowCb(static_cast<std::size_t>(w));
         for (int y = 0; y < h; ++y) {
@@ -101,9 +107,7 @@ bool processPyVhsGeneration(ConstImageView src, ImageView dst,
             const float rowWave = wave * std::sin(phase + float(p.frame) * 0.17f);
             for (int x = 0; x < w; ++x) {
                 const std::size_t i = std::size_t(y)*w+x;
-                yy[i] = std::clamp(yy[i] + (mean + sigma * noiseGaussian(x,y,p.seed,p.frame))*inv255, 0.0f, 1.0f);
-                cr[i] += (hash01(std::uint32_t(x),std::uint32_t(y),p.seed ^ 0x43524E4Fu,p.frame)*2.0f-1.0f) * cnoise * inv255;
-                cb[i] += (hash01(std::uint32_t(x),std::uint32_t(y),p.seed ^ 0x43424E4Fu,p.frame)*2.0f-1.0f) * cnoise * inv255;
+                yy[i] = std::clamp(yy[i], 0.0f, 1.0f);
             }
             if (wave > 0.0f) {
                 const std::size_t rowBase = std::size_t(y)*w;
