@@ -111,6 +111,28 @@ std::string vhsOsdLabel(VhsOsdLabel label,VhsOsdLanguage language) {
     }
     return {};
 }
+std::string formatVhsOsdCounter(std::int64_t frame,float fps,double offsetSeconds,int format,VhsOsdDigitSet digits) {
+    if(!std::isfinite(fps)||!std::isfinite(offsetSeconds)||fps<=0.0f||fps>240.0f||
+       format<1||format>3||static_cast<unsigned>(digits)>static_cast<unsigned>(VhsOsdDigitSet::Persian)) return {};
+    long double count=static_cast<long double>(frame)+static_cast<long double>(offsetSeconds)*fps;
+    if(count<0.0L) count=0.0L;
+    if(count>1000000000000.0L) return {};
+    const std::uint64_t frames=static_cast<std::uint64_t>(std::floor(count+1.0e-9L));
+    char b[64]{};
+    if(format==1) {
+        std::snprintf(b,sizeof(b),"%06llu",static_cast<unsigned long long>(std::min<std::uint64_t>(frames,999999u)));
+    } else {
+        const std::uint64_t rate=static_cast<std::uint64_t>(std::max(1.0,std::round(double(fps))));
+        const std::uint64_t totalSeconds=frames/rate;
+        const std::uint64_t hh=totalSeconds/3600u, mm=(totalSeconds/60u)%60u, ss=totalSeconds%60u;
+        if(format==2) std::snprintf(b,sizeof(b),"%02llu:%02llu:%02llu",
+            static_cast<unsigned long long>(hh),static_cast<unsigned long long>(mm),static_cast<unsigned long long>(ss));
+        else std::snprintf(b,sizeof(b),"%02llu:%02llu:%02llu:%02llu",
+            static_cast<unsigned long long>(hh),static_cast<unsigned long long>(mm),static_cast<unsigned long long>(ss),
+            static_cast<unsigned long long>(frames%rate));
+    }
+    return localizeVhsOsdDigits(b,digits);
+}
 std::string formatVhsOsdTime(const VhsOsdDateTime& v,VhsOsdLanguage language,VhsOsdDigitSet digits) {
     if(!isValidVhsOsdDateTime(v) || static_cast<unsigned>(language)>static_cast<unsigned>(VhsOsdLanguage::Bilingual) ||
        static_cast<unsigned>(digits)>static_cast<unsigned>(VhsOsdDigitSet::Persian) ||
