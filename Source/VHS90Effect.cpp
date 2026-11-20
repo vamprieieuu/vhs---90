@@ -659,6 +659,23 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(!ConvertInputWorld(previousInput,format,previousPixels)) previousPixels.clear();
         }
         working=source; scratch.resize(source.size());
+        if(osdEnabled) {
+            VhsOsdParams op;
+            op.amount=clamp01(s.osdAmount/100.0f); op.opacity=clamp01(s.osdOpacity/100.0f);
+            op.scale=std::max(0.35f,s.osdScale/100.0f); op.glitch=std::max(0.0f,s.osdGlitch/100.0f);
+            op.ghost=clamp01(s.osdGhost/100.0f); op.recAmount=clamp01(s.osdRec/100.0f);
+            op.playAmount=clamp01(s.osdPlay/100.0f); op.timestampAmount=clamp01(s.osdTimestamp/100.0f);
+            op.batteryAmount=clamp01(s.osdBattery/100.0f);op.showBattery=s.osdBattery>0.0f;
+            op.recBlinkHz=std::max(0.0f,s.osdRecBlink); op.timestampSpeed=std::max(0.0f,s.osdTimeSpeed);
+            op.timeSeconds=s.timeSeconds; op.framesPerSecond=s.frameRate; op.frame=s.frame;
+            op.startYear=static_cast<int>(std::lround(s.osdYear)); op.startMonth=static_cast<int>(std::lround(s.osdMonth));
+            op.startDay=static_cast<int>(std::lround(s.osdDay)); op.startHour=static_cast<int>(std::lround(s.osdHour));
+            op.startMinute=static_cast<int>(std::lround(s.osdMinute)); op.startSecond=static_cast<int>(std::lround(s.osdSecond));
+            op.recColorR=s.osdRecColorR/255.0f; op.recColorG=s.osdRecColorG/255.0f; op.recColorB=s.osdRecColorB/255.0f;
+            op.seed=0x9050D5u; op.premultipliedAlpha=true;
+            ImageView osdView{working.data(),w,h,w*4};
+            if(!applyVhsOsd(osdView,op)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+        }
         if(compositeStages&&master>0.0f) {
             CompositeParams p;
             p.strength=master;
@@ -963,23 +980,6 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
             if(!processDeviceConnections(in,out,dp)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
-        }
-        if(osdEnabled) {
-            VhsOsdParams op;
-            op.amount=clamp01(s.osdAmount/100.0f); op.opacity=clamp01(s.osdOpacity/100.0f);
-            op.scale=std::max(0.35f,s.osdScale/100.0f); op.glitch=std::max(0.0f,s.osdGlitch/100.0f);
-            op.ghost=clamp01(s.osdGhost/100.0f); op.recAmount=clamp01(s.osdRec/100.0f);
-            op.playAmount=clamp01(s.osdPlay/100.0f); op.timestampAmount=clamp01(s.osdTimestamp/100.0f);
-            op.batteryAmount=clamp01(s.osdBattery/100.0f);op.showBattery=s.osdBattery>0.0f;
-            op.recBlinkHz=std::max(0.0f,s.osdRecBlink); op.timestampSpeed=std::max(0.0f,s.osdTimeSpeed);
-            op.timeSeconds=s.timeSeconds; op.framesPerSecond=s.frameRate; op.frame=s.frame;
-            op.startYear=static_cast<int>(std::lround(s.osdYear)); op.startMonth=static_cast<int>(std::lround(s.osdMonth));
-            op.startDay=static_cast<int>(std::lround(s.osdDay)); op.startHour=static_cast<int>(std::lround(s.osdHour));
-            op.startMinute=static_cast<int>(std::lround(s.osdMinute)); op.startSecond=static_cast<int>(std::lround(s.osdSecond));
-            op.recColorR=s.osdRecColorR/255.0f; op.recColorG=s.osdRecColorG/255.0f; op.recColorB=s.osdRecColorB/255.0f;
-            op.seed=0x9050D5u; op.premultipliedAlpha=true;
-            ImageView osdView{working.data(),w,h,w*4};
-            if(!applyVhsOsd(osdView,op)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
         }
         for(int y=0;y<output->height;++y) for(int x=0;x<output->width;++x) {
             const int sx=output->origin_x+x-input->origin_x, sy=output->origin_y+y-input->origin_y;
