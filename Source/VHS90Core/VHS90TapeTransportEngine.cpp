@@ -127,7 +127,7 @@ std::vector<float> slowProfile(std::uint32_t seed,int epoch,int height,float amp
  for(int y=0;y<height;++y){const float raw=gaussianHash(seed,epoch,y,17)*amplitude;previous=scaledGain*raw+scaledPole*previous;out[std::size_t(y)]=previous;}return out;
 }
 inline bool inactive(const TapeTransportParams&p) noexcept {
- return p.slowDriftPixelsPerSecond==0.0f&&p.drumFlutterPixels==0.0f&&p.flutterPixels==0.0f&&p.stickSlipPixels==0.0f&&p.lineJitterPixels==0.0f&&p.trackingOffsetPixels==0.0f&&p.trackingSlopePixels==0.0f&&p.servoJitterPixels==0.0f&&p.controlTrackServoAmount==0.0f&&p.controlTrackTape.debrisAmount<=0.0f&&p.controlTrackTape.moldAmount<=0.0f;
+ return p.slowDriftPixelsPerSecond==0.0f&&p.drumFlutterPixels==0.0f&&p.flutterPixels==0.0f&&p.stickSlipPixels==0.0f&&p.lineJitterPixels==0.0f&&p.trackingOffsetPixels==0.0f&&p.trackingSlopePixels==0.0f&&p.servoJitterPixels==0.0f&&p.controlTrackServoAmount==0.0f&&p.controlTrackTape.debrisAmount<=0.0f&&p.controlTrackTape.moldAmount<=0.0f&&p.backTension==0.0f;
 }
 inline void sample(const std::vector<float>&src,int w,int h,float x,float y,float out[4]) noexcept {
  x=std::clamp(x,0.0f,float(w-1));y=std::clamp(y,0.0f,float(h-1));const int x0=int(x),y0=int(y),x1=std::min(x0+1,w-1),y1=std::min(y0+1,h-1);
