@@ -15,6 +15,6 @@ int main(){using namespace vhs90;constexpr int w=80,h=8;std::vector<float>s(w*h*
  RgbChannelRegistrationParams rp;assert(processRgbChannelRegistration(si,ri,rp));assert(reg==s);
  rp.redOffsetPixels=2.5f;rp.blueOffsetPixels=-3.0f;assert(processRgbChannelRegistration(si,ri,rp));assert(processRgbChannelRegistration(si,r2i,rp));assert(reg==reg2&&reg!=s);
  for(size_t i=3;i<reg.size();i+=4)assert(reg[i]==1.0f);
- rp.redOffsetPixels=0.0f;rp.blueOffsetPixels=0.0f;assert(processRgbChannelRegistration(pi,oi,rp));
+ rp.redOffsetPixels=2.5f;rp.blueOffsetPixels=-3.0f;assert(processRgbChannelRegistration(pi,oi,rp));
  for(size_t i=3;i<out.size();i+=4)assert(std::fabs(out[i]-.5f)<1e-6f);
  return 0;}
