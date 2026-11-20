@@ -239,6 +239,8 @@ lost_signal_cases = set(range(26, 39))
 assert lost_signal_cases.issubset(style_cases), f"Missing Lost Signal VHS v1.9 profiles: {sorted(lost_signal_cases-style_cases)}"
 crates_cases = set(range(39, 55))
 assert crates_cases.issubset(style_cases), f"Missing Crates VHS Master recipes: {sorted(crates_cases-style_cases)}"
+assert "ApplyCratesMasterPreset(s,static_cast<int>(s.vhsStyle-39));" in source, "Crates presets must use the recovered source-value mapper"
+assert "kCrates[16][44]" in source, "Crates mapper must retain all 16 source looks and 44 mapped source fields"
 vhspro_cases = set(range(55, 65))
 assert vhspro_cases.issubset(style_cases), f"Missing VHSPro recipes: {sorted(vhspro_cases-style_cases)}"
 vhscraft_cases = set(range(65, 73))
