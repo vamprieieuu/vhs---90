@@ -225,3 +225,14 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - All modules are procedural C++ and are integrated into the AE render path. Source references are not used as overlays. Detailed report: `docs/source-audits/57-vhs-damage-lab-engines-and-camera-handoff.md`; tracking source evidence and architecture: `docs/source-audits/56-tracking-variants-and-damage-lab-checkpoint.md`.
 - Latest Linux CI run `44819741465` passed imported AE parameter validation, CMake build and all 34/34 CTest tests: https://github.com/vamprieieuu/vhs---90/actions/runs/44819741465.
 - The Damage Lab implementation checkpoint is closed for the next folder transition. Next: reopen and deeply analyze all six files in `vhs/Vhs cams/` (FXC6 and Gen 7 clips + notes), building on first-pass reports 26 and 29. Windows/MSVC AE SDK/PiPL/AEX loading and After Effects visual/MFR testing remain release gates.
+
+
+## VHS Cameras — FXC6 and Gen 7 deep analysis (2026-11-20)
+
+- Re-opened all six files in vhs/Vhs cams/: two FXC6 split-screen HEVC clips and note; Gen 7 clean source clip, processed clip and note. All four videos were re-probed and sampled across their timelines.
+- FXC6: the processed side is a cool blue/cyan-to-violet, grainy, softened direct-capture look; it does not show the severe tracking/tear/static behavior of Gen 7. The split-screen halves are not aligned source/output frames, so pixel-parity or direct edge-detail claims are not valid. See report 58.
+- Gen 7: before is 828x1086/30fps/45 frames/no audio; after is 828x1078/299 frames/~33.43fps/8.96s with AAC stereo 44.1kHz. The processed clip cycles between teal/yellow colorized frames, dark wavy monochrome static and cleaner recovery states. It is not a simple monotonic amount ramp. After-only audio RMS is ~0.0706 with energy concentrated in low/mid frequencies; original has no audio, so no before/after muffling curve can be measured.
+- Added two Camera Profile recipes: FXC6 Direct Capture (restrained cool cast, fine grain, softened detail, no severe tracking bars) and Gen 7 Reference (stronger teal/yellow response, chroma instability, correlated noise and moderate static/tracking/tear). These are source-inspired profiles; visual calibration in AE remains required. UI menu now has Off plus 11 reference profiles.
+- Report: docs/source-audits/58-fxc6-gen7-camera-reference-deep-analysis.md. Earlier report 26 was amended with measurement/alignment caveats.
+- Camera-profile code build/test passed in run 44820324482. The latest validator/menu-count follow-up run 44820427161 has passed parameter validation and is completing CMake/CTest: https://github.com/vamprieieuu/vhs---90/actions/runs/44820427161.
+- Remaining camera-folder work: controlled native AEX before/after renders and tuning against the supplied footage; separate audio engine required if the Gen 7 note's noise-rise/muffling behavior is to be implemented.
