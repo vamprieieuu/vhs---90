@@ -525,7 +525,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Frequency",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_FREQUENCY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Strength",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_STRENGTH);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_FRAME_REPEAT_TOPIC+100);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Profile",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Particle Pattern",ID_PARTICLE_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Particle Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Pattern",5,1,kParticleModeChoices,ID_PARTICLE_MODE);
