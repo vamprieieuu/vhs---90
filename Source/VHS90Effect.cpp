@@ -336,7 +336,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grain Particle Size",1,5,1,5,2,0,PF_ValueDisplayFlag_NONE,0,ID_VHS6RIFT_GRAIN_SIZE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Noise Detail / High Frequency",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS6RIFT_NOISE_DETAIL);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Shadow Bias",0,100,0,100,65,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS6RIFT_SHADOW_BIAS);
-    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable VHS6RIFT Procedural Noise", "Enable", 1, 0, ID_VHS6RIFT_NOISE_ENABLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Procedural Noise", "Enable", 1, 0, ID_VHS6RIFT_NOISE_ENABLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Noise Random Seed",1,32767,1,32767,1,0,PF_ValueDisplayFlag_NONE,0,ID_VHS6RIFT_NOISE_SEED);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_NTSCRS_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
