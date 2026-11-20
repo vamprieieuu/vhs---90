@@ -162,7 +162,6 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Interlace / Field Weave",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_INTERLACE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Roll",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_ROLL);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Scanlines",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SCANLINES);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Noise (Multi-Scale)",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_NOISE);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SIGNAL_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Static",ID_STATIC_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Static Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_STATIC_AMOUNT);
@@ -200,6 +199,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Cassette Seed",1,10000,1,10000,1,1,PF_ValueDisplayFlag_NONE,0,ID_TAPE_SEED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Back Tension", -100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_TAPE_BACK_TENSION);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TAPE_MATERIAL_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Noise (Multi-Scale)",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_NOISE);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
