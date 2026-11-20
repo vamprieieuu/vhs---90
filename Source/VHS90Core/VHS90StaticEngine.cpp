@@ -5,6 +5,7 @@
 namespace vhs90 {
 namespace {
 inline float clamp01(float v) noexcept { return std::max(0.0f, std::min(1.0f, v)); }
+inline float clampf(float v,float lo,float hi) noexcept { return std::max(lo,std::min(hi,v)); }
 inline float smooth01(float t) noexcept { t=clamp01(t); return t*t*(3.0f-2.0f*t); }
 inline float lerp(float a,float b,float t) noexcept { return a+(b-a)*t; }
 inline float hashCell(int x,int y,std::uint32_t seed,std::int64_t tick) noexcept {
