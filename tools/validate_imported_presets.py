@@ -45,6 +45,12 @@ required_reads = [
     "READ_FLOAT(PARAM_CAMERA_INTENSITY,cameraIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_INTENSITY,ntscRsIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_PHASE_NOISE,ntscRsPhaseNoise)",
+    "READ_FLOAT(PARAM_VHS6RIFT_GRAIN,vhs6RiftGrain)",
+    "READ_FLOAT(PARAM_VHS6RIFT_GRAIN_SIZE,vhs6RiftGrainSize)",
+    "READ_FLOAT(PARAM_VHS6RIFT_NOISE_DETAIL,vhs6RiftNoiseDetail)",
+    "READ_FLOAT(PARAM_VHS6RIFT_SHADOW_BIAS,vhs6RiftShadowBias)",
+    "READ_FLOAT(PARAM_VHS6RIFT_NOISE_SEED,vhs6RiftNoiseSeed)",
+    "s.vhs6RiftNoiseEnable=noiseEnable.u.bd.value!=0",
     "READ_FLOAT(PARAM_EDGE_WAVE_FREQUENCY,edgeWaveFrequency)",
     "READ_FLOAT(PARAM_EDGE_WAVE_SPEED,edgeWaveSpeed)",
     "READ_FLOAT(PARAM_EDGE_WAVE_DETAIL,edgeWaveDetail)",
@@ -58,6 +64,9 @@ for needle in [
     "ApplyNtscRsVhsLook(s);",
     "ApplyVhsSourcePresets(s);",
     "p.analogNoise.chromaPhaseNoise=clamp01(s.ntscRsPhaseNoise/100.0f);",
+    "p.analogNoise.grainAmount=clamp01(s.vhs6RiftGrain/100.0f);",
+    "p.analogNoise.shadowBias=clamp01(s.vhs6RiftShadowBias/100.0f);",
+    "p.analogNoise.noiseDetail=clamp01(s.vhs6RiftNoiseDetail/100.0f);",
     "p.geometry.edgeWaveFrequency=s.edgeWaveFrequency",
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
@@ -71,4 +80,4 @@ assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {s
 
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: 16 VHS6RIFT style presets, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
-print("PASS: SmartFX/legacy parameter reads and NTSC-RS engine controls are wired.")
+print("PASS: VHS6RIFT procedural grain/luma/chroma controls, seed, and NTSC-RS engine controls are wired.")
