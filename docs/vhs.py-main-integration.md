@@ -50,5 +50,6 @@ Defaults are neutral/pass-through. Seed and frame are derived deterministically 
 
 - `python -m compileall -q .` passes for the original Python source.
 - A dedicated C++ smoke test is committed and CMake registers both the engine and test. The test covers neutral pass-through, active effect, repeatable same-frame output, and alpha preservation.
-- The C++ workflow result for the newest commits has not yet been exposed by the available commit-status endpoint, so this report does not claim a successful C++ CI run.
+- The engine translation unit and smoke-test logic were also compiled and executed locally with a minimal stand-in for the shared hash/image-view declarations: `LOCAL_ENGINE_SMOKE_OK`. This validates the new engine's C++ syntax and its local behavior, but is not a substitute for the full VHS-90 CMake build.
+- The GitHub Actions run listing for the newest push commits is not available through the connected run-list endpoint, and the commit-status endpoint returned no status entries. Therefore this report does not claim a successful full-repository C++ CI run.
 - Native Windows AE SDK packaging remains separate from host-independent core CI.
