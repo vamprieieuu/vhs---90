@@ -11,7 +11,7 @@ int main() {
     v.monthStyle=VhsOsdMonthStyle::Short;v.dateFormat=VhsOsdDateFormat::NumericMonthFirst;
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="1.21.1994");
     v.dateFormat=VhsOsdDateFormat::NumericDayFirst; assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="21.1.1994");
-    v.dateFormat=VhsOsdDateFormat::YearMonth; assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="1994.1");
+    v.dateFormat=VhsOsdDateFormat::YearMonth; assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="1994.1.21");
     v.dateFormat=VhsOsdDateFormat::NumericDayFirst;v.timeMode=VhsOsdTimeMode::TwentyFourHour;
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="21.1.1994  13:05:09");
     v.timeMode=VhsOsdTimeMode::TwelveHour; assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="21.1.1994  01:05:09 PM");
