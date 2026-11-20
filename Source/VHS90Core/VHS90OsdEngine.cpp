@@ -150,7 +150,7 @@ bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
   const float a=amount*opacity*c01(p.timestampAmount);const int x=ci(timestampX-width(t,small)+dx,0,w-1),y=ci(timestampY-7*small+dy,0,h-1);
   textDraw(im,t,x,y,small,a,pm);if(gx&&gh>0.002f)textDraw(im,t,x,y,small,a*gh,pm,gx);
  }
- if(p.showTapeCounter&&p.tapeCounterAmount>0.0f){
+ if(p.showTapeCounter&&p.drawTapeCounterText&&p.tapeCounterAmount>0.0f){
   char counter[40]{}; tapeCounter(p,counter,sizeof(counter));
   const float a=amount*opacity*c01(p.tapeCounterAmount);
   const int x=ci(int(std::lround(w*c01(p.tapeCounterX/100.0f)))+dx,0,w-1);
