@@ -202,11 +202,11 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TAPE_MATERIAL_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Noise (Multi-Scale)",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("External Physical Interference",ID_PHYSICAL_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Magnet Moment (A m^2)",0,10,0,10,0,0.01f,PF_ValueDisplayFlag_NONE,0,ID_MAGNET_MOMENT);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Magnet Distance (cm)",0.1f,30,0.1f,30,6,0.1f,PF_ValueDisplayFlag_NONE,0,ID_MAGNET_DISTANCE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Magnet Moment (A m^2)",0,10,0,10,0,2,PF_ValueDisplayFlag_NONE,0,ID_MAGNET_MOMENT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Magnet Distance (cm)",0.1f,30,0.1f,30,6,1,PF_ValueDisplayFlag_NONE,0,ID_MAGNET_DISTANCE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Ground Loop (mV)",0,500,0,500,0,1,PF_ValueDisplayFlag_NONE,0,ID_GROUND_LOOP);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Mains Hum",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_MAINS_HUM);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Field (V/m)",0,40,0,40,0,0.1f,PF_ValueDisplayFlag_NONE,0,ID_RF_FIELD);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Field (V/m)",0,40,0,40,0,1,PF_ValueDisplayFlag_NONE,0,ID_RF_FIELD);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Pickup",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_RF_PICKUP);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PHYSICAL_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
