@@ -49,7 +49,9 @@ These reports are based on the supplied vhs.zip archive and the linked VHS-90 re
 - 44-ntscrt-track-read-physics-port.md — adjacent-track overlap and azimuth-loss C++ port.
 - 45-ntscrt-same-session-port-status.md — current transport/head recurrence implementation, CI result, attribution and remaining unported engine stages.
 - 46-ntscrt-359-file-disposition-ledger.md — closed 359-file content disposition audit: 314 content-reviewed and 45 semantic-reviewed rows, zero pending.
-- 47-ntscrt-preset-semantic-migration.md — per-preset semantic review of all 45 NTSCRT looks, stage boundaries, keyframe migration and explicit exclusions.
+- 47-ntscrt-preset-semantic-migration.md
+- 48-urp-vhs-retro-effects.md — fast audit of the URP VHS shader and port of multi-scale tape noise.
+- 49-vhs-effect-addon-full-audit.md — 18-file VHS Effect Add-on inventory, algorithm disposition, five preset mappings, source self-test and AE/CI limitations. — per-preset semantic review of all 45 NTSCRT looks, stage boundaries, keyframe migration and explicit exclusions.
 
 ## Current project status
 
