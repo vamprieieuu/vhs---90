@@ -6,7 +6,7 @@ namespace vhs90 {
 namespace {
 constexpr float kPi=3.14159265358979323846f;
 constexpr float kTapeWidthMm=12.65f;
-constexpr float kTrackStartMm=1.52f;
+constexpr float kTrackStartMm=1.0f;
 constexpr float kTrackAngle=5.97f*kPi/180.0f;
 constexpr float kTrackLengthMm=5.8f*1000.0f/(60000.0f/1001.0f);
 constexpr float kLineLengthMm=kTrackLengthMm/262.5f;
