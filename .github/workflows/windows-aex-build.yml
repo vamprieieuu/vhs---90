@@ -1,0 +1,72 @@
+name: VHS-90 Windows AEX Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - work/osd-directwrite-integration-map
+    paths:
+      - 'CMakeLists.txt'
+      - 'build.ps1'
+      - 'Source/**'
+      - 'resources/**'
+      - 'tools/**'
+      - '.github/workflows/windows-aex-build.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-aex:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Locate the supplied VHS6RIFT SDK
+        shell: pwsh
+        run: |
+          $candidates = @(
+            "${{ github.workspace }}\\extern\\AfterEffectsSDK",
+            "${{ github.workspace }}\\vhs\\open source native plugin for ae\\VHS6RIFT\\extern\\AfterEffectsSDK"
+          )
+          $sdk = $candidates | Where-Object {
+            (Test-Path (Join-Path $_ 'Headers\\AE_Effect.h')) -and
+            (Test-Path (Join-Path $_ 'Resources\\PiPLtool.exe'))
+          } | Select-Object -First 1
+          if (-not $sdk) {
+            throw 'The VHS6RIFT AfterEffectsSDK is not present in the checked-out workspace. Place the extracted SDK at extern/AfterEffectsSDK before dispatching this workflow.'
+          }
+          "AE_SDK_ROOT=$sdk" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using VHS6RIFT SDK: $sdk"
+
+      - name: Configure, build and test
+        shell: pwsh
+        run: .\\build.ps1 -AeSdkRoot "$env:AE_SDK_ROOT" -BuildDir build -Configuration Release
+
+      - name: Verify single-file output
+        shell: pwsh
+        run: |
+          $aex = Join-Path $env:GITHUB_WORKSPACE 'build\\VHS-90.aex'
+          if (-not (Test-Path $aex)) { throw "Missing root-level AEX: $aex" }
+          $item = Get-Item $aex
+          if ($item.Length -lt 65536) { throw "AEX is unexpectedly small ($($item.Length) bytes)." }
+          Write-Host "AEX_READY=$($item.FullName)"
+          Write-Host "AEX_SIZE=$($item.Length)"
+
+      - name: Upload bare AEX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VHS-90-AEX
+          path: build/VHS-90.aex
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Publish direct AEX download
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "vhs90-aex-$($env:GITHUB_SHA.Substring(0,12))"
+          gh release create $tag build/VHS-90.aex --repo "${{ github.repository }}" --title "VHS-90 AEX $($env:GITHUB_SHA.Substring(0,12))" --notes "Windows x64 / MSVC 2022 build from commit $env:GITHUB_SHA. Validate in After Effects before production use."
