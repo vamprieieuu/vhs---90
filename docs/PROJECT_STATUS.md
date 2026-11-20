@@ -141,3 +141,18 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - The source folder is GPL-2.0. No upstream source files were copied verbatim; nevertheless, the algorithmic adaptation's distribution/licensing implications must be reviewed before any proprietary/closed-source release.
 - Raw 28.6 MHz decoder expects raw composite samples, Scanimate is CRT phosphor display, cassette tool is audio-only, and the remaining FFmpeg utilities are timing/palette/keying/gamma/conversion shells; all were classified and intentionally not inserted into the VHS render chain.
 - Final-state CI passed: https://github.com/vamprieieuu/vhs---90/actions/runs/44807131889 (153 AE parameter slots validated, CMake build passed, 32/32 core smoke tests passed). Windows/MSVC AE SDK build, PiPL, AEX load and AE runtime/MFR remain unverified global gates.
+
+
+## Source audit 51 — Lost Signal VHS v1.9 (2026-11-20)
+
+- Closed the full `lost-signal-vhs-main` folder audit: 31/31 files, including all 10 historical release archives. v1.9 is the authoritative source. See `docs/source-audits/51-lost-signal-vhs-full-audit.md`.
+- Parsed all 13 v1.9 profiles and 77 unique public settings; source release script validates 75 preset-owned options. MIT license recorded and attribution retained; no GLSL copied verbatim.
+- Added 13 `LS` profiles to the unified VHS Style Preset list. Unified list now has 38 entries: 16 VHS6RIFT + 5 VHS Effect Add-on + 3 Composite Video Simulator + 13 Lost Signal + Custom.
+- Added Composite Decoder selector (Consumer Notch / One-Line Comb / Two-Line Comb); implemented and tested five-tap Consumer Notch. Existing one-/two-line comb paths exposed.
+- Added VHS 4:3 crop, final rounded overscan mask, radial lens distortion and two-axis digital zoom in the native geometry/composite path.
+- Added three-segment OSD battery indicator and control; Camcorder 1996 preset enables it.
+- Added deterministic frame-repeat frequency/strength using previous-frame data and frame/tape-seed hash; connected interlaced profile values to temporal field weaving.
+- Reused existing composite/waveform, RF AGC, tape-surface persistent-defect, tracking/head, temporal, OSD and noise engines. Persistent tape-defect master now derives from wear/defect density/defect strength so clean-wear profiles can still retain defect memory.
+- Static validator: 165 AE parameter slots, UI order matches ParamDiskID. Linux CMake build passed and 32/32 core smoke tests passed: https://github.com/vamprieieuu/vhs---90/actions/runs/44810036059.
+- Depth-reprojected history and depth fog require Minecraft depth/camera data and cannot be reproduced exactly from a standard AE RGB input. Liminal fog is only approximated with available color/glow controls; exact focus-hunt/camera-era behavior remains outstanding. Windows/MSVC Adobe SDK/PiPL/AEX/AE runtime/MFR gates remain outstanding.
+- Next folder in the user's specified eight-folder order: `ntscqt-1.5.0`. The first two listed folders are already closed in reports 49 and 50; this report closes the third.
