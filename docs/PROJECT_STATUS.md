@@ -115,3 +115,16 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Existing VHS-90 chroma bleed/bandwidth, luma smear, edge enhancement/ringing, interlace/geometry and scanline engines already cover the other major source effects; no duplicate engines were added.
 - MIT attribution and license preserved in `ThirdParty/URP-VHS-Retro-Effects/`; full disposition in `docs/source-audits/48-urp-vhs-retro-effects.md`.
 - Linux core CI run 613 passed 28/28 tests: https://github.com/vamprieieuu/vhs---90/actions/runs/44783681639. Windows/MSVC and AE-host validation are not claimed.
+
+
+## Source audit 49 — VHS Effect Add-on 1.0.0 (2026-11-20)
+
+- Completed file-disposition audit of `vhs/github repos/VHS_effect_add-on-1.0.0/`: 20 archive entries (18 files + 2 directories). See `docs/source-audits/49-vhs-effect-addon-full-audit.md`.
+- Reviewed the Python image-processing core, five source presets, processing order, OSD, time-base jitter, chroma bleed/subsampling/offset, head switching, moving tracking band, dropouts, noise, optical processing, CLI/GUI wrappers, dependencies, FFmpeg path and self-test.
+- Reused existing VHS-90 native engines rather than duplicating already-implemented chroma bandwidth, geometry/transport, arbitrary-region tracking/head switching, dropout, analog noise, tape detail, bloom, image grade and OSD systems.
+- Added five source-derived entries to the native `VHS Style Preset` popup: Add-on Light, Add-on Classic, Add-on Heavy, Add-on Worn and Add-on Clean TV. The popup now has 22 entries; new cases 18–22 blend through the existing Style Intensity control. Source behavior is mapped to VHS-90's native controls, not claimed as pixel-identical.
+- Extended `tools/validate_imported_presets.py` to keep the original 16 VHS6RIFT checks and additionally require Add-on cases 18–22 and 22 popup entries.
+- Source self-test passed 30/30 checks using generated image/video fixtures. The archive omitted its documented Material reference folder; generated fixtures are functional smoke tests, not visual-parity evidence.
+- No project LICENSE file was present; no Python source or GPL FFmpeg binary was copied into the native plugin. README's third-party license notes were recorded.
+- First CI attempt failed only because the static validator still expected exactly 16 VHS6RIFT styles; it did not reach C++ compilation/tests. The validator was corrected in commit `f79b45763c7a53a3407fa740b5efa116aca7e434`. Follow-up run: https://github.com/vamprieieuu/vhs---90/actions/runs/44806070384 (check final conclusion before declaring the repository closed).
+- The AE adapter change has not been compiled against the exact Adobe SDK; Windows/MSVC, PiPL, AEX loading, in-host rendering and MFR are not verified. This remains a global release gate.
