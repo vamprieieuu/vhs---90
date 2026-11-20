@@ -102,6 +102,8 @@ bool processPyVhsGeneration(ConstImageView src, ImageView dst,
         compressChannel(cr, w, h, cc);
         compressChannel(cb, w, h, cc);
         const float inv255 = 1.0f / 255.0f;
+        std::vector<float> rowCr(static_cast<std::size_t>(w));
+        std::vector<float> rowCb(static_cast<std::size_t>(w));
         for (int y = 0; y < h; ++y) {
             const float phase = float(y) * freq * 2.0f * kPi / float(std::max(1,h)) +
                                 float(hash32(std::uint32_t(y) ^ p.seed) & 0xffffu) * (1.0f/65535.0f);
@@ -113,8 +115,6 @@ bool processPyVhsGeneration(ConstImageView src, ImageView dst,
                 cb[i] += (hash01(std::uint32_t(x),std::uint32_t(y),p.seed ^ 0x43424E4Fu,p.frame)*2.0f-1.0f) * cnoise * inv255;
             }
             if (wave > 0.0f) {
-                std::vector<float> rowCr(static_cast<std::size_t>(w));
-                std::vector<float> rowCb(static_cast<std::size_t>(w));
                 const std::size_t rowBase = std::size_t(y)*w;
                 std::copy_n(cr.data()+rowBase,w,rowCr.data());
                 std::copy_n(cb.data()+rowBase,w,rowCb.data());
