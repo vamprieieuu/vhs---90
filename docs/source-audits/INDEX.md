@@ -66,3 +66,5 @@ See docs/PROJECT_STATUS.md for the current build/integration boundary. The repos
 - 54-vhs-py-main-expanded-audit.md — expanded 9-file Python VHS emulator audit; confirms existing deterministic C++ PyVHS generation engine and six AE controls already cover its portable luma/chroma compression, noise and wave behavior; CI 32/32.
 
 - 55-vhs-main-expanded-final-audit.md — final 28-file AGPL-3.0 OFX/Metal source audit; moved OSD before composite and added independent red/blue RGB channel registration in the native AE CPU path. Final registration CI pending.
+
+- 56-tracking-variants-and-damage-lab-checkpoint.md — five distinct Tracking Noise renderer models and evidence mapping for VHS6RIFT, NTSC-R, Crates VHS Master, VHSPro and VHS Damage Lab; AE selector wired; CI validator/build/32-of-32 tests pass. Records remaining multi-layer UI, Particle Pattern and Tear & Chroma integration gates.
