@@ -82,6 +82,6 @@ These are source-inspired camera reference recipes, not claims of exact camera h
 - All six files were re-opened and inventoried.
 - All four video files were re-probed and sampled; the two Fxc6 notes and Gen 7 note were read.
 - The processed Gen 7 audio was measured, but no original audio exists for comparison.
-- The AE profile wiring requires CI confirmation; Windows/MSVC Adobe SDK, PiPL, AEX loading, actual AE visual comparison and MFR remain unverified.
+- The AE profile wiring passed CI run 44820427161: validator confirmed 286 AE parameter slots and all disk IDs in UI order, CMake build passed and 34/34 CTest tests passed. Windows/MSVC Adobe SDK, PiPL, AEX loading, actual AE visual comparison and MFR remain unverified. Run: https://github.com/vamprieieuu/vhs---90/actions/runs/44820427161.
 
 **Disposition:** FXC6 and Gen 7 have separate reference analyses and separate native Camera Profile recipes. The next validation is a controlled AE render comparison against the supplied clips, followed by any required profile tuning.
