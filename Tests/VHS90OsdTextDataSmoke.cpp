@@ -14,7 +14,7 @@ int main() {
     assert(decoded.utf8==multilingual);
     assert(isValidOsdUtf8(""));
     assert(isValidOsdUtf8("ASCII"));
-    const std::string embeddedNul("A\\0B",3);
+    const std::string embeddedNul("A\0B",3);
     assert(!isValidOsdUtf8(embeddedNul));
     assert(!isValidOsdUtf8("\xC0\xAF")); // overlong
     assert(!isValidOsdUtf8("\xED\xA0\x80")); // UTF-16 surrogate
