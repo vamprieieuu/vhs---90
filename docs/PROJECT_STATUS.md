@@ -128,3 +128,16 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - No project LICENSE file was present; no Python source or GPL FFmpeg binary was copied into the native plugin. README's third-party license notes were recorded.
 - First CI attempt failed only because the static validator still expected exactly 16 VHS6RIFT styles; it did not reach C++ compilation/tests. The validator was corrected in commit `f79b45763c7a53a3407fa740b5efa116aca7e434`. Follow-up run: https://github.com/vamprieieuu/vhs---90/actions/runs/44806070384 (check final conclusion before declaring the repository closed).
 - The AE adapter change has not been compiled against the exact Adobe SDK; Windows/MSVC, PiPL, AEX loading, in-host rendering and MFR are not verified. This remains a global release gate.
+
+
+## Source audit 50 — Composite Video Simulator (2026-11-20)
+
+- Completed file-disposition audit of `vhs/github repos/composite-video-simulator-master/`: 36/36 files, including all 20 C++ translation units. See `docs/source-audits/50-composite-video-simulator-full-audit.md`.
+- Main VHS/composite path reviewed in `ffmpeg_to_composite.cpp` and `ffmpeg_ntsc.cpp`: YUV composite carrier encode/decode, NTSC/PAL phase, cascaded chroma low-pass, VHS SP/LP/EP bandwidth, chroma delay/vertical blend, head switching, noise and separate luma/chroma playback sharpening.
+- Reused existing VHS-90 composite/waveform, tape speed/transport, head/tracking region, noise, dropout, chroma subsample/vertical blend, luma edge and grade engines. Did not duplicate existing modules.
+- Added independent `Chroma Edge Enhancement` control under new `VHS Playback` group. Native ImageGrade implementation uses three cascaded first-order I/Q low-pass stages and separate chroma unsharp gain; tape speed maps cutoff to SP 640 kHz, LP 600 kHz, EP 560 kHz. Luma Edge Enhancement remains separate.
+- Added `CVS VHS SP`, `CVS VHS LP`, `CVS VHS EP` entries to the unified `VHS Style Preset` menu. These represent the source's three VHS speed modes, not original upstream named preset files. The unified popup now has 25 entries.
+- Static validator confirms 153 AE parameter slots and all 25 styles; Linux CMake build and 32/32 core smoke tests passed in run https://github.com/vamprieieuu/vhs---90/actions/runs/44807065869.
+- The source folder is GPL-2.0. No upstream source files were copied verbatim; nevertheless, the algorithmic adaptation's distribution/licensing implications must be reviewed before any proprietary/closed-source release.
+- Raw 28.6 MHz decoder expects raw composite samples, Scanimate is CRT phosphor display, cassette tool is audio-only, and the remaining FFmpeg utilities are timing/palette/keying/gamma/conversion shells; all were classified and intentionally not inserted into the VHS render chain.
+- Latest final-state validator run is https://github.com/vamprieieuu/vhs---90/actions/runs/44807131889; confirm its conclusion before marking the folder closed. Windows/MSVC AE SDK build, PiPL, AEX load and AE runtime/MFR remain unverified global gates.
