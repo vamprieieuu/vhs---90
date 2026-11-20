@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstring>
 #include <utility>
+#include <string>
 namespace vhs90::win {
 namespace {
 using Microsoft::WRL::ComPtr;
@@ -26,6 +27,63 @@ struct Factories {
     }
 };
 Factories& factories() noexcept { static Factories instance; return instance; }
+
+bool ensureBundledFonts() noexcept {
+    static const bool loaded = []() noexcept {
+        HMODULE module = nullptr;
+        if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                reinterpret_cast<LPCWSTR>(&ensureBundledFonts), &module) || !module)
+            return false;
+        wchar_t temp[MAX_PATH]{};
+        const DWORD n = GetTempPathW(MAX_PATH, temp);
+        if (n == 0 || n >= MAX_PATH) return false;
+        std::wstring root(temp, n);
+        root += L"VHS90\\Fonts";
+        const auto slash = root.find_last_of(L"\\/");
+        if (slash != std::wstring::npos) {
+            const std::wstring parent = root.substr(0, slash);
+            if (!CreateDirectoryW(parent.c_str(), nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
+                return false;
+        }
+        if (!CreateDirectoryW(root.c_str(), nullptr) && GetLastError() != ERROR_ALREADY_EXISTS)
+            return false;
+
+        struct FontResource { WORD id; const wchar_t* filename; };
+        constexpr FontResource fonts[] = {
+            {501, L"Rooyin_Free_Bold.ttf"},
+            {502, L"Sponge_Arabic_Regular.otf"}
+        };
+        bool anyLoaded = false;
+        for (const auto& font : fonts) {
+            HRSRC resource = FindResourceW(module, MAKEINTRESOURCEW(font.id), RT_RCDATA);
+            if (!resource) continue;
+            HGLOBAL handle = LoadResource(module, resource);
+            const DWORD bytes = SizeofResource(module, resource);
+            const void* data = handle ? LockResource(handle) : nullptr;
+            if (!data || bytes == 0) continue;
+            const std::wstring path = root + L"\\" + font.filename;
+            HANDLE file = CreateFileW(path.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr,
+                                      CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (file == INVALID_HANDLE_VALUE) continue;
+            DWORD written = 0;
+            const BOOL ok = WriteFile(file, data, bytes, &written, nullptr);
+            CloseHandle(file);
+            if (ok && written == bytes && AddFontResourceExW(path.c_str(), FR_PRIVATE, nullptr) != 0)
+                anyLoaded = true;
+        }
+        if (anyLoaded) {
+            SendMessageW(HWND_BROADCAST, WM_FONTCHANGE, 0, 0);
+            auto& f = factories();
+            if (SUCCEEDED(f.status) && f.dwrite) {
+                ComPtr<IDWriteFontCollection> refreshed;
+                f.dwrite->GetSystemFontCollection(&refreshed, TRUE);
+            }
+        }
+        return anyLoaded;
+    }();
+    return loaded;
+}
 class ComApartment {
 public:
     ComApartment() noexcept {
@@ -52,6 +110,7 @@ bool utf8ToWide(const char* input, std::wstring& output) {
     return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, input, bytes, output.data(), count) == count;
 }
 bool findFont(IDWriteFactory* factory, const wchar_t* familyName) noexcept {
+    ensureBundledFonts();
     if (!factory || !familyName || !*familyName) return false;
     ComPtr<IDWriteFontCollection> collection;
     if (FAILED(factory->GetSystemFontCollection(&collection, FALSE))) return false;
@@ -110,6 +169,7 @@ bool isDirectWriteAvailable() noexcept {
     const auto& f = factories(); return SUCCEEDED(f.status) && f.d2d && f.dwrite;
 }
 std::vector<std::wstring> enumerateSystemFontFamilies() {
+    ensureBundledFonts();
     std::vector<std::wstring> names;
     ComApartment apartment; if (!apartment.valid()) return names;
     auto& f = factories(); if (FAILED(f.status) || !f.dwrite) return names;
