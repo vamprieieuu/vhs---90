@@ -813,7 +813,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TEAR_BAND5_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Tape OSD Layout",ID_OSD_LAYOUT_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Deck Transport",5,1,kOsdDeckModeChoices,ID_OSD_DECK_MODE);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Timestamp Format",5,1,kOsdDateFormatChoices,ID_OSD_DATE_FORMAT);
+    AEFX_CLR_STRUCT(def); def.ui_flags=PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Legacy Timestamp Format",5,1,kOsdDateFormatChoices,ID_OSD_DATE_FORMAT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("REC Horizontal Position",0,100,0,100,2.2,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_REC_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("REC Vertical Position",0,100,0,100,3,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_REC_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Deck Status Horizontal Position",0,100,0,100,98,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_STATUS_X);
@@ -823,7 +823,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_LAYOUT_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tape Counter",ID_OSD_COUNTER_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Counter Format",3,1,kOsdCounterFormatChoices,ID_OSD_COUNTER_FORMAT);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Amount",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Horizontal Position",0,100,0,100,2.2,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Vertical Position",0,100,0,100,96,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Offset (seconds)",-3600,3600,-3600,3600,0,1,PF_ValueDisplayFlag_NONE,0,ID_OSD_COUNTER_OFFSET);
