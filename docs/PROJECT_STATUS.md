@@ -328,3 +328,10 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - CMake output properties now suppress Visual Studio's default `Release/` subdirectory. The Windows AEX workflow publishes a raw `.aex` release asset and a one-file Actions artifact after a successful build.
 - Important release gate: the binary font files are extracted from `vhs.zip` during the build and are not stored in this repository. The hosted AEX workflow therefore requires the original archive to be available in its workspace or through its optional downloadable-URL input. The current GitHub Library copy is not automatically mounted into GitHub Actions.
 - No AEX has been produced yet. The current execution environment is Linux and cannot run the required Windows/MSVC + Adobe PiPLtool pipeline; the hosted workflow cannot proceed until it receives the original archive. The AEX and AE-host gates remain open.
+
+## Latest Windows/DirectWrite verification
+
+- The DirectWrite backend now uses `IDWriteFactory5` with a custom font set/collection for embedded OpenType files. This is the supported DirectWrite path for application-bundled fonts; GDI `FR_PRIVATE` registration is not used.
+- Windows and Linux OSD/Core CI passed on commit `a9bc0fee9bcd1a90bb3de79cd78d3ed6499f50bb` (Actions runs `44838618207` and `44838618165`). The Windows job compiled the DirectWrite backend and passed its smoke suite.
+- The repository checkout used by those CI runs did not contain the original font binaries, so the conditional embedded-font assertions were not enabled in that CI run. The AEX build script extracts the binaries from `vhs.zip`; when that archive is supplied, CMake compiles the font resources into both the DirectWrite smoke executable and the AEX so the font assertions become mandatory.
+- The Windows AEX workflow is deliberately manual-dispatch only. It requires the original `vhs.zip` in the runner workspace or an authorized downloadable URL; the ChatGPT Library copy is not automatically accessible to GitHub Actions. The SDK and fonts were verified in the supplied archive, but no native AEX build has yet run.
