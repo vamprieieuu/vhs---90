@@ -92,6 +92,14 @@ if(VHS90_BUILD_TESTS)
     endforeach()
 endif()
 
+if(VHS90_BUILD_AE_PLUGIN)
+    if(NOT WIN32 OR NOT MSVC)
+        message(FATAL_ERROR "VHS90_BUILD_AE_PLUGIN requires Windows x64 and MSVC 2022.")
+    endif()
+    enable_language(C)
+    enable_language(RC)
+endif()
+
 if(WIN32)
     # Windows-only text backend; never leaks platform dependencies into VHS90Core.
     add_library(VHS90DirectWrite STATIC Source/VHS90Windows/VHS90DirectWriteText.cpp)
@@ -134,11 +142,6 @@ if(WIN32)
 endif()
 
 if(VHS90_BUILD_AE_PLUGIN)
-    if(NOT WIN32 OR NOT MSVC)
-        message(FATAL_ERROR "VHS90_BUILD_AE_PLUGIN requires Windows x64 and MSVC 2022.")
-    endif()
-    enable_language(C)
-    enable_language(RC)
     # VHS6RIFT build-foundation port: discover flat, Examples/, or nested SDK layouts.
     if(NOT AE_SDK_ROOT OR AE_SDK_ROOT STREQUAL "")
         if(DEFINED ENV{AE_SDK_PATH} AND NOT "$ENV{AE_SDK_PATH}" STREQUAL "")
