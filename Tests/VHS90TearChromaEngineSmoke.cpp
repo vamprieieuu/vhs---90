@@ -11,6 +11,10 @@ int main() {
     TearBand bands[2];bands[0].centerY=.25f;bands[0].height=.18f;bands[0].seedOffset=1;bands[1].centerY=.78f;bands[1].height=.22f;bands[1].seedOffset=2;
     TearChromaParams p;p.seed=91;p.frame=7;p.timeSeconds=.3;p.mode=TearChromaMode::SpectralWithLowerTear;p.bands=bands;p.bandCount=2;
     assert(processTearChroma(si,ai,p));assert(processTearChroma(si,bi,p));assert(a==b);assert(a!=src);
+    std::vector<float> changedBand(src.size()); ImageView changedBandView{changedBand.data(),w,h,w*4};
+    bands[1].centerY=.42f; bands[1].chromaShiftPx=-17.0f; bands[1].horizontalShiftPx=55.0f;
+    assert(processTearChroma(si,changedBandView,p)); assert(changedBand!=a);
+    bands[1].centerY=.78f; bands[1].chromaShiftPx=5.0f; bands[1].horizontalShiftPx=18.0f;
     TearChromaParams spectral=p;spectral.mode=TearChromaMode::SpectralSmear;spectral.bandCount=0;
     assert(processTearChroma(si,ci,spectral));assert(c!=src&&c!=a);
     std::vector<float> alpha=src,alphaOut(src.size());for(size_t i=3;i<alpha.size();i+=4)alpha[i]=.0f;
