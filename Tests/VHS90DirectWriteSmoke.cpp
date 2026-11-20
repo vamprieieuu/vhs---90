@@ -15,6 +15,26 @@ int main() {
     o.utf8FontFamily="Segoe UI"; o.x=12; o.y=24; o.fontSize=42;
     const auto r=drawDirectWriteText({pixels.data(),w,h,w*4},o);
     assert(r.rendered);
+    // Exercise representative Arabic shaping, combining marks, bidi punctuation,
+    // mixed Arabic/Latin labels, and both Arabic digit families in the Windows
+    // DirectWrite backend. These are smoke checks; AE-host visual parity remains
+    // a separate release gate.
+    const char* rtlCases[] = {
+        u8"السَّلَامُ عَلَيْكُمْ ١٢٣",
+        u8"VHS-90 | تسجيل REC 1994",
+        u8"PAUSE - إيقاف، REW ← ۱۲۳",
+        u8"تاريخ: 21.1.1994 | TIME 23:59"
+    };
+    for (const char* sample : rtlCases) {
+        o.utf8Text = sample;
+        o.direction = TextDirection::Auto;
+        assert(drawDirectWriteText({pixels.data(),w,h,w*4},o).rendered);
+    }
+    o.utf8Text = u8"السَّلَامُ عَلَيْكُمْ ١٢٣";
+    o.direction = TextDirection::RightToLeft;
+    assert(drawDirectWriteText({pixels.data(),w,h,w*4},o).rendered);
+    o.utf8Text = u8"VHS-90 اختبار عربي 123";
+    o.direction = TextDirection::Auto;
     o.fontWeight=700;
     assert(drawDirectWriteText({pixels.data(),w,h,w*4},o).rendered);
     o.fontWeight=900;
