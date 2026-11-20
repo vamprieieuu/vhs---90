@@ -17,7 +17,6 @@ The AE controls are grouped under Camcorder OSD. OSD Amount defaults to zero to 
 
 ## Source issues noted
 - _apply_chroma_bleed accepts unbounded chroma_subsample; values above 1 can create negative blend weights.
-- The no-OpenCV row-remap fallback uses np.take_along_axis with a one-channel index array; it needs explicit channel broadcasting to guarantee all three channels are remapped.
 - README.en.md understates dependencies: SciPy and imageio-ffmpeg are also declared; video/audio capability depends on FFmpeg availability.
 - _gui_settings.json contains machine-specific absolute Windows paths and is not suitable for an AE effect.
 - The Python GUI/video stack must not execute from an AE render callback.
@@ -26,4 +25,4 @@ The AE controls are grouped under Camcorder OSD. OSD Amount defaults to zero to 
 - All 18 files were inventoried; Python sources parsed with ast and compiled with python -m compileall.
 - Local dependencies were detected and the source classic preset rendered a synthetic 320x180 frame.
 - Native OSD smoke test compiled with g++ -std=c++17 -Wall -Wextra -Wpedantic and passed (LOCAL_OSD_SMOKE_OK): deterministic frame output, alpha preservation, red REC lamp, advancing timestamp, disabled pass-through, transparent-pixel compositing and invalid-stride rejection.
-- This local smoke test is not a complete After Effects SDK build. Repository CI/build status must be checked after integration.
+- GitHub Actions run #651 completed successfully for the integration commit; the Linux core build and all smoke tests passed, including VHS90OsdEngineSmoke. This is native core CI, not a Windows After Effects SDK/AEX build.
