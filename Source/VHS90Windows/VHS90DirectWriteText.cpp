@@ -41,7 +41,10 @@ private:
 bool utf8ToWide(const char* input, std::wstring& output) {
     output.clear();
     if (!input) return false;
-    const int bytes = static_cast<int>(strnlen_s(input, 1u << 20));
+    std::size_t boundedLength = 0;
+    while (boundedLength < (1u << 20) && input[boundedLength] != '\\0') ++boundedLength;
+    if (boundedLength == (1u << 20)) return false;
+    const int bytes = static_cast<int>(boundedLength);
     if (bytes <= 0) return false;
     const int count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, input, bytes, nullptr, 0);
     if (count <= 0) return false;
