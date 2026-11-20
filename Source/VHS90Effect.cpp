@@ -1167,8 +1167,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(!applyVhsOsd(osdView,op)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             static constexpr const char* kOsdFontFamilies[]={
                 "A Massir Ballpoint","A Naskh Tahrir","A-bad kh@t","Guesswhat Exceptional",
-                "Arabic Childhood ver1","Arial Narrow Bold","Evogria","K Kamran","Maqroo Regular",
-                "Milan Display Black","Nasma","Real Vhs Font Regular","RooyinFree Bold",
+                "Arabic Childhood ver1","Arial Narrow","Evogria","K Kamran","Maqroo",
+                "Milan Display","Nasma","Real Vhs Font","RooyinFree",
                 "YR Sponge Arabic","ZIAN Black"};
             const char* osdFont=kOsdFontFamilies[std::clamp<A_long>(s.osdFont-1,0,14)];
             const auto language=static_cast<VhsOsdLanguage>(std::clamp<A_long>(s.osdLanguage-1,0,2));
