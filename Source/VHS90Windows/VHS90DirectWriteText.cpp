@@ -1,5 +1,3 @@
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
 #include "VHS90DirectWriteText.h"
 #include "VHS90FontsResource.h"
 #include <windows.h>
