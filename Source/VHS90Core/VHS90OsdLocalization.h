@@ -24,7 +24,9 @@ struct VhsOsdDateTime {
 bool isValidVhsOsdDateTime(const VhsOsdDateTime& value) noexcept;
 std::string localizeVhsOsdDigits(const std::string& ascii, VhsOsdDigitSet digits);
 std::string vhsOsdLabel(VhsOsdLabel label, VhsOsdLanguage language);
-std::string formatVhsOsdCounter(std::int64_t frame, float framesPerSecond, double offsetSeconds,\n                                  int counterFormat, VhsOsdDigitSet digits);\nstd::string formatVhsOsdTime(const VhsOsdDateTime& value,
+std::string formatVhsOsdCounter(std::int64_t frame, float framesPerSecond, double offsetSeconds,
+                                  int counterFormat, VhsOsdDigitSet digits);
+std::string formatVhsOsdTime(const VhsOsdDateTime& value,
                               VhsOsdLanguage language,
                               VhsOsdDigitSet arabicDigits);
 std::string formatVhsOsdDateTime(const VhsOsdDateTime& value,
