@@ -94,11 +94,13 @@ addon_cases = set(range(18, 23))
 assert addon_cases.issubset(style_cases), f"Missing VHS Effect Add-on preset cases: {sorted(addon_cases-style_cases)}"
 cvs_cases = set(range(23, 26))
 assert cvs_cases.issubset(style_cases), f"Missing Composite Video Simulator VHS SP/LP/EP cases: {sorted(cvs_cases-style_cases)}"
+lost_signal_cases = set(range(26, 39))
+assert lost_signal_cases.issubset(style_cases), f"Missing Lost Signal VHS v1.9 profiles: {sorted(lost_signal_cases-style_cases)}"
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
-assert style_choices and len(style_choices.group(1).split("|")) == 25, "VHS Style popup must expose all 22 entries"
+assert style_choices and len(style_choices.group(1).split("|")) == 38, "VHS Style popup must expose all 22 entries"
 assert camera_cases == set(range(2, 11)), f"Missing VHS6RIFT camera profile cases: {sorted(set(range(2,11))-camera_cases)}"
 assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
 
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
-print("PASS: 16 VHS6RIFT + 5 VHS Effect Add-on + 3 Composite Video Simulator VHS speed presets, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
-print("PASS: VHS6RIFT grain controls, Add-on and CVS VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening are wired.")
+print("PASS: 16 VHS6RIFT + 5 VHS Effect Add-on + 3 Composite Video Simulator VHS speed presets + 13 Lost Signal VHS v1.9 profiles, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
+print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening are wired.")
