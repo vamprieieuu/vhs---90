@@ -16,7 +16,6 @@ inline float lanczos4(float x) noexcept {
     x = std::fabs(x);
     return x < 4.0f ? sinc(x) * sinc(x * 0.25f) : 0.0f;
 }
-inline float clamp01(float x) noexcept { return std::clamp(x, 0.0f, 1.0f); }
 inline float noiseGaussian(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
     const float u1 = std::max(1.0e-7f, hash01(std::uint32_t(x) * 2u, std::uint32_t(y), seed, frame));
     const float u2 = hash01(std::uint32_t(x) * 2u + 1u, std::uint32_t(y), seed ^ 0x9E3779B9u, frame);
@@ -51,14 +50,6 @@ void compressChannel(std::vector<float>& channel, int width, int height, float f
     resizeHorizontal(channel, low, width, height, reduced);
     resizeHorizontal(low, restored, reduced, height, width);
     channel.swap(restored);
-}
-inline float sampleRow(const std::vector<float>& channel, int width, int y, float x) noexcept {
-    const int x0 = int(std::floor(x));
-    const float t = x - float(x0);
-    const int a = std::clamp(x0, 0, width - 1);
-    const int b = std::clamp(x0 + 1, 0, width - 1);
-    return channel[std::size_t(y) * width + a] * (1.0f - t) +
-           channel[std::size_t(y) * width + b] * t;
 }
 }
 
