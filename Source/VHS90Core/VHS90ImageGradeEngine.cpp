@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+
 namespace vhs90 {
 namespace {
 constexpr float kPi=3.14159265358979323846f;
@@ -34,9 +35,25 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
   for(int x=0;x<src.width;++x){const float*px=src.rgba+y*src.rowStrideFloats+x*4;const float a=px[3];float*out=dr+x*4;
    if(a<=1.0e-6f){std::copy_n(px,4,out);continue;}
    RGB rgb=straightAt(src,x,y,p.premultipliedAlpha);YIQ yiq=rgbToYiq(rgb);
-   if(edge>0){const float l=rgbToYiq(straightAt(src,x-1,y,p.premultipliedAlpha)).y;
-    const float r=rgbToYiq(straightAt(src,x+1,y,p.premultipliedAlpha)).y;
-    const float blur=(l+yiq.y+r)/3.0f;yiq.y+=edge*0.70f*(yiq.y-blur);}
+   if(edge>0.0f){
+    // URP Retro VHS used a blurred reference image for unsharp edge recovery.
+    // Use a normalized 3x3 Gaussian reference so sharpening is isotropic and
+    // does not create a one-pixel horizontal halo on vertical/diagonal edges.
+    float blur=4.0f*yiq.y;
+    blur+=2.0f*rgbToYiq(straightAt(src,x-1,y,p.premultipliedAlpha)).y;
+    blur+=2.0f*rgbToYiq(straightAt(src,x+1,y,p.premultipliedAlpha)).y;
+    blur+=2.0f*rgbToYiq(straightAt(src,x,y-1,p.premultipliedAlpha)).y;
+    blur+=2.0f*rgbToYiq(straightAt(src,x,y+1,p.premultipliedAlpha)).y;
+    blur+=rgbToYiq(straightAt(src,x-1,y-1,p.premultipliedAlpha)).y;
+    blur+=rgbToYiq(straightAt(src,x+1,y-1,p.premultipliedAlpha)).y;
+    blur+=rgbToYiq(straightAt(src,x-1,y+1,p.premultipliedAlpha)).y;
+    blur+=rgbToYiq(straightAt(src,x+1,y+1,p.premultipliedAlpha)).y;
+    blur*=1.0f/16.0f;
+    const float detail=yiq.y-blur;
+    const float deadZone=0.0015f;
+    const float cleanDetail=std::copysign(std::max(0.0f,std::fabs(detail)-deadZone),detail);
+    yiq.y+=edge*0.90f*cleanDetail;
+   }
    yiq.y=yiq.y*fadeLuma+fadeLift;
    const float pedestal=(46.0f/255.0f)*blackLift; yiq.y=yiq.y*(1.0f-pedestal)+pedestal;
    yiq.i*=fadeSat;yiq.q*=fadeSat;
