@@ -205,13 +205,15 @@ if(VHS90_BUILD_AE_PLUGIN)
         VERBATIM
     )
 
-    add_library(VHS90 MODULE Source/VHS90Effect.cpp Source/VHS90Windows/VHS90OsdArbitraryData.cpp "${VHS90_PIPL_RC}")
+    configure_file(resources/VHS90Fonts.rc.in "${CMAKE_CURRENT_BINARY_DIR}/VHS90Fonts.rc" @ONLY)
+    add_library(VHS90 MODULE Source/VHS90Effect.cpp Source/VHS90Windows/VHS90OsdArbitraryData.cpp "${VHS90_PIPL_RC}" "${CMAKE_CURRENT_BINARY_DIR}/VHS90Fonts.rc")
     target_link_libraries(VHS90 PRIVATE VHS90Core VHS90DirectWrite)
     target_include_directories(VHS90 PRIVATE
         "${VHS90_AE_HEADERS}"
         "${VHS90_AE_UTIL}"
         "${VHS90_AE_INCLUDE_ROOT}/Examples/Headers"
         "${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources"
     )
     target_compile_features(VHS90 PRIVATE cxx_std_17)
     target_compile_definitions(VHS90 PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
