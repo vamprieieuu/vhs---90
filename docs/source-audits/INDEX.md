@@ -48,8 +48,9 @@ These reports are based on the supplied vhs.zip archive and the linked VHS-90 re
 - 43-ntscrt-preset-inventory-and-transport-findings.md — all 45 upstream JSON presets parsed; source physics findings for transport, deck, tape, receiver and VCR stages.
 - 44-ntscrt-track-read-physics-port.md — adjacent-track overlap and azimuth-loss C++ port.
 - 45-ntscrt-same-session-port-status.md — current transport/head recurrence implementation, CI result, attribution and remaining unported engine stages.
-- 46-ntscrt-359-file-disposition-ledger.md — complete 359-path ledger with explicit reviewed/parsed/pending statuses; inventory is complete but content-level closure remains open.
+- 46-ntscrt-359-file-disposition-ledger.md — closed 359-file content disposition audit: 314 content-reviewed and 45 semantic-reviewed rows, zero pending.
+- 47-ntscrt-preset-semantic-migration.md — per-preset semantic review of all 45 NTSCRT looks, stage boundaries, keyframe migration and explicit exclusions.
 
 ## Current project status
 
-See docs/PROJECT_STATUS.md for the current build/integration boundary. The repository now contains an initial AE host adapter and optional AEX build target, but Windows/MSVC compilation and AE runtime validation are still pending; do not describe it as a test-ready AEX.
+See docs/PROJECT_STATUS.md for the current build/integration boundary. The repository contains an initial AE host adapter and optional AEX build target. Windows/MSVC compilation and AE runtime validation remain pending; do not describe it as a test-ready AEX.
