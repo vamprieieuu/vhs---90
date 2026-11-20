@@ -24,7 +24,10 @@ struct VhsOsdDateTime {
 bool isValidVhsOsdDateTime(const VhsOsdDateTime& value) noexcept;
 std::string localizeVhsOsdDigits(const std::string& ascii, VhsOsdDigitSet digits);
 std::string vhsOsdLabel(VhsOsdLabel label, VhsOsdLanguage language);
-std::string formatVhsOsdTime(const VhsOsdDateTime& value,\n                              VhsOsdLanguage language,\n                              VhsOsdDigitSet arabicDigits);\nstd::string formatVhsOsdDateTime(const VhsOsdDateTime& value,
+std::string formatVhsOsdTime(const VhsOsdDateTime& value,
+                              VhsOsdLanguage language,
+                              VhsOsdDigitSet arabicDigits);
+std::string formatVhsOsdDateTime(const VhsOsdDateTime& value,
                                  VhsOsdLanguage language,
                                  VhsOsdDigitSet arabicDigits);
 } // namespace vhs90
