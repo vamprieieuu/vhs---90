@@ -277,3 +277,11 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Added `docs/source-audits/60-continuation-source-verification-and-release-gates.md` with current preset, OSD, engine and release blockers. This is a truthful checkpoint, not a completion declaration.
 - Latest verified CI runs for the prior code/documentation state: `44822831371` and `44822815000` both completed successfully. These are Linux core/static checks only. Windows/MSVC, exact Adobe SDK/PiPL, AEX loading, AE 23.2.1 visual renders and MFR remain untested.
 - **Pre-AEX remains blocked.** The four user-approved closure groups remain open: complete applicable preset migration; font-backed Arabic/Latin Text/OSD with VHS Tape parity; NTSCQT/NTSCRT and other required source-engine parity; and source-reference visual regression testing.
+
+
+## NTSC-QT exact source re-verification — 2026-11-21
+
+- Re-extracted the archived `ntscQT-1.5.0/app/ntsc.py` from the supplied `vhs.zip` and re-read `ringing`, `ringing2`, `composite_preemphasis` and the field-level call site. Confirmed both ringing variants operate on alternating Y, I and Q field planes; `ringing2` applies the 720-sample `ringPattern.npy` response across every vertical-frequency row after linear resize/center-crop and power shaping. The other variant applies a rectangular horizontal DFT mask with optional seeded frequency noise.
+- Confirmed composite pre-emphasis is a separate Y-only high-pass-derived stage before composite modulation, not post-decode sharpening. Existing `VHS90RingingEngine` remains a spatial edge/echo effect and is not source parity.
+- Added exact implementation/verification requirements in `docs/source-audits/61-ntscqt-spectral-ringing-preemphasis-exact-port-spec.md` and registered it in the source-audit index. This is a source-exact port specification only; no FFT engine, pre-emphasis code, source fixtures or UI wiring is claimed complete.
+- Linux core CI runs `44825813088` and `44825794594` both completed successfully for the prior documentation-only state. A new CI run is required after subsequent code changes; Linux core CI does not validate Windows/MSVC, PiPL, AEX loading or AE/MFR behavior.
