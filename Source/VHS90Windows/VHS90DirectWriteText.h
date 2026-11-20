@@ -11,6 +11,7 @@ struct DirectWriteTextOptions {
     const char* utf8Text = nullptr;
     const char* utf8FontFamily = "Segoe UI";
     float x = 24.0f, y = 24.0f, fontSize = 28.0f;
+    std::uint16_t fontWeight = 400;
     float maxWidth = 0.0f, maxHeight = 0.0f;
     float red = 1.0f, green = 1.0f, blue = 1.0f, opacity = 1.0f;
     TextDirection direction = TextDirection::Auto;
