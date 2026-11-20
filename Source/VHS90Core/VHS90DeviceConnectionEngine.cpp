@@ -11,10 +11,11 @@ inline float smooth(float a,float b,float x) noexcept { float t=std::clamp((x-a)
 inline bool valid(ConstImageView s,ImageView d) noexcept { return s.rgba&&d.rgba&&s.width>0&&s.height>0&&d.width==s.width&&d.height==s.height&&s.rowStrideFloats>=s.width*4&&d.rowStrideFloats>=d.width*4&&s.rgba!=d.rgba; }
 inline void over(float* p,float r,float g,float b,float a,bool premul) noexcept {
  if(a<=0.0f||p[3]<=0.0f)return;
- const float oldA=p[3],inv=1.0f-a;
- if(premul){p[0]=r*a+p[0]*inv;p[1]=g*a+p[1]*inv;p[2]=b*a+p[2]*inv;}
- else {p[0]=(r*a+p[0]*oldA*inv)/(a+oldA*inv);p[1]=(g*a+p[1]*oldA*inv)/(a+oldA*inv);p[2]=(b*a+p[2]*oldA*inv)/(a+oldA*inv);}
- p[3]=a+oldA*inv;
+ const float inv=1.0f-a,oldA=p[3];
+ if(premul){const float coverage=a*oldA;p[0]=r*coverage+p[0]*inv;p[1]=g*coverage+p[1]*inv;p[2]=b*coverage+p[2]*inv;}
+ else {p[0]=r*a+p[0]*inv;p[1]=g*a+p[1]*inv;p[2]=b*a+p[2]*inv;}
+ // This is a signal overlay inside the existing image, not a matte generator.
+ p[3]=oldA;
 }
 }
 bool processDeviceConnections(ConstImageView src,ImageView dst,const DeviceConnectionParams&p) noexcept {
