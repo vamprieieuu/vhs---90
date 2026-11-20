@@ -117,4 +117,4 @@ The source's 2D FFT ringing, exact random-number stream and mutable per-frame Py
 **Pre-emphasis signal-order parity and spectral ringing: documented as specific future candidates, not falsely marked as exact ports.**  
 **Windows/AE host validation: still pending globally.**
 
-Next source folder: continue with the next folder in the user's supplied eight-folder sequence after `ntscqt-1.5.0`; verify its exact name from the archive/order list before opening it.
+Next source folder in the user's eight-folder sequence: `vhs-phys-main` (its earlier full integration audit is `docs/vhs-phys-main-integration.md`; verify that completed work before advancing).
