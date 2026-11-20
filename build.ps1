@@ -24,6 +24,6 @@ if ($LASTEXITCODE -ne 0) { throw "VHS-90 native build failed." }
 ctest --test-dir $BuildDir -C $Configuration --output-on-failure
 if ($LASTEXITCODE -ne 0) { throw "VHS-90 CPU tests failed." }
 
-$artifact = Join-Path $BuildDir "dist/VHS-90.aex"
+$artifact = Join-Path $BuildDir "VHS-90.aex"
 if (-not (Test-Path $artifact)) { throw "Build completed but AEX artifact is missing: $artifact" }
 Write-Host "BUILT: $artifact"
