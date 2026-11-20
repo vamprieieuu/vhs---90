@@ -18,12 +18,12 @@ inline RGB straightAt(ConstImageView s,int x,int y,bool premul) noexcept {
 inline float clamp01(float v) noexcept{return std::clamp(v,0.0f,1.0f);}
 }
 bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p) noexcept {
- if(!valid(src,dst)||!std::isfinite(p.edgeEnhancement)||!std::isfinite(p.fade)||!std::isfinite(p.blackLift)||
+ if(!valid(src,dst)||!std::isfinite(p.edgeEnhancement)||!std::isfinite(p.chromaEdgeEnhancement)||!std::isfinite(p.fade)||!std::isfinite(p.blackLift)||
     !std::isfinite(p.contrast)||!std::isfinite(p.brightness)||!std::isfinite(p.saturation)||
     !std::isfinite(p.vignette)||!std::isfinite(p.flicker))return false;
- const float edge=clamp01(p.edgeEnhancement),fade=clamp01(p.fade),blackLift=clamp01(p.blackLift),contrast=std::clamp(p.contrast,0.0f,3.0f);
+ const float edge=clamp01(p.edgeEnhancement),chromaEdge=clamp01(p.chromaEdgeEnhancement),fade=clamp01(p.fade),blackLift=clamp01(p.blackLift),contrast=std::clamp(p.contrast,0.0f,3.0f);
  const float sat=std::clamp(p.saturation,0.0f,3.0f),vignette=clamp01(p.vignette),flicker=clamp01(p.flicker);
- if(edge==0&&fade==0&&contrast==1&&p.brightness==0&&blackLift==0&&sat==1&&vignette==0&&flicker==0){
+ if(edge==0&&chromaEdge==0&&fade==0&&contrast==1&&p.brightness==0&&blackLift==0&&sat==1&&vignette==0&&flicker==0){
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
  const float flickerValue=std::sin(float(p.frame)*0.73f)*flicker*0.10f+
@@ -53,6 +53,20 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
     const float deadZone=0.0015f;
     const float cleanDetail=std::copysign(std::max(0.0f,std::fabs(detail)-deadZone),detail);
     yiq.y+=edge*0.90f*cleanDetail;
+   }
+   if(chromaEdge>0.0f){
+    // Independent VHS playback chroma sharpening: unsharp-mask I/Q after
+    // bandwidth loss without adding luma edge contrast.
+    float blurI=4.0f*yiq.i,blurQ=4.0f*yiq.q;
+    const int ox[8]={-1,1,0,0,-1,1,-1,1},oy[8]={0,0,-1,1,-1,-1,1,1};
+    for(int k=0;k<8;++k){
+     const YIQ n=rgbToYiq(straightAt(src,x+ox[k],y+oy[k],p.premultipliedAlpha));
+     const float weight=k<4?2.0f:1.0f;
+     blurI+=weight*n.i;blurQ+=weight*n.q;
+    }
+    blurI*=1.0f/16.0f;blurQ*=1.0f/16.0f;
+    yiq.i+=(yiq.i-blurI)*(0.85f*chromaEdge);
+    yiq.q+=(yiq.q-blurQ)*(0.85f*chromaEdge);
    }
    yiq.y=yiq.y*fadeLuma+fadeLift;
    const float pedestal=(46.0f/255.0f)*blackLift; yiq.y=yiq.y*(1.0f-pedestal)+pedestal;
