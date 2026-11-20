@@ -49,7 +49,7 @@ std::string datePart(int y,int m,int d,VhsOsdDateFormat fmt,VhsOsdLanguage langu
     }
     if(fmt==VhsOsdDateFormat::NumericMonthFirst) std::snprintf(b,sizeof(b),"%d.%d.%d",m,d,y);
     else if(fmt==VhsOsdDateFormat::NumericDayFirst) std::snprintf(b,sizeof(b),"%d.%d.%d",d,m,y);
-    else std::snprintf(b,sizeof(b),"%d.%d",y,m);
+    else std::snprintf(b,sizeof(b),"%d.%d.%d",y,m,d);
     if(language==VhsOsdLanguage::English) return b;
     const std::string localized=localizeVhsOsdDigits(b,digits);
     return language==VhsOsdLanguage::Arabic?localized:(std::string(b)+" | "+localized);
