@@ -39,7 +39,7 @@ enum ParamIndex {
     PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_ANGLE, PARAM_TRACKING_MOTION_X,
     PARAM_TRACKING_MOTION_Y, PARAM_TRACKING_SERVO, PARAM_TRACKING_TEAR,
     PARAM_TRACKING_END, PARAM_HEAD_TOPIC, PARAM_HEAD_AMOUNT, PARAM_HEAD_BOTTOM_Y,
-    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_TAPE_BACK_TENSION, PARAM_TAPE_NOISE, PARAM_PHYSICAL_TOPIC, PARAM_MAGNET_MOMENT, PARAM_MAGNET_DISTANCE, PARAM_GROUND_LOOP, PARAM_MAINS_HUM, PARAM_RF_FIELD, PARAM_RF_PICKUP, PARAM_PHYSICAL_END, PARAM_PYVHS_TOPIC, PARAM_PYVHS_LUMA_COMPRESSION, PARAM_PYVHS_CHROMA_COMPRESSION, PARAM_PYVHS_LUMA_NOISE, PARAM_PYVHS_CHROMA_NOISE, PARAM_PYVHS_CHROMA_WAVE, PARAM_PYVHS_GENERATION, PARAM_PYVHS_END, PARAM_OSD_TOPIC, PARAM_OSD_AMOUNT, PARAM_OSD_REC, PARAM_OSD_PLAY, PARAM_OSD_TIMESTAMP, PARAM_OSD_OPACITY, PARAM_OSD_SCALE, PARAM_OSD_GLITCH, PARAM_OSD_GHOST, PARAM_OSD_REC_BLINK, PARAM_OSD_TIME_SPEED, PARAM_OSD_YEAR, PARAM_OSD_MONTH, PARAM_OSD_DAY, PARAM_OSD_HOUR, PARAM_OSD_MINUTE, PARAM_OSD_SECOND, PARAM_OSD_REC_COLOR, PARAM_OSD_END, PARAM_VHS_STYLE_TOPIC, PARAM_VHS_STYLE, PARAM_VHS_STYLE_INTENSITY, PARAM_CAMERA_PROFILE, PARAM_CAMERA_INTENSITY, PARAM_NTSCRS_TOPIC, PARAM_NTSCRS_LOOK, PARAM_NTSCRS_INTENSITY, PARAM_NTSCRS_PHASE_NOISE, PARAM_VHS6RIFT_GRAIN, PARAM_VHS6RIFT_GRAIN_SIZE, PARAM_VHS6RIFT_NOISE_DETAIL, PARAM_VHS6RIFT_SHADOW_BIAS, PARAM_VHS6RIFT_NOISE_ENABLE, PARAM_VHS6RIFT_NOISE_SEED, PARAM_SIGNAL_HUE_NOISE, PARAM_DEVICE_CONNECTION_TOPIC, PARAM_DEVICE_CONNECTION_AMOUNT, PARAM_DEVICE_CONNECTION_DENSITY, PARAM_DEVICE_CONNECTION_SIZE, PARAM_DEVICE_CONNECTION_SPEED, PARAM_DEVICE_CONNECTION_DISTRIBUTION, PARAM_DEVICE_CONNECTION_SEED, PARAM_DEVICE_CONNECTION_END, PARAM_VHS_PLAYBACK_TOPIC, PARAM_CHROMA_EDGE_ENHANCE, PARAM_VHS_PLAYBACK_END, PARAM_COMPOSITE_DECODER_TOPIC, PARAM_COMPOSITE_DECODER, PARAM_COMPOSITE_DECODER_END, PARAM_VHS_FRAME_TOPIC, PARAM_VHS_43_FRAME, PARAM_ROUNDED_OVERSCAN, PARAM_LENS_DISTORTION, PARAM_DIGITAL_ZOOM, PARAM_VHS_FRAME_END, PARAM_CAMCORDER_HUD_TOPIC, PARAM_OSD_BATTERY, PARAM_CAMCORDER_HUD_END, PARAM_COUNT
+    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_TAPE_BACK_TENSION, PARAM_TAPE_NOISE, PARAM_PHYSICAL_TOPIC, PARAM_MAGNET_MOMENT, PARAM_MAGNET_DISTANCE, PARAM_GROUND_LOOP, PARAM_MAINS_HUM, PARAM_RF_FIELD, PARAM_RF_PICKUP, PARAM_PHYSICAL_END, PARAM_PYVHS_TOPIC, PARAM_PYVHS_LUMA_COMPRESSION, PARAM_PYVHS_CHROMA_COMPRESSION, PARAM_PYVHS_LUMA_NOISE, PARAM_PYVHS_CHROMA_NOISE, PARAM_PYVHS_CHROMA_WAVE, PARAM_PYVHS_GENERATION, PARAM_PYVHS_END, PARAM_OSD_TOPIC, PARAM_OSD_AMOUNT, PARAM_OSD_REC, PARAM_OSD_PLAY, PARAM_OSD_TIMESTAMP, PARAM_OSD_OPACITY, PARAM_OSD_SCALE, PARAM_OSD_GLITCH, PARAM_OSD_GHOST, PARAM_OSD_REC_BLINK, PARAM_OSD_TIME_SPEED, PARAM_OSD_YEAR, PARAM_OSD_MONTH, PARAM_OSD_DAY, PARAM_OSD_HOUR, PARAM_OSD_MINUTE, PARAM_OSD_SECOND, PARAM_OSD_REC_COLOR, PARAM_OSD_END, PARAM_VHS_STYLE_TOPIC, PARAM_VHS_STYLE, PARAM_VHS_STYLE_INTENSITY, PARAM_CAMERA_PROFILE, PARAM_CAMERA_INTENSITY, PARAM_NTSCRS_TOPIC, PARAM_NTSCRS_LOOK, PARAM_NTSCRS_INTENSITY, PARAM_NTSCRS_PHASE_NOISE, PARAM_VHS6RIFT_GRAIN, PARAM_VHS6RIFT_GRAIN_SIZE, PARAM_VHS6RIFT_NOISE_DETAIL, PARAM_VHS6RIFT_SHADOW_BIAS, PARAM_VHS6RIFT_NOISE_ENABLE, PARAM_VHS6RIFT_NOISE_SEED, PARAM_SIGNAL_HUE_NOISE, PARAM_DEVICE_CONNECTION_TOPIC, PARAM_DEVICE_CONNECTION_AMOUNT, PARAM_DEVICE_CONNECTION_DENSITY, PARAM_DEVICE_CONNECTION_SIZE, PARAM_DEVICE_CONNECTION_SPEED, PARAM_DEVICE_CONNECTION_DISTRIBUTION, PARAM_DEVICE_CONNECTION_SEED, PARAM_DEVICE_CONNECTION_END, PARAM_VHS_PLAYBACK_TOPIC, PARAM_CHROMA_EDGE_ENHANCE, PARAM_VHS_PLAYBACK_END, PARAM_COMPOSITE_DECODER_TOPIC, PARAM_COMPOSITE_DECODER, PARAM_COMPOSITE_DECODER_END, PARAM_VHS_FRAME_TOPIC, PARAM_VHS_43_FRAME, PARAM_ROUNDED_OVERSCAN, PARAM_LENS_DISTORTION, PARAM_DIGITAL_ZOOM, PARAM_VHS_FRAME_END, PARAM_CAMCORDER_HUD_TOPIC, PARAM_OSD_BATTERY, PARAM_CAMCORDER_HUD_END, PARAM_FRAME_REPEAT_TOPIC, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_FRAME_REPEAT_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT,
@@ -55,7 +55,7 @@ enum ParamDiskID {
     ID_TRACKING_HEIGHT, ID_TRACKING_ANGLE, ID_TRACKING_MOTION_X, ID_TRACKING_MOTION_Y,
     ID_TRACKING_SERVO, ID_TRACKING_TEAR, ID_HEAD_TOPIC, ID_HEAD_AMOUNT,
     ID_HEAD_Y, ID_HEAD_HEIGHT, ID_HEAD_SHIFT, ID_HEAD_CONDITION,
-    ID_TAPE_MATERIAL_TOPIC, ID_TAPE_WEAR, ID_TAPE_DROPOUTS, ID_TAPE_SCRATCHES, ID_TAPE_CREASES, ID_TAPE_EDGE, ID_TAPE_MOLD, ID_TAPE_VASELINE, ID_TAPE_STICKY, ID_TAPE_SEED, ID_TAPE_BACK_TENSION, ID_TAPE_NOISE, ID_PHYSICAL_TOPIC, ID_MAGNET_MOMENT, ID_MAGNET_DISTANCE, ID_GROUND_LOOP, ID_MAINS_HUM, ID_RF_FIELD, ID_RF_PICKUP, ID_PYVHS_TOPIC, ID_PYVHS_LUMA_COMPRESSION, ID_PYVHS_CHROMA_COMPRESSION, ID_PYVHS_LUMA_NOISE, ID_PYVHS_CHROMA_NOISE, ID_PYVHS_CHROMA_WAVE, ID_PYVHS_GENERATION, ID_OSD_TOPIC, ID_OSD_AMOUNT, ID_OSD_REC, ID_OSD_PLAY, ID_OSD_TIMESTAMP, ID_OSD_OPACITY, ID_OSD_SCALE, ID_OSD_GLITCH, ID_OSD_GHOST, ID_OSD_REC_BLINK, ID_OSD_TIME_SPEED, ID_OSD_YEAR, ID_OSD_MONTH, ID_OSD_DAY, ID_OSD_HOUR, ID_OSD_MINUTE, ID_OSD_SECOND, ID_OSD_REC_COLOR, ID_VHS_STYLE_TOPIC, ID_VHS_STYLE, ID_VHS_STYLE_INTENSITY, ID_CAMERA_PROFILE, ID_CAMERA_INTENSITY, ID_NTSCRS_TOPIC, ID_NTSCRS_LOOK, ID_NTSCRS_INTENSITY, ID_NTSCRS_PHASE_NOISE, ID_VHS6RIFT_GRAIN, ID_VHS6RIFT_GRAIN_SIZE, ID_VHS6RIFT_NOISE_DETAIL, ID_VHS6RIFT_SHADOW_BIAS, ID_VHS6RIFT_NOISE_ENABLE, ID_VHS6RIFT_NOISE_SEED, ID_SIGNAL_HUE_NOISE, ID_DEVICE_CONNECTION_TOPIC, ID_DEVICE_CONNECTION_AMOUNT, ID_DEVICE_CONNECTION_DENSITY, ID_DEVICE_CONNECTION_SIZE, ID_DEVICE_CONNECTION_SPEED, ID_DEVICE_CONNECTION_DISTRIBUTION, ID_DEVICE_CONNECTION_SEED, ID_VHS_PLAYBACK_TOPIC, ID_CHROMA_EDGE_ENHANCE, ID_COMPOSITE_DECODER_TOPIC, ID_COMPOSITE_DECODER, ID_VHS_FRAME_TOPIC, ID_VHS_43_FRAME, ID_ROUNDED_OVERSCAN, ID_LENS_DISTORTION, ID_DIGITAL_ZOOM, ID_CAMCORDER_HUD_TOPIC, ID_OSD_BATTERY
+    ID_TAPE_MATERIAL_TOPIC, ID_TAPE_WEAR, ID_TAPE_DROPOUTS, ID_TAPE_SCRATCHES, ID_TAPE_CREASES, ID_TAPE_EDGE, ID_TAPE_MOLD, ID_TAPE_VASELINE, ID_TAPE_STICKY, ID_TAPE_SEED, ID_TAPE_BACK_TENSION, ID_TAPE_NOISE, ID_PHYSICAL_TOPIC, ID_MAGNET_MOMENT, ID_MAGNET_DISTANCE, ID_GROUND_LOOP, ID_MAINS_HUM, ID_RF_FIELD, ID_RF_PICKUP, ID_PYVHS_TOPIC, ID_PYVHS_LUMA_COMPRESSION, ID_PYVHS_CHROMA_COMPRESSION, ID_PYVHS_LUMA_NOISE, ID_PYVHS_CHROMA_NOISE, ID_PYVHS_CHROMA_WAVE, ID_PYVHS_GENERATION, ID_OSD_TOPIC, ID_OSD_AMOUNT, ID_OSD_REC, ID_OSD_PLAY, ID_OSD_TIMESTAMP, ID_OSD_OPACITY, ID_OSD_SCALE, ID_OSD_GLITCH, ID_OSD_GHOST, ID_OSD_REC_BLINK, ID_OSD_TIME_SPEED, ID_OSD_YEAR, ID_OSD_MONTH, ID_OSD_DAY, ID_OSD_HOUR, ID_OSD_MINUTE, ID_OSD_SECOND, ID_OSD_REC_COLOR, ID_VHS_STYLE_TOPIC, ID_VHS_STYLE, ID_VHS_STYLE_INTENSITY, ID_CAMERA_PROFILE, ID_CAMERA_INTENSITY, ID_NTSCRS_TOPIC, ID_NTSCRS_LOOK, ID_NTSCRS_INTENSITY, ID_NTSCRS_PHASE_NOISE, ID_VHS6RIFT_GRAIN, ID_VHS6RIFT_GRAIN_SIZE, ID_VHS6RIFT_NOISE_DETAIL, ID_VHS6RIFT_SHADOW_BIAS, ID_VHS6RIFT_NOISE_ENABLE, ID_VHS6RIFT_NOISE_SEED, ID_SIGNAL_HUE_NOISE, ID_DEVICE_CONNECTION_TOPIC, ID_DEVICE_CONNECTION_AMOUNT, ID_DEVICE_CONNECTION_DENSITY, ID_DEVICE_CONNECTION_SIZE, ID_DEVICE_CONNECTION_SPEED, ID_DEVICE_CONNECTION_DISTRIBUTION, ID_DEVICE_CONNECTION_SEED, ID_VHS_PLAYBACK_TOPIC, ID_CHROMA_EDGE_ENHANCE, ID_COMPOSITE_DECODER_TOPIC, ID_COMPOSITE_DECODER, ID_VHS_FRAME_TOPIC, ID_VHS_43_FRAME, ID_ROUNDED_OVERSCAN, ID_LENS_DISTORTION, ID_DIGITAL_ZOOM, ID_CAMCORDER_HUD_TOPIC, ID_OSD_BATTERY, ID_FRAME_REPEAT_TOPIC, ID_FRAME_REPEAT_FREQUENCY, ID_FRAME_REPEAT_STRENGTH
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -71,6 +71,7 @@ struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35;
     A_long colorSystem=1, signalModel=1, tapeSpeed=1, compositeDecoder=1, vhs43Frame=0;
     float roundedOverscan=0.0f, lensDistortion=0.0f, digitalZoom=1.0f, osdBattery=0.0f;
+    float frameRepeatFrequency=0.0f, frameRepeatStrength=0.0f;
     float tapeDetail=100.0f, trackRead=0.0f, trackMisalignment=0.0f, chromaShift=0.0f;
     float chromaSubsample=0, verticalChroma=0, verticalLuma=0;
     float lumaNoise=0, chromaNoise=0, compositeNoise=0, noiseHue=0;
@@ -155,7 +156,7 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
         b(s.rfDrift,v[32]*100.0f);b(s.rfField,v[32]*100.0f);b(s.tapeTransport,v[33]*100.0f);
         b(s.tapeDropouts,v[34]*100.0f);b(s.dropouts,v[35]*100.0f);
         b(s.osdAmount,v[36]>0.5f?82.0f:0.0f);b(s.osdRec,v[36]>0.5f?100.0f:0.0f);
-        b(s.osdPlay,v[36]>0.5f?100.0f:0.0f);b(s.osdTimestamp,v[36]>0.5f?100.0f:0.0f);b(s.osdBattery,v[36]>0.5f?75.0f:0.0f);
+        b(s.osdPlay,v[36]>0.5f?100.0f:0.0f);b(s.osdTimestamp,v[36]>0.5f?100.0f:0.0f);b(s.osdBattery,v[36]>0.5f?75.0f:0.0f);b(s.frameRepeatFrequency,v[43]*100.0f);b(s.frameRepeatStrength,v[44]*100.0f);
         if(v[37]>0.5f){b(s.colorDrift,v[37]==1.0f?28.0f:(v[37]==2.0f?18.0f:42.0f));}
         if(v[38]>0.5f){b(s.analogGlow,std::max(s.analogGlow,28.0f));}
         b(s.lensDistortion,v[39]*1000.0f);bi(s.vhs43Frame,v[40]>0.5f?1.0f:0.0f);
@@ -233,7 +234,7 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     case 38: lostSignal(12);break;
     default:break;
     }
-    if(s.vhsStyle<26){bi(s.vhs43Frame,0.0f);b(s.roundedOverscan,0.0f);b(s.lensDistortion,0.0f);b(s.digitalZoom,1.0f);b(s.osdBattery,0.0f);}
+    if(s.vhsStyle<26){bi(s.vhs43Frame,0.0f);b(s.roundedOverscan,0.0f);b(s.lensDistortion,0.0f);b(s.digitalZoom,1.0f);b(s.osdBattery,0.0f);b(s.frameRepeatFrequency,0.0f);b(s.frameRepeatStrength,0.0f);}
 }
 static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
     const float i=clamp01(s.cameraIntensity/100.0f);
@@ -468,6 +469,10 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Camcorder HUD",ID_CAMCORDER_HUD_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("OSD Battery",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_BATTERY);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_CAMCORDER_HUD_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Temporal Frame Repeat",ID_FRAME_REPEAT_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Frequency",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_FREQUENCY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Strength",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_STRENGTH);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_FRAME_REPEAT_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -502,7 +507,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_SIGNAL_MODEL,s.signalModel); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_COMPOSITE_DECODER,s.compositeDecoder); if(err!=PF_Err_NONE) return err;
     err=CheckoutCheckbox(in_data,PARAM_VHS_43_FRAME,s.vhs43Frame); if(err!=PF_Err_NONE) return err;
-    READ_FLOAT(PARAM_ROUNDED_OVERSCAN,roundedOverscan); READ_FLOAT(PARAM_LENS_DISTORTION,lensDistortion); READ_FLOAT(PARAM_DIGITAL_ZOOM,digitalZoom); READ_FLOAT(PARAM_OSD_BATTERY,osdBattery);
+    READ_FLOAT(PARAM_ROUNDED_OVERSCAN,roundedOverscan); READ_FLOAT(PARAM_LENS_DISTORTION,lensDistortion); READ_FLOAT(PARAM_DIGITAL_ZOOM,digitalZoom); READ_FLOAT(PARAM_OSD_BATTERY,osdBattery); READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency); READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength);
     err=CheckoutPopup(in_data,PARAM_TAPE_SPEED,s.tapeSpeed); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_TRACK_READ,trackRead);
     READ_FLOAT(PARAM_TRACK_MISALIGNMENT,trackMisalignment); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
@@ -638,14 +643,14 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
         const float master=clamp01(s.master/100.0f);
-        const bool compositeStages=s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.pyVhsLumaCompression>1.0001f||s.pyVhsChromaCompression>1.0001f||s.pyVhsLumaNoise>0||s.pyVhsChromaNoise>0||s.pyVhsChromaWave>0||s.ntscRsPhaseNoise>0;
+        const bool compositeStages=s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.pyVhsLumaCompression>1.0001f||s.pyVhsChromaCompression>1.0001f||s.pyVhsLumaNoise>0||s.pyVhsChromaNoise>0||s.pyVhsChromaWave>0||s.ntscRsPhaseNoise>0;
         const bool osdEnabled=s.osdAmount>0.0f;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.trackingAmount>0||s.headAmount>0||s.deviceConnectionAmount>0||osdEnabled;
         if(!any||(master<=0.0f&&!osdEnabled)) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
         std::vector<float> previousPixels;
-        if(previousInput && s.temporalGhost>0 && previousInput->width==w && previousInput->height==h) {
+        if(previousInput && (s.temporalGhost>0||(s.frameRepeatFrequency>0&&s.frameRepeatStrength>0)) && previousInput->width==w && previousInput->height==h) {
             if(!ConvertInputWorld(previousInput,format,previousPixels)) previousPixels.clear();
         }
         working=source; scratch.resize(source.size());
@@ -698,7 +703,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(s.crtEqualizer>0) { p.crtEqualizerEnabled=true; p.crtEqualizer.amount=clamp01(s.crtEqualizer/100.0f); }
             // The full raw-waveform simulator currently models NTSC 525/60 only.
             p.waveformCompositeEnabled=(s.signalModel==2 && s.colorSystem==1);
-            if(!previousPixels.empty() && s.temporalGhost>0) {
+            if(!previousPixels.empty() && (s.temporalGhost>0||(s.frameRepeatFrequency>0&&s.frameRepeatStrength>0))) {
                 p.temporalGhostEnabled=true;
                 p.previousFrame={previousPixels.data(),w,h,w*4};
                 p.previousFrameIndex=s.frame-1;
@@ -708,6 +713,9 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.temporalGhost.offsetXPixels=2.0f;
                 p.temporalGhost.redFringePixels=0.6f;
                 p.temporalGhost.blueFringePixels=-0.6f;
+                p.temporalGhost.frameRepeatFrequency=clamp01(s.frameRepeatFrequency/100.0f);
+                p.temporalGhost.frameRepeatStrength=clamp01(s.frameRepeatStrength/100.0f);
+                p.temporalGhost.frame=s.frame;p.temporalGhost.seed=static_cast<std::uint32_t>(std::max(1.0f,s.tapeSeed));
             }
             if(p.waveformCompositeEnabled) {
                 auto& e=p.waveformComposite.effects;
@@ -986,7 +994,7 @@ static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
     if(err!=PF_Err_NONE) { delete s; return err; }
     // Checkout the immediately preceding source frame through SmartFX's declared
     // checkout ID; no global frame cache is used, so MFR/out-of-order renders stay safe.
-    if(s->temporalGhost>0 && in_data->time_step>0 && in_data->current_time>=in_data->time_step) {
+    if((s->temporalGhost>0||(s->frameRepeatFrequency>0&&s->frameRepeatStrength>0)) && in_data->time_step>0 && in_data->current_time>=in_data->time_step) {
         PF_CheckoutResult previousResult; AEFX_CLR_STRUCT(previousResult);
         const A_long previousTime=in_data->current_time-in_data->time_step;
         const PF_Err previousErr=extra->cb->checkout_layer(in_data->effect_ref,PARAM_INPUT,kInputCheckoutID+1,&req,
@@ -1048,6 +1056,8 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.lensDistortion=float(params[PARAM_LENS_DISTORTION]->u.fs_d.value);
     s.digitalZoom=float(params[PARAM_DIGITAL_ZOOM]->u.fs_d.value);
     s.osdBattery=float(params[PARAM_OSD_BATTERY]->u.fs_d.value);
+    s.frameRepeatFrequency=float(params[PARAM_FRAME_REPEAT_FREQUENCY]->u.fs_d.value);
+    s.frameRepeatStrength=float(params[PARAM_FRAME_REPEAT_STRENGTH]->u.fs_d.value);
     s.tapeSpeed=params[PARAM_TAPE_SPEED]->u.pd.value;
     s.tapeDetail=float(params[PARAM_TAPE_DETAIL]->u.fs_d.value);
     s.trackRead=float(params[PARAM_TRACK_READ]->u.fs_d.value);
