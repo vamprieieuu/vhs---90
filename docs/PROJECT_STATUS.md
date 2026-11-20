@@ -285,3 +285,11 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Confirmed composite pre-emphasis is a separate Y-only high-pass-derived stage before composite modulation, not post-decode sharpening. Existing `VHS90RingingEngine` remains a spatial edge/echo effect and is not source parity.
 - Added exact implementation/verification requirements in `docs/source-audits/61-ntscqt-spectral-ringing-preemphasis-exact-port-spec.md` and registered it in the source-audit index. This is a source-exact port specification only; no FFT engine, pre-emphasis code, source fixtures or UI wiring is claimed complete.
 - Linux core CI runs `44825813088` and `44825794594` both completed successfully for the prior documentation-only state. A new CI run is required after subsequent code changes; Linux core CI does not validate Windows/MSVC, PiPL, AEX loading or AE/MFR behavior.
+
+
+## OSD / supplied font implementation checkpoint — 2026-11-21
+
+- Re-opened `VHS90OsdEngine.cpp`, its smoke test, and the AE adapter. Confirmed OSD is inserted into the working frame before the VHS composite/signal stages (correct behavior to preserve), but the renderer is still a fixed 5×7 ASCII bitmap table and only emits REC/PLAY/SP/date-time/battery primitives. Unicode text, Arabic shaping, font selection and full VHSTape controls/layout are absent.
+- Rechecked the supplied font manifest and actual embedded license name records. `Rooyin_Free_Bold.ttf` and `Sponge_Arabic_Regular.otf` are the only supplied fonts currently cleared by the manifest for bundling under OFL terms, with complete files/notices retained. The repository currently contains only the manifest, not those font binaries or license bundle. Other fonts remain permission-restricted or unverified and must not be redistributed without permission.
+- Added `docs/source-audits/62-osd-directwrite-arabic-vhs-tape-implementation-spec.md`. It defines a Windows DirectWrite renderer isolated from the portable core, UTF-8/bidi/Arabic shaping, localized months and digit systems, arbitrary user text, font enumeration/fallback, VHS Tape states/positions/date/counter controls, and regression tests.
+- No OSD rendering code or AE UI parameters were changed in this checkpoint. Full OSD remains an open pre-AEX requirement.
