@@ -28,7 +28,8 @@ if (-not [string]::IsNullOrWhiteSpace($VhsArchivePath)) {
                 if ([string]::IsNullOrWhiteSpace($relative)) { continue }
                 $destination = Join-Path $sdkTarget $relative
                 $fullDestination = [IO.Path]::GetFullPath($destination)
-                if (-not $fullDestination.StartsWith([IO.Path]::GetFullPath($sdkTarget), [StringComparison]::OrdinalIgnoreCase)) {
+                $sdkRootPrefix = [IO.Path]::GetFullPath($sdkTarget).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+                if (-not $fullDestination.StartsWith($sdkRootPrefix, [StringComparison]::OrdinalIgnoreCase)) {
                     throw "Unsafe SDK archive entry: $($entry.FullName)"
                 }
                 if ($entry.FullName.EndsWith('/')) {
