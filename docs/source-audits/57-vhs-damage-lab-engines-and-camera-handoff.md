@@ -86,7 +86,7 @@ Key implementation commits:
 - Four advanced Static pattern modes and UI: 7998c73, caf6d49, bf99fd2, 9396dd4, 7480475, 7188252.
 - Added deterministic tests for five tracking renderers, simultaneous tracking layers, independent tear bands, particle density/size/animation/alpha and the eleven static patterns.
 
-CI run for the latest multi-layer tracking stack test: 44819741465. Check its final result before recording the final test count. Earlier milestones passed:
+CI run for the latest multi-layer tracking stack test: 44819741465 passed. Imported AE parameter validation, CMake build and all 34/34 CTest smoke tests succeeded: https://github.com/vamprieieuu/vhs---90/actions/runs/44819741465. Earlier milestones passed:
 - Tracking profile, AE selector and initial core suite: 44818220252 (32/32).
 - Tracking multi-layer and recipe parameter wiring: 44819073465 (32/32).
 - Particle and Tear core modules were separately built and tested in the successful CMake runs 44818676422 and 44818766761.
@@ -108,4 +108,4 @@ After the latest CI is green, the next folder is vhs/Vhs cams/ in the same vhs.z
 
 Prior first-pass work is recorded in audit reports 26 and 29. The next pass must reopen the original clips and notes, sample/compare frames in sequence, and keep FXC6 and Gen 7 as separate camera looks. The supplied FXC6 comparisons and Gen 7 before clip have no usable audio for clean before/after audio comparison.
 
-**Disposition:** Damage Lab core engine and AE control implementation is now in place. The final automated CI gate is pending; after it passes, move to the deeper VHS Cameras clip analysis. The final Windows AEX/AE visual test remains a separate release gate.
+**Disposition:** Damage Lab core engine and AE control implementation is in place; latest automated Linux CI passed (34/34). The next source folder is VHS Cameras. Final Windows AEX/AE visual calibration remains a separate release gate.
