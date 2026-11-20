@@ -55,6 +55,71 @@ float controlTrackServoOffset(const TapeTransportParams& p) noexcept {
  }
  return delta;
 }
+inline std::uint64_t sourceMix64(std::uint64_t z) noexcept {
+ z+=0x9E3779B97F4A7C15ULL;z=(z^(z>>30))*0xBF58476D1CE4E5B9ULL;z=(z^(z>>27))*0x94D049BB133111EBULL;return z^(z>>31);
+}
+inline double sourceUniform(std::uint64_t seed,std::uint64_t purpose,std::int64_t a,std::int64_t b) noexcept {
+ const auto h=sourceMix64(seed^sourceMix64(purpose^sourceMix64(std::uint64_t(a)^sourceMix64(std::uint64_t(b)))));
+ return double(h>>11)*(1.0/9007199254740992.0);
+}
+inline double sourceValue(std::uint64_t seed,std::uint64_t purpose,double x) noexcept {
+ const double i=std::floor(x),f=x-i;
+ const double a=sourceUniform(seed,purpose,static_cast<std::int64_t>(i),0)*2.0-1.0;
+ const double b=sourceUniform(seed,purpose,static_cast<std::int64_t>(i)+1,0)*2.0-1.0;
+ const double s=f*f*(3.0-2.0*f);return a+(b-a)*s;
+}
+inline double wrapTrackDelta(double x) noexcept {
+ double r=std::fmod(x,2.0);if(r>1.0)r-=2.0;else if(r<=-1.0)r+=2.0;return r;
+}
+std::vector<float> physicalStickySlipProfile(const TapeTransportParams& p,int width,int height) {
+ std::vector<float> profile(static_cast<std::size_t>(height),0.0f);
+ const double sticky=std::clamp(double(p.controlTrackTape.debrisAmount),0.0,1.0);
+ const double mold=std::clamp(double(p.controlTrackTape.moldAmount),0.0,1.0);
+ if(sticky<=0.0&&mold<=0.0)return profile;
+ const std::int64_t frame=std::max<std::int64_t>(0,p.frame);
+ const std::int64_t firstField=std::max<std::int64_t>(0,frame*2-8),lastField=frame*2+1;
+ const int activePerField=std::max(1,(height+1)/2);
+ const int vbiPerField=std::max(0,int(std::lround(double(activePerField)*20.0/242.5)));
+ const double totalLines=262.5,lineUs=63.556;
+ const double advance=33.35/(60000.0/1001.0)/double(std::min(p.controlTrackTape.tapeSpeed,2u)+1u);
+ const double trackLength=5.8*1000.0/(60000.0/1001.0);
+ const double lineLength=trackLength/totalLines;
+ const double angle=5.97*3.14159265358979323846/180.0;
+ const double trackOffsetLines=advance*std::cos(angle)/lineLength;
+ const std::uint64_t seed=p.seed;
+ double delta=0.0;
+ double lag[3]={0.0,0.0,0.0};
+ double breakAt[3]={8.0,6.0,5.0};
+ for(std::int64_t field=firstField;field<=lastField;++field){
+  for(int line=0;line<263;++line){
+   const double t=(double(field)*totalLines+double(line))*lineUs*1.0e-6;
+   const double x=double(field)*advance+double(line)/totalLines*advance;
+   const double localMold=mold*std::max(sourceValue(seed,63,x/9.0),0.0);
+   const double mu=sticky*(0.55+0.45*sourceValue(seed,62,x/25.0))+0.4*localMold;
+   const double drag=sticky*sticky*0.05*(1.0+sourceValue(seed,61,t/0.8));
+   delta-=drag/totalLines;
+   const double perLine=33.35/(double(std::min(p.controlTrackTape.tapeSpeed,2u)+1u))*lineUs*1.0e-3;
+   for(int guide=0;guide<3;++guide){
+    const double grip=mu*double(guide==0?1.0:(guide==1?0.75:0.55));
+    if(grip<0.1){lag[guide]*=0.8;continue;}
+    lag[guide]+=double(guide==0?0.3:(guide==1?0.2:0.15))*perLine;
+    if(lag[guide]>=breakAt[guide]){
+     lag[guide]=-0.3*lag[guide];
+     const double u=sourceUniform(seed,std::uint64_t(64+guide),field*263+line,0);
+     breakAt[guide]=(1.5+7.0*grip)*(1.0+0.0)*(0.4+1.4*u*u);
+    }
+   }
+   const int parity=int(field-frame*2);
+   const int localRow=line-vbiPerField;
+   const int outY=parity*activePerField+localRow;
+   if(parity<0||parity>1||outY<0||outY>=height)continue;
+   const double slip=delta+(lag[0]+lag[1]+lag[2])/(advance*1000.0);
+   const double tbe=lineUs*0.45*std::tanh(trackOffsetLines*wrapTrackDelta(slip)/0.45);
+   profile[static_cast<std::size_t>(outY)]=float(tbe/lineUs*double(width));
+  }
+ }
+ return profile;
+}
 std::vector<float> slowProfile(std::uint32_t seed,int epoch,int height,float amplitude,float gain,float pole,float vScale) {
  const float scale=std::max(1.0e-6f,vScale),scaledPole=std::pow(std::min(std::abs(pole),0.999999f),1.0f/scale);
  const float scaledGain=gain*std::sqrt(std::max(1.0e-12f,(1.0f-scaledPole*scaledPole)/(1.0f-pole*pole)));
@@ -62,7 +127,7 @@ std::vector<float> slowProfile(std::uint32_t seed,int epoch,int height,float amp
  for(int y=0;y<height;++y){const float raw=gaussianHash(seed,epoch,y,17)*amplitude;previous=scaledGain*raw+scaledPole*previous;out[std::size_t(y)]=previous;}return out;
 }
 inline bool inactive(const TapeTransportParams&p) noexcept {
- return p.slowDriftPixelsPerSecond==0.0f&&p.drumFlutterPixels==0.0f&&p.flutterPixels==0.0f&&p.stickSlipPixels==0.0f&&p.lineJitterPixels==0.0f&&p.trackingOffsetPixels==0.0f&&p.trackingSlopePixels==0.0f&&p.servoJitterPixels==0.0f&&p.controlTrackServoAmount==0.0f;
+ return p.slowDriftPixelsPerSecond==0.0f&&p.drumFlutterPixels==0.0f&&p.flutterPixels==0.0f&&p.stickSlipPixels==0.0f&&p.lineJitterPixels==0.0f&&p.trackingOffsetPixels==0.0f&&p.trackingSlopePixels==0.0f&&p.servoJitterPixels==0.0f&&p.controlTrackServoAmount==0.0f&&p.controlTrackTape.debrisAmount<=0.0f&&p.controlTrackTape.moldAmount<=0.0f;
 }
 inline void sample(const std::vector<float>&src,int w,int h,float x,float y,float out[4]) noexcept {
  x=std::clamp(x,0.0f,float(w-1));y=std::clamp(y,0.0f,float(h-1));const int x0=int(x),y0=int(y),x1=std::min(x0+1,w-1),y1=std::min(y0+1,h-1);
@@ -77,8 +142,8 @@ bool processTapeTransportWarp(ConstImageView src,ImageView dst,const TapeTranspo
   const int w=src.width,h=src.height;std::vector<float>copy(size_t(w)*h*4);for(int y=0;y<h;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,w*4,copy.data()+size_t(y)*w*4);
   const float fps=std::max(p.framesPerSecond,1.0f),time=float(p.frame)/fps,controlServo=controlTrackServoOffset(p);
   const int epochFrames=4,epoch=int(p.frame/epochFrames);const float epochMix=float(p.frame%epochFrames)/float(epochFrames);
-  std::vector<float>servo,servoNext;if(p.servoJitterPixels>0){servo=slowProfile(p.seed^0x51A7u,epoch,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);servoNext=slowProfile(p.seed^0x51A7u,epoch+1,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);}
-  for(int y=0;y<h;++y){const float line=float(y)/float(std::max(1,h-1)),drum=std::sin(2*kPi*(time*p.fieldRateHz+line*.035f))*p.drumFlutterPixels,flutter=std::sin(2*kPi*(time*p.flutterHz+line*.17f))*p.flutterPixels,stick=randomSigned(p.seed,p.frame,y/3,1)*p.stickSlipPixels,jitter=randomSigned(p.seed,p.frame,y,2)*p.lineJitterPixels,tracking=p.trackingOffsetPixels+p.trackingSlopePixels*(line-.5f),drift=time*p.slowDriftPixelsPerSecond,servoShift=servo.empty()?0.0f:servo[std::size_t(y)]*(1-epochMix)+servoNext[std::size_t(y)]*epochMix,shift=drum+flutter+stick+jitter+tracking+drift+servoShift+controlServo;
+  std::vector<float>servo,servoNext,stickySlip;if(p.controlTrackTape.debrisAmount>0.0f||p.controlTrackTape.moldAmount>0.0f)stickySlip=physicalStickySlipProfile(p,w,h);if(p.servoJitterPixels>0){servo=slowProfile(p.seed^0x51A7u,epoch,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);servoNext=slowProfile(p.seed^0x51A7u,epoch+1,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);}
+  for(int y=0;y<h;++y){const float line=float(y)/float(std::max(1,h-1)),drum=std::sin(2*kPi*(time*p.fieldRateHz+line*.035f))*p.drumFlutterPixels,flutter=std::sin(2*kPi*(time*p.flutterHz+line*.17f))*p.flutterPixels,stick=randomSigned(p.seed,p.frame,y/3,1)*p.stickSlipPixels,jitter=randomSigned(p.seed,p.frame,y,2)*p.lineJitterPixels,tracking=p.trackingOffsetPixels+p.trackingSlopePixels*(line-.5f),drift=time*p.slowDriftPixelsPerSecond,servoShift=servo.empty()?0.0f:servo[std::size_t(y)]*(1-epochMix)+servoNext[std::size_t(y)]*epochMix,materialSlip=stickySlip.empty()?0.0f:stickySlip[std::size_t(y)],shift=drum+flutter+stick+jitter+tracking+drift+servoShift+controlServo+materialSlip;
    float*row=dst.rgba+y*dst.rowStrideFloats;for(int x=0;x<w;++x){float q[4];sample(copy,w,h,float(x)-shift,float(y),q);row[x*4]=q[0];row[x*4+1]=q[1];row[x*4+2]=q[2];row[x*4+3]=q[3];}}
   return true;
  }catch(...){return false;}
