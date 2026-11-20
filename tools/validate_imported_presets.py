@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static audit for imported VHS6RIFT, NTSC-RS and VHS Effect Add-on preset UI wiring."""
+"""Static audit for imported VHS6RIFT, NTSC-RS, CVS and Lost Signal VHS preset/UI wiring."""
 from pathlib import Path
 import re
 import sys
@@ -83,6 +83,8 @@ for needle in [
     "p.geometry.edgeWaveFrequency=s.edgeWaveFrequency",
     "p.imageGrade.chromaEdgeEnhancement=clamp01(s.chromaEdgeEnhance/100.0f);",
     "p.imageGrade.chromaSharpenCutoffHz=s.tapeSpeed==3?560000.0f:(s.tapeSpeed==2?600000.0f:640000.0f);",
+    "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
+    "bi(s.compositeDecoder,1);b(s.composite,100);b(s.lumaNoise,v[0]*100);",
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
 
@@ -97,10 +99,10 @@ assert cvs_cases.issubset(style_cases), f"Missing Composite Video Simulator VHS 
 lost_signal_cases = set(range(26, 39))
 assert lost_signal_cases.issubset(style_cases), f"Missing Lost Signal VHS v1.9 profiles: {sorted(lost_signal_cases-style_cases)}"
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
-assert style_choices and len(style_choices.group(1).split("|")) == 38, "VHS Style popup must expose all 22 entries"
+assert style_choices and len(style_choices.group(1).split("|")) == 38, "VHS Style popup must expose all 38 entries"
 assert camera_cases == set(range(2, 11)), f"Missing VHS6RIFT camera profile cases: {sorted(set(range(2,11))-camera_cases)}"
 assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
 
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: 16 VHS6RIFT + 5 VHS Effect Add-on + 3 Composite Video Simulator VHS speed presets + 13 Lost Signal VHS v1.9 profiles, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
-print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening are wired.")
+print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening and Consumer Notch / One-Line Comb / Two-Line Comb decoder controls are wired.")
