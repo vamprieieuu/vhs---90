@@ -61,7 +61,7 @@ constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
-static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS Degradation|Bad Tracking|Very Bad Tracking|Unstable VCR Playback|Moving Band Noise|Tape Damage|Bottom Tape Damage|Static Interference|Color Bleed|Color Shift|Ghosting|Signal Loss|Severe Analog Glitch|Damaged Tape Playback|Add-on Light|Add-on Classic|Add-on Heavy|Add-on Worn|Add-on Clean TV";
+static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS Degradation|Bad Tracking|Very Bad Tracking|Unstable VCR Playback|Moving Band Noise|Tape Damage|Bottom Tape Damage|Static Interference|Color Bleed|Color Shift|Ghosting|Signal Loss|Severe Analog Glitch|Damaged Tape Playback|Add-on Light|Add-on Classic|Add-on Heavy|Add-on Worn|Add-on Clean TV|CVS VHS SP|CVS VHS LP|CVS VHS EP";
 static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300";
 static char kNtscRsLookChoices[]="Custom|VHS-90 Natural NTSC|VHS-90 Home SP|VHS-90 LP Tape|VHS-90 EP Tape|VHS-90 Tracking Snow|VHS-90 Chroma Loss|VHS-90 Edge Wave|VHS-90 Field Blend|VHS-90 Composite Smear|VHS-90 Chroma Instability";
 static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
@@ -113,6 +113,7 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     const float i=clamp01(s.vhsStyleIntensity/100.0f);
     if(s.vhsStyle<=1||i<=0.0f)return;
     auto b=[&](float& v,float target){v=blendPreset(v,target,s.vhsStyleIntensity);};
+    auto bi=[&](A_long& v,float target){v=static_cast<A_long>(std::lround(blendPreset(float(v),target,s.vhsStyleIntensity)));};
     switch(s.vhsStyle) {
     case 2: b(s.composite,12);b(s.chromaSubsample,8);b(s.lumaNoise,3);b(s.chromaNoise,2);b(s.trackingAmount,4);b(s.headAmount,3);b(s.tapeSurface,2);break;
     case 3: b(s.composite,24);b(s.chromaSubsample,22);b(s.chromaShift,3);b(s.tapeNoise,20);b(s.colorPhaseDrift,15);b(s.edgeEnhance,12);b(s.trackingAmount,10);b(s.geometry,6);b(s.headAmount,10);b(s.blackLift,10);break;
@@ -164,6 +165,12 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
         b(s.verticalRoll,0);b(s.headAmount,20);b(s.headHeight,3.5f);b(s.trackingAmount,10);
         b(s.dropouts,0);b(s.tapeDetail,65);b(s.bloom,25);b(s.edgeEnhance,0);
         b(s.gradeSaturation,115);b(s.gradeContrast,105);b(s.osdAmount,82);break;
+    case 23: // Composite Video Simulator VHS SP mode
+        b(s.composite,100);b(s.verticalChroma,50);b(s.edgeEnhance,100);b(s.chromaEdgeEnhance,85);bi(s.tapeSpeed,1);break;
+    case 24: // Composite Video Simulator VHS LP mode
+        b(s.composite,100);b(s.verticalChroma,50);b(s.edgeEnhance,100);b(s.chromaEdgeEnhance,85);bi(s.tapeSpeed,2);break;
+    case 25: // Composite Video Simulator VHS EP mode
+        b(s.composite,100);b(s.verticalChroma,50);b(s.edgeEnhance,100);b(s.chromaEdgeEnhance,85);bi(s.tapeSpeed,3);break;
     default:break;
     }
 }
@@ -360,7 +367,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_COLOR("REC Lamp Color",255,46,46,ID_OSD_REC_COLOR);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Style & Camera Profiles",ID_VHS_STYLE_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",22,1,kVhsStyleChoices,ID_VHS_STYLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",25,1,kVhsStyleChoices,ID_VHS_STYLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Style Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS_STYLE_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile",10,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
