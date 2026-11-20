@@ -156,3 +156,13 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Static validator: 165 AE parameter slots, UI order matches ParamDiskID. Linux CMake build passed and 32/32 core smoke tests passed: https://github.com/vamprieieuu/vhs---90/actions/runs/44810036059.
 - Depth-reprojected history and depth fog require Minecraft depth/camera data and cannot be reproduced exactly from a standard AE RGB input. Liminal fog is only approximated with available color/glow controls; exact focus-hunt/camera-era behavior remains outstanding. Windows/MSVC Adobe SDK/PiPL/AEX/AE runtime/MFR gates remain outstanding.
 - Next folder in the user's specified eight-folder order: `ntscqt-1.5.0`. The first two listed folders are already closed in reports 49 and 50; this report closes the third.
+
+
+## Source audit 52 — ntscQT 1.5.0 (2026-11-20)
+
+- Expanded the earlier ntscQT report against the supplied `vhs.zip` folder: 28 archive entries (23 files + 5 directories); reviewed the 745-line YIQ/composite/VHS core, GUI/control model, render pipeline, dependency/build files, template data, license and bundled spectral ringing curve.
+- Apache-2.0 license recorded. Python/PyQt/OpenCV/SciPy/FFmpeg GUI and media orchestration are host-specific and were not copied into the native AE plugin.
+- Confirmed the signal behaviors are already represented by canonical VHS-90 engines: composite YIQ/waveform, IIR bandwidth, SP/LP/EP playback, vertical chroma blend, luma/chroma sharpening, noise, phase instability, arbitrary-region head/tracking, deterministic frame/seed processing. No duplicate ntscQT engine was added.
+- Explicit remaining parity candidates: ntscQT's pre-modulation luma pre-emphasis signal-order stage and its 720-sample frequency-domain ringing response. The latter is not identical to VHS-90's spatial `VHS90RingingEngine`; an efficient validated transform is needed before porting. These were not falsely marked as integrated.
+- Full report: `docs/source-audits/52-ntscqt-1.5.0-expanded-audit.md`. Audit index updated. This closes the fourth consecutive folder in the current source-audit run; verify the next exact source folder against the original eight-folder order before proceeding.
+- No new core code or parameter slots were added in this audit; existing Linux core test results remain unchanged. Windows/MSVC AE SDK/PiPL/AEX and live AE/MFR validation remain global release gates.
