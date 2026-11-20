@@ -2,6 +2,8 @@
 #include "VHS90SignalKernels.h"
 #include <cstdint>
 namespace vhs90 {
+enum class VhsDeckMode : std::uint8_t { Play=1, Pause=2, Stop=3, FastForward=4, Rewind=5 };
+enum class VhsTimestampFormat : std::uint8_t { Iso=1, MonthFirst=2, DayFirst=3, DateOnly=4, TimeOnly=5 };
 struct VhsOsdParams {
     float amount=1.0f, opacity=0.82f, scale=1.0f, glitch=0.5f, ghost=0.35f;
     float recAmount=1.0f, playAmount=1.0f, timestampAmount=1.0f, batteryAmount=0.0f;
@@ -11,6 +13,10 @@ struct VhsOsdParams {
     float framesPerSecond=29.97f;
     std::int64_t frame=0;
     std::uint32_t seed=0x9050D5u;
+    VhsDeckMode deckMode=VhsDeckMode::Play;
+    VhsTimestampFormat timestampFormat=VhsTimestampFormat::Iso;
+    int tapeSpeed=1; // SP, LP, EP
+    float recX=2.2f, recY=3.0f, statusX=98.0f, statusY=3.0f, timestampX=98.0f, timestampY=96.0f;
     int startYear=1994, startMonth=6, startDay=11;
     int startHour=12, startMinute=0, startSecond=0;
     bool showRec=true, showPlay=true, showTimestamp=true, showBattery=false;
