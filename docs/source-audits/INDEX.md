@@ -68,3 +68,5 @@ See docs/PROJECT_STATUS.md for the current build/integration boundary. The repos
 - 55-vhs-main-expanded-final-audit.md — final 28-file AGPL-3.0 OFX/Metal source audit; moved OSD before composite and added independent red/blue RGB channel registration in the native AE CPU path. Final registration CI pending.
 
 - 56-tracking-variants-and-damage-lab-checkpoint.md — five distinct Tracking Noise renderer models and evidence mapping for VHS6RIFT, NTSC-R, Crates VHS Master, VHSPro and VHS Damage Lab; AE selector wired; CI validator/build/32-of-32 tests pass. Records remaining multi-layer UI, Particle Pattern and Tear & Chroma integration gates.
+
+- 57-vhs-damage-lab-engines-and-camera-handoff.md — five Tracking renderer types, eight editable presets, four simultaneous tracking layers, five-mode Tear & Chroma with five independently configurable bands, five-mode Particle Pattern Engine, and 11 procedural static patterns; AE UI/render wiring and Linux CI 34/34 pass. Next: deeper VHS Cameras clip analysis.
