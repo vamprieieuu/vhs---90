@@ -1173,6 +1173,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             const char* osdFont=kOsdFontFamilies[std::clamp<A_long>(s.osdFont-1,0,14)];
             const auto language=static_cast<VhsOsdLanguage>(std::clamp<A_long>(s.osdLanguage-1,0,2));
             const auto digits=static_cast<VhsOsdDigitSet>(std::clamp<A_long>(s.osdDigits-1,0,2));
+            const int osdCell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,op.scale))));
             auto drawOsdText=[&](const std::string& text,float x,float y,float size,float alpha,
                                  vhs90::win::TextAlignment alignment,float rightEdge=0.0f) -> PF_Err {
                 if(text.empty()||alpha<=0.001f) return PF_Err_NONE;
@@ -1219,7 +1220,6 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 const auto result=vhs90::win::drawDirectWriteText(osdView,options);
                 return result.rendered?PF_Err_NONE:PF_Err_INTERNAL_STRUCT_DAMAGED;
             };
-            const int osdCell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,op.scale))));
             const float textSize=7.0f*float(osdCell)*std::clamp(s.osdTextSize/100.0f,0.1f,5.0f);
             if(s.osdShowText) {
                 if(s.osdRec>0.0f && s.osdShowRecLabel) {
