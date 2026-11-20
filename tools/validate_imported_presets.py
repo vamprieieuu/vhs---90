@@ -265,5 +265,5 @@ assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 com
 assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 45 for line in lost_rows), "Every Lost Signal VHS profile must define all 45 mapped values"
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: 16 VHS6RIFT + 5 Add-on + 3 CVS + 13 Lost Signal + 16 Crates + 10 VHSPro + 8 VHSCraft = 71 named VHS Style recipes plus Custom (72 popup entries).")
-print("PASS: all 7 audited preset families have native menu entries and recipe cases; Crates/VHSPro/VHSCraft values are source-informed approximations where exact original parameter tuples were not recoverable.")
+print("PASS: all 7 audited preset families have native menu entries; Crates maps 44 recovered source fields per look, while VHSPro/VHSCraft remain source-inspired where exact tuples were not recoverable.")
 print("PASS: camera profiles, NTSC-RS controls, VHS playback, decoder, frame geometry, camcorder OSD and deterministic frame-repeat controls remain wired.")
