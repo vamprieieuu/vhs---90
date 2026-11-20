@@ -104,7 +104,7 @@ if(WIN32)
     else()
         target_compile_options(VHS90DirectWrite PRIVATE -Wall -Wextra -Wpedantic)
     endif()
-    target_link_libraries(VHS90DirectWrite PUBLIC VHS90Core PRIVATE d2d1 dwrite windowscodecs ole32)
+    target_link_libraries(VHS90DirectWrite PRIVATE d2d1 dwrite windowscodecs ole32)
 
     if(VHS90_BUILD_TESTS)
         add_executable(VHS90DirectWriteSmoke Tests/VHS90DirectWriteSmoke.cpp)
