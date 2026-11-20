@@ -37,7 +37,7 @@ enum ParamIndex {
     PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_ANGLE, PARAM_TRACKING_MOTION_X,
     PARAM_TRACKING_MOTION_Y, PARAM_TRACKING_SERVO, PARAM_TRACKING_TEAR,
     PARAM_TRACKING_END, PARAM_HEAD_TOPIC, PARAM_HEAD_AMOUNT, PARAM_HEAD_BOTTOM_Y,
-    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_COUNT
+    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT,
@@ -52,7 +52,8 @@ enum ParamDiskID {
     ID_TRACKING_SHAPE, ID_TRACKING_X, ID_TRACKING_Y, ID_TRACKING_WIDTH,
     ID_TRACKING_HEIGHT, ID_TRACKING_ANGLE, ID_TRACKING_MOTION_X, ID_TRACKING_MOTION_Y,
     ID_TRACKING_SERVO, ID_TRACKING_TEAR, ID_HEAD_TOPIC, ID_HEAD_AMOUNT,
-    ID_HEAD_Y, ID_HEAD_HEIGHT, ID_HEAD_SHIFT, ID_HEAD_CONDITION
+    ID_HEAD_Y, ID_HEAD_HEIGHT, ID_HEAD_SHIFT, ID_HEAD_CONDITION,
+    ID_TAPE_MATERIAL_TOPIC, ID_TAPE_WEAR, ID_TAPE_DROPOUTS, ID_TAPE_SCRATCHES, ID_TAPE_CREASES, ID_TAPE_EDGE, ID_TAPE_MOLD, ID_TAPE_VASELINE, ID_TAPE_STICKY, ID_TAPE_SEED
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -78,6 +79,7 @@ struct RenderSettings {
     A_long trackingShape=3;
     float headAmount=0, headY=100, headHeight=4, headShift=24;
     float headCondition=0;
+    float tapeWear=100, tapeDropouts=100, tapeScratches=100, tapeCreases=100, tapeEdge=100, tapeMold=100, tapeVaseline=100, tapeSticky=100, tapeSeed=1;
     bool previousFrameAvailable=false;
     std::int64_t frame=0;
     double timeSeconds=0;
@@ -184,6 +186,17 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Shift",0,100,0,100,24,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_SHIFT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_HEAD_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Head Dirt / Wear",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_CONDITION);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tape Material",ID_TAPE_MATERIAL_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Wear",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_WEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Dropouts",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DROPOUTS);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Scratches",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SCRATCHES);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Creases / Folds",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_CREASES);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Edge Damage",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_EDGE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Mold",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_MOLD);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Vaseline / Binder Film",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_VASELINE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sticky Binder / Shed",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_STICKY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Cassette Seed",1,10000,1,10000,1,1,PF_ValueDisplayFlag_NONE,0,ID_TAPE_SEED);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TAPE_MATERIAL_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -245,6 +258,9 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_HEAD_AMOUNT,headAmount); READ_FLOAT(PARAM_HEAD_BOTTOM_Y,headY);
     READ_FLOAT(PARAM_HEAD_HEIGHT,headHeight); READ_FLOAT(PARAM_HEAD_SHIFT,headShift);
     READ_FLOAT(PARAM_HEAD_CONDITION,headCondition);
+    READ_FLOAT(PARAM_TAPE_WEAR,tapeWear); READ_FLOAT(PARAM_TAPE_DROPOUTS,tapeDropouts); READ_FLOAT(PARAM_TAPE_SCRATCHES,tapeScratches);
+    READ_FLOAT(PARAM_TAPE_CREASES,tapeCreases); READ_FLOAT(PARAM_TAPE_EDGE,tapeEdge); READ_FLOAT(PARAM_TAPE_MOLD,tapeMold);
+    READ_FLOAT(PARAM_TAPE_VASELINE,tapeVaseline); READ_FLOAT(PARAM_TAPE_STICKY,tapeSticky); READ_FLOAT(PARAM_TAPE_SEED,tapeSeed);
 #undef READ_FLOAT
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
@@ -428,17 +444,23 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.tapeTransport.verticalScale=std::max(0.1f,float(h)/480.0f);
             }
             if(s.tapeSurface>0) {
-                const float a=clamp01(s.tapeSurface/100.0f);
-                p.tapeSurfaceEnabled=true; p.tapeSurface.seed=ntscrtTapeSeed(1u); p.tapeSurface.frame=s.frame;
-                p.tapeSurface.defectDensity=ntscrtTapeDropoutAmount(a);
-                p.tapeSurface.oxideLoss=ntscrtTapeWearAmount(a);
-                p.tapeSurface.scratchDensity=ntscrtTapeScratchAmount(a);
-                p.tapeSurface.creaseStrength=ntscrtTapeCreaseAmount(a);
-                p.tapeSurface.debrisAmount=0.18f*a;
-                p.tapeSurface.edgeLift=ntscrtTapeEdgeAmount(a);
+                const float master=clamp01(s.tapeSurface/100.0f);
+                const float wear=master*clamp01(s.tapeWear/100.0f);
+                const float dropouts=master*clamp01(s.tapeDropouts/100.0f);
+                const float scratches=master*clamp01(s.tapeScratches/100.0f);
+                const float creases=master*clamp01(s.tapeCreases/100.0f);
+                const float edge=master*clamp01(s.tapeEdge/100.0f);
+                p.tapeSurfaceEnabled=true; p.tapeSurface.seed=ntscrtTapeSeed(static_cast<std::uint32_t>(std::max(1.0f,std::min(10000.0f,std::round(s.tapeSeed))))); p.tapeSurface.frame=s.frame;
+                p.tapeSurface.defectDensity=ntscrtTapeAmount(TapeDamageControl::Dropouts,dropouts);
+                p.tapeSurface.oxideLoss=ntscrtTapeAmount(TapeDamageControl::Wear,wear);
+                p.tapeSurface.scratchDensity=ntscrtTapeAmount(TapeDamageControl::Scratches,scratches);
+                p.tapeSurface.creaseStrength=ntscrtTapeAmount(TapeDamageControl::Creases,creases);
+                p.tapeSurface.debrisAmount=master*clamp01(s.tapeSticky/100.0f);
+                p.tapeSurface.edgeLift=ntscrtTapeAmount(TapeDamageControl::EdgeDamage,edge);
                 p.tapeSurface.surfaceRoughness=0.0f;
                 p.tapeSurface.pinholeAmount=0.0f; p.tapeSurface.flakeAmount=0.0f;
-                p.tapeSurface.moldAmount=0.45f*a; p.tapeSurface.vaselineAmount=0.30f*a;
+                p.tapeSurface.moldAmount=master*clamp01(s.tapeMold/100.0f);
+                p.tapeSurface.vaselineAmount=master*clamp01(s.tapeVaseline/100.0f);
             }
             p.tapeSurface.tapeSpeed=static_cast<std::uint32_t>(std::clamp(int(s.tapeSpeed)-1,0,2));
             p.tapeSurface.trackingOffsetTracks=p.trackRead.trackingOffset;
@@ -660,6 +682,9 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.tapeDetail=float(params[PARAM_TAPE_DETAIL]->u.fs_d.value);
     s.trackRead=float(params[PARAM_TRACK_READ]->u.fs_d.value);
     s.headCondition=float(params[PARAM_HEAD_CONDITION]->u.fs_d.value);
+    s.tapeWear=float(params[PARAM_TAPE_WEAR]->u.fs_d.value); s.tapeDropouts=float(params[PARAM_TAPE_DROPOUTS]->u.fs_d.value); s.tapeScratches=float(params[PARAM_TAPE_SCRATCHES]->u.fs_d.value);
+    s.tapeCreases=float(params[PARAM_TAPE_CREASES]->u.fs_d.value); s.tapeEdge=float(params[PARAM_TAPE_EDGE]->u.fs_d.value); s.tapeMold=float(params[PARAM_TAPE_MOLD]->u.fs_d.value);
+    s.tapeVaseline=float(params[PARAM_TAPE_VASELINE]->u.fs_d.value); s.tapeSticky=float(params[PARAM_TAPE_STICKY]->u.fs_d.value); s.tapeSeed=float(params[PARAM_TAPE_SEED]->u.fs_d.value);
     s.trackMisalignment=float(params[PARAM_TRACK_MISALIGNMENT]->u.fs_d.value);
     s.chromaShift=float(params[PARAM_CHROMA_SHIFT]->u.fs_d.value);
     s.chromaSubsample=float(params[PARAM_CHROMA_SUBSAMPLE]->u.fs_d.value);
