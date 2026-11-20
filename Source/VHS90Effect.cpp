@@ -15,6 +15,7 @@
 #include "VHS90CompositeEngine.h"
 #include "VHS90ChromaShiftEngine.h"
 #include "VHS90OsdEngine.h"
+#include "VHS90OsdArbitraryData.h"
 #include "VHS90DeviceConnectionEngine.h"
 #include "VHS90SyncEngine.h"
 #include <algorithm>
@@ -52,7 +53,7 @@ enum ParamIndex {
     PARAM_TEAR_BAND5_TOPIC, PARAM_TEAR_BAND5_AMOUNT, PARAM_TEAR_BAND5_Y, PARAM_TEAR_BAND5_HEIGHT, PARAM_TEAR_BAND5_SHIFT, PARAM_TEAR_BAND5_FRAGMENTATION, PARAM_TEAR_BAND5_CHROMA, PARAM_TEAR_BAND5_SMEAR, PARAM_TEAR_BAND5_DROPOUT, PARAM_TEAR_BAND5_END,
     PARAM_OSD_DECK_MODE, PARAM_OSD_DATE_FORMAT, PARAM_OSD_REC_X, PARAM_OSD_REC_Y,
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y,
-    PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_COUNT
+    PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_TEXT_DATA, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT, ID_CHROMA_REG_RED, ID_CHROMA_REG_BLUE,
@@ -78,7 +79,7 @@ enum ParamDiskID {
     ID_TEAR_BAND5_TOPIC, ID_TEAR_BAND5_AMOUNT, ID_TEAR_BAND5_Y, ID_TEAR_BAND5_HEIGHT, ID_TEAR_BAND5_SHIFT, ID_TEAR_BAND5_FRAGMENTATION, ID_TEAR_BAND5_CHROMA, ID_TEAR_BAND5_SMEAR, ID_TEAR_BAND5_DROPOUT,
     ID_OSD_DECK_MODE=9001, ID_OSD_DATE_FORMAT, ID_OSD_REC_X, ID_OSD_REC_Y,
     ID_OSD_STATUS_X, ID_OSD_STATUS_Y, ID_OSD_TIMESTAMP_X, ID_OSD_TIMESTAMP_Y,
-    ID_OSD_COUNTER_FORMAT=9009, ID_OSD_COUNTER_AMOUNT, ID_OSD_COUNTER_X, ID_OSD_COUNTER_Y
+    ID_OSD_COUNTER_FORMAT=9009, ID_OSD_COUNTER_AMOUNT, ID_OSD_COUNTER_X, ID_OSD_COUNTER_Y, ID_OSD_TEXT_DATA=9013
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -808,6 +809,10 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Horizontal Position",0,100,0,100,2.2,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Vertical Position",0,100,0,100,96,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_Y);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_COUNTER_FORMAT+100);
+    PF_ArbitraryH osdTextDefault = nullptr;
+    err = VHS90CreateOsdTextDefault(in_data, &osdTextDefault);
+    if (err != PF_Err_NONE) return err;
+    AEFX_CLR_STRUCT(def); PF_ADD_ARBITRARY2("OSD Text Data",1,1,0,PF_PUI_NO_ECW_UI,osdTextDefault,ID_OSD_TEXT_DATA,nullptr);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -1717,6 +1722,7 @@ extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in_data,PF_OutData*
             case PF_Cmd_ABOUT: PF_STRCPY(out_data->return_msg,"VHS-90 1.0.0 - Native procedural VHS / NTSC signal engine."); break;
             case PF_Cmd_GLOBAL_SETUP: err=GlobalSetup(in_data,out_data); break;
             case PF_Cmd_PARAMS_SETUP: err=ParamsSetup(in_data,out_data); break;
+            case PF_Cmd_ARBITRARY_CALLBACK: err=VHS90OsdArbitraryCallback(in_data,static_cast<PF_ArbParamsExtra*>(extra)); break;
             case PF_Cmd_RENDER: err=LegacyRender(in_data,out_data,params,output); break;
             case PF_Cmd_SMART_PRE_RENDER: err=SmartPreRender(in_data,static_cast<PF_PreRenderExtra*>(extra)); break;
             case PF_Cmd_SMART_RENDER: err=SmartRender(in_data,out_data,static_cast<PF_SmartRenderExtra*>(extra)); break;
