@@ -39,7 +39,7 @@ Important geometry correction: upstream TapeGeometry::TRACK_START is **1.0 mm**,
 
 The sampler ports the upstream deterministic 32-bit hash/value-noise pattern and principal tape_at mechanisms: remanence/wear variation, pinholes, flakes/shed, lengthwise scratches, creases, edge lift, mold colonies and Vaseline film. The raster sampler averages four physical samples across the selected SP (58 µm) or LP/EP (26 µm) head width, offset sideways by configured track-pitch misalignment. Head-state and control-track paths use detail-off/flake-on sampling, matching the source deck/sync sampling mode. TapeSurfaceSample reports shed as well as magnetization, spacing lift, roughness and film.
 
-This remains an adaptation, not yet sample-by-sample bit-identical parity. The AE UI now exposes independent tape wear, dropouts, scratches, creases, edge damage, mold, Vaseline/binder film, sticky shed and cassette seed controls; the master amount scales them through a tested core mapping helper. Sticky-binder/transport stick-slip coupling and exact sample-by-sample upstream point parity remain incomplete. The image-domain renderer still approximates the RF chain.
+This remains an adaptation, not yet sample-by-sample bit-identical parity. The AE UI now exposes independent tape wear, dropouts, scratches, creases, edge damage, mold, Vaseline/binder film, sticky shed and cassette seed controls; the master amount scales them through the tested core makeTapeSurfaceParams mapping helper. The AE adapter routes its controls through that host-independent helper. Sticky-binder/transport stick-slip coupling and exact sample-by-sample upstream point parity remain incomplete. The image-domain renderer still approximates the RF chain.
 
 ### 4. Two-head deck recurrence with physical tape sampling
 
@@ -76,7 +76,7 @@ NTSCRT is MIT-licensed. Attribution and license are preserved in ThirdParty/NTSC
 
 ## Still required before NTSCRT-derived implementation can be called complete
 
-1. Implement sticky-binder/transport stick-slip coupling and complete exact source-equivalent tape parameter defaults, then verify independent AE control mappings against the source parameter model.
+1. Implement sticky-binder/transport stick-slip coupling and complete exact source-equivalent tape parameter defaults; the new independent control mapping itself is covered by core smoke tests.
 2. Verify tape material sample parity against upstream point outputs across positions, seeds, damage combinations and SP/LP/EP.
 3. Complete the nine-stage sample-domain RF/FM/color-under record/playback chain: vcr_record, vcr_tape, vcr_magnet, vcr_play, vcr_fmband, vcr_line, vcr_comb, vcr_acc and vcr_out.
 4. Complete receiver sync/color-reference parity: line/field timing, sync separator, horizontal AFC/VCO, vertical integrator, burst phase, chroma PLL, ACC/color killer and deterministic rolling history.
