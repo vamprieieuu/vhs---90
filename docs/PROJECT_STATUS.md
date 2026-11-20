@@ -114,4 +114,4 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Ported the source's distinct multi-scale animated horizontal tape-noise algorithm into `VHS90AnalogNoiseEngine`; exposed `Tape Noise (Multi-Scale)` as a native AE Signal parameter and added deterministic/time-varying smoke coverage.
 - Existing VHS-90 chroma bleed/bandwidth, luma smear, edge enhancement/ringing, interlace/geometry and scanline engines already cover the other major source effects; no duplicate engines were added.
 - MIT attribution and license preserved in `ThirdParty/URP-VHS-Retro-Effects/`; full disposition in `docs/source-audits/48-urp-vhs-retro-effects.md`.
-- Linux CI for the port is pending final run; Windows/MSVC and AE-host validation are not claimed.
+- Linux core CI run 613 passed 28/28 tests: https://github.com/vamprieieuu/vhs---90/actions/runs/44783681639. Windows/MSVC and AE-host validation are not claimed.
