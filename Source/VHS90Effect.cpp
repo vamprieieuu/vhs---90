@@ -1181,7 +1181,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             const int osdCell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,op.scale))));
             auto drawOsdText=[&](const std::string& text,float x,float y,float size,float alpha,
                                  vhs90::win::TextAlignment alignment,float rightEdge=0.0f) -> PF_Err {
-                alpha=clamp01(alpha*clamp01(s.osdTextOpacity/100.0f));\n                if(text.empty()||alpha<=0.001f) return PF_Err_NONE;
+                alpha=clamp01(alpha*clamp01(s.osdTextOpacity/100.0f));
+                if(text.empty()||alpha<=0.001f) return PF_Err_NONE;
                 vhs90::win::DirectWriteTextOptions options;
                 options.utf8Text=text.c_str(); options.utf8FontFamily=osdFont; options.fontWeight=osdFontWeight;
                 const double phase=double(s.frame)*0.7548776662466927+double(s.osdTextSeed)*0.000123;
