@@ -39,13 +39,14 @@ int main() {
     assert(processCompositeRoundTrip(si,d180,pp));
     assert(phase0!=phase180);
 
-    std::vector<float> one(src.size()), two(src.size());
-    ImageView d1{one.data(),w,h,w*4}, d2{two.data(),w,h,w*4};
+    std::vector<float> one(src.size()), two(src.size()), notch(src.size());
+    ImageView d1{one.data(),w,h,w*4}, d2{two.data(),w,h,w*4}, dn{notch.data(),w,h,w*4};
     pp=p; pp.demodulator=CompositeDemodulator::OneLineComb;
     assert(processCompositeRoundTrip(si,d1,pp));
     pp.demodulator=CompositeDemodulator::TwoLineComb;
     assert(processCompositeRoundTrip(si,d2,pp));
     assert(one!=two);
+    pp=p;pp.demodulator=CompositeDemodulator::ConsumerNotch;assert(processCompositeRoundTrip(si,dn,pp));assert(notch!=boxOut&&notch!=one&&notch!=two);
 
     // RF instability is an independent post-decode module.
     std::vector<float> rfOnly(src.size());
