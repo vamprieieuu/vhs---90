@@ -40,6 +40,15 @@ float ntscrtTapeScratchAmount(float knob) noexcept;
 float ntscrtTapeEdgeAmount(float knob) noexcept;
 float ntscrtTapeCreaseAmount(float knob) noexcept;
 std::uint32_t ntscrtTapeSeed(std::uint32_t tapeSeed) noexcept;
+struct TapeMaterialControls {
+    float master=0.0f;
+    float wear=100.0f, dropouts=100.0f, scratches=100.0f, creases=100.0f, edgeDamage=100.0f;
+    float mold=100.0f, vaseline=100.0f, sticky=100.0f;
+    std::uint32_t cassetteSeed=1u, tapeSpeed=0u;
+    float trackingOffsetTracks=0.0f;
+    std::int64_t frame=0;
+};
+TapeSurfaceParams makeTapeSurfaceParams(const TapeMaterialControls& controls) noexcept;
 TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm, float yMm, const TapeSurfaceParams& params, bool detail=true, bool flakes=true) noexcept;
 TapeSurfaceSample sampleTapeSurface(float u,float v,const TapeSurfaceParams& params) noexcept;
 bool processTapeSurface(ConstImageView src,ImageView dst,const TapeSurfaceParams& params) noexcept;
