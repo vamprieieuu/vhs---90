@@ -47,6 +47,8 @@ required_reads = [
     "READ_FLOAT(PARAM_LENS_DISTORTION,lensDistortion)",
     "READ_FLOAT(PARAM_DIGITAL_ZOOM,digitalZoom)",
     "READ_FLOAT(PARAM_OSD_BATTERY,osdBattery)",
+    "READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency)",
+    "READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength)",
     "READ_FLOAT(PARAM_VHS_STYLE_INTENSITY,vhsStyleIntensity)",
     "READ_FLOAT(PARAM_CAMERA_INTENSITY,cameraIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_INTENSITY,ntscRsIntensity)",
@@ -97,8 +99,10 @@ for needle in [
     "||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f",
     "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
     "bi(s.compositeDecoder,1);b(s.composite,100);b(s.lumaNoise,v[0]*100);",
-    "kLostSignalProfiles[13][43]",
+    "kLostSignalProfiles[13][45]",
     "b(s.lensDistortion,v[39]*1000.0f);bi(s.vhs43Frame,v[40]>0.5f?1.0f:0.0f);",
+    "p.temporalGhost.frameRepeatFrequency=clamp01(s.frameRepeatFrequency/100.0f);",
+    "b(s.frameRepeatFrequency,v[43]*100.0f);b(s.frameRepeatStrength,v[44]*100.0f);",
     "if(s.vhsStyle<26){bi(s.vhs43Frame,0.0f);b(s.roundedOverscan,0.0f);b(s.lensDistortion,0.0f);b(s.digitalZoom,1.0f);}",
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
@@ -118,7 +122,7 @@ assert style_choices and len(style_choices.group(1).split("|")) == 38, "VHS Styl
 assert camera_cases == set(range(2, 11)), f"Missing VHS6RIFT camera profile cases: {sorted(set(range(2,11))-camera_cases)}"
 assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
 
-lost_start = source.find("static constexpr float kLostSignalProfiles[13][43]={")
+lost_start = source.find("static constexpr float kLostSignalProfiles[13][45]={")
 assert lost_start >= 0, "Missing 13x43 Lost Signal VHS profile table"
 lost_end = source.find("\n    };", lost_start)
 assert lost_end > lost_start, "Unterminated Lost Signal VHS profile table"
@@ -126,4 +130,4 @@ lost_rows = [line for line in source[lost_start:lost_end].splitlines() if line.l
 assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 complete profiles, got {len(lost_rows)}"
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: 16 VHS6RIFT + 5 VHS Effect Add-on + 3 Composite Video Simulator VHS speed presets + 13 Lost Signal VHS v1.9 profiles, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
-print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening and Consumer Notch / One-Line Comb / Two-Line Comb decoder and VHS 4:3 frame/rounded overscan/lens/zoom and camcorder battery OSD controls are wired.")
+print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening and Consumer Notch / One-Line Comb / Two-Line Comb decoder and VHS 4:3 frame/rounded overscan/lens/zoom and camcorder battery OSD and deterministic frame-repeat controls are wired.")
