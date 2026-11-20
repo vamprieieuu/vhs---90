@@ -37,8 +37,6 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
    if(a<=1.0e-6f){std::copy_n(px,4,out);continue;}
    RGB rgb{px[0],px[1],px[2]};if(p.premultipliedAlpha){rgb.r/=a;rgb.g/=a;rgb.b/=a;}
    YIQ q=rgbToYiq(rgb);
-   if(ly>0){const float n=gaussian(std::uint32_t(x/lw),std::uint32_t(y/lh),p.seed^0xC0FFEE11u,p.frame);q.y+=n*ly*0.10f;}
-   if(ch>0){const float n=gaussian(std::uint32_t(x/cw),std::uint32_t(y/chh),p.seed^0x55AA7733u,p.frame);q.i+=n*ch*0.10f*di;q.q+=n*ch*0.10f*dq;}
    if(co>0){const float n=gaussian(std::uint32_t(x),std::uint32_t(y),p.seed^0x1234ABCDu,p.frame);q.y+=n*co*0.035f;}
    if(loss>0.0f&&hash01(0u,std::uint32_t(y),p.seed^0xC4A05EEDu,p.frame)<loss){q.i*=0.08f;q.q*=0.08f;}
    if(tape>0.0f) {
