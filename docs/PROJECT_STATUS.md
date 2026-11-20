@@ -318,3 +318,13 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 
 
 - Latest code commit `a26540d6f3` passed VHS-90 Core CI `44835822873` and Windows + Linux OSD Core/DirectWrite CI `44835822927` (37/37 tests, including DirectWrite and OSD localization smoke). Font-weight-specific Windows DirectWrite validation passed in `44835660219`. The Core CI also passed the static AE parameter/ID audit. These workflows do not compile `VHS90Effect.cpp` into an AEX or validate AE-host behavior.
+
+## Embedded fonts and direct AEX output (2026-11-21)
+
+- Added an AEX resource path for the two font files cleared by the supplied font audit: `Rooyin_Free_Bold.ttf` and `Sponge_Arabic_Regular.otf`. The original full files are retained; no subsetting or modification is performed.
+- Added private-process font extraction/registration in the DirectWrite backend, with Windows smoke checks that become mandatory when the font resources are present.
+- Added the SIL OFL 1.1 text and per-font copyright notices at `Resources/Fonts/OFL-1.1.txt`.
+- `build.ps1` now extracts the two fonts and the complete Adobe SDK subtree from the exact VHS6RIFT path inside the original `vhs.zip` archive. It then configures the Windows/MSVC target and expects one output file at `build/VHS-90.aex`.
+- CMake output properties now suppress Visual Studio's default `Release/` subdirectory. The Windows AEX workflow publishes a raw `.aex` release asset and a one-file Actions artifact after a successful build.
+- Important release gate: the binary font files are extracted from `vhs.zip` during the build and are not stored in this repository. The hosted AEX workflow therefore requires the original archive to be available in its workspace or through its optional downloadable-URL input. The current GitHub Library copy is not automatically mounted into GitHub Actions.
+- No AEX has been produced yet. The current execution environment is Linux and cannot run the required Windows/MSVC + Adobe PiPLtool pipeline; the hosted workflow cannot proceed until it receives the original archive. The AEX and AE-host gates remain open.
