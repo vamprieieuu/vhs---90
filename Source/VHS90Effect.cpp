@@ -61,7 +61,7 @@ constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
-static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS Degradation|Bad Tracking|Very Bad Tracking|Unstable VCR Playback|Moving Band Noise|Tape Damage|Bottom Tape Damage|Static Interference|Color Bleed|Color Shift|Ghosting|Signal Loss|Severe Analog Glitch|Damaged Tape Playback";
+static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS Degradation|Bad Tracking|Very Bad Tracking|Unstable VCR Playback|Moving Band Noise|Tape Damage|Bottom Tape Damage|Static Interference|Color Bleed|Color Shift|Ghosting|Signal Loss|Severe Analog Glitch|Damaged Tape Playback|Add-on Light|Add-on Classic|Add-on Heavy|Add-on Worn|Add-on Clean TV";
 static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300";
 static char kNtscRsLookChoices[]="Custom|VHS-90 Natural NTSC|VHS-90 Home SP|VHS-90 LP Tape|VHS-90 EP Tape|VHS-90 Tracking Snow|VHS-90 Chroma Loss|VHS-90 Edge Wave|VHS-90 Field Blend|VHS-90 Composite Smear|VHS-90 Chroma Instability";
 static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
@@ -130,6 +130,40 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     case 15: b(s.sync,85);b(s.verticalRoll,75);b(s.staticAmount,50);b(s.blackLift,25);b(s.rfDrift,65);break;
     case 16: b(s.trackingAmount,100);b(s.geometry,55);b(s.chromaSubsample,40);b(s.dropouts,85);b(s.staticAmount,70);b(s.chromaShift,12);b(s.sync,65);break;
     case 17: b(s.dropouts,70);b(s.tapeSurface,75);b(s.tapeTransport,60);b(s.geometry,35);b(s.tapeNoise,50);b(s.ringing,45);b(s.headAmount,35);break;
+    // VHS Effect Add-on's five source presets, translated into the existing VHS-90
+    // signal/tape controls. The source is a Python RGB/YCbCr processor; this is a
+    // parameter-level adaptation, not a byte-for-byte renderer clone.
+    case 18: // light
+        b(s.chromaSubsample,25);b(s.chromaShift,1);b(s.lumaNoise,30);b(s.chromaNoise,20);
+        b(s.tapeNoise,25);b(s.scanlines,22);b(s.vignette,18);b(s.geometry,15);
+        b(s.verticalRoll,10);b(s.headAmount,28);b(s.headHeight,3.5f);b(s.trackingAmount,18);
+        b(s.dropouts,10);b(s.tapeDetail,70);b(s.bloom,20);b(s.edgeEnhance,15);
+        b(s.gradeSaturation,110);b(s.gradeContrast,103);b(s.osdAmount,82);break;
+    case 19: // classic
+        b(s.chromaSubsample,60);b(s.chromaShift,3);b(s.lumaNoise,75);b(s.chromaNoise,55);
+        b(s.tapeNoise,60);b(s.scanlines,50);b(s.vignette,40);b(s.geometry,45);
+        b(s.verticalRoll,25);b(s.headAmount,70);b(s.headHeight,3.5f);b(s.trackingAmount,55);
+        b(s.dropouts,35);b(s.tapeDetail,40);b(s.bloom,45);b(s.edgeEnhance,25);
+        b(s.gradeSaturation,122);b(s.gradeContrast,105);b(s.osdAmount,82);break;
+    case 20: // heavy
+        b(s.chromaSubsample,95);b(s.chromaShift,5);b(s.lumaNoise,100);b(s.chromaNoise,95);
+        b(s.tapeNoise,90);b(s.scanlines,72);b(s.vignette,60);b(s.geometry,80);
+        b(s.verticalRoll,40);b(s.headAmount,100);b(s.headHeight,3.5f);b(s.trackingAmount,95);
+        b(s.dropouts,65);b(s.tapeDetail,8);b(s.bloom,70);b(s.edgeEnhance,35);
+        b(s.gradeSaturation,132);b(s.gradeContrast,110);b(s.osdAmount,82);b(s.osdGlitch,90);break;
+    case 21: // worn
+        b(s.chromaSubsample,100);b(s.chromaShift,7);b(s.lumaNoise,100);b(s.chromaNoise,100);
+        b(s.tapeNoise,100);b(s.scanlines,85);b(s.vignette,85);b(s.geometry,95);
+        b(s.verticalRoll,60);b(s.headAmount,100);b(s.headHeight,6);b(s.trackingAmount,100);
+        b(s.dropouts,100);b(s.tapeDetail,6);b(s.bloom,85);b(s.edgeEnhance,30);
+        b(s.gradeSaturation,125);b(s.gradeContrast,108);b(s.gradeBrightness,-3);
+        b(s.osdAmount,82);b(s.osdGlitch,90);break;
+    case 22: // clean_tv
+        b(s.chromaSubsample,35);b(s.chromaShift,1);b(s.lumaNoise,25);b(s.chromaNoise,15);
+        b(s.tapeNoise,20);b(s.scanlines,35);b(s.vignette,25);b(s.geometry,15);
+        b(s.verticalRoll,0);b(s.headAmount,20);b(s.headHeight,3.5f);b(s.trackingAmount,10);
+        b(s.dropouts,0);b(s.tapeDetail,65);b(s.bloom,25);b(s.edgeEnhance,0);
+        b(s.gradeSaturation,115);b(s.gradeContrast,105);b(s.osdAmount,82);break;
     default:break;
     }
 }
@@ -326,7 +360,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_COLOR("REC Lamp Color",255,46,46,ID_OSD_REC_COLOR);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Style & Camera Profiles",ID_VHS_STYLE_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",17,1,kVhsStyleChoices,ID_VHS_STYLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",22,1,kVhsStyleChoices,ID_VHS_STYLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Style Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS_STYLE_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile",10,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
