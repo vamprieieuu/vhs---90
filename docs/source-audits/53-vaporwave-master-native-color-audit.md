@@ -97,4 +97,4 @@ Code commits:
 **Source license: no LICENSE file found in the supplied folder; no upstream source code copied verbatim.**  
 **Core CI: static validator PASS, CMake build PASS, CTest 32/32 PASS (run 44816026051).**
 
-Next folder in the user's eight-folder sequence: `vhs.py-main`.
+Next folder in the user's eight-folder sequence: `vhs.py-main` (now closed in report 54); proceed to `vhs-main`.
