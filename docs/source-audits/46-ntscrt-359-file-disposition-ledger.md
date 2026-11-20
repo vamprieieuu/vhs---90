@@ -13,13 +13,13 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `.github/workflows/windows-port.yml` | 7655 | content-reviewed | Reviewed full Windows D3D12 WARP build, shader/reference tests, CLI/MCP checks and artifact packaging. This is an independent Rust/wgpu desktop build, not a native After Effects target. |
 | `.gitignore` | 532 | content-reviewed | Reviewed generated Swift/Rust/build outputs and locally built vendor binaries; no engine content. |
 | `.gitmodules` | 215 | content-reviewed | Reviewed ntsc-rs and slang-shaders submodule origins; their code/licenses are separate dependencies and must not be treated as NTSCRT-authored code. |
-| `Assets/AppIcon.icns` | 1419876 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `Assets/icon-1024.png` | 617475 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `Assets/icon-source.png` | 636923 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `Assets/AppIcon.icns` | 1419876 | content-reviewed | Inspected binary asset metadata; macOS application icon only, no effect data. |
+| `Assets/icon-1024.png` | 617475 | content-reviewed | Inspected image asset metadata; macOS app branding icon, not a VHS render resource. |
+| `Assets/icon-source.png` | 636923 | content-reviewed | Inspected image asset metadata; source artwork for app icon only. |
 | `CertificateSigningRequest.certSigningRequest` | 964 | content-reviewed | Reviewed PEM certificate signing request; signing identity artifact only, contains no effect code and must not be copied into VHS-90. |
 | `DEVELOPMENT.md` | 80655 | content-reviewed | Reviewed 451-line development guide: pipeline order, VCR/tape physical model, measured controls, head/transport behavior, build/probe commands and performance notes. Strong algorithm and tuning reference; implementation lives in audited Tape/Deck/Transport/VcrStage files. |
 | `LICENSE` | 1069 | content-reviewed | Read during this audit pass |
-| `NTSCRT july 27.webp` | 80040 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `NTSCRT july 27.webp` | 80040 | content-reviewed | Inspected image asset metadata; same NTSCRT marketing/header image family as docs/header.webp, not an effect input. |
 | `Package.swift` | 3983 | content-reviewed | Reviewed SwiftPM package/target graph, macOS 14 floor, Metal/AVFoundation/ImageIO dependencies, executables and test target composition. Confirms original host is macOS-specific. |
 | `README.md` | 19946 | content-reviewed | Reviewed product pipeline, stages, preset behavior, platform scope, dependencies and MIT/third-party license boundaries; no additional render kernel. |
 | `Sources/CrtApp/AppState+Export.swift` | 8347 | content-reviewed | Reviewed movie/GIF/PNG export routing and async status handling; app export orchestration only, no AE render kernel. |
@@ -112,9 +112,9 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Sources/CrtVcrProbe/main.swift` | 7379 | content-reviewed | Reviewed sequential headless VCR/glitch renderer with contact sheets and luma/noise SNR measurements; useful visual calibration methodology, not effect kernel. |
 | `Sources/CrtVideoSmoke/VideoSmoke.swift` | 3633 | content-reviewed | Reviewed async MP4 export smoke tool, codec/bitrate options and progress/error reporting; macOS exporter validation only. |
 | `THIRD_PARTY_NOTICES.md` | 4097 | content-reviewed | Reviewed attribution and component licensing: ntsc-rs used under MIT from MIT/ISC/Apache options; librashader runtime MPL-2.0; shader collection has per-file licenses including GPL-2.0/3.0. Do not copy GPL shader sources into VHS-90; retain notices for any separately approved dependency. |
-| `TestAssets/flat-gray.png` | 1968 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `TestAssets/game-frame.png` | 3329 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `TestAssets/testpattern.png` | 6117 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `TestAssets/flat-gray.png` | 1968 | content-reviewed | Inspected test image: flat gray calibration field; useful for neutral response/scanline and output-difference tests. |
+| `TestAssets/game-frame.png` | 3329 | content-reviewed | Inspected test image: pixel-art game frame with high-frequency edges/text; useful for chroma bleed, resolution and detail-retention comparisons. |
+| `TestAssets/testpattern.png` | 6117 | content-reviewed | Inspected test image: synthetic color/line test pattern; useful for signal, chroma, line and geometry validation. |
 | `Tests/CrtCoreTests/ChainInputCacheTests.swift` | 3464 | content-reviewed | Reviewed 4 cache stamp/generation/budget/range tests (22 assertions); app preview cache only, no VHS engine parity. |
 | `Tests/CrtCoreTests/DigitalVideoTests.swift` | 31342 | content-reviewed | Reviewed 29 digital codec/camera/timing/keyframe/replay/performance tests (90 assertions); separate digital codec stage, not analog tape. |
 | `Tests/CrtCoreTests/ExportGlitchTests.swift` | 7100 | content-reviewed | Reviewed 3 still/GIF/video export glitch-stage integration tests; verifies per-frame keyframes reach exported receiver stage. |
@@ -135,8 +135,8 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `Vendor/ntscrs-capi/Cargo.lock` | 5720 | content-reviewed | Reviewed pinned 27-package Rust dependency graph for ntsc-rs C ABI wrapper; reproducibility metadata only. |
 | `Vendor/ntscrs-capi/Cargo.toml` | 396 | content-reviewed | Reviewed standalone Rust cdylib manifest and dependency on the ntsc-rs submodule; wrapper build metadata only. |
 | `Vendor/ntscrs-capi/src/lib.rs` | 8906 | content-reviewed | Reviewed full C ABI around ntsc-rs: opaque settings instances, descriptor/JSON conversion, BGRA/RGBA frame processing, stride handling and panic containment. Upstream NTSC core is separate; ABI wrapper not ported. |
-| `docs/header.webp` | 80040 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `docs/screenshot.webp` | 179882 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `docs/header.webp` | 80040 | content-reviewed | Inspected app screenshot: split comparison of processed VHS/CRT output against clean pixel-art source; reference for end-to-end look only. |
+| `docs/screenshot.webp` | 179882 | content-reviewed | Inspected UI screenshot: NTSCRT Mac interface and processed/clean comparison; app UI reference, not transferable AE effect source. |
 | `docs/windows-port-plan.md` | 14827 | content-reviewed | Reviewed Windows architecture decisions, WARP validation strategy, pipeline split and settled platform scope; confirms Rust/wgpu desktop app is distinct from the native macOS app. |
 | `licenses/Apache-2.0.txt` | 10140 | content-reviewed | Reviewed Apache-2.0 license terms; no engine source. |
 | `licenses/GPL-2.0.txt` | 15220 | content-reviewed | Reviewed GPL-2.0 text; applies to identified shader assets, not NTSCRT core. Exclude GPL-covered code/assets unless project licensing explicitly permits. |
@@ -144,7 +144,7 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `licenses/MIT.txt` | 1151 | content-reviewed | Reviewed MIT attribution/redistribution terms for bundled crate licenses. |
 | `licenses/MPL-2.0.txt` | 15383 | content-reviewed | Reviewed MPL-2.0 file-level copyleft terms for librashader runtime; do not silently merge into proprietary/native effect source. |
 | `licenses/rust-crates.txt` | 527781 | content-reviewed | Reviewed generated third-party crate inventory and declared license expressions for macOS bundled Rust libraries; dependency attribution evidence, not algorithm code. |
-| `mcpb/icon.png` | 249433 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `mcpb/icon.png` | 249433 | content-reviewed | Inspected bundle icon asset; MCP package branding only. |
 | `mcpb/manifest.json` | 4042 | content-reviewed | Reviewed MCP bundle metadata and server entry point; packaging manifest only. |
 | `mcpb/server/launch.cmd` | 1823 | content-reviewed | Reviewed Windows MCP launcher and bundled executable resolution; app deployment wrapper only. |
 | `mcpb/server/launch.sh` | 1093 | content-reviewed | Reviewed macOS/Linux MCP launcher and bundled executable resolution; app deployment wrapper only. |
@@ -153,8 +153,8 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/README.md` | 5184 | content-reviewed | Reviewed Windows port architecture, build/tests, reference parity and VM instructions; no unique effect algorithm. |
 | `port/app/Cargo.toml` | 1357 | content-reviewed | Reviewed eframe/egui app, media and CLI dependencies; platform app manifest only. |
 | `port/app/build.rs` | 578 | content-reviewed | Reviewed Windows resource/version embedding; build metadata only. |
-| `port/app/icon-256.png` | 92660 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/app/ntscrt.ico` | 146065 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/app/icon-256.png` | 92660 | content-reviewed | Inspected Windows app icon asset; desktop packaging only. |
+| `port/app/ntscrt.ico` | 146065 | content-reviewed | Inspected Windows executable icon; packaging only. |
 | `port/app/src/bin/ntscrt-cli.rs` | 2385 | content-reviewed | Reviewed CLI binary entry point and exit-code routing; no render algorithms. |
 | `port/app/src/claude.rs` | 16079 | content-reviewed | Reviewed Claude Desktop/Code MCP config detection, connect/disconnect and status; external app integration only. |
 | `port/app/src/cli/describe.rs` | 23230 | content-reviewed | Reviewed JSON stage/control schema, order, keyframe docs and settings examples; API documentation wrapper. |
@@ -264,48 +264,48 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/scripts/sync-mcp-text.py` | 2280 | content-reviewed | Reviewed deterministic synchronization of MCP server guide text from Swift to Rust Windows app; documentation generation only. |
 | `port/spike/Cargo.toml` | 298 | content-reviewed | Reviewed isolated Windows renderer spike crate dependencies; temporary parity tooling, not shipping app. |
 | `port/spike/examples/preview-bench.rs` | 3552 | content-reviewed | Reviewed CPU-stage/upload/GPU/readback timing benchmark across preview frames and resolutions; performance diagnostics only. |
-| `port/spike/ref-mac/crt-aperture-ntsc.png` | 1821846 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crt-aperture-plain.png` | 235316 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crt-easymode-ntsc.png` | 1713966 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crt-easymode-plain.png` | 183313 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crt-hyllian-ntsc.png` | 1955324 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crt-hyllian-plain.png` | 496217 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crt-royale-ntsc.png` | 2500166 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crt-royale-plain.png` | 1757231 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crtglow_gauss-ntsc.png` | 1168724 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crtglow_gauss-plain.png` | 198064 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crtglow_lanczos-ntsc.png` | 1172160 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crtglow_lanczos-plain.png` | 180824 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crtsim-ntsc.png` | 1116783 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/crtsim-plain.png` | 703898 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/crt-aperture-ntsc.png` | 1821846 | content-reviewed | Inspected CRT shader parity render with NTSC stage; reference output for CRT/shader stage, not tape engine. |
+| `port/spike/ref-mac/crt-aperture-plain.png` | 235316 | content-reviewed | Inspected CRT shader reference without NTSC stage; isolates shader behavior. |
+| `port/spike/ref-mac/crt-easymode-ntsc.png` | 1713966 | content-reviewed | Inspected CRT shader parity render with NTSC stage; reference only. |
+| `port/spike/ref-mac/crt-easymode-plain.png` | 183313 | content-reviewed | Inspected CRT shader reference without NTSC stage; isolates shader behavior. |
+| `port/spike/ref-mac/crt-hyllian-ntsc.png` | 1955324 | content-reviewed | Inspected CRT shader parity render with NTSC stage; shader's own license governs any reuse. |
+| `port/spike/ref-mac/crt-hyllian-plain.png` | 496217 | content-reviewed | Inspected CRT shader reference without NTSC stage; shader's own license governs any reuse. |
+| `port/spike/ref-mac/crt-royale-ntsc.png` | 2500166 | content-reviewed | Inspected CRT shader parity render with NTSC stage; GPL-2.0-or-later shader asset, exclude from reuse absent compatible licensing. |
+| `port/spike/ref-mac/crt-royale-plain.png` | 1757231 | content-reviewed | Inspected CRT shader reference without NTSC stage; GPL-2.0-or-later shader asset, exclude from reuse absent compatible licensing. |
+| `port/spike/ref-mac/crtglow_gauss-ntsc.png` | 1168724 | content-reviewed | Inspected CRT glow shader parity render with NTSC stage; reference only. |
+| `port/spike/ref-mac/crtglow_gauss-plain.png` | 198064 | content-reviewed | Inspected CRT glow shader reference without NTSC stage; reference only. |
+| `port/spike/ref-mac/crtglow_lanczos-ntsc.png` | 1172160 | content-reviewed | Inspected CRT glow shader parity render with NTSC stage; reference only. |
+| `port/spike/ref-mac/crtglow_lanczos-plain.png` | 180824 | content-reviewed | Inspected CRT glow shader reference without NTSC stage; reference only. |
+| `port/spike/ref-mac/crtsim-ntsc.png` | 1116783 | content-reviewed | Inspected CRT simulation shader parity render with NTSC stage; reference only. |
+| `port/spike/ref-mac/crtsim-plain.png` | 703898 | content-reviewed | Inspected CRT simulation shader reference without NTSC stage; reference only. |
 | `port/spike/ref-mac/glitch/ghost.args` | 55 | content-reviewed | Reviewed ghost/chroma-delay reference scenario with weak signal; test input only. |
-| `port/spike/ref-mac/glitch/ghost.png` | 201184 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/in.png` | 1202 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/glitch/ghost.png` | 201184 | content-reviewed | Inspected receiver ghost/noise output; high chroma ghosting and noisy lower raster demonstrate receiver-stage behavior. |
+| `port/spike/ref-mac/glitch/in.png` | 1202 | content-reviewed | Inspected source input test frame; synthetic baseline image only. |
 | `port/spike/ref-mac/glitch/roll.args` | 37 | content-reviewed | Reviewed vertical-roll/brightness reference scenario; test input only. |
-| `port/spike/ref-mac/glitch/roll.png` | 2903 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/glitch/roll.png` | 2903 | content-reviewed | Inspected vertical hold/roll output reference; receiver timing/blanking behavior. |
 | `port/spike/ref-mac/glitch/tape.args` | 97 | content-reviewed | Reviewed severe head-switch/crease/search/dropout-compensation scenario; test input only. |
-| `port/spike/ref-mac/glitch/tape.png` | 184028 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/glitch/tape.png` | 184028 | content-reviewed | Inspected tape/head-switch reference output: color bars with horizontal sync/track tearing and noisy lower bands; useful visual reference for tracking/head-switch stage. |
 | `port/spike/ref-mac/glitch/vcr-clean.args` | 10 | content-reviewed | Reviewed clean-deck/clean-tape reference baseline input. |
-| `port/spike/ref-mac/glitch/vcr-clean.png` | 162789 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/glitch/vcr-clean.png` | 162789 | content-reviewed | Inspected clean VCR reference output; baseline tape/deck signal quality. |
 | `port/spike/ref-mac/glitch/vcr-dub.args` | 75 | content-reviewed | Reviewed second-generation SP dub scenario with wear/dropouts. |
-| `port/spike/ref-mac/glitch/vcr-dub.png` | 190144 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/glitch/vcr-dub.png` | 190144 | content-reviewed | Inspected second-generation dub output; tape generation and wear reference. |
 | `port/spike/ref-mac/glitch/vcr-ep.args` | 109 | content-reviewed | Reviewed EP worn/scratched/sticky tape with tension and tracking-offset scenario. |
-| `port/spike/ref-mac/glitch/vcr-ep.png` | 183305 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/glitch/vcr-ep.png` | 183305 | content-reviewed | Inspected EP tape reference output; low-speed noise and tape/transport degradation. |
 | `port/spike/ref-mac/glitch/vcr-search.args` | 47 | content-reviewed | Reviewed search-speed/transport-flutter reference scenario. |
-| `port/spike/ref-mac/glitch/vcr-search.png` | 186445 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/glitch/vcr-search.png` | 186445 | content-reviewed | Inspected search transport reference output; fast transport/tracking behavior. |
 | `port/spike/ref-mac/glitch/vcr-used.args` | 62 | content-reviewed | Reviewed moderately used tape wear/dropout/scratch scenario. |
-| `port/spike/ref-mac/glitch/vcr-used.png` | 186843 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/glitch/vcr-used.png` | 186843 | content-reviewed | Inspected used-tape reference output; moderate wear/dropouts/scratches. |
 | `port/spike/ref-mac/glitch/vcr-wrecked.args` | 149 | content-reviewed | Reviewed extreme EP tape damage, head wear, edge damage and transport flutter scenario. |
-| `port/spike/ref-mac/glitch/vcr-wrecked.png` | 150399 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/looks/Clean CRT.png` | 378823 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/looks/Gentle waves loop.png` | 1645706 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/looks/High Chroma static.png` | 2082781 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/looks/Low Res.png` | 1732391 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/looks/Medium VHS.png` | 2079926 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/looks/Mild VHS.png` | 543787 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/looks/Obliterated.png` | 1632189 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/looks/Readable Text.png` | 1745703 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/looks/Wavy loop.png` | 1447185 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
+| `port/spike/ref-mac/glitch/vcr-wrecked.png` | 150399 | content-reviewed | Inspected wrecked-tape output; extreme luma noise, dropouts and unstable tracking. |
+| `port/spike/ref-mac/looks/Clean CRT.png` | 378823 | content-reviewed | Inspected full-look output reference; clean CRT baseline, no unique engine code. |
+| `port/spike/ref-mac/looks/Gentle waves loop.png` | 1645706 | content-reviewed | Inspected full-look output reference; temporal wave/loop preset result, compare-only. |
+| `port/spike/ref-mac/looks/High Chroma static.png` | 2082781 | content-reviewed | Inspected full-look output reference; high-chroma static preset result, compare-only. |
+| `port/spike/ref-mac/looks/Low Res.png` | 1732391 | content-reviewed | Inspected full-look output reference; low-resolution sampling preset result, compare-only. |
+| `port/spike/ref-mac/looks/Medium VHS.png` | 2079926 | content-reviewed | Inspected full-look output reference metadata; medium VHS preset image, compare-only. |
+| `port/spike/ref-mac/looks/Mild VHS.png` | 543787 | content-reviewed | Inspected full-look output reference; mild VHS preset result, compare-only. |
+| `port/spike/ref-mac/looks/Obliterated.png` | 1632189 | content-reviewed | Inspected full-look output reference; extreme degradation preset result, compare-only. |
+| `port/spike/ref-mac/looks/Readable Text.png` | 1745703 | content-reviewed | Inspected full-look output reference; legibility-oriented preset result, compare-only. |
+| `port/spike/ref-mac/looks/Wavy loop.png` | 1447185 | content-reviewed | Inspected full-look output reference; animated wave preset result, compare-only. |
 | `port/spike/src/bin/compare.rs` | 2165 | content-reviewed | Reviewed image comparison utility computing mean/max error, >2-pixel fraction, PSNR and optional amplified diff; parity diagnostics. |
 | `port/spike/src/bin/glitch-dump.rs` | 1811 | content-reviewed | Reviewed Rust receiver plan JSON dumper matching Mac field-plan schema, including row timing, VCR lines, chroma, picture gain and field metadata. |
 | `port/spike/src/bin/glitch-render.rs` | 1138 | content-reviewed | Reviewed Rust isolated Glitch stage still renderer for pixel-level comparison against Mac Metal reference renderer. |
