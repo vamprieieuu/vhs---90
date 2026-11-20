@@ -57,7 +57,7 @@ enum ParamIndex {
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
     PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_OFFSET, PARAM_OSD_SHOW_COUNTER, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
     PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
-    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_COUNT
+    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT, ID_CHROMA_REG_RED, ID_CHROMA_REG_BLUE,
@@ -85,7 +85,7 @@ enum ParamDiskID {
     ID_OSD_STATUS_X, ID_OSD_STATUS_Y, ID_OSD_TIMESTAMP_X, ID_OSD_TIMESTAMP_Y,
     ID_OSD_COUNTER_TOPIC=9026, ID_OSD_COUNTER_FORMAT=9009, ID_OSD_COUNTER_AMOUNT, ID_OSD_COUNTER_X, ID_OSD_COUNTER_Y, ID_OSD_COUNTER_OFFSET=9024, ID_OSD_SHOW_COUNTER=9047, ID_OSD_TEXT_DATA=9013,
     ID_OSD_LOCALIZATION_TOPIC=9027, ID_OSD_LANGUAGE=9014, ID_OSD_DIGITS, ID_OSD_DATE_LAYOUT, ID_OSD_CLOCK_MODE, ID_OSD_MONTH_STYLE, ID_OSD_CLOCK_RUNS, ID_OSD_FONT, ID_OSD_EXTRA_LABEL, ID_OSD_EXTRA_X, ID_OSD_EXTRA_Y,
-    ID_OSD_WORDS_TOPIC=9028, ID_OSD_SHOW_TEXT, ID_OSD_SHOW_REC_LABEL, ID_OSD_SHOW_PLAY_LABEL, ID_OSD_SHOW_PAUSE_LABEL, ID_OSD_SHOW_STOP_LABEL, ID_OSD_SHOW_FF_LABEL, ID_OSD_SHOW_REW_LABEL, ID_OSD_SHOW_SPEED_LABEL, ID_OSD_SHOW_TAPE_LABEL, ID_OSD_SHOW_ERROR_LABEL, ID_OSD_SHOW_PROGRAM_LABEL, ID_OSD_SHOW_RES_LABEL, ID_OSD_SHOW_FORWARD_LABEL, ID_OSD_TEXT_GLOW, ID_OSD_SHOW_DATE, ID_OSD_WORDS_X, ID_OSD_WORDS_Y
+    ID_OSD_WORDS_TOPIC=9028, ID_OSD_SHOW_TEXT, ID_OSD_SHOW_REC_LABEL, ID_OSD_SHOW_PLAY_LABEL, ID_OSD_SHOW_PAUSE_LABEL, ID_OSD_SHOW_STOP_LABEL, ID_OSD_SHOW_FF_LABEL, ID_OSD_SHOW_REW_LABEL, ID_OSD_SHOW_SPEED_LABEL, ID_OSD_SHOW_TAPE_LABEL, ID_OSD_SHOW_ERROR_LABEL, ID_OSD_SHOW_PROGRAM_LABEL, ID_OSD_SHOW_RES_LABEL, ID_OSD_SHOW_FORWARD_LABEL, ID_OSD_TEXT_GLOW, ID_OSD_TEXT_SIZE=9048, ID_OSD_TEXT_GLOW_AMOUNT=9049, ID_OSD_SHOW_DATE, ID_OSD_WORDS_X, ID_OSD_WORDS_Y
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -150,7 +150,7 @@ struct RenderSettings {
     A_long osdLanguage=1, osdDigits=1, osdDateLayout=1, osdClockMode=3, osdMonthStyle=1, osdClockRuns=1, osdFont=12, osdExtraLabel=1;
     float osdExtraX=50.0f, osdExtraY=50.0f;
     A_long osdShowText=1, osdShowRecLabel=1, osdShowPlayLabel=1, osdShowPauseLabel=1, osdShowStopLabel=1, osdShowFfLabel=1, osdShowRewLabel=1, osdShowSpeedLabel=1, osdShowTapeLabel=0, osdShowErrorLabel=0, osdShowProgramLabel=0, osdShowResLabel=0, osdShowForwardLabel=0, osdTextGlow=0, osdShowDate=1;
-    float osdWordsX=50.0f, osdWordsY=50.0f;
+    float osdWordsX=50.0f, osdWordsY=50.0f, osdTextSize=100.0f, osdTextGlowAmount=50.0f;
     float osdRecX=2.2f, osdRecY=3.0f, osdStatusX=98.0f, osdStatusY=3.0f, osdTimestampX=98.0f, osdTimestampY=96.0f;
     A_long osdCounterFormat=1, osdShowCounter=0;
     float osdCounterAmount=0.0f, osdCounterX=2.2f, osdCounterY=96.0f, osdCounterOffset=0.0f;
@@ -860,6 +860,8 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("RES", "Show", 0, 0, ID_OSD_SHOW_RES_LABEL);
     AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("FORWARD", "Show", 0, 0, ID_OSD_SHOW_FORWARD_LABEL);
     AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Text Glow", "Enable", 0, 0, ID_OSD_TEXT_GLOW);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Text Size (%)",10,500,10,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TEXT_SIZE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Text Glow Amount",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TEXT_GLOW_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Show Date", "Enable", 1, 0, ID_OSD_SHOW_DATE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Word Group Horizontal Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_WORDS_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Word Group Vertical Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_WORDS_Y);
@@ -1055,6 +1057,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_RES_LABEL,s.osdShowResLabel); if(err!=PF_Err_NONE) return err;
     err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_FORWARD_LABEL,s.osdShowForwardLabel); if(err!=PF_Err_NONE) return err;
     err=CheckoutCheckbox(in_data,PARAM_OSD_TEXT_GLOW,s.osdTextGlow); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_OSD_TEXT_SIZE,osdTextSize); READ_FLOAT(PARAM_OSD_TEXT_GLOW_AMOUNT,osdTextGlowAmount);
     err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_DATE,s.osdShowDate); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_OSD_WORDS_X,osdWordsX); READ_FLOAT(PARAM_OSD_WORDS_Y,osdWordsY);
     READ_FLOAT(PARAM_OSD_EXTRA_X,osdExtraX); READ_FLOAT(PARAM_OSD_EXTRA_Y,osdExtraY);
@@ -1185,11 +1188,12 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                     vhs90::win::TextDirection::RightToLeft:vhs90::win::TextDirection::Auto;
                 options.alignment=alignment; options.premultipliedDestination=true;
                 if(s.osdTextGlow) {
-                    const float glowAlpha=clamp01(alpha*0.24f);
+                    const float glowAlpha=clamp01(alpha*0.48f*clamp01(s.osdTextGlowAmount/100.0f));
+                    const float glowRadius=std::max(1.0f,std::round(options.fontSize*0.08f));
                     for(int gy=-1;gy<=1;gy+=2) for(int gx=-1;gx<=1;gx+=2) {
                         auto glow=options;
-                        glow.x=std::max(0.0f,options.x+float(gx));
-                        glow.y=std::max(0.0f,options.y+float(gy));
+                        glow.x=std::max(0.0f,options.x+float(gx)*glowRadius);
+                        glow.y=std::max(0.0f,options.y+float(gy)*glowRadius);
                         glow.red=0.55f; glow.green=0.82f; glow.blue=1.0f;
                         glow.opacity=glowAlpha;
                         const auto glowResult=vhs90::win::drawDirectWriteText(osdView,glow);
@@ -1200,7 +1204,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 return result.rendered?PF_Err_NONE:PF_Err_INTERNAL_STRUCT_DAMAGED;
             };
             const int osdCell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,op.scale))));
-            const float textSize=7.0f*float(osdCell);
+            const float textSize=7.0f*float(osdCell)*std::clamp(s.osdTextSize/100.0f,0.1f,5.0f);
             if(s.osdShowText) {
                 if(s.osdRec>0.0f && s.osdShowRecLabel) {
                     const std::string rec=vhsOsdLabel(VhsOsdLabel::Record,language);
@@ -1918,6 +1922,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.osdShowTapeLabel=params[PARAM_OSD_SHOW_TAPE_LABEL]->u.bd.value?1:0; s.osdShowErrorLabel=params[PARAM_OSD_SHOW_ERROR_LABEL]->u.bd.value?1:0;
     s.osdShowProgramLabel=params[PARAM_OSD_SHOW_PROGRAM_LABEL]->u.bd.value?1:0; s.osdShowResLabel=params[PARAM_OSD_SHOW_RES_LABEL]->u.bd.value?1:0;
     s.osdShowForwardLabel=params[PARAM_OSD_SHOW_FORWARD_LABEL]->u.bd.value?1:0; s.osdTextGlow=params[PARAM_OSD_TEXT_GLOW]->u.bd.value?1:0; s.osdShowDate=params[PARAM_OSD_SHOW_DATE]->u.bd.value?1:0;
+    s.osdTextSize=float(params[PARAM_OSD_TEXT_SIZE]->u.fs_d.value); s.osdTextGlowAmount=float(params[PARAM_OSD_TEXT_GLOW_AMOUNT]->u.fs_d.value);
     s.osdWordsX=float(params[PARAM_OSD_WORDS_X]->u.fs_d.value); s.osdWordsY=float(params[PARAM_OSD_WORDS_Y]->u.fs_d.value);
     s.osdRecX=float(params[PARAM_OSD_REC_X]->u.fs_d.value); s.osdRecY=float(params[PARAM_OSD_REC_Y]->u.fs_d.value);
     s.osdStatusX=float(params[PARAM_OSD_STATUS_X]->u.fs_d.value); s.osdStatusY=float(params[PARAM_OSD_STATUS_Y]->u.fs_d.value);
