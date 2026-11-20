@@ -10,6 +10,11 @@ struct ImageGradeParams {
     float contrast=1.0f;
     float brightness=0.0f;
     float saturation=1.0f;
+    float chromaIGain=1.0f;
+    float chromaQGain=1.0f;
+    float chromaIOffset=0.0f;
+    float chromaQOffset=0.0f;
+    float chromaQuantization=0.0f;
     float vignette=0.0f;
     float flicker=0.0f;
     std::uint32_t seed=1;
