@@ -60,7 +60,7 @@ bool ensureBundledFonts() noexcept {
         };
         bool anyLoaded = false;
         for (const auto& font : fonts) {
-            HRSRC resource = FindResourceW(module, MAKEINTRESOURCEW(font.id), RT_RCDATA);
+            HRSRC resource = FindResourceW(module, MAKEINTRESOURCEW(font.id), MAKEINTRESOURCEW(10));
             if (!resource) continue;
             HGLOBAL handle = LoadResource(module, resource);
             const DWORD bytes = SizeofResource(module, resource);
@@ -265,8 +265,8 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
         const float fs = finiteClamp(o.fontSize, 1.0f, 512.0f, 28.0f);
         ComPtr<IDWriteTextFormat> format;
         const auto weight=static_cast<DWRITE_FONT_WEIGHT>(std::clamp<std::uint16_t>(o.fontWeight,100,900));
-        hr = f.dwrite->CreateTextFormat(family.c_str(), nullptr, weight,
-            DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", selectedCollection.Get(), &format);
+        hr = f.dwrite->CreateTextFormat(family.c_str(), selectedCollection.Get(), weight,
+            DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", &format);
         if (FAILED(hr)) {
             hr = f.dwrite->CreateTextFormat(L"Segoe UI", nullptr, weight,
                 DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fs, L"en-us", &format);
