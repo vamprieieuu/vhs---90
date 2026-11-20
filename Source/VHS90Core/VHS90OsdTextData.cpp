@@ -43,7 +43,7 @@ bool isValidOsdUtf8(std::string_view s) noexcept {
 }
 bool setOsdText(OsdTextData& data, std::string_view utf8) noexcept {
     if (utf8.size()>kOsdTextMaxUtf8Bytes || !isValidOsdUtf8(utf8)) return false;
-    try { data.utf8.assign(utf8.data(),utf8.size()); return true; }
+    try { if (utf8.empty()) data.utf8.clear(); else data.utf8.assign(utf8.data(),utf8.size()); return true; }
     catch (...) { return false; }
 }
 bool flattenOsdText(const OsdTextData& data, std::vector<std::uint8_t>& out) noexcept {
