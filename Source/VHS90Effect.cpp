@@ -650,7 +650,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
         std::vector<float> previousPixels;
-        if(previousInput && (s.temporalGhost>0||(s.frameRepeatFrequency>0&&s.frameRepeatStrength>0)) && previousInput->width==w && previousInput->height==h) {
+        if(previousInput && (s.temporalGhost>0||s.interlace>0||(s.frameRepeatFrequency>0&&s.frameRepeatStrength>0)) && previousInput->width==w && previousInput->height==h) {
             if(!ConvertInputWorld(previousInput,format,previousPixels)) previousPixels.clear();
         }
         working=source; scratch.resize(source.size());
@@ -703,16 +703,17 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(s.crtEqualizer>0) { p.crtEqualizerEnabled=true; p.crtEqualizer.amount=clamp01(s.crtEqualizer/100.0f); }
             // The full raw-waveform simulator currently models NTSC 525/60 only.
             p.waveformCompositeEnabled=(s.signalModel==2 && s.colorSystem==1);
-            if(!previousPixels.empty() && (s.temporalGhost>0||(s.frameRepeatFrequency>0&&s.frameRepeatStrength>0))) {
+            if(!previousPixels.empty() && (s.temporalGhost>0||s.interlace>0||(s.frameRepeatFrequency>0&&s.frameRepeatStrength>0))) {
                 p.temporalGhostEnabled=true;
                 p.previousFrame={previousPixels.data(),w,h,w*4};
                 p.previousFrameIndex=s.frame-1;
-                p.temporalGhost.amount=clamp01(s.temporalGhost/100.0f)*0.35f;
+                p.temporalGhost.amount=std::max(clamp01(s.temporalGhost/100.0f)*0.35f,clamp01(s.interlace/100.0f)*0.35f);
                 p.temporalGhost.lumaAmount=1.0f;
                 p.temporalGhost.chromaAmount=0.8f;
                 p.temporalGhost.offsetXPixels=2.0f;
                 p.temporalGhost.redFringePixels=0.6f;
                 p.temporalGhost.blueFringePixels=-0.6f;
+                p.temporalGhost.fieldWeave=clamp01(s.interlace/100.0f);p.temporalGhost.fieldParity=static_cast<int>(p.frame&1);
                 p.temporalGhost.frameRepeatFrequency=clamp01(s.frameRepeatFrequency/100.0f);
                 p.temporalGhost.frameRepeatStrength=clamp01(s.frameRepeatStrength/100.0f);
                 p.temporalGhost.frame=s.frame;p.temporalGhost.seed=static_cast<std::uint32_t>(std::max(1.0f,s.tapeSeed));
@@ -994,7 +995,7 @@ static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
     if(err!=PF_Err_NONE) { delete s; return err; }
     // Checkout the immediately preceding source frame through SmartFX's declared
     // checkout ID; no global frame cache is used, so MFR/out-of-order renders stay safe.
-    if((s->temporalGhost>0||(s->frameRepeatFrequency>0&&s->frameRepeatStrength>0)) && in_data->time_step>0 && in_data->current_time>=in_data->time_step) {
+    if((s->temporalGhost>0||s->interlace>0||(s->frameRepeatFrequency>0&&s->frameRepeatStrength>0)) && in_data->time_step>0 && in_data->current_time>=in_data->time_step) {
         PF_CheckoutResult previousResult; AEFX_CLR_STRUCT(previousResult);
         const A_long previousTime=in_data->current_time-in_data->time_step;
         const PF_Err previousErr=extra->cb->checkout_layer(in_data->effect_ref,PARAM_INPUT,kInputCheckoutID+1,&req,
