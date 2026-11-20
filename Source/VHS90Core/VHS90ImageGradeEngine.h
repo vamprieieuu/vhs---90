@@ -4,6 +4,7 @@ namespace vhs90 {
 struct ImageGradeParams {
     float edgeEnhancement=0.0f;
     float chromaEdgeEnhancement=0.0f; // independent VHS playback I/Q sharpening.
+    float chromaSharpenCutoffHz=640000.0f; // SP 640kHz, LP 600kHz, EP 560kHz at the 4:2:2 chroma rate.
     float fade=0.0f;
     float blackLift=0.0f;
     float contrast=1.0f;
