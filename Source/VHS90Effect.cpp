@@ -606,7 +606,6 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.geometry.edgeWaveFrequency=s.edgeWaveFrequency; p.geometry.edgeWaveSpeed=s.edgeWaveSpeed; p.geometry.edgeWaveDetail=static_cast<int>(std::lround(s.edgeWaveDetail));
                 p.geometry.horizontalScale=std::max(0.1f,float(w)/720.0f);
                 p.geometry.verticalScale=std::max(0.1f,float(h)/480.0f);
-                p.geometry.edgeWaveEpochFrames=4;
             }
             if(s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||(s.tapeSurface>0&&(s.tapeSticky>0||s.tapeMold>0))) {
                 const float a=clamp01(s.tapeTransport/100.0f);
