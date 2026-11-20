@@ -11,9 +11,10 @@ supplied fonts remain excluded from redistribution because their license or
 embedding permission is absent, restrictive, or unverified.
 
 At runtime the plug-in writes the embedded font resources to a per-user
-temporary folder and registers them with `FR_PRIVATE`. This does not install
-fonts machine-wide. The DirectWrite smoke test checks that both family names
-are discoverable and can render Arabic text without falling back.
+temporary folder, then builds a DirectWrite custom font set and collection from
+those files. It does not install fonts machine-wide or depend on GDI's private
+font table. The DirectWrite smoke test checks that both family names are
+discoverable and can render Arabic text without falling back.
 
 The original files are not modified or subsetted. License text and attribution
 are included in `OFL-1.1.txt`.
