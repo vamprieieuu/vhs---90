@@ -46,6 +46,16 @@ int main() {
         if(bluePixels[i+2]>bluePixels[i]+0.5f){foundBlue=true;break;}
     }
     assert(foundBlue);
+    std::vector<float> batteryPixels=source;
+    VhsOsdParams battery; battery.showRec=false;battery.showPlay=false;battery.showTimestamp=false;
+    battery.showBattery=true;battery.batteryAmount=.75f;battery.glitch=0.0f;battery.ghost=0.0f;
+    ImageView batteryView{batteryPixels.data(),w,h,w*4};assert(applyVhsOsd(batteryView,battery));
+    bool foundBattery=false;
+    for(int y=20;y<55&&!foundBattery;++y)for(int x=w-40;x<w-5;++x){
+        const std::size_t i=(static_cast<std::size_t>(y)*w+x)*4;
+        if(batteryPixels[i]>0.2f&&batteryPixels[i+1]>0.2f&&batteryPixels[i+2]>0.2f){foundBattery=true;break;}
+    }
+    assert(foundBattery);
     ImageView invalid{first.data(),w,h,w*4-1}; assert(!applyVhsOsd(invalid,p));
     return 0;
 }
