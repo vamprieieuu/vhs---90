@@ -1231,7 +1231,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                         if(se!=PF_Err_NONE) return se;
                     }
                 }
-                if(s.osdTimestamp>0.0f && s.osdShowDate) {
+                if(s.osdTimestamp>0.0f && (s.osdShowDate || s.osdClockMode>1)) {
                     VhsOsdDateTime dt;
                     dt.year=static_cast<int>(std::lround(s.osdYear));
                     dt.month=static_cast<int>(std::lround(s.osdMonth));
@@ -1244,7 +1244,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                     dt.dateFormat=static_cast<VhsOsdDateFormat>(std::clamp<A_long>(s.osdDateLayout,1,4));
                     dt.timeMode=static_cast<VhsOsdTimeMode>(std::clamp<A_long>(s.osdClockMode,1,3)-1);
                     dt.monthStyle=static_cast<VhsOsdMonthStyle>(std::clamp<A_long>(s.osdMonthStyle,1,2)-1);
-                    const std::string stamp=formatVhsOsdDateTime(dt,language,digits);
+                    const std::string stamp=s.osdShowDate?formatVhsOsdDateTime(dt,language,digits):formatVhsOsdTime(dt,language,digits);
                     const float x=float(w)*s.osdTimestampX/100.0f;
                     const float y=float(h)*s.osdTimestampY/100.0f-textSize;
                     const PF_Err e=drawOsdText(stamp,0.0f,y,textSize,
