@@ -115,7 +115,9 @@ PF_Err VHS90OsdArbitraryCallback(PF_InData* in_data,PF_ArbParamsExtra* e) {
         case PF_Arbitrary_UNFLATTEN_FUNC: return callbackUnflatten(hs,e);
         case PF_Arbitrary_INTERP_FUNC: {
             std::vector<std::uint8_t> b;
-            if (!readBlob(hs,e->u.interp_func_params.left_arbH,b)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            const PF_ArbitraryH source = (e->u.interp_func_params.tF >= 1.0)
+                ? e->u.interp_func_params.right_arbH : e->u.interp_func_params.left_arbH;
+            if (!readBlob(hs,source,b)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             *e->u.interp_func_params.interpPH=makeBlob(hs,b);
             return *e->u.interp_func_params.interpPH ? PF_Err_NONE : PF_Err_OUT_OF_MEMORY;
         }
