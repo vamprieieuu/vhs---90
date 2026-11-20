@@ -122,7 +122,7 @@ bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
   float blink=1.0f;if(p.recBlinkHz>0&&p.framesPerSecond>0){const double ph=std::fmod(std::max(0.0,p.timeSeconds)*p.recBlinkHz,1.0);if(ph>=0.65){const double u=(ph-0.65)/0.35;blink=float(0.5-0.5*std::cos(2.0*3.14159265358979323846*u));}}
   const float a=amount*opacity*c01(p.recAmount)*blink;if(a>0.001f){const int r=std::max(2,cell*2),cx=recX+r+dx,cy=recY+r/2+dy;
    dotDraw(im,cx,cy,r,a,pm,c01(p.recColorR),c01(p.recColorG),c01(p.recColorB));if(gx&&gh>0.002f)dotDraw(im,cx+gx,cy,r,a*gh,pm,c01(p.recColorR),c01(p.recColorG),c01(p.recColorB));
-   textDraw(im,"REC",recX+2*r+cell+dx,recY+dy,cell,a,pm);if(gx&&gh>0.002f)textDraw(im,"REC",recX+2*r+cell+dx,recY+dy,cell,a*gh,pm,gx);
+   if(p.drawRecText){textDraw(im,"REC",recX+2*r+cell+dx,recY+dy,cell,a,pm);if(gx&&gh>0.002f)textDraw(im,"REC",recX+2*r+cell+dx,recY+dy,cell,a*gh,pm,gx);}
   }}
  if(p.showPlay&&p.playAmount>0){
   const float a=amount*opacity*c01(p.playAmount);
@@ -146,7 +146,7 @@ bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
   textDraw(im,speed,sx,statusY+8*cell+small+dy,small,a,pm);
   if(gx&&gh>0.002f){textDraw(im,label,x+5*cell,statusY+dy,cell,a*gh,pm,gx);textDraw(im,speed,sx,statusY+8*cell+small+dy,small,a*gh,pm,gx);}
  }
- if(p.showTimestamp&&p.timestampAmount>0){char t[40]{};stamp(p,std::max(0.0,p.timeSeconds)*std::max(0.0f,p.timestampSpeed),t,sizeof(t));
+ if(p.showTimestamp&&p.drawTimestampText&&p.timestampAmount>0){char t[40]{};stamp(p,std::max(0.0,p.timeSeconds)*std::max(0.0f,p.timestampSpeed),t,sizeof(t));
   const float a=amount*opacity*c01(p.timestampAmount);const int x=ci(timestampX-width(t,small)+dx,0,w-1),y=ci(timestampY-7*small+dy,0,h-1);
   textDraw(im,t,x,y,small,a,pm);if(gx&&gh>0.002f)textDraw(im,t,x,y,small,a*gh,pm,gx);
  }
