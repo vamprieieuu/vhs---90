@@ -14,8 +14,8 @@ int main() {
     v.dateFormat=VhsOsdDateFormat::YearMonth; assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="1994.1.21");
     v.dateFormat=VhsOsdDateFormat::NumericDayFirst;v.timeMode=VhsOsdTimeMode::TwentyFourHour;
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="21.1.1994  13:05:09");
-    v.timeMode=VhsOsdTimeMode::TwelveHour; assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="21.1.1994  01:05:09 PM");
-    assert(formatVhsOsdDateTime(v,VhsOsdLanguage::Arabic,VhsOsdDigitSet::Persian)=="۲۱.۱.۱۹۹۴  ۰۱:۰۵:۰۹ م");
+    v.timeMode=VhsOsdTimeMode::TwelveHour; assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="21.1.1994  01:05:09 PM");\n    assert(formatVhsOsdTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="01:05:09 PM");
+    assert(formatVhsOsdDateTime(v,VhsOsdLanguage::Arabic,VhsOsdDigitSet::Persian)=="۲۱.۱.۱۹۹۴  ۰۱:۰۵:۰۹ م");\n    assert(formatVhsOsdTime(v,VhsOsdLanguage::Arabic,VhsOsdDigitSet::ArabicIndic)=="٠١:٠٥:٠٩ م");
     v.timeMode=VhsOsdTimeMode::Off;v.year=2000;v.month=2;v.day=28;v.hour=23;v.minute=59;v.second=59;v.clockRuns=true;v.elapsedSeconds=2.0;v.dateFormat=VhsOsdDateFormat::NumericDayFirst;
     assert(formatVhsOsdDateTime(v,VhsOsdLanguage::English,VhsOsdDigitSet::Latin)=="29.2.2000");
     v.year=1900;v.month=2;v.day=29; assert(!isValidVhsOsdDateTime(v));
