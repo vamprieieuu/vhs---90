@@ -24,4 +24,9 @@ int main(){using namespace vhs90;constexpr int w=32,h=16;std::vector<float>s(w*h
     physical.controlTrackTape.oxideLoss=1.85f;physical.controlTrackTape.pinholeAmount=1.0f;physical.controlTrackTape.edgeLift=1.45f;physical.controlTrackTape.moldAmount=1.0f;
     std::vector<float> physicalServo(s.size());ImageView physicalServoView{physicalServo.data(),w,h,w*4};
     assert(processTapeTransportWarp(si,physicalServoView,physical));assert(physicalServo!=piA);
+    TapeTransportParams sticky;sticky.seed=0x91u;sticky.frame=14;sticky.drumFlutterPixels=0.0f;sticky.flutterPixels=0.0f;sticky.stickSlipPixels=0.0f;sticky.lineJitterPixels=0.0f;sticky.servoJitterPixels=0.0f;sticky.controlTrackTape.debrisAmount=1.0f;sticky.controlTrackTape.moldAmount=0.8f;
+    std::vector<float> stickyA(s.size()),stickyB(s.size()),stickyNext(s.size());ImageView stickyAView{stickyA.data(),w,h,w*4},stickyBView{stickyB.data(),w,h,w*4},stickyNextView{stickyNext.data(),w,h,w*4};
+    assert(processTapeTransportWarp(si,stickyAView,sticky));assert(processTapeTransportWarp(si,stickyBView,sticky));assert(stickyA==stickyB&&stickyA!=s);
+    sticky.frame=15;assert(processTapeTransportWarp(si,stickyNextView,sticky));assert(stickyNext!=stickyA);
+    sticky.controlTrackTape.debrisAmount=0.0f;sticky.controlTrackTape.moldAmount=0.0f;sticky.frame=14;std::fill(stickyB.begin(),stickyB.end(),0.0f);assert(processTapeTransportWarp(si,stickyBView,sticky));assert(stickyB==s);
  return 0;}
