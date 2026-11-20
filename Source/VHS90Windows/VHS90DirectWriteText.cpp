@@ -152,8 +152,8 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
         const int originY = std::max(0, std::min(dst.height - 1, static_cast<int>(std::floor(y))));
         const float mw = finiteClamp(o.maxWidth, 0.0f, static_cast<float>(dst.width - originX), 0.0f);
         const float mh = finiteClamp(o.maxHeight, 0.0f, static_cast<float>(dst.height - originY), 0.0f);
-        const UINT bitmapWidth = static_cast<UINT>(std::max(1.0f, std::ceil(mw > 0.0f ? mw : static_cast<float>(dst.width - originX))));
-        const UINT bitmapHeight = static_cast<UINT>(std::max(1.0f, std::ceil(mh > 0.0f ? mh : static_cast<float>(dst.height - originY))));
+        const UINT bitmapWidth = static_cast<UINT>(std::max(1.0, std::ceil(mw > 0.0f ? static_cast<double>(mw) : static_cast<double>(dst.width - originX))));
+        const UINT bitmapHeight = static_cast<UINT>(std::max(1.0, std::ceil(mh > 0.0f ? static_cast<double>(mh) : static_cast<double>(dst.height - originY))));
         ComPtr<IWICBitmap> bitmap;
         hr = wic->CreateBitmap(bitmapWidth, bitmapHeight, GUID_WICPixelFormat32bppPBGRA,
                                WICBitmapCacheOnLoad, &bitmap);
