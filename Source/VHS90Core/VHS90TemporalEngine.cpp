@@ -12,6 +12,7 @@ inline void sample(const std::vector<float>&src,int w,int h,float x,float y,floa
  const size_t a=(size_t(y0)*w+x0)*4,b=(size_t(y0)*w+x1)*4,c=(size_t(y1)*w+x0)*4,d=(size_t(y1)*w+x1)*4;
  for(int k=0;k<4;++k){const float ab=src[a+k]+(src[b+k]-src[a+k])*fx,cd=src[c+k]+(src[d+k]-src[c+k])*fx;out[k]=ab+(cd-ab)*fy;}
 }
+inline std::uint32_t mix32(std::uint32_t x) noexcept {x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;x^=x>>16;return x;}
 inline RGB straight(const float*p,bool premul) noexcept {
  RGB c{p[0],p[1],p[2]};const float a=p[3];
  if(premul&&a>1.0e-6f){c.r/=a;c.g/=a;c.b/=a;}return c;
@@ -23,11 +24,16 @@ bool processTemporalGhost(ConstImageView cur,ConstImageView prev,ImageView dst,c
     dst.rgba==cur.rgba||dst.rgba==prev.rgba||
     !std::isfinite(p.amount)||!std::isfinite(p.lumaAmount)||!std::isfinite(p.chromaAmount)||
     !std::isfinite(p.offsetXPixels)||!std::isfinite(p.offsetYPixels)||
-    !std::isfinite(p.redFringePixels)||!std::isfinite(p.blueFringePixels)||!std::isfinite(p.fieldWeave))
+    !std::isfinite(p.redFringePixels)||!std::isfinite(p.blueFringePixels)||!std::isfinite(p.fieldWeave)||!std::isfinite(p.frameRepeatFrequency)||!std::isfinite(p.frameRepeatStrength))
   return false;
  const float amount=std::clamp(p.amount,0.0f,1.0f),luma=std::clamp(p.lumaAmount,0.0f,2.0f);
  const float chroma=std::clamp(p.chromaAmount,0.0f,2.0f),weave=std::clamp(p.fieldWeave,0.0f,1.0f);
- if(amount<=0.0f) { for(int y=0;y<cur.height;++y)std::copy_n(cur.rgba+y*cur.rowStrideFloats,cur.width*4,dst.rgba+y*dst.rowStrideFloats);return true; }
+ const float repeatFrequency=std::clamp(p.frameRepeatFrequency,0.0f,1.0f),repeatStrength=std::clamp(p.frameRepeatStrength,0.0f,1.0f);
+ const std::uint32_t frameKey=static_cast<std::uint32_t>(p.frame)^static_cast<std::uint32_t>(static_cast<std::uint64_t>(p.frame)>>32);
+ const std::uint32_t repeatHash=mix32(p.seed^mix32(frameKey+0x9e3779b9u));
+ const float repeatRandom=float(repeatHash&0x00ffffffu)/16777216.0f;
+ const float repeatMix=repeatRandom<repeatFrequency?repeatStrength:0.0f;
+ if(amount<=0.0f&&repeatMix<=0.0f) { for(int y=0;y<cur.height;++y)std::copy_n(cur.rgba+y*cur.rowStrideFloats,cur.width*4,dst.rgba+y*dst.rowStrideFloats);return true; }
  try {
   const int w=cur.width,h=cur.height;std::vector<float>old(size_t(w)*h*4);
   for(int y=0;y<h;++y)std::copy_n(prev.rgba+y*prev.rowStrideFloats,w*4,old.data()+size_t(y)*w*4);
@@ -44,6 +50,13 @@ bool processTemporalGhost(ConstImageView cur,ConstImageView prev,ImageView dst,c
     const float outI=cy.i+(gy.i-cy.i)*ghostMix*chroma;
     const float outQ=cy.q+(gy.q-cy.q)*ghostMix*chroma;
     RGB result=yiqToRgb({outY,outI,outQ});
+    if(repeatMix>0.0f){
+     const float* same=old.data()+(size_t(y)*w+x)*4;
+     const RGB repeated=straight(same,p.premultipliedAlpha);
+     result.r+=(repeated.r-result.r)*repeatMix;
+     result.g+=(repeated.g-result.g)*repeatMix;
+     result.b+=(repeated.b-result.b)*repeatMix;
+    }
     const float fieldMix=((y&1)==(p.fieldParity&1))?ghostMix*weave:0.0f;
     const RGB red=straight(r,p.premultipliedAlpha),blue=straight(b,p.premultipliedAlpha);
     result.r+=(red.r-result.r)*fieldMix;
