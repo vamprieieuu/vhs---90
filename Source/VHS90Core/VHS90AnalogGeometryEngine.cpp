@@ -44,11 +44,16 @@ inline float fbm2D(float x,float y,std::uint32_t seed,int detail) noexcept {
 bool processAnalogGeometry(ConstImageView src,ImageView dst,const AnalogGeometryParams&p) noexcept {
  if(!valid(src,dst)||!std::isfinite(p.lineJitterPixels)||!std::isfinite(p.lineJitterCorrelationRows)||
     !std::isfinite(p.topSkewPixels)||!std::isfinite(p.topSkewDecayRows)||
-    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower)||!std::isfinite(p.interlaceAmount)||!std::isfinite(p.verticalRoll)||!std::isfinite(p.edgeWaveAmplitudePixels)||!std::isfinite(p.edgeWaveFrequency)||!std::isfinite(p.edgeWaveSpeed)||!std::isfinite(p.horizontalScale)||!std::isfinite(p.verticalScale)||p.horizontalScale<=0.0f||p.verticalScale<=0.0f||p.edgeWaveFrequency<0.0f)return false;
- if(p.lineJitterPixels==0.0f&&p.topSkewPixels==0.0f&&p.edgePincushionPixels==0.0f&&p.interlaceAmount==0.0f&&p.verticalRoll==0.0f&&p.edgeWaveAmplitudePixels==0.0f) {
+    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower)||!std::isfinite(p.interlaceAmount)||!std::isfinite(p.verticalRoll)||!std::isfinite(p.edgeWaveAmplitudePixels)||!std::isfinite(p.edgeWaveFrequency)||!std::isfinite(p.edgeWaveSpeed)||!std::isfinite(p.horizontalScale)||!std::isfinite(p.verticalScale)||!std::isfinite(p.lensDistortion)||!std::isfinite(p.digitalZoom)||!std::isfinite(p.roundedOverscan)||p.horizontalScale<=0.0f||p.verticalScale<=0.0f||p.digitalZoom<1.0f||p.edgeWaveFrequency<0.0f)return false;
+ if(p.lineJitterPixels==0.0f&&p.topSkewPixels==0.0f&&p.edgePincushionPixels==0.0f&&p.interlaceAmount==0.0f&&p.verticalRoll==0.0f&&p.edgeWaveAmplitudePixels==0.0f&&!p.vhs43Frame&&p.lensDistortion==0.0f&&p.digitalZoom==1.0f) {
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
  const float rollOffset=std::sin(float(p.frame)*0.23f+float(p.seed)*0.00017f)*clamp01(p.verticalRoll)*float(src.height)*0.045f;
+ const float aspect=float(src.width)/float(src.height);
+ const float playbackWidth=p.vhs43Frame?std::min(1.0f,(4.0f/3.0f)/std::max(0.001f,aspect)):1.0f;
+ const float playbackLeft=0.5f-playbackWidth*0.5f;
+ const float playbackRight=0.5f+playbackWidth*0.5f;
+ const float zoom=std::max(1.0f,p.digitalZoom);
  std::vector<float> edgeWave;
  if(p.edgeWaveAmplitudePixels>0.0f) {
   edgeWave.resize(std::size_t(src.height));
@@ -75,8 +80,22 @@ bool processAnalogGeometry(ConstImageView src,ImageView dst,const AnalogGeometry
   for(int x=0;x<src.width;++x) {
    const float xn=src.width>1?(2.0f*float(x)/float(src.width-1)-1.0f):0.0f;
    const float bend=p.edgePincushionPixels*xn*std::pow(std::abs(yn),std::max(0.1f,p.edgePincushionPower));
-   const float sx=float(x)-rowShift-bend-fieldShift;
-   float sy=std::fmod(float(y)+rollOffset+fieldYShift,float(src.height));if(sy<0.0f)sy+=float(src.height);
+   const float u=src.width>1?float(x)/float(src.width-1):0.5f;
+   const float v=src.height>1?float(y)/float(src.height-1):0.5f;
+   if(p.vhs43Frame&&(u<playbackLeft||u>playbackRight)){
+    const float alpha=src.rgba[y*src.rowStrideFloats+x*4+3];
+    dr[x*4]=dr[x*4+1]=dr[x*4+2]=0.0f;dr[x*4+3]=alpha;continue;
+   }
+   const float frameU=p.vhs43Frame?(u-playbackLeft)/std::max(1.0e-6f,playbackWidth):u;
+   float sourceU=p.vhs43Frame?0.5f+(frameU-0.5f)*playbackWidth:u;
+   sourceU=0.5f+(sourceU-0.5f)/zoom;
+   if(p.lensDistortion!=0.0f){
+    float lx=(sourceU-0.5f)*2.0f*aspect,ly=(v-0.5f)*2.0f;
+    const float r2=lx*lx+ly*ly;const float scale=1.0f+p.lensDistortion*r2;
+    lx*=scale;ly*=scale;sourceU=0.5f+(lx/std::max(0.001f,aspect))*0.5f;
+   }
+   const float sx=sourceU*float(src.width-1)-rowShift-bend-fieldShift;
+   float sy=std::fmod(v*float(src.height-1)+rollOffset+fieldYShift,float(src.height));if(sy<0.0f)sy+=float(src.height);
    for(int c=0;c<4;++c)dr[x*4+c]=sampleChannel(src,sx,sy,c);
   }
  }
