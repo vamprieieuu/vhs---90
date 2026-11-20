@@ -83,7 +83,7 @@ Code commits:
 ## 5. Verification boundary
 
 - Static imported-preset/AE parameter validator passed in the latest run observed at audit time.
-- GitHub Actions run `44816026051` was still building the native core when this report was prepared; do not report the new C++ smoke test as passed until that run completes successfully.
+- GitHub Actions run `44816026051` completed its static validator, CMake build and all 32/32 CTest smoke tests successfully. The run was still performing post-job cleanup when last checked; all substantive build/test steps reported success.
 - The source's browser UI and remote API were not executed. The original JavaScript processor was inspected statically.
 - No source-vs-native pixel parity is claimed. The YUV-like matrix is not numerically identical to VHS-90's YIQ matrix; the new controls intentionally operate in the plugin's native YIQ domain.
 - Windows/MSVC Adobe SDK compilation, PiPL, AEX loading, After Effects visual output and MFR remain global release gates.
@@ -95,6 +95,6 @@ Code commits:
 **Duplicate chroma subsampling, spatial shift, scanline, geometry and noise engines: not added.**  
 **19 browser-style recipes: documented but not falsely imported as native-equivalent presets.**  
 **Source license: no LICENSE file found in the supplied folder; no upstream source code copied verbatim.**  
-**Core CI: pending at report creation; update the result after the workflow finishes.**
+**Core CI: static validator PASS, CMake build PASS, CTest 32/32 PASS (run 44816026051).**
 
 Next folder in the user's eight-folder sequence: `vhs.py-main`.
