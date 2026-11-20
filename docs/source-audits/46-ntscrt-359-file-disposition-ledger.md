@@ -221,27 +221,27 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/engine/src/preview.rs` | 7456 | content-reviewed | Reviewed WGPU preview surface/pipeline and texture upload/readback; preview-only host infrastructure. |
 | `port/engine/src/timeline.rs` | 9204 | content-reviewed | Reviewed keyframe sorting, segment lookup, easing and typed parameter interpolation. AE host animation replaces this app timeline in the plugin. |
 | `port/engine/tests/digital.rs` | 7713 | content-reviewed | Reviewed 4 Rust digital-stage integration tests (13 assertions); capture geometry, stage ordering and parameter filtering. |
-| `port/engine/tests/fixtures/glitch/dub.args` | 69 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/dub.json` | 128086 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/healthy.args` | 5 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/healthy.json` | 17601 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/hhold.args` | 24 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/hhold.json` | 25908 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/search.args` | 55 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/search.json` | 49912 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/slack.args` | 74 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/slack.json` | 58700 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/tape.args` | 97 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/tape.json` | 49920 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/transport.args` | 148 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/transport.json` | 54287 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/vcr.args` | 131 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/vcr.json` | 71258 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/vhold.args` | 22 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/vhold.json` | 17571 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/weak.args` | 25 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/glitch/weak.json` | 29833 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/engine/tests/fixtures/mac-launch-look.json` | 5128 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/engine/tests/fixtures/glitch/dub.args` | 69 | content-reviewed | Reviewed deterministic fixture inputs: VCR enabled, third-generation tape, SP speed, moderate wear and head-switch event; input companion for 240-line parity JSON. |
+| `port/engine/tests/fixtures/glitch/dub.json` | 128086 | content-reviewed | Reviewed 240-row receiver/VCR field-plan golden output with chroma, head/track state and line timing; exact Swift→Rust receiver parity fixture. |
+| `port/engine/tests/fixtures/glitch/healthy.args` | 5 | content-reviewed | Reviewed healthy identity receiver fixture invocation at t=1s. |
+| `port/engine/tests/fixtures/glitch/healthy.json` | 17601 | content-reviewed | Reviewed 240-row neutral receiver output: zero offsets/noise, nominal line timing and no VCR lines; identity golden fixture. |
+| `port/engine/tests/fixtures/glitch/hhold.args` | 24 | content-reviewed | Reviewed horizontal hold stress input (0.7) at t=1s. |
+| `port/engine/tests/fixtures/glitch/hhold.json` | 25908 | content-reviewed | Reviewed 240-row horizontal hold field-plan golden output, progressive line phase/offset and chroma metadata. |
+| `port/engine/tests/fixtures/glitch/search.args` | 55 | content-reviewed | Reviewed search-mode fixture input with high search speed, SP tape and crease damage. |
+| `port/engine/tests/fixtures/glitch/search.json` | 49912 | content-reviewed | Reviewed 240-row search fixture with VCR line records and receiver timing/chroma state. |
+| `port/engine/tests/fixtures/glitch/slack.args` | 74 | content-reviewed | Reviewed slack transport fixture: back tension -0.8, wear 0.7 and scratches 0.6. |
+| `port/engine/tests/fixtures/glitch/slack.json` | 58700 | content-reviewed | Reviewed 240-row slack-tape golden field plan, head/track line records, chroma and timing. |
+| `port/engine/tests/fixtures/glitch/tape.args` | 97 | content-reviewed | Reviewed head-switch/AFC/tape-crease/transport-flutter/tracking-offset combined fixture inputs. |
+| `port/engine/tests/fixtures/glitch/tape.json` | 49920 | content-reviewed | Reviewed 240-row tape/head-switch golden output with VCR track lines and receiver row offsets. |
+| `port/engine/tests/fixtures/glitch/transport.args` | 148 | content-reviewed | Reviewed transport fault fixture with EP speed, sticky tape, mold, back tension, tracking offset, edge damage and head-switch. |
+| `port/engine/tests/fixtures/glitch/transport.json` | 54287 | content-reviewed | Reviewed 240-row transport golden output, VCR line state and chroma/receiver metadata. |
+| `port/engine/tests/fixtures/glitch/vcr.args` | 131 | content-reviewed | Reviewed VCR fixture inputs covering dropouts, mold, vaseline, head dirt/buildup, wear/mismatch and hum. |
+| `port/engine/tests/fixtures/glitch/vcr.json` | 71258 | content-reviewed | Reviewed 240-row VCR golden output with per-line head/gain/grease and receiver/chroma state. |
+| `port/engine/tests/fixtures/glitch/vhold.args` | 22 | content-reviewed | Reviewed vertical hold stress input (0.6) at t=3.3s. |
+| `port/engine/tests/fixtures/glitch/vhold.json` | 17571 | content-reviewed | Reviewed 240-row vertical roll/hold receiver golden output; no VCR stage. |
+| `port/engine/tests/fixtures/glitch/weak.args` | 25 | content-reviewed | Reviewed weak-signal fixture input (0.12) at t=3.3s. |
+| `port/engine/tests/fixtures/glitch/weak.json` | 29833 | content-reviewed | Reviewed 240-row weak-signal golden output with picture gain reduction, noise and chroma state. |
+| `port/engine/tests/fixtures/mac-launch-look.json` | 5128 | content-reviewed | Reviewed Windows launch-look snapshot generated by Mac app; includes default NTSC/VCR/CRT and stage state for cross-platform startup parity. |
 | `port/engine/tests/glitch_parity.rs` | 5194 | content-reviewed | Reviewed Rust receiver parity fixture test: compares every row, color reference, VCR lines/head state and generations against Swift reference JSON fixtures. |
 | `port/engine/tests/howl.rs` | 3637 | content-reviewed | Reviewed 2 GPU Screen Loop integration/determinism tests; unrelated to VHS tape engine. |
 | `port/engine/tests/mac_parity.rs` | 3393 | content-reviewed | Reviewed 3 Windows launch-look parity tests against Mac-generated JSON defaults for NTSC and preset settings. |
@@ -262,8 +262,8 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/scripts/make-glitch-refs.sh` | 2924 | content-reviewed | Reviewed script compiling Mac receiver/VCR sources and producing field-plan/render fixtures across healthy, search, tracking, tape and transport cases; parity generation only. |
 | `port/scripts/make-look-refs.py` | 3946 | content-reviewed | Reviewed bundled-look reference renderer orchestration and platform compatibility filtering; preset parity tooling only. |
 | `port/scripts/sync-mcp-text.py` | 2280 | content-reviewed | Reviewed deterministic synchronization of MCP server guide text from Swift to Rust Windows app; documentation generation only. |
-| `port/spike/Cargo.toml` | 298 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/spike/examples/preview-bench.rs` | 3552 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/Cargo.toml` | 298 | content-reviewed | Reviewed isolated Windows renderer spike crate dependencies; temporary parity tooling, not shipping app. |
+| `port/spike/examples/preview-bench.rs` | 3552 | content-reviewed | Reviewed CPU-stage/upload/GPU/readback timing benchmark across preview frames and resolutions; performance diagnostics only. |
 | `port/spike/ref-mac/crt-aperture-ntsc.png` | 1821846 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/spike/ref-mac/crt-aperture-plain.png` | 235316 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/spike/ref-mac/crt-easymode-ntsc.png` | 1713966 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
@@ -278,24 +278,24 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/spike/ref-mac/crtglow_lanczos-plain.png` | 180824 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/spike/ref-mac/crtsim-ntsc.png` | 1116783 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/spike/ref-mac/crtsim-plain.png` | 703898 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/ghost.args` | 55 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/ref-mac/glitch/ghost.args` | 55 | content-reviewed | Reviewed ghost/chroma-delay reference scenario with weak signal; test input only. |
 | `port/spike/ref-mac/glitch/ghost.png` | 201184 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/spike/ref-mac/glitch/in.png` | 1202 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/roll.args` | 37 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/ref-mac/glitch/roll.args` | 37 | content-reviewed | Reviewed vertical-roll/brightness reference scenario; test input only. |
 | `port/spike/ref-mac/glitch/roll.png` | 2903 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/tape.args` | 97 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/ref-mac/glitch/tape.args` | 97 | content-reviewed | Reviewed severe head-switch/crease/search/dropout-compensation scenario; test input only. |
 | `port/spike/ref-mac/glitch/tape.png` | 184028 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/vcr-clean.args` | 10 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/ref-mac/glitch/vcr-clean.args` | 10 | content-reviewed | Reviewed clean-deck/clean-tape reference baseline input. |
 | `port/spike/ref-mac/glitch/vcr-clean.png` | 162789 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/vcr-dub.args` | 75 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/ref-mac/glitch/vcr-dub.args` | 75 | content-reviewed | Reviewed second-generation SP dub scenario with wear/dropouts. |
 | `port/spike/ref-mac/glitch/vcr-dub.png` | 190144 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/vcr-ep.args` | 109 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/ref-mac/glitch/vcr-ep.args` | 109 | content-reviewed | Reviewed EP worn/scratched/sticky tape with tension and tracking-offset scenario. |
 | `port/spike/ref-mac/glitch/vcr-ep.png` | 183305 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/vcr-search.args` | 47 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/ref-mac/glitch/vcr-search.args` | 47 | content-reviewed | Reviewed search-speed/transport-flutter reference scenario. |
 | `port/spike/ref-mac/glitch/vcr-search.png` | 186445 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/vcr-used.args` | 62 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/ref-mac/glitch/vcr-used.args` | 62 | content-reviewed | Reviewed moderately used tape wear/dropout/scratch scenario. |
 | `port/spike/ref-mac/glitch/vcr-used.png` | 186843 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/ref-mac/glitch/vcr-wrecked.args` | 149 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/ref-mac/glitch/vcr-wrecked.args` | 149 | content-reviewed | Reviewed extreme EP tape damage, head wear, edge damage and transport flutter scenario. |
 | `port/spike/ref-mac/glitch/vcr-wrecked.png` | 150399 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/spike/ref-mac/looks/Clean CRT.png` | 378823 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/spike/ref-mac/looks/Gentle waves loop.png` | 1645706 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
@@ -306,10 +306,10 @@ Generated from upstream recursive Git tree on 2026-11-20. Upstream tree reports 
 | `port/spike/ref-mac/looks/Obliterated.png` | 1632189 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/spike/ref-mac/looks/Readable Text.png` | 1745703 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
 | `port/spike/ref-mac/looks/Wavy loop.png` | 1447185 | asset-inventory | Binary visual asset; metadata inventoried, visual inspection/port decision pending |
-| `port/spike/src/bin/compare.rs` | 2165 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/spike/src/bin/glitch-dump.rs` | 1811 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/spike/src/bin/glitch-render.rs` | 1138 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
-| `port/spike/src/main.rs` | 4775 | test-reference-pending | Tests, fixtures or reference images; parity/asset review pending |
+| `port/spike/src/bin/compare.rs` | 2165 | content-reviewed | Reviewed image comparison utility computing mean/max error, >2-pixel fraction, PSNR and optional amplified diff; parity diagnostics. |
+| `port/spike/src/bin/glitch-dump.rs` | 1811 | content-reviewed | Reviewed Rust receiver plan JSON dumper matching Mac field-plan schema, including row timing, VCR lines, chroma, picture gain and field metadata. |
+| `port/spike/src/bin/glitch-render.rs` | 1138 | content-reviewed | Reviewed Rust isolated Glitch stage still renderer for pixel-level comparison against Mac Metal reference renderer. |
+| `port/spike/src/main.rs` | 4775 | content-reviewed | Reviewed complete still-image parity spike mirroring Mac crt-smoke: preset loading, NTSC/downscale/CRT settings, self-test and override controls; not shipping AE plugin. |
 | `presets/2 second dirty VCR loop.json` | 84498 | parsed | Fetched and JSON-parsed; semantic migration still pending |
 | `presets/2 second glitch.json` | 40234 | parsed | Fetched and JSON-parsed; semantic migration still pending |
 | `presets/2 second glitches.json` | 108663 | parsed | Fetched and JSON-parsed; semantic migration still pending |
