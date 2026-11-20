@@ -18,7 +18,7 @@ inline RGB straightAt(ConstImageView s,int x,int y,bool premul) noexcept {
 inline float clamp01(float v) noexcept{return std::clamp(v,0.0f,1.0f);}
 }
 bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p) noexcept {
- if(!valid(src,dst)||!std::isfinite(p.edgeEnhancement)||!std::isfinite(p.chromaEdgeEnhancement)||!std::isfinite(p.fade)||!std::isfinite(p.blackLift)||
+ if(!valid(src,dst)||!std::isfinite(p.edgeEnhancement)||!std::isfinite(p.chromaEdgeEnhancement)||!std::isfinite(p.chromaSharpenCutoffHz)||p.chromaSharpenCutoffHz<=0.0f||!std::isfinite(p.fade)||!std::isfinite(p.blackLift)||
     !std::isfinite(p.contrast)||!std::isfinite(p.brightness)||!std::isfinite(p.saturation)||
     !std::isfinite(p.vignette)||!std::isfinite(p.flicker))return false;
  const float edge=clamp01(p.edgeEnhancement),chromaEdge=clamp01(p.chromaEdgeEnhancement),fade=clamp01(p.fade),blackLift=clamp01(p.blackLift),contrast=std::clamp(p.contrast,0.0f,3.0f);
@@ -31,7 +31,14 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
  const float fadeLuma=1.0f-0.15f*fade,fadeLift=0.09f*fade,fadeSat=1.0f-0.25f*fade;
  const float cx=std::max(1.0f,float(src.width-1)*0.5f),cy=std::max(1.0f,float(src.height-1)*0.5f);
  const float maxD=std::sqrt(2.0f);
+ // Three cascaded first-order low-pass stages model the source VHS playback
+ // chroma unsharp path. The input is full-width RGB, so use the full pixel
+ // sample rate while preserving the source's 4:2:2 spatial cutoff.
+ constexpr float kChromaSampleRate=14318182.0f;
+ const float tau=1.0f/(p.chromaSharpenCutoffHz*2.0f*kPi);
+ const float chromaAlpha=(1.0f/kChromaSampleRate)/(tau+(1.0f/kChromaSampleRate));
  for(int y=0;y<src.height;++y){float*dr=dst.rgba+y*dst.rowStrideFloats;
+  float lowI1=0.0f,lowI2=0.0f,lowI3=0.0f,lowQ1=0.0f,lowQ2=0.0f,lowQ3=0.0f;
   for(int x=0;x<src.width;++x){const float*px=src.rgba+y*src.rowStrideFloats+x*4;const float a=px[3];float*out=dr+x*4;
    if(a<=1.0e-6f){std::copy_n(px,4,out);continue;}
    RGB rgb=straightAt(src,x,y,p.premultipliedAlpha);YIQ yiq=rgbToYiq(rgb);
@@ -55,18 +62,12 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
     yiq.y+=edge*0.90f*cleanDetail;
    }
    if(chromaEdge>0.0f){
-    // Independent VHS playback chroma sharpening: unsharp-mask I/Q after
-    // bandwidth loss without adding luma edge contrast.
-    float blurI=4.0f*yiq.i,blurQ=4.0f*yiq.q;
-    const int ox[8]={-1,1,0,0,-1,1,-1,1},oy[8]={0,0,-1,1,-1,-1,1,1};
-    for(int k=0;k<8;++k){
-     const YIQ n=rgbToYiq(straightAt(src,x+ox[k],y+oy[k],p.premultipliedAlpha));
-     const float weight=k<4?2.0f:1.0f;
-     blurI+=weight*n.i;blurQ+=weight*n.q;
-    }
-    blurI*=1.0f/16.0f;blurQ*=1.0f/16.0f;
-    yiq.i+=(yiq.i-blurI)*(0.85f*chromaEdge);
-    yiq.q+=(yiq.q-blurQ)*(0.85f*chromaEdge);
+    // Three-pole I/Q low-pass reference followed by independent chroma
+    // unsharp gain; each scanline resets to neutral chroma (I=Q=0).
+    lowI1+=chromaAlpha*(yiq.i-lowI1);lowI2+=chromaAlpha*(lowI1-lowI2);lowI3+=chromaAlpha*(lowI2-lowI3);
+    lowQ1+=chromaAlpha*(yiq.q-lowQ1);lowQ2+=chromaAlpha*(lowQ1-lowQ2);lowQ3+=chromaAlpha*(lowQ2-lowQ3);
+    yiq.i+=(yiq.i-lowI3)*(0.85f*chromaEdge);
+    yiq.q+=(yiq.q-lowQ3)*(0.85f*chromaEdge);
    }
    yiq.y=yiq.y*fadeLuma+fadeLift;
    const float pedestal=(46.0f/255.0f)*blackLift; yiq.y=yiq.y*(1.0f-pedestal)+pedestal;
