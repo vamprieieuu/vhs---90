@@ -106,7 +106,7 @@ std::vector<float> physicalStickySlipProfile(const TapeTransportParams& p,int wi
     if(lag[guide]>=breakAt[guide]){
      lag[guide]=-0.3*lag[guide];
      const double u=sourceUniform(seed,std::uint64_t(64+guide),field*263+line,0);
-     breakAt[guide]=(1.5+7.0*grip)*(1.0+0.0)*(0.4+1.4*u*u);
+     breakAt[guide]=(1.5+7.0*grip)*(1.0+0.35*std::clamp(double(p.backTension),-1.0,1.0))*(0.4+1.4*u*u);
     }
    }
    const int parity=int(field-frame*2);
@@ -136,7 +136,7 @@ inline void sample(const std::vector<float>&src,int w,int h,float x,float y,floa
 }
 }
 bool processTapeTransportWarp(ConstImageView src,ImageView dst,const TapeTransportParams&p) noexcept {
- if(!valid(src,dst)||!std::isfinite(p.framesPerSecond)||!std::isfinite(p.fieldRateHz)||!std::isfinite(p.slowDriftPixelsPerSecond)||!std::isfinite(p.drumFlutterPixels)||!std::isfinite(p.flutterHz)||!std::isfinite(p.flutterPixels)||!std::isfinite(p.stickSlipPixels)||!std::isfinite(p.lineJitterPixels)||!std::isfinite(p.trackingOffsetPixels)||!std::isfinite(p.trackingSlopePixels)||!std::isfinite(p.servoJitterPixels)||!std::isfinite(p.controlTrackServoAmount)||!std::isfinite(p.controlTrackPulseStrength)||!std::isfinite(p.controlTrackPulseDropout)||!std::isfinite(p.controlTrackFalsePulseChance)||!std::isfinite(p.pictureSearchSpeed)||!std::isfinite(p.trackingTargetPixels)||!std::isfinite(p.verticalScale)||p.verticalScale<=0)return false;
+ if(!valid(src,dst)||!std::isfinite(p.framesPerSecond)||!std::isfinite(p.fieldRateHz)||!std::isfinite(p.slowDriftPixelsPerSecond)||!std::isfinite(p.drumFlutterPixels)||!std::isfinite(p.flutterHz)||!std::isfinite(p.flutterPixels)||!std::isfinite(p.stickSlipPixels)||!std::isfinite(p.lineJitterPixels)||!std::isfinite(p.trackingOffsetPixels)||!std::isfinite(p.trackingSlopePixels)||!std::isfinite(p.servoJitterPixels)||!std::isfinite(p.controlTrackServoAmount)||!std::isfinite(p.controlTrackPulseStrength)||!std::isfinite(p.controlTrackPulseDropout)||!std::isfinite(p.controlTrackFalsePulseChance)||!std::isfinite(p.pictureSearchSpeed)||!std::isfinite(p.trackingTargetPixels)||!std::isfinite(p.backTension)||!std::isfinite(p.verticalScale)||p.verticalScale<=0)return false;
  if(inactive(p)){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
  try{
   const int w=src.width,h=src.height;std::vector<float>copy(size_t(w)*h*4);for(int y=0;y<h;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,w*4,copy.data()+size_t(y)*w*4);
