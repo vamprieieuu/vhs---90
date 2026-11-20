@@ -46,7 +46,7 @@ Extended `VHS90AnalogNoiseEngineSmoke` to verify:
 - non-neutral output when enabled;
 - exact source passthrough when the new amount is zero.
 
-CI status is recorded after the current workflow run completes. Linux core CI does not validate Windows/MSVC or loading the AEX in After Effects.
+Linux core CI run 613 passed all 28/28 smoke tests after the integration and project-status update: https://github.com/vamprieieuu/vhs---90/actions/runs/44783681639. Linux core CI does not validate Windows/MSVC or loading the AEX in After Effects.
 
 ## Disposition
 
