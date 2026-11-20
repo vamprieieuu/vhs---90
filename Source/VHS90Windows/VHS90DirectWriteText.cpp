@@ -74,16 +74,21 @@ DWRITE_READING_DIRECTION inferReadingDirection(const std::wstring& text) noexcep
     }
     return DWRITE_READING_DIRECTION_LEFT_TO_RIGHT;
 }
-void compositePremultiplied(ImageView dst, const BYTE* bgra, UINT stride, bool dstPremul) noexcept {
-    for (int y = 0; y < dst.height; ++y) {
+void compositePremultipliedRect(ImageView dst, const BYTE* bgra, UINT stride,
+                                  UINT width, UINT height, int dstX, int dstY, bool dstPremul) noexcept {
+    for (UINT y = 0; y < height; ++y) {
+        const int targetY = dstY + static_cast<int>(y);
+        if (targetY < 0 || targetY >= dst.height) continue;
         const BYTE* row = bgra + static_cast<std::size_t>(y) * stride;
-        float* out = dst.rgba + static_cast<std::ptrdiff_t>(y) * dst.rowStrideFloats;
-        for (int x = 0; x < dst.width; ++x) {
+        float* out = dst.rgba + static_cast<std::ptrdiff_t>(targetY) * dst.rowStrideFloats;
+        for (UINT x = 0; x < width; ++x) {
+            const int targetX = dstX + static_cast<int>(x);
+            if (targetX < 0 || targetX >= dst.width) continue;
             const BYTE* p = row + static_cast<std::size_t>(x) * 4;
             const float a = p[3] / 255.0f;
             if (a <= 0.00001f) continue;
             const float sr = p[2] / 255.0f, sg = p[1] / 255.0f, sb = p[0] / 255.0f;
-            float* q = out + static_cast<std::ptrdiff_t>(x) * 4;
+            float* q = out + static_cast<std::ptrdiff_t>(targetX) * 4;
             const float da = std::max(0.0f, std::min(1.0f, q[3]));
             const float oa = a + da * (1.0f - a);
             if (dstPremul) {
@@ -141,21 +146,27 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
         ComPtr<IWICImagingFactory> wic;
         HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wic));
         if (FAILED(hr)) return result;
+        const float x = finiteClamp(o.x, -static_cast<float>(dst.width), static_cast<float>(dst.width), 0.0f);
+        const float y = finiteClamp(o.y, -static_cast<float>(dst.height), static_cast<float>(dst.height), 0.0f);
+        const int originX = std::max(0, std::min(dst.width - 1, static_cast<int>(std::floor(x))));
+        const int originY = std::max(0, std::min(dst.height - 1, static_cast<int>(std::floor(y))));
+        const float mw = finiteClamp(o.maxWidth, 0.0f, static_cast<float>(dst.width - originX), 0.0f);
+        const float mh = finiteClamp(o.maxHeight, 0.0f, static_cast<float>(dst.height - originY), 0.0f);
+        const UINT bitmapWidth = static_cast<UINT>(std::max(1.0f, std::ceil(mw > 0.0f ? mw : static_cast<float>(dst.width - originX))));
+        const UINT bitmapHeight = static_cast<UINT>(std::max(1.0f, std::ceil(mh > 0.0f ? mh : static_cast<float>(dst.height - originY))));
         ComPtr<IWICBitmap> bitmap;
-        hr = wic->CreateBitmap(static_cast<UINT>(dst.width), static_cast<UINT>(dst.height),
-                               GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnLoad, &bitmap);
+        hr = wic->CreateBitmap(bitmapWidth, bitmapHeight, GUID_WICPixelFormat32bppPBGRA,
+                               WICBitmapCacheOnLoad, &bitmap);
         if (FAILED(hr)) return result;
         ComPtr<ID2D1RenderTarget> target;
         const auto props = D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT,
             D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED));
         hr = f.d2d->CreateWicBitmapRenderTarget(bitmap.Get(), props, &target);
         if (FAILED(hr)) return result;
-        const float x = finiteClamp(o.x, -static_cast<float>(dst.width), static_cast<float>(dst.width), 0.0f);
-        const float y = finiteClamp(o.y, -static_cast<float>(dst.height), static_cast<float>(dst.height), 0.0f);
-        const float mw = finiteClamp(o.maxWidth, 0.0f, static_cast<float>(dst.width), 0.0f);
-        const float mh = finiteClamp(o.maxHeight, 0.0f, static_cast<float>(dst.height), 0.0f);
-        const float lw = mw > 0.0f ? mw : std::max(1.0f, static_cast<float>(dst.width) - std::max(0.0f, x));
-        const float lh = mh > 0.0f ? mh : std::max(1.0f, static_cast<float>(dst.height) - std::max(0.0f, y));
+        const float localX = x - static_cast<float>(originX);
+        const float localY = y - static_cast<float>(originY);
+        const float lw = static_cast<float>(bitmapWidth);
+        const float lh = static_cast<float>(bitmapHeight);
         const float fs = finiteClamp(o.fontSize, 1.0f, 512.0f, 28.0f);
         ComPtr<IDWriteTextFormat> format;
         hr = f.dwrite->CreateTextFormat(family.c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL,
@@ -181,16 +192,16 @@ DirectWriteTextResult drawDirectWriteText(ImageView dst, const DirectWriteTextOp
                                         finiteClamp(o.blue,0,1,1), finiteClamp(o.opacity,0,1,1));
         hr = target->CreateSolidColorBrush(color, &brush); if (FAILED(hr)) return result;
         target->BeginDraw(); target->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
-        target->DrawTextLayout(D2D1::Point2F(x,y), layout.Get(), brush.Get(), D2D1_DRAW_TEXT_OPTIONS_CLIP);
+        target->DrawTextLayout(D2D1::Point2F(localX,localY), layout.Get(), brush.Get(), D2D1_DRAW_TEXT_OPTIONS_CLIP);
         hr = target->EndDraw(); if (FAILED(hr)) return result;
-        ComPtr<IWICBitmapLock> lock; WICRect rect{0,0,dst.width,dst.height};
+        ComPtr<IWICBitmapLock> lock; WICRect rect{0,0,static_cast<INT>(bitmapWidth),static_cast<INT>(bitmapHeight)};
         hr = bitmap->Lock(&rect, WICBitmapLockRead, &lock); if (FAILED(hr)) return result;
         UINT size = 0, stride = 0; BYTE* pixels = nullptr;
         hr = lock->GetStride(&stride); if (FAILED(hr)) return result;
         hr = lock->GetDataPointer(&size, &pixels);
-        if (FAILED(hr) || !pixels || stride < static_cast<UINT>(dst.width)*4 ||
-            size < stride*static_cast<UINT>(dst.height)) return result;
-        compositePremultiplied(dst, pixels, stride, o.premultipliedDestination);
+        if (FAILED(hr) || !pixels || stride < bitmapWidth*4 ||
+            size < stride*bitmapHeight) return result;
+        compositePremultipliedRect(dst, pixels, stride, bitmapWidth, bitmapHeight, originX, originY, o.premultipliedDestination);
         result.rendered = true; return result;
     } catch (...) { return result; }
 }
