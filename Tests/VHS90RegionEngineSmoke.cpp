@@ -117,6 +117,9 @@ int main() {
     assert(servoDelta<static_cast<float>(w*h)*0.20f);
 
     // Each selectable tracking profile must produce a deterministic, genuinely distinct render.
+    std::vector<float> profileSource(src.size(),0.0f);
+    for(int py=0;py<h;++py) for(int px=0;px<w;++px) { const size_t pi=(py*w+px)*4; profileSource[pi]=float(px)/float(w-1); profileSource[pi+1]=float(py)/float(h-1); profileSource[pi+2]=1.0f-float(px)/float(w-1); profileSource[pi+3]=1.0f; }
+    ConstImageView profileInput{profileSource.data(),w,h,w*4};
     std::vector<float> profileOutputs[5];
     for(int profile=0;profile<5;++profile) {
         profileOutputs[profile].resize(src.size(),0.0f);
@@ -129,9 +132,9 @@ int main() {
         variant.noiseAmount=0.35f; variant.noiseDensity=0.8f; variant.chromaShiftPx=2.0f;
         RegionEngineParams vp; vp.regions=&variant; vp.regionCount=1; vp.seed=991; vp.frame=13; vp.timeSeconds=0.73;
         ImageView vv{profileOutputs[profile].data(),w,h,w*4};
-        assert(processDamageRegions(si,vv,vp));
+        assert(processDamageRegions(profileInput,vv,vp));
         std::vector<float> repeat(src.size(),0.0f); ImageView rv{repeat.data(),w,h,w*4};
-        assert(processDamageRegions(si,rv,vp)); assert(repeat==profileOutputs[profile]);
+        assert(processDamageRegions(profileInput,rv,vp)); assert(repeat==profileOutputs[profile]);
     }
     for(int aidx=0;aidx<5;++aidx) for(int bidx=aidx+1;bidx<5;++bidx)
         assert(profileOutputs[aidx]!=profileOutputs[bidx]);
