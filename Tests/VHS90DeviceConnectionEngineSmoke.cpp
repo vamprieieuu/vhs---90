@@ -15,5 +15,7 @@ int main(){
  p.density=1.0f;assert(processDeviceConnections(in,oc,p));assert(a!=c);
  p.distribution=1.0f;assert(processDeviceConnections(in,oc,p));assert(a!=c);
  for(std::size_t i=0;i<src.size();i+=4)assert(std::abs(a[i+3]-1.0f)<1e-6f);
+ std::vector<float> translucent(src.size());for(int i=0;i<w*h;++i){translucent[std::size_t(i)*4]=.04f;translucent[std::size_t(i)*4+1]=.04f;translucent[std::size_t(i)*4+2]=.04f;translucent[std::size_t(i)*4+3]=.4f;}
+ ConstImageView ti{translucent.data(),w,h,w*4};std::vector<float> tout(src.size());ImageView to{tout.data(),w,h,w*4};p.amount=.7f;assert(processDeviceConnections(ti,to,p));for(std::size_t i=3;i<tout.size();i+=4)assert(std::abs(tout[i]-.4f)<1e-6f);
  return 0;
 }
