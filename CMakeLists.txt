@@ -108,9 +108,21 @@ if(WIN32)
     endif()
     target_link_libraries(VHS90DirectWrite PRIVATE d2d1 dwrite windowscodecs ole32)
 
+    set(VHS90_FONT_RESOURCE_RC "")
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/Rooyin_Free_Bold.ttf"
+       AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/Sponge_Arabic_Regular.otf")
+        configure_file(resources/VHS90Fonts.rc.in "${CMAKE_CURRENT_BINARY_DIR}/VHS90Fonts.rc" @ONLY)
+        set(VHS90_FONT_RESOURCE_RC "${CMAKE_CURRENT_BINARY_DIR}/VHS90Fonts.rc")
+    endif()
+
     if(VHS90_BUILD_TESTS)
         add_executable(VHS90DirectWriteSmoke Tests/VHS90DirectWriteSmoke.cpp)
         target_link_libraries(VHS90DirectWriteSmoke PRIVATE VHS90DirectWrite)
+        if(VHS90_FONT_RESOURCE_RC)
+            target_sources(VHS90DirectWriteSmoke PRIVATE "${VHS90_FONT_RESOURCE_RC}")
+            target_include_directories(VHS90DirectWriteSmoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/resources")
+            target_compile_definitions(VHS90DirectWriteSmoke PRIVATE VHS90_TEST_BUNDLED_FONTS=1)
+        endif()
         if(MSVC)
             target_compile_options(VHS90DirectWriteSmoke PRIVATE /UNDEBUG)
         else()
@@ -205,8 +217,10 @@ if(VHS90_BUILD_AE_PLUGIN)
         VERBATIM
     )
 
-    configure_file(resources/VHS90Fonts.rc.in "${CMAKE_CURRENT_BINARY_DIR}/VHS90Fonts.rc" @ONLY)
-    add_library(VHS90 MODULE Source/VHS90Effect.cpp Source/VHS90Windows/VHS90OsdArbitraryData.cpp "${VHS90_PIPL_RC}" "${CMAKE_CURRENT_BINARY_DIR}/VHS90Fonts.rc")
+    if(NOT VHS90_FONT_RESOURCE_RC)
+        message(FATAL_ERROR "The two licensed Arabic font files must be present in Resources/Fonts before building the AEX. Run build.ps1 with the original vhs.zip.")
+    endif()
+    add_library(VHS90 MODULE Source/VHS90Effect.cpp Source/VHS90Windows/VHS90OsdArbitraryData.cpp "${VHS90_PIPL_RC}" "${VHS90_FONT_RESOURCE_RC}")
     target_link_libraries(VHS90 PRIVATE VHS90Core VHS90DirectWrite)
     target_include_directories(VHS90 PRIVATE
         "${VHS90_AE_HEADERS}"
