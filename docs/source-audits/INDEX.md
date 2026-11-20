@@ -64,3 +64,5 @@ See docs/PROJECT_STATUS.md for the current build/integration boundary. The repos
 - 53-vaporwave-master-native-color-audit.md — 11-file Vaporwave image-stylizer audit and five new independent YIQ chroma gain/offset/quantization controls; CI 32/32 passed.
 
 - 54-vhs-py-main-expanded-audit.md — expanded 9-file Python VHS emulator audit; confirms existing deterministic C++ PyVHS generation engine and six AE controls already cover its portable luma/chroma compression, noise and wave behavior; CI 32/32.
+
+- 55-vhs-main-expanded-final-audit.md — final 28-file AGPL-3.0 OFX/Metal source audit; moved OSD before composite and added independent red/blue RGB channel registration in the native AE CPU path. Final registration CI pending.
