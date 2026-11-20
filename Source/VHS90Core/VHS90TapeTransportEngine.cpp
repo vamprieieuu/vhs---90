@@ -114,7 +114,7 @@ std::vector<float> physicalStickySlipProfile(const TapeTransportParams& p,int wi
    const int outY=parity*activePerField+localRow;
    if(parity<0||parity>1||outY<0||outY>=height)continue;
    const double slip=delta+(lag[0]+lag[1]+lag[2])/(advance*1000.0);
-   const double tbe=lineUs*0.45*std::tanh(trackOffsetLines*wrapTrackDelta(slip)/0.45);
+   const double along=double(line)/totalLines*trackLength;const double strainUs=8.0e-4*std::clamp(double(p.backTension),-1.0,1.0)*along/lineLength*lineUs;const double tbe=lineUs*0.45*std::tanh(trackOffsetLines*wrapTrackDelta(slip)/0.45)+strainUs;
    profile[static_cast<std::size_t>(outY)]=float(tbe/52.656*double(width));
   }
  }
