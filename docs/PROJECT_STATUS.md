@@ -292,7 +292,7 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Re-opened `VHS90OsdEngine.cpp`, its smoke test, and the AE adapter. Confirmed OSD is inserted into the working frame before the VHS composite/signal stages (correct behavior to preserve), but the renderer is still a fixed 5×7 ASCII bitmap table and only emits REC/PLAY/SP/date-time/battery primitives. Unicode text, Arabic shaping, font selection and full VHSTape controls/layout are absent.
 - Rechecked the supplied font manifest and actual embedded license name records. `Rooyin_Free_Bold.ttf` and `Sponge_Arabic_Regular.otf` are the only supplied fonts currently cleared by the manifest for bundling under OFL terms, with complete files/notices retained. The repository currently contains only the manifest, not those font binaries or license bundle. Other fonts remain permission-restricted or unverified and must not be redistributed without permission.
 - Added `docs/source-audits/62-osd-directwrite-arabic-vhs-tape-implementation-spec.md`. It defines a Windows DirectWrite renderer isolated from the portable core, UTF-8/bidi/Arabic shaping, localized months and digit systems, arbitrary user text, font enumeration/fallback, VHS Tape states/positions/date/counter controls, and regression tests.
-- No OSD rendering code or AE UI parameters were changed in this checkpoint. Full OSD remains an open pre-AEX requirement.
+- At the time of this earlier checkpoint, no OSD rendering code or AE UI parameters had changed. The subsequent VHS Tape OSD implementation is recorded in source audit 63 below; font packaging and AE-host validation remain open.
 
 
 ## VHS Tape OSD implementation increment — 2026-11-21
