@@ -135,7 +135,8 @@ std::string formatVhsOsdCounter(std::int64_t frame,float fps,double offsetSecond
     return localizeVhsOsdDigits(b,digits);
 }
 std::string formatVhsOsdTime(const VhsOsdDateTime& v,VhsOsdLanguage language,VhsOsdDigitSet digits) {
-    if(!isValidVhsOsdDateTime(v) || static_cast<unsigned>(language)>static_cast<unsigned>(VhsOsdLanguage::Bilingual) ||
+    if(v.hour<0||v.hour>23||v.minute<0||v.minute>59||v.second<0||v.second>59||
+       !std::isfinite(v.elapsedSeconds)||static_cast<unsigned>(language)>static_cast<unsigned>(VhsOsdLanguage::Bilingual) ||
        static_cast<unsigned>(digits)>static_cast<unsigned>(VhsOsdDigitSet::Persian) ||
        static_cast<unsigned>(v.timeMode)>static_cast<unsigned>(VhsOsdTimeMode::TwentyFourHour)) return {};
     int hour=v.hour, minute=v.minute, second=v.second;
