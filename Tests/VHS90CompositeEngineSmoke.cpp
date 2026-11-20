@@ -185,6 +185,15 @@ int main() {
     scanStage.scanlines.frequency=.5f;
     assert(processCompositeRoundTrip(si,scanlineCompositeView,scanStage));
     assert(geometryComposite!=boxOut && scanlineComposite!=boxOut);
+    std::vector<float> roundedOnly(src.size()),fourThreeOnly(src.size());
+    ImageView roundedView{roundedOnly.data(),w,h,w*4},fourThreeView{fourThreeOnly.data(),w,h,w*4};
+    CompositeParams rounded=p;rounded.compositeSignalStrength=0.0f;rounded.inputBandwidthEnabled=false;rounded.outputBandwidthEnabled=false;
+    rounded.geometry.roundedOverscan=1.0f;
+    assert(processCompositeRoundTrip(si,roundedView,rounded));
+    assert(roundedOnly[0]==0.0f&&roundedOnly[(h/2*w+w/2)*4]>0.0f);
+    CompositeParams fourThree=rounded;fourThree.geometry.roundedOverscan=0.0f;fourThree.geometryEnabled=true;fourThree.geometry.vhs43Frame=true;
+    assert(processCompositeRoundTrip(si,fourThreeView,fourThree));
+    assert(fourThreeOnly[0]==0.0f&&fourThreeOnly[(h/2*w+w/2)*4]>0.0f);
 
     std::vector<float> bloomComposite(src.size());
     ImageView bloomCompositeView{bloomComposite.data(),w,h,w*4};
