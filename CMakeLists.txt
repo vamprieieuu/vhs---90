@@ -90,6 +90,26 @@ if(VHS90_BUILD_TESTS)
     endforeach()
 endif()
 
+if(WIN32)
+    # Windows-only text backend; never leaks platform dependencies into VHS90Core.
+    add_library(VHS90DirectWrite STATIC Source/VHS90Windows/VHS90DirectWriteText.cpp)
+    target_include_directories(VHS90DirectWrite PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Windows
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core
+    )
+    target_compile_features(VHS90DirectWrite PUBLIC cxx_std_17)
+    target_compile_definitions(VHS90DirectWrite PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+    target_compile_options(VHS90DirectWrite PRIVATE /W4 /permissive- /EHsc)
+    target_link_libraries(VHS90DirectWrite PUBLIC VHS90Core PRIVATE d2d1 dwrite windowscodecs ole32)
+
+    if(VHS90_BUILD_TESTS)
+        add_executable(VHS90DirectWriteSmoke Tests/VHS90DirectWriteSmoke.cpp)
+        target_link_libraries(VHS90DirectWriteSmoke PRIVATE VHS90DirectWrite)
+        target_compile_options(VHS90DirectWriteSmoke PRIVATE /UNDEBUG)
+        add_test(NAME VHS90DirectWriteSmoke COMMAND VHS90DirectWriteSmoke)
+    endif()
+endif()
+
 if(VHS90_BUILD_AE_PLUGIN)
     if(NOT WIN32 OR NOT MSVC)
         message(FATAL_ERROR "VHS90_BUILD_AE_PLUGIN requires Windows x64 and MSVC 2022.")
@@ -176,7 +196,7 @@ if(VHS90_BUILD_AE_PLUGIN)
     )
 
     add_library(VHS90 MODULE Source/VHS90Effect.cpp "${VHS90_PIPL_RC}")
-    target_link_libraries(VHS90 PRIVATE VHS90Core)
+    target_link_libraries(VHS90 PRIVATE VHS90Core VHS90DirectWrite)
     target_include_directories(VHS90 PRIVATE
         "${VHS90_AE_HEADERS}"
         "${VHS90_AE_UTIL}"
