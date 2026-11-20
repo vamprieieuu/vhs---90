@@ -116,6 +116,26 @@ int main() {
     assert(servoDelta>0.0f);
     assert(servoDelta<static_cast<float>(w*h)*0.20f);
 
+    // Each selectable tracking profile must produce a deterministic, genuinely distinct render.
+    std::vector<float> profileOutputs[5];
+    for(int profile=0;profile<5;++profile) {
+        profileOutputs[profile].resize(src.size(),0.0f);
+        DamageRegion variant=top;
+        variant.kind=RegionKind::TrackingNoise; variant.shape=RegionShape::HorizontalBand;
+        variant.trackingProfile=static_cast<TrackingProfile>(profile);
+        variant.intensity=1.0f; variant.maxShiftPx=0.0f; variant.waveAmplitudePx=8.0f;
+        variant.servoDriftPx=14.0f; variant.servoSmoothnessPx=7.0f;
+        variant.tearProbability=0.35f; variant.tearShiftPx=24.0f;
+        variant.noiseAmount=0.35f; variant.noiseDensity=0.8f; variant.chromaShiftPx=2.0f;
+        RegionEngineParams vp; vp.regions=&variant; vp.regionCount=1; vp.seed=991; vp.frame=13; vp.timeSeconds=0.73;
+        ImageView vv{profileOutputs[profile].data(),w,h,w*4};
+        assert(processDamageRegions(si,vv,vp));
+        std::vector<float> repeat(src.size(),0.0f); ImageView rv{repeat.data(),w,h,w*4};
+        assert(processDamageRegions(si,rv,vp)); assert(repeat==profileOutputs[profile]);
+    }
+    for(int aidx=0;aidx<5;++aidx) for(int bidx=aidx+1;bidx<5;++bidx)
+        assert(profileOutputs[aidx]!=profileOutputs[bidx]);
+
     // Signed chroma displacement must work in both directions.
     std::vector<float> chromaSrc(src.size()),chromaOut(src.size(),0.0f);
     for(int y=0;y<h;++y) for(int x=0;x<w;++x) {
