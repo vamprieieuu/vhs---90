@@ -91,11 +91,11 @@ std::string localizeVhsOsdDigits(const std::string& ascii,VhsOsdDigitSet digits)
 std::string vhsOsdLabel(VhsOsdLabel label,VhsOsdLanguage language) {
     struct Entry { VhsOsdLabel id; const char* en; const char* ar; };
     static constexpr Entry entries[]={
-        {VhsOsdLabel::Play,"PLAY","تشغيل"},{VhsOsdLabel::Pause,"PAUSE","إيقاف مؤقت"},
+        {VhsOsdLabel::Play,"PLAY ▶","تشغيل ▶"},{VhsOsdLabel::Pause,"PAUSE","إيقاف مؤقت"},
         {VhsOsdLabel::Stop,"STOP","توقف"},{VhsOsdLabel::Record,"REC","تسجيل"},
-        {VhsOsdLabel::FastForward,"FAST FORWARD","تقديم سريع"},{VhsOsdLabel::Rewind,"REW ↶","إرجاع ↶"},
-        {VhsOsdLabel::Forward,"FORWARD","تقديم"},{VhsOsdLabel::Tape,"TAPE","شريط"},
-        {VhsOsdLabel::Error,"ERROR","خطأ"},{VhsOsdLabel::Program01,"P01","برنامج ٠١"},
+        {VhsOsdLabel::FastForward,"FF →","تقديم سريع →"},{VhsOsdLabel::Rewind,"REW ↶","إرجاع ↶"},
+        {VhsOsdLabel::Forward,"FORWARD →","تقديم →"},{VhsOsdLabel::Tape,"TAPE","شريط"},
+        {VhsOsdLabel::Error,"ERROR","خطأ"},{VhsOsdLabel::Program01,"P.O.1","برنامج ٠١"},
         {VhsOsdLabel::Resolution,"RES","دقة"},{VhsOsdLabel::Eject,"EJECT","إخراج"},
         {VhsOsdLabel::Search,"SEARCH","بحث"},{VhsOsdLabel::Tracking,"TRACKING","تتبّع"},
         {VhsOsdLabel::Auto,"AUTO","تلقائي"},{VhsOsdLabel::Channel,"CH","قناة"},
