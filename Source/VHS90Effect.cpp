@@ -428,7 +428,7 @@ static PF_Err RenderWorld(const RenderSettings& s,PF_EffectWorld* input,PF_Effec
                 p.geometry.verticalScale=std::max(0.1f,float(h)/480.0f);
                 p.geometry.edgeWaveEpochFrames=4;
             }
-            if(s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)) {
+            if(s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||(s.tapeSurface>0&&(s.tapeSticky>0||s.tapeMold>0))) {
                 const float a=clamp01(s.tapeTransport/100.0f);
                 p.tapeTransportEnabled=true; p.tapeTransport.seed=0x90A11A6Eu; p.tapeTransport.frame=s.frame;
                 p.tapeTransport.framesPerSecond=s.frameRate; p.tapeTransport.fieldRateHz=s.frameRate*2.0f;
