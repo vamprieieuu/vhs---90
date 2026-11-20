@@ -29,6 +29,6 @@ int main(){using namespace vhs90;constexpr int w=32,h=16;std::vector<float>s(w*h
     assert(processTapeTransportWarp(si,stickyAView,sticky));assert(processTapeTransportWarp(si,stickyBView,sticky));assert(stickyA==stickyB&&stickyA!=s);
     sticky.frame=15;assert(processTapeTransportWarp(si,stickyNextView,sticky));assert(stickyNext!=stickyA);
     sticky.controlTrackTape.debrisAmount=0.0f;sticky.controlTrackTape.moldAmount=0.0f;sticky.frame=14;std::fill(stickyB.begin(),stickyB.end(),0.0f);assert(processTapeTransportWarp(si,stickyBView,sticky));assert(stickyB==s);
-    sticky.frame=14;sticky.backTension=-1.0f;std::vector<float> tensionLow(s.size()),tensionHigh(s.size());ImageView tensionLowView{tensionLow.data(),w,h,w*4},tensionHighView{tensionHigh.data(),w,h,w*4};
+    sticky.frame=14;sticky.controlTrackTape.debrisAmount=1.0f;sticky.controlTrackTape.moldAmount=0.8f;sticky.backTension=-1.0f;std::vector<float> tensionLow(s.size()),tensionHigh(s.size());ImageView tensionLowView{tensionLow.data(),w,h,w*4},tensionHighView{tensionHigh.data(),w,h,w*4};
     assert(processTapeTransportWarp(si,tensionLowView,sticky));sticky.backTension=1.0f;assert(processTapeTransportWarp(si,tensionHighView,sticky));assert(tensionLow!=tensionHigh);
  return 0;}
