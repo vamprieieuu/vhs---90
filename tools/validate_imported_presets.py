@@ -123,11 +123,12 @@ assert camera_cases == set(range(2, 11)), f"Missing VHS6RIFT camera profile case
 assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
 
 lost_start = source.find("static constexpr float kLostSignalProfiles[13][45]={")
-assert lost_start >= 0, "Missing 13x43 Lost Signal VHS profile table"
+assert lost_start >= 0, "Missing 13x45 Lost Signal VHS profile table"
 lost_end = source.find("\n    };", lost_start)
 assert lost_end > lost_start, "Unterminated Lost Signal VHS profile table"
 lost_rows = [line for line in source[lost_start:lost_end].splitlines() if line.lstrip().startswith("{")]
 assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 complete profiles, got {len(lost_rows)}"
+assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 45 for line in lost_rows), "Every Lost Signal VHS profile must define all 45 mapped values"
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: 16 VHS6RIFT + 5 VHS Effect Add-on + 3 Composite Video Simulator VHS speed presets + 13 Lost Signal VHS v1.9 profiles, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
 print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening and Consumer Notch / One-Line Comb / Two-Line Comb decoder and VHS 4:3 frame/rounded overscan/lens/zoom and camcorder battery OSD and deterministic frame-repeat controls are wired.")
