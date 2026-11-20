@@ -98,6 +98,7 @@ if(WIN32)
     target_include_directories(VHS90DirectWrite PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Windows
         ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources
     )
     target_compile_features(VHS90DirectWrite PUBLIC cxx_std_17)
     target_compile_definitions(VHS90DirectWrite PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
