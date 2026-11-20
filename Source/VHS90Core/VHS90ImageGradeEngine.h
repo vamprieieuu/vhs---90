@@ -16,6 +16,7 @@ struct ImageGradeParams {
     std::int64_t frame=0;
     bool premultipliedAlpha=true;
 };
-// Adapted from BarashNTSC's image-domain detail, fade, grade and display passes.
+// Combines the existing image-grade path with a separate VHS playback I/Q sharpening pass
+// modeled on the three-stage chroma low-pass/unsharp behavior in Composite Video Simulator.
 bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams& params) noexcept;
 } // namespace vhs90
