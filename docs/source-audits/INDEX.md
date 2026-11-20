@@ -58,3 +58,4 @@ These reports are based on the supplied vhs.zip archive and the linked VHS-90 re
 ## Current project status
 
 See docs/PROJECT_STATUS.md for the current build/integration boundary. The repository contains an initial AE host adapter and optional AEX build target. Windows/MSVC compilation and AE runtime validation remain pending; do not describe it as a test-ready AEX.
+- 52-ntscqt-1.5.0-expanded-audit.md — expanded 28-entry/23-file ntscQT 1.5.0 audit, signal-stage mapping, Apache-2.0 record and explicit pre-emphasis/spectral-ringing parity gaps.
