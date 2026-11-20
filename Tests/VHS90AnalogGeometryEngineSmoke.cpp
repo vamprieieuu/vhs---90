@@ -27,4 +27,10 @@ int main(){using namespace vhs90;constexpr int w=40,h=24;std::vector<float>s(w*h
     ImageView edgeAView{edgeA.data(),w,h,w*4},edgeBView{edgeB.data(),w,h,w*4},edgeCView{edgeC.data(),w,h,w*4};
     assert(processAnalogGeometry(si,edgeAView,edge));assert(processAnalogGeometry(si,edgeBView,edge));assert(edgeA==edgeB&&edgeA!=s);
     edge.frame=6;assert(processAnalogGeometry(si,edgeCView,edge));assert(edgeA!=edgeC);
+    AnalogGeometryParams playback;playback.vhs43Frame=true;playback.digitalZoom=1.1f;playback.lensDistortion=.04f;
+    std::vector<float> frameCrop(s.size());ImageView frameCropView{frameCrop.data(),w,h,w*4};
+    assert(processAnalogGeometry(si,frameCropView,playback));
+    assert(frameCrop[0]==0.0f&&frameCrop[1]==0.0f&&frameCrop[2]==0.0f);
+    assert(frameCrop[(h/2*w+w/2)*4]>0.1f&&frameCrop!=s);
+    for(size_t i=3;i<frameCrop.size();i+=4)assert(frameCrop[i]==1.0f);
  return 0;}
