@@ -108,6 +108,27 @@ float ntscrtTapeScratchAmount(float k) noexcept { return ntscrtTapeAmount(TapeDa
 float ntscrtTapeEdgeAmount(float k) noexcept { return ntscrtTapeAmount(TapeDamageControl::EdgeDamage,k); }
 float ntscrtTapeCreaseAmount(float k) noexcept { return ntscrtTapeAmount(TapeDamageControl::Creases,k); }
 std::uint32_t ntscrtTapeSeed(std::uint32_t seed) noexcept { return seed*7919u+17u; }
+TapeSurfaceParams makeTapeSurfaceParams(const TapeMaterialControls& c) noexcept {
+ TapeSurfaceParams p{};
+ const float master=std::clamp(c.master/100.0f,0.0f,1.0f);
+ const auto knob=[&](float v) noexcept { return master*std::clamp(v/100.0f,0.0f,1.0f); };
+ p.seed=ntscrtTapeSeed(std::max(1u,c.cassetteSeed));
+ p.frame=c.frame;
+ p.tapeSpeed=std::min(c.tapeSpeed,2u);
+ p.trackingOffsetTracks=std::clamp(c.trackingOffsetTracks,-8.0f,8.0f);
+ p.oxideLoss=ntscrtTapeAmount(TapeDamageControl::Wear,knob(c.wear));
+ p.defectDensity=ntscrtTapeAmount(TapeDamageControl::Dropouts,knob(c.dropouts));
+ p.scratchDensity=ntscrtTapeAmount(TapeDamageControl::Scratches,knob(c.scratches));
+ p.creaseStrength=ntscrtTapeAmount(TapeDamageControl::Creases,knob(c.creases));
+ p.edgeLift=ntscrtTapeAmount(TapeDamageControl::EdgeDamage,knob(c.edgeDamage));
+ p.moldAmount=knob(c.mold);
+ p.vaselineAmount=knob(c.vaseline);
+ p.debrisAmount=knob(c.sticky);
+ p.pinholeAmount=0.0f;
+ p.flakeAmount=0.0f;
+ p.surfaceRoughness=0.0f;
+ return p;
+}
 TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfaceParams&p,bool detail,bool flakes) noexcept {
  const PhysicalPosition pos=makePosition(xMm,y);const std::uint32_t s=p.seed;
  const float wear=std::clamp(p.oxideLoss,0.0f,1.85f),drop=std::clamp(p.defectDensity,0.0f,3.0f);
