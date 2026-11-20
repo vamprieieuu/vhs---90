@@ -85,6 +85,24 @@ int main() {
     assert(isoDeck!=usDeck && usDeck!=euDeck);
     const auto movedDeck=renderDeck(VhsDeckMode::Play,1,VhsTimestampFormat::Iso,70,35,50,50);
     assert(playDeck!=movedDeck);
+    // Independent tape counter formats, frame-based timing, and position.
+    auto renderCounter = [&](VhsTapeCounterFormat format, float x, float y) {
+        std::vector<float> pixels(static_cast<std::size_t>(w)*h*4,0.0f);
+        for(std::size_t i=3;i<pixels.size();i+=4) pixels[i]=1.0f;
+        VhsOsdParams counter;
+        counter.showRec=false; counter.showPlay=false; counter.showTimestamp=false;
+        counter.showBattery=false; counter.showTapeCounter=true;
+        counter.tapeCounterFormat=format; counter.tapeCounterX=x; counter.tapeCounterY=y;
+        counter.frame=12345; counter.framesPerSecond=30.0f; counter.glitch=0.0f; counter.ghost=0.0f;
+        ImageView view{pixels.data(),w,h,w*4}; assert(applyVhsOsd(view,counter));
+        return pixels;
+    };
+    const auto counterFrames=renderCounter(VhsTapeCounterFormat::Frames6,2.2f,96.0f);
+    const auto counterClock=renderCounter(VhsTapeCounterFormat::HoursMinutesSeconds,2.2f,96.0f);
+    const auto counterTimecode=renderCounter(VhsTapeCounterFormat::HoursMinutesSecondsFrames,2.2f,96.0f);
+    const auto counterMoved=renderCounter(VhsTapeCounterFormat::Frames6,50.0f,50.0f);
+    assert(counterFrames!=counterClock && counterClock!=counterTimecode);
+    assert(counterFrames!=counterMoved);
     ImageView invalid{first.data(),w,h,w*4-1}; assert(!applyVhsOsd(invalid,p));
     return 0;
 }
