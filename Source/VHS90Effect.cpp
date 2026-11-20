@@ -151,7 +151,7 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
         b(s.gradeSaturation,v[23]*100.0f);b(s.headAmount,v[24]*100.0f);
         b(s.headHeight,v[24]*50.0f);b(s.analogGlow,v[25]*100.0f);b(s.vignette,v[26]*100.0f);
         const int format=int(v[27]+0.5f);bi(s.tapeSpeed,format==1?2:(format==2||format==4?3:1));
-        b(s.pyVhsGeneration,1.0f+v[28]*0.8f);b(s.tapeSurface,v[29]*100.0f);b(s.tapeWear,100.0f);
+        b(s.pyVhsGeneration,1.0f+v[28]*0.8f);b(s.tapeSurface,std::max(v[29],std::max(v[34],v[35]))*100.0f);b(s.tapeWear,v[29]*100.0f);
         b(s.interlace,v[30]*100.0f);b(s.trackingServo,4.0f+std::fabs(v[31])*60.0f);
         b(s.rfDrift,v[32]*100.0f);b(s.rfField,v[32]*100.0f);b(s.tapeTransport,v[33]*100.0f);
         b(s.tapeDropouts,v[34]*100.0f);b(s.dropouts,v[35]*100.0f);
