@@ -168,7 +168,21 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             for(int row=0;row<h;++row) {
                 const int xi=phaseShift(p.phase,p.phaseOffset,p.frame,row);
                 const std::size_t base=std::size_t(row)*w;
-                if(p.demodulator==CompositeDemodulator::Box || h<2) {
+                if(p.demodulator==CompositeDemodulator::ConsumerNotch) {
+                    // Five-tap consumer notch: a narrow horizontal luma estimate
+                    // is subtracted from the modulated signal to recover chroma.
+                    for(int x=0;x<w;++x) {
+                        const float m2=y[base+std::max(0,x-2)];
+                        const float m1=y[base+std::max(0,x-1)];
+                        const float c=y[base+x];
+                        const float p1=y[base+std::min(x+1,w-1)];
+                        const float p2=y[base+std::min(x+2,w-1)];
+                        scratch[x]=(m2+2.0f*m1+2.0f*c+2.0f*p1+p2)*0.125f;
+                        const float chroma=c-scratch[x];
+                        demodulateChroma(chroma,x,xi,i.data()+base,q.data()+base,w);
+                    }
+                    std::copy(scratch.begin(),scratch.end(),decodedY.begin()+base);
+                } else if(p.demodulator==CompositeDemodulator::Box || h<2) {
                     for(int x=0;x<w;++x) {
                         const float c=y[base+std::min(x+2,w-1)];
                         const float a0=x>0?y[base+x-1]:16.0f/255.0f;
