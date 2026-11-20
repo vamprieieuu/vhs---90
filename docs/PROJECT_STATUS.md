@@ -1,13 +1,13 @@
 # VHS-90 — Project Status
 
-Updated: 2026-11-20
+Updated: 2026-11-21
 
 Latest verified source-pipeline fix: `eb8969184c2d80638cfcb1165dd1984ca02015c2` — moved Image Grade after decoded-frame creation so the composite pipeline no longer references `decodedView` before initialization.
 
 ## Current state
 
 - Plugin name: VHS-90.
-- The 15 `github repos/` source folders are inventoried. Fourteen have full file-disposition audits (including semantic review of all 45 NTSCRT presets); URP-VHS-Retro-Effects is the one remaining fast/partial audit. Audit closure does not mean every algorithm is ported or visually matched. See source audits 35–63 for per-folder scope and limits.
+- The 15 `github repos/` source folders are inventoried. The URP-VHS-Retro-Effects audit is now closed as a full file-disposition audit: all 291 archive entries were enumerated (144 Unity `.meta` files + 147 substantive files), all four C# runtime/example scripts and the complete 343-line HLSL shader were inspected, the MIT license was retained, and portable effects were mapped to existing VHS-90 engines without importing Unity-only assets. See `docs/source-audits/48-urp-vhs-retro-effects.md` and `docs/URP-VHS-Retro-Effects-Integration.md`. Audit closure does not mean every source algorithm is ported or visually matched; URP's feature disposition and visual parity are explicitly scoped.
 - An initial native AE host adapter now exists in `Source/VHS90Effect.cpp`, with PiPL identity/flags, an optional Windows/MSVC CMake target, a PiPL generation script and `build.ps1`.
 - The host adapter has not yet been compiled with MSVC against a local AE SDK or loaded in After Effects. There is no verified AEX artifact and no claim of AE load/render success.
 
