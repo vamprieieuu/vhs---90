@@ -205,3 +205,12 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 8. `vhs-main` — expanded audit 55; OSD moved before composite and independent RGB channel registration integrated.
 
 **Source-queue state: all eight folders audited or verified against completed integrations. Latest native Linux CI: PASS (32/32 CTest tests). No Windows AE SDK/PiPL/AEX/After Effects runtime or MFR result is claimed.**
+
+
+## Tracking variants and VHS Damage Lab continuation (2026-11-20)
+
+- Re-opened the actual vhs.zip from the Library (2,919 entries) and reconfirmed VHS Damage Lab and VHS Cameras archive paths. Extracted and visually inspected all six Damage Lab still references. Existing Damage Lab audits 27 and 28 already contain the 20 text specs and 19 media-reference inventory/analysis; reports 26 and 29 contain the first-pass VHS Cameras FXC6/Gen 7 analysis.
+- Added five genuinely different Tracking Noise renderer branches to VHS90RegionEngine: ServoSweep (VHS6RIFT active C++ line jitter/moving-band behavior), RfWave (NTSC-R tracking wave/anisotropic snow parameter model), CompositeRibbon (Crates multi-scale tracking bands), TapeFlutter (VHSPro source-inspired model; exact kernel not recoverable from decompilation), FourEdgeCrawl (Damage Lab arbitrary-edge geometry). UI exposes a neutral-name Tracking Profile popup, read by both SmartFX and legacy paths.
+- The core region API supports multiple independent regions; the current AE UI still exposes one tracking region plus Head Switching. A true multi-layer AE stack allowing multiple different tracking renderers simultaneously remains pending and is explicitly documented.
+- Initial profile distinctness smoke test exposed an invalid uniform-color fixture; replaced it with a spatial RGB gradient so displacement differences can be measured. Latest CI run `44818220252` passed imported AE parameter validation, CMake build and 32/32 CTest smoke tests: https://github.com/vamprieieuu/vhs---90/actions/runs/44818220252.
+- Full checkpoint: `docs/source-audits/56-tracking-variants-and-damage-lab-checkpoint.md`. Remaining Damage Lab work: multi-layer Tracking UI; Particle Pattern Engine; dedicated Tear & Chroma hybrid; remaining multi-phase/sync-collapse/angular/diagonal procedural patterns. Only after those gates should the VHS Cameras folder be closed with deeper FXC6/Gen 7 analysis.
