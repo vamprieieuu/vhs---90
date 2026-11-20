@@ -76,3 +76,5 @@ See docs/PROJECT_STATUS.md for the current build/integration boundary. The repos
 - 61-ntscqt-spectral-ringing-preemphasis-exact-port-spec.md — source-code re-verification of both NTSC-QT frequency-domain ringing variants, the 720-sample response curve, Y/I/Q alternating-field application, pre-emphasis placement and explicit native FFT/fixture requirements; no false port-complete claim.
 
 - 62-osd-directwrite-arabic-vhs-tape-implementation-spec.md — re-verified current pre-VHS OSD insertion point, 5×7 bitmap limitations, smoke-test coverage and supplied font license metadata; specifies DirectWrite Arabic/RTL, eligible fonts, full VHS Tape parity and required tests. No font-backed renderer is claimed complete.
+
+- 63-vhs-osd-localization-and-words-integration.md — English/Arabic/bilingual VHS Tape labels, date/time and digit formats, localized counter, independent word toggles, text glow, shared font selector, parameter mapping and current build/host validation boundary.
