@@ -5,19 +5,16 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$FindSdkScript = Join-Path $PSScriptRoot "tools/find_ae_sdk.ps1"
+$SdkInfo = & $FindSdkScript -CandidatePath $AeSdkRoot -Quiet
+if (-not $SdkInfo -or -not $SdkInfo.IsValid) {
+    throw "Adobe After Effects SDK discovery failed. Run tools/find_ae_sdk.ps1 for diagnostics."
+}
+$resolvedSdk = $SdkInfo.SdkRoot
+Write-Host "AE SDK: $resolvedSdk"
+Write-Host "AE Headers: $($SdkInfo.HeadersDir)"
+Write-Host "PiPLtool: $($SdkInfo.PiPLtool)"
 
-if ([string]::IsNullOrWhiteSpace($AeSdkRoot)) {
-    throw "Set AE_SDK_ROOT to the extracted Adobe After Effects SDK directory."
-}
-if (-not (Test-Path (Join-Path $AeSdkRoot "Headers/AE_Effect.h"))) {
-    throw "AE SDK headers not found under: $AeSdkRoot"
-}
-$piplTool = Get-ChildItem -Path $AeSdkRoot -Filter "PiPLtool.exe" -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-if (-not $piplTool) {
-    throw "PiPLtool.exe not found anywhere under: $AeSdkRoot"
-}
-
-$resolvedSdk = (Resolve-Path $AeSdkRoot).Path
 cmake -S . -B $BuildDir -G "Visual Studio 17 2022" -A x64 -DVHS90_BUILD_AE_PLUGIN=ON "-DAE_SDK_ROOT=$resolvedSdk"
 if ($LASTEXITCODE -ne 0) { throw "CMake configure failed." }
 

@@ -93,14 +93,55 @@ if(VHS90_BUILD_AE_PLUGIN)
     endif()
     enable_language(C)
     enable_language(RC)
-    if(NOT AE_SDK_ROOT OR NOT EXISTS "${AE_SDK_ROOT}/Headers/AE_Effect.h")
-        message(FATAL_ERROR "Set AE_SDK_ROOT to the extracted Adobe After Effects SDK root (must contain Headers/AE_Effect.h).")
+    # VHS6RIFT build-foundation port: discover flat, Examples/, or nested SDK layouts.
+    if(NOT AE_SDK_ROOT OR AE_SDK_ROOT STREQUAL "")
+        if(DEFINED ENV{AE_SDK_PATH} AND NOT "$ENV{AE_SDK_PATH}" STREQUAL "")
+            set(AE_SDK_ROOT "$ENV{AE_SDK_PATH}" CACHE PATH "Root directory of the Adobe After Effects SDK" FORCE)
+        endif()
     endif()
-    set(VHS90_PIPL_TOOL "${AE_SDK_ROOT}/Resources/PiPLtool.exe")
-    if(NOT EXISTS "${VHS90_PIPL_TOOL}")
-        set(VHS90_PIPL_TOOL "${AE_SDK_ROOT}/Examples/Resources/PiPLtool.exe")
+    if(NOT AE_SDK_ROOT OR NOT EXISTS "${AE_SDK_ROOT}")
+        message(FATAL_ERROR "Set AE_SDK_ROOT (or AE_SDK_PATH) to the extracted Adobe After Effects SDK root.")
     endif()
-    if(NOT EXISTS "${VHS90_PIPL_TOOL}")
+    if(EXISTS "${AE_SDK_ROOT}/Headers/AE_Effect.h")
+        set(VHS90_AE_INCLUDE_ROOT "${AE_SDK_ROOT}")
+        set(VHS90_AE_HEADERS "${AE_SDK_ROOT}/Headers")
+    elseif(EXISTS "${AE_SDK_ROOT}/Examples/Headers/AE_Effect.h")
+        set(VHS90_AE_INCLUDE_ROOT "${AE_SDK_ROOT}/Examples")
+        set(VHS90_AE_HEADERS "${VHS90_AE_INCLUDE_ROOT}/Headers")
+    else()
+        file(GLOB_RECURSE VHS90_AE_HEADER_CANDIDATES LIST_DIRECTORIES FALSE "${AE_SDK_ROOT}/*/AE_Effect.h")
+        if(VHS90_AE_HEADER_CANDIDATES)
+            list(GET VHS90_AE_HEADER_CANDIDATES 0 VHS90_AE_EFFECT_H)
+            get_filename_component(VHS90_AE_HEADERS "${VHS90_AE_EFFECT_H}" DIRECTORY)
+            get_filename_component(VHS90_AE_INCLUDE_ROOT "${VHS90_AE_HEADERS}" DIRECTORY)
+        else()
+            message(FATAL_ERROR "AE_Effect.h was not found under AE_SDK_ROOT=${AE_SDK_ROOT}")
+        endif()
+    endif()
+    set(VHS90_AE_UTIL "${VHS90_AE_INCLUDE_ROOT}/Util")
+    if(NOT EXISTS "${VHS90_AE_UTIL}/Param_Utils.h")
+        set(VHS90_AE_UTIL "${AE_SDK_ROOT}/Util")
+    endif()
+    set(VHS90_AE_REQUIRED_HEADERS AE_Effect.h AE_EffectCB.h AE_EffectCBSuites.h AE_EffectUI.h AE_Macros.h)
+    foreach(VHS90_HEADER IN LISTS VHS90_AE_REQUIRED_HEADERS)
+        if(NOT EXISTS "${VHS90_AE_HEADERS}/${VHS90_HEADER}")
+            message(FATAL_ERROR "Incomplete AE SDK: missing ${VHS90_AE_HEADERS}/${VHS90_HEADER}")
+        endif()
+    endforeach()
+    if(NOT EXISTS "${VHS90_AE_UTIL}/Param_Utils.h")
+        message(FATAL_ERROR "Incomplete AE SDK: missing Util/Param_Utils.h (checked ${VHS90_AE_INCLUDE_ROOT}/Util and ${AE_SDK_ROOT}/Util)")
+    endif()
+    set(VHS90_PIPL_TOOL "")
+    foreach(VHS90_PIPL_CANDIDATE
+        "${AE_SDK_ROOT}/Resources/PiPLtool.exe"
+        "${VHS90_AE_INCLUDE_ROOT}/Resources/PiPLtool.exe"
+        "${AE_SDK_ROOT}/Examples/Resources/PiPLtool.exe")
+        if(EXISTS "${VHS90_PIPL_CANDIDATE}")
+            set(VHS90_PIPL_TOOL "${VHS90_PIPL_CANDIDATE}")
+            break()
+        endif()
+    endforeach()
+    if(NOT VHS90_PIPL_TOOL)
         file(GLOB_RECURSE VHS90_PIPL_CANDIDATES LIST_DIRECTORIES FALSE "${AE_SDK_ROOT}/*/PiPLtool.exe")
         if(VHS90_PIPL_CANDIDATES)
             list(GET VHS90_PIPL_CANDIDATES 0 VHS90_PIPL_TOOL)
@@ -108,6 +149,9 @@ if(VHS90_BUILD_AE_PLUGIN)
             message(FATAL_ERROR "PiPLtool.exe was not found anywhere under AE_SDK_ROOT=${AE_SDK_ROOT}")
         endif()
     endif()
+    message(STATUS "Using AE headers: ${VHS90_AE_HEADERS}")
+    message(STATUS "Using AE Param_Utils: ${VHS90_AE_UTIL}/Param_Utils.h")
+    message(STATUS "Using PiPLtool: ${VHS90_PIPL_TOOL}")
 
     set(VHS90_PIPL_DIR "${CMAKE_CURRENT_BINARY_DIR}/PiPL")
     set(VHS90_PIPL_RR "${VHS90_PIPL_DIR}/VHS90PiPL.rr")
@@ -118,7 +162,7 @@ if(VHS90_BUILD_AE_PLUGIN)
         COMMAND "${CMAKE_COMMAND}"
             "-DPIPL_TOOL=${VHS90_PIPL_TOOL}"
             "-DC_COMPILER=${CMAKE_C_COMPILER}"
-            "-DAE_HEADERS=${AE_SDK_ROOT}/Headers"
+            "-DAE_HEADERS=${VHS90_AE_HEADERS}"
             "-DPIPL_R=${CMAKE_CURRENT_SOURCE_DIR}/resources/VHS90PiPL.r"
             "-DPIPL_RR=${VHS90_PIPL_RR}"
             "-DPIPL_RRC=${VHS90_PIPL_RRC}"
@@ -131,8 +175,9 @@ if(VHS90_BUILD_AE_PLUGIN)
     add_library(VHS90 MODULE Source/VHS90Effect.cpp "${VHS90_PIPL_RC}")
     target_link_libraries(VHS90 PRIVATE VHS90Core)
     target_include_directories(VHS90 PRIVATE
-        "${AE_SDK_ROOT}/Headers"
-        "${AE_SDK_ROOT}/Util"
+        "${VHS90_AE_HEADERS}"
+        "${VHS90_AE_UTIL}"
+        "${VHS90_AE_INCLUDE_ROOT}/Examples/Headers"
         "${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core"
     )
     target_compile_features(VHS90 PRIVATE cxx_std_17)
