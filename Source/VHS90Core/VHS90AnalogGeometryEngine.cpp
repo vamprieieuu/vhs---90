@@ -88,14 +88,16 @@ bool processAnalogGeometry(ConstImageView src,ImageView dst,const AnalogGeometry
    }
    const float frameU=p.vhs43Frame?(u-playbackLeft)/std::max(1.0e-6f,playbackWidth):u;
    float sourceU=p.vhs43Frame?0.5f+(frameU-0.5f)*playbackWidth:u;
+   float sourceV=v;
    sourceU=0.5f+(sourceU-0.5f)/zoom;
+   sourceV=0.5f+(sourceV-0.5f)/zoom;
    if(p.lensDistortion!=0.0f){
-    float lx=(sourceU-0.5f)*2.0f*aspect,ly=(v-0.5f)*2.0f;
+    float lx=(sourceU-0.5f)*2.0f*aspect,ly=(sourceV-0.5f)*2.0f;
     const float r2=lx*lx+ly*ly;const float scale=1.0f+p.lensDistortion*r2;
-    lx*=scale;ly*=scale;sourceU=0.5f+(lx/std::max(0.001f,aspect))*0.5f;
+    lx*=scale;ly*=scale;sourceU=0.5f+(lx/std::max(0.001f,aspect))*0.5f;sourceV=0.5f+ly*0.5f;
    }
    const float sx=sourceU*float(src.width-1)-rowShift-bend-fieldShift;
-   float sy=std::fmod(v*float(src.height-1)+rollOffset+fieldYShift,float(src.height));if(sy<0.0f)sy+=float(src.height);
+   float sy=std::fmod(sourceV*float(src.height-1)+rollOffset+fieldYShift,float(src.height));if(sy<0.0f)sy+=float(src.height);
    for(int c=0;c<4;++c)dr[x*4+c]=sampleChannel(src,sx,sy,c);
   }
  }
