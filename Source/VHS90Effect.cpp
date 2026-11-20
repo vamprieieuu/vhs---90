@@ -114,6 +114,49 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     if(s.vhsStyle<=1||i<=0.0f)return;
     auto b=[&](float& v,float target){v=blendPreset(v,target,s.vhsStyleIntensity);};
     auto bi=[&](A_long& v,float target){v=static_cast<A_long>(std::lround(blendPreset(float(v),target,s.vhsStyleIntensity)));};
+    // Lost Signal VHS v1.9: 13 source profiles. These settings are translated
+    // to matching VHS-90 controls; Minecraft-only depth fog, camera matrices,
+    // and depth-reprojected history are not fabricated for an AE RGB input.
+    static constexpr float kLostSignalProfiles[13][39]={
+        {0.10f,0.22f,0.08f,7.0f,1.2f,0.04f,0.35f,0.35f,0.65f,0.04f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,12.0f,0.55f,0.42f,1.55f,0.40f,0.50f,0.52f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
+        {0.10f,0.22f,0.12f,16.0f,1.8f,0.08f,0.35f,0.35f,0.65f,0.08f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,9.0f,0.45f,0.42f,1.35f,0.55f,0.35f,0.65f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
+        {0.06f,0.12f,0.08f,7.0f,1.2f,0.04f,0.20f,0.50f,0.50f,0.02f,0.50f,0.15f,2.5f,0.035f,0.8f,1.0f,2.5f,0.13f,0.05f,3.0f,9.0f,0.25f,0.20f,0.80f,0.30f,0.50f,0.52f,0,0,0.00f,0.85f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,1,2},
+        {0.03f,0.12f,0.04f,4.0f,0.8f,0.04f,0.10f,0.35f,0.25f,0.02f,0.25f,0.10f,1.5f,0.010f,0.4f,0.5f,1.5f,0.08f,0.05f,2.0f,4.0f,0.10f,0.10f,0.80f,0.15f,0.70f,0.32f,0,0,0.00f,0.85f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,2,3},
+        {0.10f,0.22f,0.08f,7.0f,1.2f,0.08f,0.20f,0.70f,0.50f,0.04f,0.70f,0.20f,2.5f,0.035f,0.8f,1.0f,2.5f,0.18f,0.08f,4.0f,6.0f,0.25f,0.55f,0.60f,0.30f,0.20f,0.80f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,3,4},
+        {0.03f,0.12f,0.04f,4.0f,0.4f,0.04f,0.10f,0.15f,0.25f,0.02f,0.25f,0.05f,1.0f,0.010f,0.4f,0.5f,1.0f,0.08f,0.03f,1.0f,2.0f,0.10f,0.10f,1.00f,0.15f,0.10f,0.32f,0,0,0.00f,0.50f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
+        {0.10f,0.22f,0.16f,10.0f,1.8f,0.14f,0.50f,0.50f,0.80f,0.08f,0.85f,0.30f,2.5f,0.035f,1.2f,1.5f,2.5f,0.13f,0.08f,3.0f,6.0f,0.35f,0.30f,1.15f,0.40f,0.35f,0.52f,0,0,0.00f,0.85f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
+        {0.20f,0.48f,0.35f,24.0f,4.0f,0.35f,0.70f,0.70f,1.00f,0.14f,1.00f,0.45f,6.0f,0.080f,2.6f,2.5f,6.0f,0.25f,0.12f,7.0f,16.0f,0.70f,0.55f,1.55f,0.90f,0.50f,0.80f,0,0,0.00f,1.00f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
+        {0.10f,0.22f,0.12f,16.0f,1.8f,0.08f,0.35f,0.35f,0.65f,0.08f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,9.0f,0.45f,0.42f,1.35f,0.55f,0.35f,0.65f,4,4,0.70f,0.92f,0.4f,0.20f,0.20f,0.15f,0.25f,0.0f,0,0},
+        {0.10f,0.22f,0.16f,10.0f,1.8f,0.14f,0.50f,0.50f,0.80f,0.08f,0.85f,0.30f,2.5f,0.035f,1.2f,1.5f,2.5f,0.13f,0.08f,3.0f,6.0f,0.35f,0.30f,1.15f,0.40f,0.35f,0.52f,3,1,0.10f,0.85f,0.0f,0.10f,0.00f,0.15f,0.25f,1.0f,0,0},
+        {0.20f,0.48f,0.35f,24.0f,4.0f,0.35f,0.70f,0.70f,1.00f,0.14f,1.00f,0.45f,6.0f,0.080f,2.6f,2.5f,6.0f,0.25f,0.12f,7.0f,16.0f,0.70f,0.55f,1.55f,0.90f,0.50f,0.80f,4,5,1.00f,1.00f,0.7f,0.70f,0.70f,0.15f,0.25f,0.0f,0,0},
+        {0.10f,0.22f,0.12f,16.0f,1.8f,0.08f,0.35f,0.35f,0.65f,0.08f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,9.0f,0.45f,0.42f,1.35f,0.55f,0.35f,0.65f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.20f,0.35f,0.0f,0,0},
+        {0.10f,0.22f,0.12f,16.0f,1.8f,0.08f,0.35f,0.35f,0.65f,0.08f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,9.0f,0.45f,0.42f,1.35f,0.55f,0.35f,0.65f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.20f,0.35f,0.0f,0,1}
+    };
+    auto lostSignal=[&](int index){
+        const float* v=kLostSignalProfiles[index];
+        b(s.composite,100);b(s.lumaNoise,v[0]*100);b(s.chromaNoise,v[0]*85);b(s.tapeNoise,v[0]*100);
+        b(s.scanlines,v[1]*100);b(s.trackingAmount,v[2]*200);b(s.trackingTear,v[3]/36.0f*100.0f);
+        b(s.trackingServo,v[4]/6.0f*100.0f);b(s.staticAmount,v[5]/0.5f*100.0f);
+        b(s.colorPhaseDrift,v[6]*100);b(s.agcPump,v[7]*100);b(s.chromaLoss,v[8]*100);
+        b(s.verticalRoll,v[9]/0.35f*100.0f);b(s.sync,v[10]*100);b(s.chromaDelay,v[11]*100);
+        b(s.chromaShift,v[12]/9.0f*100.0f);b(s.flicker,v[13]*100);
+        b(s.geometry,std::max(v[14]/4.0f*100.0f,v[15]/6.0f*100.0f));
+        b(s.lumaSmear,v[16]/6.0f*100.0f);b(s.temporalGhost,v[17]*100);
+        b(s.signalGhost,v[18]/0.25f*100.0f);b(s.tapeDetail,100.0f-v[19]*8.0f);
+        b(s.chromaSubsample,v[20]/24.0f*100.0f);b(s.ringing,v[21]*100.0f);
+        b(s.gradeContrast,100.0f+v[22]*25.0f);b(s.gradeBrightness,-v[22]*8.0f);
+        b(s.gradeSaturation,v[23]*100.0f);b(s.headAmount,v[24]*100.0f);
+        b(s.headHeight,v[24]*50.0f);b(s.analogGlow,v[25]*100.0f);b(s.vignette,v[26]*100.0f);
+        const int format=int(v[27]+0.5f);bi(s.tapeSpeed,format==1?2:(format==2||format==4?3:1));
+        b(s.pyVhsGeneration,1.0f+v[28]*0.8f);b(s.tapeSurface,v[29]*100.0f);b(s.tapeWear,100.0f);
+        b(s.interlace,v[30]*100.0f);b(s.trackingServo,4.0f+std::fabs(v[31])*60.0f);
+        b(s.rfDrift,v[32]*100.0f);b(s.rfField,v[32]*100.0f);b(s.tapeTransport,v[33]*100.0f);
+        b(s.tapeDropouts,v[34]*100.0f);b(s.dropouts,v[35]*100.0f);
+        b(s.osdAmount,v[36]>0.5f?82.0f:0.0f);b(s.osdRec,v[36]>0.5f?100.0f:0.0f);
+        b(s.osdPlay,v[36]>0.5f?100.0f:0.0f);b(s.osdTimestamp,v[36]>0.5f?100.0f:0.0f);
+        if(v[37]>0.5f){b(s.colorDrift,v[37]==1.0f?28.0f:(v[37]==2.0f?18.0f:42.0f));}
+        if(v[38]>0.5f){b(s.analogGlow,std::max(s.analogGlow,28.0f));}
+    };
     switch(s.vhsStyle) {
     case 2: b(s.composite,12);b(s.chromaSubsample,8);b(s.lumaNoise,3);b(s.chromaNoise,2);b(s.trackingAmount,4);b(s.headAmount,3);b(s.tapeSurface,2);break;
     case 3: b(s.composite,24);b(s.chromaSubsample,22);b(s.chromaShift,3);b(s.tapeNoise,20);b(s.colorPhaseDrift,15);b(s.edgeEnhance,12);b(s.trackingAmount,10);b(s.geometry,6);b(s.headAmount,10);b(s.blackLift,10);break;
@@ -171,49 +214,6 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
         b(s.composite,100);b(s.verticalChroma,50);b(s.edgeEnhance,100);b(s.chromaEdgeEnhance,85);bi(s.tapeSpeed,2);break;
     case 25: // Composite Video Simulator VHS EP mode
         b(s.composite,100);b(s.verticalChroma,50);b(s.edgeEnhance,100);b(s.chromaEdgeEnhance,85);bi(s.tapeSpeed,3);break;
-    // Lost Signal VHS v1.9: 13 source profiles. These settings are translated
-    // to matching VHS-90 controls; Minecraft-only depth fog, camera matrices,
-    // and depth-reprojected history are not fabricated for an AE RGB input.
-    static constexpr float kLostSignalProfiles[13][39]={
-        {0.10f,0.22f,0.08f,7.0f,1.2f,0.04f,0.35f,0.35f,0.65f,0.04f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,12.0f,0.55f,0.42f,1.55f,0.40f,0.50f,0.52f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
-        {0.10f,0.22f,0.12f,16.0f,1.8f,0.08f,0.35f,0.35f,0.65f,0.08f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,9.0f,0.45f,0.42f,1.35f,0.55f,0.35f,0.65f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
-        {0.06f,0.12f,0.08f,7.0f,1.2f,0.04f,0.20f,0.50f,0.50f,0.02f,0.50f,0.15f,2.5f,0.035f,0.8f,1.0f,2.5f,0.13f,0.05f,3.0f,9.0f,0.25f,0.20f,0.80f,0.30f,0.50f,0.52f,0,0,0.00f,0.85f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,1,2},
-        {0.03f,0.12f,0.04f,4.0f,0.8f,0.04f,0.10f,0.35f,0.25f,0.02f,0.25f,0.10f,1.5f,0.010f,0.4f,0.5f,1.5f,0.08f,0.05f,2.0f,4.0f,0.10f,0.10f,0.80f,0.15f,0.70f,0.32f,0,0,0.00f,0.85f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,2,3},
-        {0.10f,0.22f,0.08f,7.0f,1.2f,0.08f,0.20f,0.70f,0.50f,0.04f,0.70f,0.20f,2.5f,0.035f,0.8f,1.0f,2.5f,0.18f,0.08f,4.0f,6.0f,0.25f,0.55f,0.60f,0.30f,0.20f,0.80f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,3,4},
-        {0.03f,0.12f,0.04f,4.0f,0.4f,0.04f,0.10f,0.15f,0.25f,0.02f,0.25f,0.05f,1.0f,0.010f,0.4f,0.5f,1.0f,0.08f,0.03f,1.0f,2.0f,0.10f,0.10f,1.00f,0.15f,0.10f,0.32f,0,0,0.00f,0.50f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
-        {0.10f,0.22f,0.16f,10.0f,1.8f,0.14f,0.50f,0.50f,0.80f,0.08f,0.85f,0.30f,2.5f,0.035f,1.2f,1.5f,2.5f,0.13f,0.08f,3.0f,6.0f,0.35f,0.30f,1.15f,0.40f,0.35f,0.52f,0,0,0.00f,0.85f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
-        {0.20f,0.48f,0.35f,24.0f,4.0f,0.35f,0.70f,0.70f,1.00f,0.14f,1.00f,0.45f,6.0f,0.080f,2.6f,2.5f,6.0f,0.25f,0.12f,7.0f,16.0f,0.70f,0.55f,1.55f,0.90f,0.50f,0.80f,0,0,0.00f,1.00f,0.0f,0.00f,0.00f,0.15f,0.25f,0.0f,0,0},
-        {0.10f,0.22f,0.12f,16.0f,1.8f,0.08f,0.35f,0.35f,0.65f,0.08f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,9.0f,0.45f,0.42f,1.35f,0.55f,0.35f,0.65f,4,4,0.70f,0.92f,0.4f,0.20f,0.20f,0.15f,0.25f,0.0f,0,0},
-        {0.10f,0.22f,0.16f,10.0f,1.8f,0.14f,0.50f,0.50f,0.80f,0.08f,0.85f,0.30f,2.5f,0.035f,1.2f,1.5f,2.5f,0.13f,0.08f,3.0f,6.0f,0.35f,0.30f,1.15f,0.40f,0.35f,0.52f,3,1,0.10f,0.85f,0.0f,0.10f,0.00f,0.15f,0.25f,1.0f,0,0},
-        {0.20f,0.48f,0.35f,24.0f,4.0f,0.35f,0.70f,0.70f,1.00f,0.14f,1.00f,0.45f,6.0f,0.080f,2.6f,2.5f,6.0f,0.25f,0.12f,7.0f,16.0f,0.70f,0.55f,1.55f,0.90f,0.50f,0.80f,4,5,1.00f,1.00f,0.7f,0.70f,0.70f,0.15f,0.25f,0.0f,0,0},
-        {0.10f,0.22f,0.12f,16.0f,1.8f,0.08f,0.35f,0.35f,0.65f,0.08f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,9.0f,0.45f,0.42f,1.35f,0.55f,0.35f,0.65f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.20f,0.35f,0.0f,0,0},
-        {0.10f,0.22f,0.12f,16.0f,1.8f,0.08f,0.35f,0.35f,0.65f,0.08f,0.70f,0.20f,4.0f,0.020f,0.8f,1.0f,4.0f,0.18f,0.08f,4.0f,9.0f,0.45f,0.42f,1.35f,0.55f,0.35f,0.65f,0,0,0.00f,0.92f,0.0f,0.00f,0.00f,0.20f,0.35f,0.0f,0,1}
-    };
-    auto lostSignal=[&](int index){
-        const float* v=kLostSignalProfiles[index];
-        b(s.composite,100);b(s.lumaNoise,v[0]*100);b(s.chromaNoise,v[0]*85);b(s.tapeNoise,v[0]*100);
-        b(s.scanlines,v[1]*100);b(s.trackingAmount,v[2]*200);b(s.trackingTear,v[3]/36.0f*100.0f);
-        b(s.trackingServo,v[4]/6.0f*100.0f);b(s.staticAmount,v[5]/0.5f*100.0f);
-        b(s.colorPhaseDrift,v[6]*100);b(s.agcPump,v[7]*100);b(s.chromaLoss,v[8]*100);
-        b(s.verticalRoll,v[9]/0.35f*100.0f);b(s.sync,v[10]*100);b(s.chromaDelay,v[11]*100);
-        b(s.chromaShift,v[12]/9.0f*100.0f);b(s.flicker,v[13]*100);
-        b(s.geometry,std::max(v[14]/4.0f*100.0f,v[15]/6.0f*100.0f));
-        b(s.lumaSmear,v[16]/6.0f*100.0f);b(s.temporalGhost,v[17]*100);
-        b(s.signalGhost,v[18]/0.25f*100.0f);b(s.tapeDetail,100.0f-v[19]*8.0f);
-        b(s.chromaSubsample,v[20]/24.0f*100.0f);b(s.ringing,v[21]*100.0f);
-        b(s.gradeContrast,100.0f+v[22]*25.0f);b(s.gradeBrightness,-v[22]*8.0f);
-        b(s.gradeSaturation,v[23]*100.0f);b(s.headAmount,v[24]*100.0f);
-        b(s.headHeight,v[24]*50.0f);b(s.analogGlow,v[25]*100.0f);b(s.vignette,v[26]*100.0f);
-        const int format=int(v[27]+0.5f);bi(s.tapeSpeed,format==1?2:(format==2||format==4?3:1));
-        b(s.pyVhsGeneration,1.0f+v[28]*0.8f);b(s.tapeSurface,v[29]*100.0f);b(s.tapeWear,100.0f);
-        b(s.interlace,v[30]*100.0f);b(s.trackingServo,4.0f+std::fabs(v[31])*60.0f);
-        b(s.rfDrift,v[32]*100.0f);b(s.rfField,v[32]*100.0f);b(s.tapeTransport,v[33]*100.0f);
-        b(s.tapeDropouts,v[34]*100.0f);b(s.dropouts,v[35]*100.0f);
-        b(s.osdAmount,v[36]>0.5f?82.0f:0.0f);b(s.osdRec,v[36]>0.5f?100.0f:0.0f);
-        b(s.osdPlay,v[36]>0.5f?100.0f:0.0f);b(s.osdTimestamp,v[36]>0.5f?100.0f:0.0f);
-        if(v[37]>0.5f){b(s.colorDrift,v[37]==1.0f?28.0f:(v[37]==2.0f?18.0f:42.0f));}
-        if(v[38]>0.5f){b(s.analogGlow,std::max(s.analogGlow,28.0f));}
-    };
     case 26: lostSignal(0);break;
     case 27: lostSignal(1);break;
     case 28: lostSignal(2);break;
