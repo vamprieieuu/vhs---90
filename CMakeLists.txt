@@ -225,6 +225,14 @@ if(VHS90_BUILD_AE_PLUGIN)
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     )
+    # Visual Studio is multi-config and otherwise appends Release/Debug.
+    # Keep the deliverable at exactly build/VHS-90.aex for a one-file handoff.
+    foreach(VHS90_CONFIG DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
+        set_target_properties(VHS90 PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_${VHS90_CONFIG} "${CMAKE_CURRENT_BINARY_DIR}"
+            LIBRARY_OUTPUT_DIRECTORY_${VHS90_CONFIG} "${CMAKE_CURRENT_BINARY_DIR}"
+        )
+    endforeach()
     add_custom_target(VHS90_AEX DEPENDS VHS90)
     message(STATUS "VHS-90 AEX output: ${CMAKE_CURRENT_BINARY_DIR}/VHS-90.aex")
 endif()
