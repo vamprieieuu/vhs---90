@@ -190,4 +190,18 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Completed expanded inventory of `vhs-main`: 28 files + 5 directories, AGPL-3.0-or-later. No upstream OFX/Metal/CUDA/kernel/OSD/LUT/preset-parser code was copied; the supplied `VHS Faded Tape.cube` is an identity placeholder. Existing CPU-first VHS-90 modules already cover the majority of signal/tape processing.
 - Corrected OSD order: OSD is now rasterized into the source immediately before composite signal processing, so it acquires composite/bandwidth/static/tracking damage. Static validator and CMake/CTest 32/32 passed in run `44816473391`.
 - Added independent RGB channel registration to `VHS90ChromaShiftEngine`: red and blue signed pixel offsets with green as reference, bilinear sampling and premultiplied-alpha preservation; added AE controls (-20..+20 px), Master Strength scaling and smoke coverage. Latest run `44816747950` completed successfully: static AE/preset validation, CMake build and CTest 32/32 passed: https://github.com/vamprieieuu/vhs---90/actions/runs/44816747950.
-- Full report: `docs/source-audits/55-vhs-main-expanded-final-audit.md`. The eight-folder queue is now audited or verified against earlier completed integration reports. Remaining work is global integration/release verification: await this CI, then Windows/MSVC AE SDK build, PiPL, AEX load, AE visual testing and MFR.
+- Full report: `docs/source-audits/55-vhs-main-expanded-final-audit.md`. The eight-folder queue is now audited or verified against earlier completed integration reports. The latest CI is green; remaining work is global release verification: Windows/MSVC AE SDK build, PiPL, AEX load, AE visual testing and MFR.
+
+
+## Final status — supplied eight-folder VHS source queue (2026-11-20)
+
+1. `VHS Effect Add-on` — closed; report 49.
+2. `Composite Video Simulator` — closed; report 50.
+3. `Lost Signal VHS v1.9` — closed; report 51.
+4. `ntscqt-1.5.0` — expanded audit 52; source-specific pre-emphasis and spectral ringing parity remain documented follow-ups, not falsely marked as ports.
+5. `vhs-phys-main` — earlier full 202-file integration closed in `docs/vhs-phys-main-integration.md` and referenced by audit index.
+6. `vaporwave-master` — audit 53; five independent YIQ color controls integrated.
+7. `vhs.py-main` — expanded audit 54; existing deterministic PyVHS engine confirmed complete for portable core behavior.
+8. `vhs-main` — expanded audit 55; OSD moved before composite and independent RGB channel registration integrated.
+
+**Source-queue state: all eight folders audited or verified against completed integrations. Latest native Linux CI: PASS (32/32 CTest tests). No Windows AE SDK/PiPL/AEX/After Effects runtime or MFR result is claimed.**
