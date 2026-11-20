@@ -49,6 +49,21 @@ int main() {
     assert(std::fabs(split[upperSplit]-src[upperSplit])>1e-5f);
     assert(std::fabs(split[lowerSplit]-src[lowerSplit])>1e-5f);
 
+    // Four Damage Lab procedural pattern identities remain distinct from generic static modes.
+    std::vector<float> patternOutputs[4];
+    const StaticPatternMode advancedModes[4]={StaticPatternMode::DarkFieldLumaStreaks,StaticPatternMode::MultiPhaseGreenLine,StaticPatternMode::TwoStageAngularRibbon,StaticPatternMode::DiagonalSyncCollapse};
+    for(int m=0;m<4;++m) {
+        patternOutputs[m].resize(src.size());
+        StaticParams adv=p; adv.mode=advancedModes[m]; adv.sourceMix=1.0f; adv.density=.9f;
+        adv.lumaAmount=.95f; adv.chromaAmount=.7f; adv.ribbonWidth=.14f; adv.angleDegrees=31.0f;
+        adv.greenLineAmount=.9f; adv.phaseCount=4; adv.blackoutProbability=.3f; adv.frame=19;
+        ImageView av{patternOutputs[m].data(),w,h,w*4}; assert(processStaticPattern(si,av,adv));
+        std::vector<float> again(src.size()); ImageView ag{again.data(),w,h,w*4};
+        assert(processStaticPattern(si,ag,adv)); assert(again==patternOutputs[m]);
+        assert(patternOutputs[m]!=src);
+    }
+    for(int i=0;i<4;++i) for(int j=i+1;j<4;++j) assert(patternOutputs[i]!=patternOutputs[j]);
+
     std::vector<float> black(src.size()); ImageView dblack{black.data(),w,h,w*4};
     StaticParams pb; pb.mode=StaticPatternMode::StaticToBlackout; pb.sourceMix=0.0f;
     pb.blackoutProbability=1.0f; pb.baseLuma=0.2f; pb.frame=2;
