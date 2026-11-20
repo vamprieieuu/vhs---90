@@ -193,9 +193,9 @@ bool isDirectWriteAvailable() noexcept {
     const auto& f = factories(); return SUCCEEDED(f.status) && f.d2d && f.dwrite;
 }
 std::vector<std::wstring> enumerateSystemFontFamilies() {
-    ensureBundledFonts();
     std::vector<std::wstring> names;
     ComApartment apartment; if (!apartment.valid()) return names;
+    ensureBundledFonts();
     auto& f = factories(); if (FAILED(f.status) || !f.dwrite) return names;
     auto appendFamilies = [&names](IDWriteFontCollection* collection) {
         if (!collection) return;
