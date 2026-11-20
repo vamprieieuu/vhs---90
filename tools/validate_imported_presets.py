@@ -46,6 +46,7 @@ required_reads = [
     "READ_FLOAT(PARAM_ROUNDED_OVERSCAN,roundedOverscan)",
     "READ_FLOAT(PARAM_LENS_DISTORTION,lensDistortion)",
     "READ_FLOAT(PARAM_DIGITAL_ZOOM,digitalZoom)",
+    "READ_FLOAT(PARAM_OSD_BATTERY,osdBattery)",
     "READ_FLOAT(PARAM_VHS_STYLE_INTENSITY,vhsStyleIntensity)",
     "READ_FLOAT(PARAM_CAMERA_INTENSITY,cameraIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_INTENSITY,ntscRsIntensity)",
@@ -91,6 +92,8 @@ for needle in [
     "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
     "p.geometry.vhs43Frame=s.vhs43Frame!=0;p.geometry.lensDistortion=s.lensDistortion/1000.0f;",
     "p.geometry.roundedOverscan=clamp01(s.roundedOverscan/100.0f);",
+    "op.batteryAmount=clamp01(s.osdBattery/100.0f);op.showBattery=s.osdBattery>0.0f;",
+    "b(s.osdPlay,v[36]>0.5f?100.0f:0.0f);b(s.osdTimestamp,v[36]>0.5f?100.0f:0.0f);b(s.osdBattery,v[36]>0.5f?75.0f:0.0f);
     "||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f",
     "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
     "bi(s.compositeDecoder,1);b(s.composite,100);b(s.lumaNoise,v[0]*100);",
@@ -123,4 +126,4 @@ lost_rows = [line for line in source[lost_start:lost_end].splitlines() if line.l
 assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 complete profiles, got {len(lost_rows)}"
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: 16 VHS6RIFT + 5 VHS Effect Add-on + 3 Composite Video Simulator VHS speed presets + 13 Lost Signal VHS v1.9 profiles, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
-print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening and Consumer Notch / One-Line Comb / Two-Line Comb decoder and VHS 4:3 frame/rounded overscan/lens/zoom controls are wired.")
+print("PASS: VHS6RIFT grain controls, Add-on, CVS and Lost Signal VHS preset wiring, NTSC-RS controls, and independent VHS chroma sharpening and Consumer Notch / One-Line Comb / Two-Line Comb decoder and VHS 4:3 frame/rounded overscan/lens/zoom and camcorder battery OSD controls are wired.")
