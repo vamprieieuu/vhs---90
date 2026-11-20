@@ -160,7 +160,7 @@ bool applyVhsOsd(ImageView im,const VhsOsdParams& p) noexcept{
  }
  if(p.showBattery&&p.batteryAmount>0.001f){
   const float a=amount*opacity*c01(p.batteryAmount);
-  const int bw=14*small,bh=7*small,x=w-mx-bw+dx,y=my+18*small+dy,th=std::max(1,small);
+  const int bw=14*small,bh=7*small,margin=3*small,x=w-margin-bw+dx,y=margin+dy,th=std::max(1,small);
   for(int xx=0;xx<bw;++xx){pixel(im,x+xx,y,TR,TG,TB,a,pm);pixel(im,x+xx,y+bh-1,TR,TG,TB,a,pm);}
   for(int yy=0;yy<bh;++yy){pixel(im,x,y+yy,TR,TG,TB,a,pm);pixel(im,x+bw-1,y+yy,TR,TG,TB,a,pm);}
   for(int yy=bh/3;yy<(2*bh)/3;++yy)pixel(im,x+bw,y+yy,TR,TG,TB,a,pm);
