@@ -53,9 +53,12 @@ bool processTemporalGhost(ConstImageView cur,ConstImageView prev,ImageView dst,c
     if(repeatMix>0.0f){
      const float* same=old.data()+(size_t(y)*w+x)*4;
      const RGB repeated=straight(same,p.premultipliedAlpha);
-     result.r+=(repeated.r-result.r)*repeatMix;
-     result.g+=(repeated.g-result.g)*repeatMix;
-     result.b+=(repeated.b-result.b)*repeatMix;
+     if(repeatMix>=1.0f)result=repeated;
+     else{
+      result.r+=(repeated.r-result.r)*repeatMix;
+      result.g+=(repeated.g-result.g)*repeatMix;
+      result.b+=(repeated.b-result.b)*repeatMix;
+     }
     }
     const float fieldMix=((y&1)==(p.fieldParity&1))?ghostMix*weave:0.0f;
     const RGB red=straight(r,p.premultipliedAlpha),blue=straight(b,p.premultipliedAlpha);
