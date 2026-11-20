@@ -85,7 +85,7 @@ static char kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|T
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
 static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS Degradation|Bad Tracking|Very Bad Tracking|Unstable VCR Playback|Moving Band Noise|Tape Damage|Bottom Tape Damage|Static Interference|Color Bleed|Color Shift|Ghosting|Signal Loss|Severe Analog Glitch|Damaged Tape Playback|Add-on Light|Add-on Classic|Add-on Heavy|Add-on Worn|Add-on Clean TV|CVS VHS SP|CVS VHS LP|CVS VHS EP|LS Reference VHS|LS Real VHS|LS Backrooms|LS Poolrooms|LS Liminal Night|LS Subtle|LS Found Footage|LS Damaged Tape|LS Rental Tape|LS Camcorder 1996|LS Broken Signal|LS Composite Decode|LS Analog Fog";
-static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300";
+static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300|FXC6 Direct Capture|Gen 7 Reference";
 static char kNtscRsLookChoices[]="Custom|VHS-90 Natural NTSC|VHS-90 Home SP|VHS-90 LP Tape|VHS-90 EP Tape|VHS-90 Tracking Snow|VHS-90 Chroma Loss|VHS-90 Edge Wave|VHS-90 Field Blend|VHS-90 Composite Smear|VHS-90 Chroma Instability";
 static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
 static char kCompositeDecoderChoices[]="Consumer Notch|One-Line Comb|Two-Line Comb";
@@ -306,6 +306,24 @@ static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
     case 8: b(s.tapeDetail,98);b(s.edgeEnhance,30);b(s.chromaSubsample,4);break;
     case 9: b(s.tapeDetail,52);b(s.chromaSubsample,30);b(s.chromaShift,5);b(s.gradeBrightness,5);b(s.gradeSaturation,112);break;
     case 10: b(s.tapeDetail,64);b(s.edgeEnhance,38);b(s.bloom,18);b(s.gradeSaturation,105);break;
+    case 11: // FXC6 Direct Capture — cool blue/cyan cast, fine grain and softened detail; no severe tracking bars.
+        b(s.tapeDetail,70);b(s.chromaSubsample,18);b(s.chromaShift,2.5f);
+        b(s.gradeContrast,94);b(s.gradeBrightness,2);b(s.gradeSaturation,112);
+        b(s.chromaIGain,105);b(s.chromaQGain,108);b(s.chromaIOffset,-3);b(s.chromaQOffset,5);
+        b(s.lumaNoise,8);b(s.chromaNoise,10);b(s.compositeNoise,6);
+        b(s.vhs6RiftGrain,20);b(s.vhs6RiftNoiseDetail,65);b(s.vhs6RiftShadowBias,70);
+        break;
+    case 12: // Gen 7 Reference — teal/yellow camcorder color, stronger chroma instability and intermittent signal damage.
+        b(s.tapeDetail,50);b(s.chromaSubsample,32);b(s.chromaShift,6);
+        b(s.gradeContrast,108);b(s.gradeBrightness,-3);b(s.gradeSaturation,132);
+        b(s.chromaIGain,130);b(s.chromaQGain,115);b(s.chromaIOffset,-6);b(s.chromaQOffset,8);
+        b(s.verticalChroma,25);b(s.verticalLuma,14);b(s.lumaNoise,18);b(s.chromaNoise,24);b(s.compositeNoise,20);
+        b(s.rfDrift,16);b(s.colorPhaseDrift,18);b(s.chromaFlutter,14);
+        b(s.vhs6RiftGrain,28);b(s.vhs6RiftNoiseDetail,80);b(s.vhs6RiftShadowBias,75);
+        b(s.staticAmount,22);b(s.staticDensity,70);b(s.trackingAmount,20);
+        s.trackingProfile=2;s.trackingPresetBase=4;s.staticMode=9;
+        b(s.tearChromaAmount,15);s.tearChromaMode=5;s.tearBandCount=3;
+        break;
     default:break;
     }
 }
@@ -494,7 +512,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Style & Camera Profiles",ID_VHS_STYLE_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",38,1,kVhsStyleChoices,ID_VHS_STYLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Style Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS_STYLE_INTENSITY);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile",10,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile",12,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_VHS_STYLE_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS-90 Signal Looks",ID_NTSCRS_TOPIC);
