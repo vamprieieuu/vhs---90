@@ -29,7 +29,7 @@ VHS90TapeTransportEngine has deterministic render-local replay of a control-trac
 - picture-search speed and relock approximation;
 - arbitrary-frame deterministic replay without process-global mutable state.
 
-The AE adapter connects Tracking Servo and physical control-track tape sampling at the upstream control-head location (79.244 mm along track, y=0.35 mm). It applies remanence-normalized amplitude and spacing loss to pulse detection; crease lift can create false pulses. Remaining deviations: simplified frame-domain replay instead of the full line-domain capstan/motor/stick-slip model, exact source 64-bit noise/value interpolation and complete phase/history snapshots.
+The AE adapter connects Tracking Servo and physical control-track tape sampling at the upstream control-head location (79.244 mm along track, y=0.35 mm). It applies remanence-normalized amplitude and spacing loss to pulse detection; crease lift can create false pulses. Sticky-shed drag and guide stick-slip/back-tension are now integrated in the transport warp. Remaining deviations: frame-domain PI replay rather than the complete source line-domain capstan/servo model, and the bounded recent-field material-slip window rather than the source rolling transport snapshots.
 
 ### 3. Physical tape material map
 
@@ -39,7 +39,7 @@ Important geometry correction: upstream TapeGeometry::TRACK_START is **1.0 mm**,
 
 The sampler ports the upstream deterministic 32-bit hash/value-noise pattern and principal tape_at mechanisms: remanence/wear variation, pinholes, flakes/shed, lengthwise scratches, creases, edge lift, mold colonies and Vaseline film. The raster sampler averages four physical samples across the selected SP (58 µm) or LP/EP (26 µm) head width, offset sideways by configured track-pitch misalignment. Head-state and control-track paths use detail-off/flake-on sampling, matching the source deck/sync sampling mode. TapeSurfaceSample reports shed as well as magnetization, spacing lift, roughness and film.
 
-This remains an adaptation, not yet sample-by-sample bit-identical parity. The AE UI now exposes independent tape wear, dropouts, scratches, creases, edge damage, mold, Vaseline/binder film, sticky shed and cassette seed controls; the master amount scales them through the tested core makeTapeSurfaceParams mapping helper. The AE adapter routes its controls through that host-independent helper. Sticky-binder/transport stick-slip coupling and exact sample-by-sample upstream point parity remain incomplete. The image-domain renderer still approximates the RF chain.
+This remains an adaptation, not yet sample-by-sample bit-identical parity. The AE UI exposes independent tape wear, dropouts, scratches, creases, edge damage, mold, Vaseline/binder film, sticky shed, cassette seed and back-tension controls; the master amount scales them through the tested core makeTapeSurfaceParams helper. The transport also implements deterministic sticky drag, mold-dependent guide grip, guide lag/breakaway and back-tension strain over a bounded recent-field replay window. Exact rolling source snapshots and sample-by-sample point parity remain incomplete. The image-domain renderer still approximates the full RF chain.
 
 ### 4. Two-head deck recurrence with physical tape sampling
 
