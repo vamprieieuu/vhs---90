@@ -31,7 +31,7 @@ enum ParamIndex {
     PARAM_AFC_HUNT, PARAM_CHROMA_FLUTTER, PARAM_YC_CROSSTALK, PARAM_COLOR_PHASE_DRIFT, PARAM_COLOR_DRIFT,
     PARAM_HSYNC_NOISE, PARAM_VSYNC_NOISE, PARAM_BURST_NOISE,
     PARAM_EDGE_ENHANCE, PARAM_TAPE_FADE, PARAM_BLACK_LIFT, PARAM_TEMPORAL_GHOST, PARAM_RINGING, PARAM_RINGING_POWER, PARAM_CRT_EQUALIZER, PARAM_GRADE_CONTRAST, PARAM_GRADE_BRIGHTNESS,
-    PARAM_GRADE_SATURATION, PARAM_VIGNETTE, PARAM_FLICKER,
+    PARAM_GRADE_SATURATION, PARAM_GRADE_I_GAIN, PARAM_GRADE_Q_GAIN, PARAM_GRADE_I_OFFSET, PARAM_GRADE_Q_OFFSET, PARAM_GRADE_CHROMA_QUANTIZATION, PARAM_VIGNETTE, PARAM_FLICKER,
     PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_ANALOG_GLOW, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT,
     PARAM_GEOMETRY, PARAM_INTERLACE, PARAM_VERTICAL_ROLL, PARAM_EDGE_WAVE, PARAM_EDGE_WAVE_FREQUENCY, PARAM_EDGE_WAVE_SPEED, PARAM_EDGE_WAVE_DETAIL, PARAM_SCANLINES, PARAM_SIGNAL_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
     PARAM_STATIC_DENSITY, PARAM_STATIC_END, PARAM_TRACKING_TOPIC, PARAM_TRACKING_AMOUNT,
@@ -48,7 +48,7 @@ enum ParamDiskID {
     ID_AFC_HUNT, ID_CHROMA_FLUTTER, ID_YC_CROSSTALK, ID_COLOR_PHASE_DRIFT, ID_COLOR_DRIFT,
     ID_HSYNC_NOISE, ID_VSYNC_NOISE, ID_BURST_NOISE,
     ID_EDGE_ENHANCE, ID_TAPE_FADE, ID_BLACK_LIFT, ID_TEMPORAL_GHOST, ID_RINGING, ID_RINGING_POWER, ID_CRT_EQUALIZER, ID_GRADE_CONTRAST, ID_GRADE_BRIGHTNESS,
-    ID_GRADE_SATURATION, ID_VIGNETTE, ID_FLICKER, ID_LUMA_SMEAR, ID_BLOOM, ID_ANALOG_GLOW,
+    ID_GRADE_SATURATION, ID_GRADE_I_GAIN, ID_GRADE_Q_GAIN, ID_GRADE_I_OFFSET, ID_GRADE_Q_OFFSET, ID_GRADE_CHROMA_QUANTIZATION, ID_VIGNETTE, ID_FLICKER, ID_LUMA_SMEAR, ID_BLOOM, ID_ANALOG_GLOW,
     ID_TAPE_SURFACE, ID_TAPE_TRANSPORT, ID_GEOMETRY, ID_INTERLACE, ID_VERTICAL_ROLL, ID_EDGE_WAVE, ID_EDGE_WAVE_FREQUENCY, ID_EDGE_WAVE_SPEED, ID_EDGE_WAVE_DETAIL, ID_SCANLINES, ID_STATIC_TOPIC,
     ID_STATIC_AMOUNT, ID_STATIC_DENSITY, ID_TRACKING_TOPIC, ID_TRACKING_AMOUNT,
     ID_TRACKING_SHAPE, ID_TRACKING_X, ID_TRACKING_Y, ID_TRACKING_WIDTH,
@@ -79,7 +79,7 @@ struct RenderSettings {
     float multipathGain=0, multipathDelay=24, multipathEnsemble=0, signalGhost=0, chromaDelay=0, chromaLoss=0;
     float afcHunt=0, chromaFlutter=0, ycCrosstalk=0, colorPhaseDrift=0, colorDrift=0;
     float hsyncNoise=0, vsyncNoise=0, burstNoise=0;
-    float edgeEnhance=0, chromaEdgeEnhance=0, tapeFade=0, blackLift=0, temporalGhost=0, ringing=0, ringingPower=2, crtEqualizer=0, gradeContrast=100, gradeBrightness=0, gradeSaturation=100, vignette=0, flicker=0;
+    float edgeEnhance=0, chromaEdgeEnhance=0, tapeFade=0, blackLift=0, temporalGhost=0, ringing=0, ringingPower=2, crtEqualizer=0, gradeContrast=100, gradeBrightness=0, gradeSaturation=100, chromaIGain=100, chromaQGain=100, chromaIOffset=0, chromaQOffset=0, chromaQuantization=0, vignette=0, flicker=0;
     float lumaSmear=0, bloom=0, analogGlow=0;
     float tapeSurface=0, tapeTransport=0, geometry=0, interlace=0, verticalRoll=0, edgeWave=0, scanlines=0;
     float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8, trackingAngle=0;
@@ -340,6 +340,11 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Contrast",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_CONTRAST);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Brightness",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_GRADE_BRIGHTNESS);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma I Gain",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_I_GAIN);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Q Gain",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_Q_GAIN);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma I Offset",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_GRADE_I_OFFSET);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Q Offset",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_GRADE_Q_OFFSET);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Quantization",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_CHROMA_QUANTIZATION);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vignette",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VIGNETTE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Flicker",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FLICKER);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Smear",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_SMEAR);
@@ -529,7 +534,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_TEMPORAL_GHOST,temporalGhost);
     READ_FLOAT(PARAM_RINGING,ringing); READ_FLOAT(PARAM_RINGING_POWER,ringingPower); READ_FLOAT(PARAM_CRT_EQUALIZER,crtEqualizer);
     READ_FLOAT(PARAM_GRADE_CONTRAST,gradeContrast); READ_FLOAT(PARAM_GRADE_BRIGHTNESS,gradeBrightness);
-    READ_FLOAT(PARAM_GRADE_SATURATION,gradeSaturation); READ_FLOAT(PARAM_VIGNETTE,vignette); READ_FLOAT(PARAM_FLICKER,flicker);
+    READ_FLOAT(PARAM_GRADE_SATURATION,gradeSaturation); READ_FLOAT(PARAM_GRADE_I_GAIN,chromaIGain); READ_FLOAT(PARAM_GRADE_Q_GAIN,chromaQGain); READ_FLOAT(PARAM_GRADE_I_OFFSET,chromaIOffset); READ_FLOAT(PARAM_GRADE_Q_OFFSET,chromaQOffset); READ_FLOAT(PARAM_GRADE_CHROMA_QUANTIZATION,chromaQuantization); READ_FLOAT(PARAM_VIGNETTE,vignette); READ_FLOAT(PARAM_FLICKER,flicker);
     READ_FLOAT(PARAM_LUMA_SMEAR,lumaSmear); READ_FLOAT(PARAM_BLOOM,bloom); READ_FLOAT(PARAM_ANALOG_GLOW,analogGlow);
     READ_FLOAT(PARAM_TAPE_SURFACE,tapeSurface); READ_FLOAT(PARAM_TAPE_TRANSPORT,tapeTransport);
     READ_FLOAT(PARAM_GEOMETRY,geometry); READ_FLOAT(PARAM_INTERLACE,interlace); READ_FLOAT(PARAM_VERTICAL_ROLL,verticalRoll); READ_FLOAT(PARAM_EDGE_WAVE,edgeWave); READ_FLOAT(PARAM_SCANLINES,scanlines); READ_FLOAT(PARAM_TAPE_NOISE,tapeNoise);
@@ -818,7 +823,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.outputBandwidth.verticalLumaRadiusRows=std::max(1,int(std::lround(s.verticalLuma/100.0f*4.0f)));
                 p.outputBandwidth.verticalLumaSigmaRows=0.6f+s.verticalLuma/100.0f*1.4f;
             }
-            if(s.edgeEnhance>0||s.chromaEdgeEnhance>0||s.tapeFade>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0) {
+            if(s.edgeEnhance>0||s.chromaEdgeEnhance>0||s.tapeFade>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.chromaIGain!=100||s.chromaQGain!=100||s.chromaIOffset!=0||s.chromaQOffset!=0||s.chromaQuantization>0||s.vignette>0||s.flicker>0) {
                 p.imageGradeEnabled=true; p.imageGrade.seed=0x90A11E5Eu; p.imageGrade.frame=s.frame;
                 p.imageGrade.edgeEnhancement=clamp01(s.edgeEnhance/100.0f);
                 p.imageGrade.chromaEdgeEnhancement=clamp01(s.chromaEdgeEnhance/100.0f);
@@ -828,6 +833,9 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.imageGrade.contrast=s.gradeContrast/100.0f;
                 p.imageGrade.brightness=s.gradeBrightness/255.0f;
                 p.imageGrade.saturation=s.gradeSaturation/100.0f;
+                p.imageGrade.chromaIGain=s.chromaIGain/100.0f;p.imageGrade.chromaQGain=s.chromaQGain/100.0f;
+                p.imageGrade.chromaIOffset=s.chromaIOffset/200.0f;p.imageGrade.chromaQOffset=s.chromaQOffset/200.0f;
+                p.imageGrade.chromaQuantization=s.chromaQuantization/400.0f;
                 p.imageGrade.vignette=clamp01(s.vignette/100.0f);
                 p.imageGrade.flicker=clamp01(s.flicker/100.0f);
             }
