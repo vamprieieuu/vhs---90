@@ -30,7 +30,7 @@ Branch: `work/osd-directwrite-integration-map`
 
 - Linux core CMake build and smoke tests passed after the battery OSD safe-margin correction (run `44834430499`).
 - Windows and Linux OSD Core / DirectWrite smoke workflow passed for the OSD engine and DirectWrite renderer (run `44834430462`). This validates those portable/core and Windows DirectWrite test targets, not the AE host adapter.
-- The localization smoke suite covers bilingual dates, month styles, digit conversion, 12/24-hour and clock-only output, leap-day rollover, counter formats/offsets, and key VHS labels. Linux Core CI run `44834780888` passed 36/36 tests; Windows + Linux OSD Core/DirectWrite run `44834781058` passed 37/37 tests, including `VHS90DirectWriteSmoke` on Windows. The latest AE static/core check on commit `c07234be26fe28f8ce17a4be07fd50e31aa04fa7` also passed; its separate Windows OSD/DirectWrite run is still in progress.
+- The localization smoke suite covers bilingual dates, month styles, digit conversion, 12/24-hour and clock-only output, leap-day rollover, counter formats/offsets, and key VHS labels. Linux Core CI run `44834780888` passed 36/36 tests; Windows + Linux OSD Core/DirectWrite run `44834781058` passed 37/37 tests, including `VHS90DirectWriteSmoke` on Windows. The latest AE static/core check on commit `c07234be26fe28f8ce17a4be07fd50e31aa04fa7` passed, and its Windows + Linux OSD Core/DirectWrite workflow `44835316039` also passed (37/37 tests, including Windows `VHS90DirectWriteSmoke`).
 - No MSVC build of `VHS90Effect.cpp`, PiPL generation, AEX artifact, After Effects 23.2.1 load/render, save/reopen, or MFR host test is claimed.
 
 ## Supplied fonts and redistribution
