@@ -84,7 +84,7 @@ static char kTearChromaModeChoices[]="Spectral Chroma Smear|Localized Headbleed|
 static char kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|Top Strip|Bottom-Weighted Streaks|Monochrome Streaks|Split-Band Chromatic|Static to Blackout|Dark-Field Luma Streaks|Multi-Phase Green Line|Two-Stage Angular Ribbon|Diagonal Sync Collapse";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
-static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS Degradation|Bad Tracking|Very Bad Tracking|Unstable VCR Playback|Moving Band Noise|Tape Damage|Bottom Tape Damage|Static Interference|Color Bleed|Color Shift|Ghosting|Signal Loss|Severe Analog Glitch|Damaged Tape Playback|Add-on Light|Add-on Classic|Add-on Heavy|Add-on Worn|Add-on Clean TV|CVS VHS SP|CVS VHS LP|CVS VHS EP|LS Reference VHS|LS Real VHS|LS Backrooms|LS Poolrooms|LS Liminal Night|LS Subtle|LS Found Footage|LS Damaged Tape|LS Rental Tape|LS Camcorder 1996|LS Broken Signal|LS Composite Decode|LS Analog Fog";
+static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS Degradation|Bad Tracking|Very Bad Tracking|Unstable VCR Playback|Moving Band Noise|Tape Damage|Bottom Tape Damage|Static Interference|Color Bleed|Color Shift|Ghosting|Signal Loss|Severe Analog Glitch|Damaged Tape Playback|Add-on Light|Add-on Classic|Add-on Heavy|Add-on Worn|Add-on Clean TV|CVS VHS SP|CVS VHS LP|CVS VHS EP|LS Reference VHS|LS Real VHS|LS Backrooms|LS Poolrooms|LS Liminal Night|LS Subtle|LS Found Footage|LS Damaged Tape|LS Rental Tape|LS Camcorder 1996|LS Broken Signal|LS Composite Decode|LS Analog Fog|Archive Standard|Studio Clean|Edge Definition|Violet Transfer|Soft Composite|Green Phosphor|Signal Corruption|Tape Streaks|Cool Transfer|Warm Transfer|Blue Halation|Signal Echo|Retro Grade|Handheld Camcorder|Hue Instability|Monochrome Transfer|Neutral Playback|Fresh Cassette|Rental Cassette|Aged Cassette|Tracking Failure|Home Video Camera|Chroma Bleed|Broadcast Deck|Multi-Generation Dub|Music Video Grade|Craft Neutral|Craft Clean|Craft Sharp|Violet Glow|Green Glow|Worn Cassette|Handheld Cinema|Tape Monochrome";
 static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300|FXC6 Direct Capture|Gen 7 Reference";
 static char kNtscRsLookChoices[]="Custom|VHS-90 Natural NTSC|VHS-90 Home SP|VHS-90 LP Tape|VHS-90 EP Tape|VHS-90 Tracking Snow|VHS-90 Chroma Loss|VHS-90 Edge Wave|VHS-90 Field Blend|VHS-90 Composite Smear|VHS-90 Chroma Instability";
 static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
@@ -288,6 +288,82 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     case 36: lostSignal(10);break;
     case 37: lostSignal(11);break;
     case 38: lostSignal(12);break;
+    // Crates VHS Master: all 16 named metadata looks are represented as native
+    // VHS-90 recipes. The original embedded JSON was parsed in the audit, but
+    // its per-preset payload is not checked into this repository; these are
+    // source-informed parameter translations, not claimed byte-exact values.
+    case 39: // Archive Standard
+        b(s.composite,55);b(s.tapeDetail,78);b(s.chromaSubsample,24);b(s.lumaNoise,12);b(s.chromaNoise,12);b(s.tapeNoise,14);b(s.gradeSaturation,102);break;
+    case 40: // Studio Clean
+        b(s.composite,18);b(s.tapeDetail,98);b(s.chromaSubsample,8);b(s.lumaNoise,2);b(s.chromaNoise,2);b(s.tapeNoise,2);b(s.trackingAmount,0);b(s.headAmount,0);break;
+    case 41: // Edge Definition
+        b(s.tapeDetail,115);b(s.edgeEnhance,42);b(s.chromaEdgeEnhance,28);b(s.lumaSmear,4);b(s.ringing,8);break;
+    case 42: // Violet Transfer
+        b(s.gradeSaturation,112);b(s.chromaIGain,108);b(s.chromaQGain,122);b(s.chromaIOffset,-8);b(s.chromaQOffset,18);b(s.bloom,18);break;
+    case 43: // Soft Composite
+        b(s.tapeDetail,62);b(s.lumaSmear,32);b(s.chromaSubsample,34);b(s.verticalChroma,28);b(s.bloom,18);b(s.ringing,4);break;
+    case 44: // Green Phosphor
+        b(s.gradeSaturation,92);b(s.chromaIGain,92);b(s.chromaQGain,112);b(s.chromaIOffset,14);b(s.chromaQOffset,-10);b(s.gradeBrightness,2);break;
+    case 45: // Signal Corruption
+        b(s.composite,92);b(s.lumaNoise,72);b(s.chromaNoise,76);b(s.tapeNoise,78);b(s.sync,72);b(s.rfDrift,58);b(s.dropouts,62);b(s.trackingAmount,68);b(s.staticAmount,42);break;
+    case 46: // Tape Streaks
+        b(s.trackingAmount,76);b(s.trackingHeight,22);b(s.trackingServo,64);b(s.trackingTear,58);b(s.edgeWave,38);b(s.dropouts,35);break;
+    case 47: // Cool Transfer
+        b(s.gradeBrightness,1);b(s.gradeContrast,104);b(s.gradeSaturation,94);b(s.chromaIGain,94);b(s.chromaQGain,112);b(s.chromaIOffset,-5);b(s.chromaQOffset,8);break;
+    case 48: // Warm Transfer
+        b(s.gradeBrightness,2);b(s.gradeContrast,103);b(s.gradeSaturation,108);b(s.chromaIGain,112);b(s.chromaQGain,92);b(s.chromaIOffset,8);b(s.chromaQOffset,-5);break;
+    case 49: // Blue Halation
+        b(s.bloom,62);b(s.analogGlow,42);b(s.gradeSaturation,112);b(s.chromaIGain,92);b(s.chromaQGain,122);b(s.chromaQOffset,14);break;
+    case 50: // Signal Echo
+        b(s.multipathGain,58);b(s.multipathDelay,34);b(s.multipathEnsemble,55);b(s.signalGhost,64);b(s.temporalGhost,32);b(s.composite,72);break;
+    case 51: // Retro Grade
+        b(s.composite,48);b(s.tapeDetail,72);b(s.scanlines,28);b(s.gradeSaturation,82);b(s.gradeContrast,108);b(s.gradeBrightness,-2);b(s.colorDrift,18);break;
+    case 52: // Handheld Camcorder
+        b(s.composite,48);b(s.tapeDetail,72);b(s.chromaSubsample,32);b(s.chromaShift,5);b(s.geometry,16);b(s.flicker,12);b(s.lumaNoise,18);b(s.chromaNoise,20);b(s.osdAmount,45);break;
+    case 53: // Hue Instability
+        b(s.colorPhaseDrift,72);b(s.colorDrift,52);b(s.chromaFlutter,58);b(s.chromaShift,7);b(s.chromaNoise,35);b(s.noiseHue,24);break;
+    case 54: // Monochrome Transfer
+        b(s.gradeSaturation,0);b(s.chromaLoss,100);b(s.lumaNoise,18);b(s.tapeNoise,20);b(s.scanlines,24);b(s.tapeDetail,82);break;
+    // VHSPro: ten recovered menu looks. The supplied decompilation preserves
+    // labels but not reliable full slider tuples, so these native mappings
+    // reproduce each look's intent and remain explicitly source-inspired.
+    case 55: // Neutral Playback
+        b(s.composite,42);b(s.tapeDetail,92);b(s.chromaSubsample,14);b(s.lumaNoise,4);b(s.chromaNoise,4);b(s.tapeNoise,5);break;
+    case 56: // Fresh Cassette
+        b(s.composite,28);b(s.tapeDetail,100);b(s.tapeWear,0);b(s.tapeSurface,0);b(s.tapeDropouts,0);b(s.tapeScratches,0);b(s.tapeCreases,0);b(s.trackingAmount,0);b(s.headAmount,0);break;
+    case 57: // Rental Cassette
+        b(s.composite,52);b(s.tapeDetail,82);b(s.tapeWear,24);b(s.tapeSurface,18);b(s.tapeNoise,22);b(s.chromaSubsample,22);b(s.lumaNoise,12);b(s.trackingAmount,10);break;
+    case 58: // Aged Cassette
+        b(s.composite,72);b(s.tapeDetail,58);b(s.tapeWear,82);b(s.tapeSurface,76);b(s.tapeDropouts,58);b(s.tapeScratches,54);b(s.tapeCreases,48);b(s.tapeNoise,62);b(s.lumaNoise,42);break;
+    case 59: // Tracking Failure
+        b(s.trackingAmount,100);b(s.trackingHeight,32);b(s.trackingServo,88);b(s.trackingTear,92);b(s.sync,55);b(s.rfDrift,45);b(s.staticAmount,48);b(s.dropouts,45);break;
+    case 60: // Home Video Camera
+        b(s.composite,48);b(s.tapeDetail,72);b(s.chromaSubsample,30);b(s.chromaShift,4);b(s.colorDrift,22);b(s.lumaNoise,16);b(s.chromaNoise,18);b(s.geometry,12);b(s.osdAmount,62);break;
+    case 61: // Chroma Bleed
+        b(s.composite,68);b(s.chromaSubsample,58);b(s.verticalChroma,62);b(s.chromaShift,12);b(s.chromaDelay,16);b(s.ycCrosstalk,55);b(s.gradeSaturation,118);break;
+    case 62: // Broadcast Deck
+        b(s.composite,35);b(s.tapeDetail,108);b(s.edgeEnhance,28);b(s.chromaSubsample,10);b(s.lumaNoise,2);b(s.chromaNoise,3);b(s.tapeNoise,4);b(s.gradeContrast,104);break;
+    case 63: // Multi-Generation Dub
+        b(s.composite,76);b(s.tapeDetail,54);b(s.chromaSubsample,42);b(s.chromaShift,8);b(s.lumaSmear,38);b(s.temporalGhost,38);b(s.signalGhost,48);b(s.tapeNoise,46);b(s.lumaNoise,32);b(s.chromaNoise,30);break;
+    case 64: // Music Video Grade
+        b(s.composite,40);b(s.tapeDetail,86);b(s.gradeSaturation,138);b(s.gradeContrast,116);b(s.bloom,48);b(s.analogGlow,34);b(s.chromaShift,4);b(s.colorDrift,18);break;
+    // VHSCraft: all eight recovered named looks, adapted to the shared engine.
+    case 65: // Craft Neutral
+        b(s.composite,48);b(s.tapeDetail,88);b(s.chromaSubsample,18);b(s.lumaNoise,8);b(s.chromaNoise,8);b(s.tapeNoise,10);break;
+    case 66: // Craft Clean
+        b(s.composite,20);b(s.tapeDetail,100);b(s.chromaSubsample,6);b(s.lumaNoise,1);b(s.chromaNoise,1);b(s.tapeNoise,1);b(s.trackingAmount,0);b(s.headAmount,0);break;
+    case 67: // Craft Sharp
+        b(s.tapeDetail,118);b(s.edgeEnhance,48);b(s.chromaEdgeEnhance,32);b(s.lumaSmear,0);b(s.ringing,8);break;
+    case 68: // Violet Glow
+        b(s.gradeSaturation,118);b(s.chromaIGain,108);b(s.chromaQGain,126);b(s.chromaIOffset,-10);b(s.chromaQOffset,22);b(s.bloom,24);b(s.analogGlow,18);break;
+    case 69: // Green Glow
+        b(s.gradeSaturation,102);b(s.chromaIGain,94);b(s.chromaQGain,112);b(s.chromaIOffset,18);b(s.chromaQOffset,-12);b(s.bloom,18);break;
+    case 70: // Worn Cassette
+        b(s.composite,82);b(s.tapeDetail,48);b(s.tapeWear,86);b(s.tapeSurface,82);b(s.tapeDropouts,64);b(s.tapeScratches,72);b(s.tapeCreases,58);b(s.tapeNoise,70);b(s.trackingAmount,42);break;
+    case 71: // Handheld Cinema
+        b(s.composite,48);b(s.tapeDetail,70);b(s.chromaSubsample,34);b(s.chromaShift,5);b(s.geometry,18);b(s.flicker,16);b(s.gradeSaturation,112);b(s.osdAmount,48);break;
+    case 72: // Tape Monochrome
+        b(s.gradeSaturation,0);b(s.chromaLoss,100);b(s.tapeDetail,82);b(s.lumaNoise,18);b(s.tapeNoise,22);b(s.scanlines,28);break;
     default:break;
     }
     if(s.vhsStyle<26){bi(s.vhs43Frame,0.0f);b(s.roundedOverscan,0.0f);b(s.lensDistortion,0.0f);b(s.digitalZoom,1.0f);b(s.osdBattery,0.0f);b(s.frameRepeatFrequency,0.0f);b(s.frameRepeatStrength,0.0f);}
@@ -510,7 +586,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_COLOR("REC Lamp Color",255,46,46,ID_OSD_REC_COLOR);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Style & Camera Profiles",ID_VHS_STYLE_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",38,1,kVhsStyleChoices,ID_VHS_STYLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",72,1,kVhsStyleChoices,ID_VHS_STYLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Style Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS_STYLE_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile",12,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
