@@ -5,11 +5,11 @@
 - Windows 11 x64.
 - Visual Studio 2022 with the Desktop development with C++ workload (MSVC v143 and Windows SDK).
 - CMake 3.20 or newer.
-- Adobe After Effects SDK compatible with the intended AE 2023 / 23.2.1 host. The SDK must contain `Headers/AE_Effect.h` and the Adobe `PiPLtool.exe` executable somewhere inside the SDK tree (the CMake configuration searches recursively).
+- Adobe After Effects SDK compatible with the intended AE 2023 / 23.2.1 host. The SDK must contain the core AE headers, `Util/Param_Utils.h`, and Adobe `PiPLtool.exe`. The discovery script and CMake support the standard `Headers/`, `Examples/Headers/`, and nested extraction layouts.
 
 ## Configure the SDK path
 
-Set `AE_SDK_ROOT` to the extracted SDK root (not its Headers subfolder):
+Set `AE_SDK_ROOT` (or `AE_SDK_PATH`) to the extracted SDK root (not its Headers subfolder). The build script calls `tools/find_ae_sdk.ps1` to validate the headers and PiPL tool before configuring CMake:
 
 ```powershell
 $env:AE_SDK_ROOT = "C:\SDKs\AfterEffectsSDK"
