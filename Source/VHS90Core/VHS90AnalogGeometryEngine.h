@@ -11,9 +11,11 @@ struct AnalogGeometryParams {
     float interlaceAmount=0.0f;
     float verticalRoll=0.0f;
     float edgeWaveAmplitudePixels=0.0f;
+    float edgeWaveFrequency=0.05f;
+    float edgeWaveSpeed=4.0f;
+    int edgeWaveDetail=2;
     float horizontalScale=1.0f;
     float verticalScale=1.0f;
-    int edgeWaveEpochFrames=4;
     std::uint32_t seed=1;
     std::int64_t frame=0;
 };

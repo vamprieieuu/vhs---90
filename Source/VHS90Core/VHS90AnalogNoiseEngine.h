@@ -6,6 +6,7 @@ struct AnalogNoiseParams {
     float chromaAmount=0.0f;
     float compositeAmount=0.0f;
     float chromaLoss=0.0f;
+    float chromaPhaseNoise=0.0f;
     float hueBiasDegrees=0.0f;
     float tapeLineAmount=0.0f;
     float tapeLineSpeed=1.0f;

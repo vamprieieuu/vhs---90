@@ -21,4 +21,8 @@ int main(){using namespace vhs90;constexpr int w=48,h=24;std::vector<float>s(w*h
     AnalogNoiseParams loss;loss.chromaLoss=5000;loss.seed=91;loss.frame=4;
     std::vector<float> lossA(s.size()),lossB(s.size());ImageView lossAView{lossA.data(),w,h,w*4},lossBView{lossB.data(),w,h,w*4};
     assert(processAnalogNoise(si,lossAView,loss));assert(processAnalogNoise(si,lossBView,loss));assert(lossA==lossB&&lossA!=s);
+ AnalogNoiseParams phase;phase.chromaPhaseNoise=0.45f;phase.seed=33;phase.frame=8;
+ std::vector<float> phaseA(s.size()),phaseB(s.size()),phaseOff(s.size());ImageView pa{phaseA.data(),w,h,w*4},pb{phaseB.data(),w,h,w*4},po{phaseOff.data(),w,h,w*4};
+ assert(processAnalogNoise(si,pa,phase));assert(processAnalogNoise(si,pb,phase));assert(phaseA==phaseB&&phaseA!=s);
+ phase.chromaPhaseNoise=0.0f;assert(processAnalogNoise(si,po,phase));assert(phaseOff==s);
  return 0;}

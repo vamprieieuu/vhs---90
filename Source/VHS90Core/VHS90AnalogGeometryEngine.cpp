@@ -18,35 +18,46 @@ inline float sampleChannel(ConstImageView s,float x,float y,int ch) noexcept {
  const float ab=a+(b-a)*fx,cd=c+(d-c)*fx;return ab+(cd-ab)*fy;
 }
 inline float clamp01(float x) noexcept {return std::clamp(x,0.0f,1.0f);}
+inline float fade5(float t) noexcept {return t*t*t*(t*(t*6.0f-15.0f)+10.0f);}
+inline float gradient2D(float x,float y,std::uint32_t seed) noexcept {
+ const int ix=int(std::floor(x)),iy=int(std::floor(y));const float fx=x-float(ix),fy=y-float(iy);
+ const float u=fade5(fx),v=fade5(fy);
+ auto dot=[&](int dx,int dy) noexcept {
+  const std::uint32_t h=hash32(std::uint32_t(ix+dx)*0x9e3779b9u^std::uint32_t(iy+dy)*0x85ebca6bu^seed);
+  constexpr float g[8][2]={{1,0},{-1,0},{0,1},{0,-1},{.70710678f,.70710678f},{-.70710678f,.70710678f},{.70710678f,-.70710678f},{-.70710678f,-.70710678f}};
+  const auto& v=g[h&7u];return v[0]*(fx-float(dx))+v[1]*(fy-float(dy));
+ };
+ const float a=dot(0,0)+(dot(1,0)-dot(0,0))*u;
+ const float b=dot(0,1)+(dot(1,1)-dot(0,1))*u;
+ return (a+(b-a)*v)*1.41421356f;
+}
+inline float fbm2D(float x,float y,std::uint32_t seed,int detail) noexcept {
+ float sum=0.0f,weight=1.0f,total=0.0f,frequency=1.0f;
+ const int octaves=std::clamp(detail,1,5);
+ for(int octave=0;octave<octaves;++octave){
+  sum+=gradient2D(x*frequency,y*frequency,seed+std::uint32_t(octave)*0x9e3779b9u)*weight;
+  total+=weight;frequency*=2.0f;weight*=0.70710678f;
+ }
+ return total>0.0f?sum/total:0.0f;
+}
 }
 bool processAnalogGeometry(ConstImageView src,ImageView dst,const AnalogGeometryParams&p) noexcept {
  if(!valid(src,dst)||!std::isfinite(p.lineJitterPixels)||!std::isfinite(p.lineJitterCorrelationRows)||
     !std::isfinite(p.topSkewPixels)||!std::isfinite(p.topSkewDecayRows)||
-    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower)||!std::isfinite(p.interlaceAmount)||!std::isfinite(p.verticalRoll)||!std::isfinite(p.edgeWaveAmplitudePixels)||!std::isfinite(p.horizontalScale)||!std::isfinite(p.verticalScale)||p.horizontalScale<=0.0f||p.verticalScale<=0.0f||p.edgeWaveEpochFrames<1)return false;
+    !std::isfinite(p.edgePincushionPixels)||!std::isfinite(p.edgePincushionPower)||!std::isfinite(p.interlaceAmount)||!std::isfinite(p.verticalRoll)||!std::isfinite(p.edgeWaveAmplitudePixels)||!std::isfinite(p.edgeWaveFrequency)||!std::isfinite(p.edgeWaveSpeed)||!std::isfinite(p.horizontalScale)||!std::isfinite(p.verticalScale)||p.horizontalScale<=0.0f||p.verticalScale<=0.0f||p.edgeWaveFrequency<0.0f)return false;
  if(p.lineJitterPixels==0.0f&&p.topSkewPixels==0.0f&&p.edgePincushionPixels==0.0f&&p.interlaceAmount==0.0f&&p.verticalRoll==0.0f&&p.edgeWaveAmplitudePixels==0.0f) {
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
  const float rollOffset=std::sin(float(p.frame)*0.23f+float(p.seed)*0.00017f)*clamp01(p.verticalRoll)*float(src.height)*0.045f;
  std::vector<float> edgeWave;
  if(p.edgeWaveAmplitudePixels>0.0f) {
-  auto profile=[&](int epoch) {
-   std::vector<float> result(std::size_t(src.height));float pole=std::pow(.92f,1.0f/p.verticalScale);
-   float gain=.08f*std::sqrt(std::max(1.0e-8f,(1.0f-pole*pole)/(1.0f-.92f*.92f)));
-   float state=0.0f;
-   for(int row=0;row<src.height;++row) {
-    const std::uint32_t es=p.seed^(std::uint32_t(epoch)*0x9E3779B9u);
-    float normal=0.0f;
-    for(std::uint32_t k=0;k<6;++k)normal+=hash01(std::uint32_t(row),k,es,0)-.5f;
-    state=gain*(normal*3.4641016f*p.edgeWaveAmplitudePixels*.62f*p.horizontalScale)+pole*state;
-    result[std::size_t(row)]=state;
-   }
-   return result;
-  };
-  const int epoch=int(p.frame/p.edgeWaveEpochFrames);
-  const float mix=float(p.frame%p.edgeWaveEpochFrames)/float(p.edgeWaveEpochFrames);
-  const auto current=profile(epoch),upcoming=profile(epoch+1);
   edgeWave.resize(std::size_t(src.height));
-  for(int row=0;row<src.height;++row)edgeWave[std::size_t(row)]=std::round(current[std::size_t(row)]*(1.0f-mix)+upcoming[std::size_t(row)]*mix);
+  const float offset=float(hash01(0u,0u,p.seed^0x6A09E667u,0))*float(src.height);
+  const float time=float(p.frame)*p.edgeWaveSpeed;
+  for(int row=0;row<src.height;++row) {
+   const float n=fbm2D((float(row)+offset)*p.edgeWaveFrequency,time,p.seed^0xBB67AE85u,p.edgeWaveDetail);
+   edgeWave[std::size_t(row)]=n*p.edgeWaveAmplitudePixels;
+  }
  }
  for(int y=0;y<src.height;++y) {
   const float yn=src.height>1?(2.0f*float(y)/float(src.height-1)-1.0f):0.0f;
