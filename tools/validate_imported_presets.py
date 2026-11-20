@@ -240,6 +240,8 @@ assert lost_signal_cases.issubset(style_cases), f"Missing Lost Signal VHS v1.9 p
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
 assert style_choices and len(style_choices.group(1).split("|")) == 38, "VHS Style popup must expose all 38 entries"
 assert camera_cases == set(range(2, 13)), f"Missing VHS6RIFT and FXC6/Gen 7 camera profile cases: {sorted(set(range(2,13))-camera_cases)}"
+camera_choices = re.search(r'kCameraProfileChoices\[\]\s*=\s*"([^"]+)"', source)
+assert camera_choices and len(camera_choices.group(1).split("|")) == 12, "Camera Profile popup must expose Off plus 11 reference profiles"
 assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
 
 osd_position = source.find("if(osdEnabled) {")
