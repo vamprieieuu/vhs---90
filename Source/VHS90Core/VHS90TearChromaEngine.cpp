@@ -89,7 +89,8 @@ bool processTearChroma(ConstImageView src,ImageView dst,const TearChromaParams&p
                     rr+=(cr-rr)*spectralAmount;gg+=(cg-gg)*spectralAmount;bb+=(cb-bb)*spectralAmount;
                 }
             }
-            for(std::size_t bi=0;bi<p.bandCount;++bi) {
+            const bool bandsEnabled=p.mode!=TearChromaMode::SpectralSmear;
+            for(std::size_t bi=0;bandsEnabled&&bi<p.bandCount;++bi) {
                 const TearBand& band=p.bands[bi];if(!band.enabled||band.intensity<=0.0f)continue;
                 const float cy=band.centerY+band.motionYPerSecond*t;
                 const float cx=band.centerX+band.motionXPerSecond*t;
