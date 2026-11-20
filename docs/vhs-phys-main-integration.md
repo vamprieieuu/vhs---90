@@ -33,7 +33,7 @@ Added:
 - `Tests/VHS90PhysicalInterferenceEngineSmoke.cpp`
 - CMake core source and smoke-test registration.
 
-The new module exposes SI-derived dipole field estimation, nonlinear magnetic head-core signal loss, a distributed switching-field estimate for tape erasure, mains/ground-loop hum, and RF pickup. It is deterministic by seed/frame, alpha-preserving, validates parameters, and defaults to a bit-exact pass-through. It is a new core module; UI parameter exposure and render-chain hookup remain pending and are not claimed complete in this audit.
+The new module exposes SI-derived dipole field estimation, nonlinear magnetic head-core signal loss, a distributed switching-field estimate for tape erasure, mains/ground-loop hum, and RF pickup. It is deterministic by seed/frame, alpha-preserving, validates parameters, and defaults to a bit-exact pass-through. It is registered in CMake, has a dedicated smoke test, and is exposed as an optional stage inside `CompositeParams` / `processCompositeRoundTrip`. The After Effects panel does not yet expose dedicated controls for the physical source parameters; UI wiring remains pending and is not claimed complete in this audit.
 
 ## Source inspection status
 
@@ -41,4 +41,4 @@ The archive tree and all 202 paths were inventoried. Primary architecture, physi
 
 ## Validation
 
-Core build and smoke test are to be run by GitHub Actions after this commit. Do not treat the module as AE-UI complete until controls are added to the parameter model and invoked in the actual render chain. The source's PolyForm Noncommercial license must be respected for any redistribution.
+The standalone engine smoke test completed successfully in GitHub Actions run 621. The subsequent CMake registration and composite-pipeline wiring are being validated by run 624; record that run's final result before closing the folder. Do not treat the module as AE-UI complete until controls are added to the parameter model and invoked in the actual render chain. The source's PolyForm Noncommercial license must be respected for any redistribution.
