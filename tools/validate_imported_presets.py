@@ -61,6 +61,7 @@ required_reads = [
     "READ_FLOAT(PARAM_EDGE_WAVE_FREQUENCY,edgeWaveFrequency)",
     "READ_FLOAT(PARAM_EDGE_WAVE_SPEED,edgeWaveSpeed)",
     "READ_FLOAT(PARAM_EDGE_WAVE_DETAIL,edgeWaveDetail)",
+    "READ_FLOAT(PARAM_CHROMA_EDGE_ENHANCE,chromaEdgeEnhance)",
 ]
 for needle in required_reads:
     assert needle in source, f"Missing SmartFX parameter read: {needle}"
@@ -80,6 +81,7 @@ for needle in [
     "s.signalHueNoise>0",
     "processDeviceConnections(in,out,dp)",
     "p.geometry.edgeWaveFrequency=s.edgeWaveFrequency",
+    "p.imageGrade.chromaEdgeEnhancement=clamp01(s.chromaEdgeEnhance/100.0f);",
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
 
@@ -96,4 +98,4 @@ assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {s
 
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: 16 VHS6RIFT style presets + 5 VHS Effect Add-on presets, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
-print("PASS: VHS6RIFT procedural grain/luma/chroma controls, Signal device-connection overlay, and NTSC-RS engine controls are wired.")
+print("PASS: VHS6RIFT procedural grain/luma/chroma controls, Add-on preset wiring, NTSC-RS controls, and independent VHS chroma sharpening are wired.")
