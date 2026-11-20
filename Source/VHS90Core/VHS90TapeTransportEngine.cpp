@@ -75,7 +75,7 @@ std::vector<float> physicalStickySlipProfile(const TapeTransportParams& p,int wi
  std::vector<float> profile(static_cast<std::size_t>(height),0.0f);
  const double sticky=std::clamp(double(p.controlTrackTape.debrisAmount),0.0,1.0);
  const double mold=std::clamp(double(p.controlTrackTape.moldAmount),0.0,1.0);
- if(sticky<=0.0&&mold<=0.0)return profile;
+ if(sticky<=0.0&&mold<=0.0&&p.backTension==0.0f)return profile;
  const std::int64_t frame=std::max<std::int64_t>(0,p.frame);
  const std::int64_t firstField=std::max<std::int64_t>(0,frame*2-8),lastField=frame*2+1;
  const int activePerField=std::max(1,(height+1)/2);
@@ -142,7 +142,7 @@ bool processTapeTransportWarp(ConstImageView src,ImageView dst,const TapeTranspo
   const int w=src.width,h=src.height;std::vector<float>copy(size_t(w)*h*4);for(int y=0;y<h;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,w*4,copy.data()+size_t(y)*w*4);
   const float fps=std::max(p.framesPerSecond,1.0f),time=float(p.frame)/fps,controlServo=controlTrackServoOffset(p);
   const int epochFrames=4,epoch=int(p.frame/epochFrames);const float epochMix=float(p.frame%epochFrames)/float(epochFrames);
-  std::vector<float>servo,servoNext,stickySlip;if(p.controlTrackTape.debrisAmount>0.0f||p.controlTrackTape.moldAmount>0.0f)stickySlip=physicalStickySlipProfile(p,w,h);if(p.servoJitterPixels>0){servo=slowProfile(p.seed^0x51A7u,epoch,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);servoNext=slowProfile(p.seed^0x51A7u,epoch+1,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);}
+  std::vector<float>servo,servoNext,stickySlip;if(p.controlTrackTape.debrisAmount>0.0f||p.controlTrackTape.moldAmount>0.0f||p.backTension!=0.0f)stickySlip=physicalStickySlipProfile(p,w,h);if(p.servoJitterPixels>0){servo=slowProfile(p.seed^0x51A7u,epoch,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);servoNext=slowProfile(p.seed^0x51A7u,epoch+1,h,p.servoJitterPixels*.55f,.055f,.945f,p.verticalScale);}
   for(int y=0;y<h;++y){const float line=float(y)/float(std::max(1,h-1)),drum=std::sin(2*kPi*(time*p.fieldRateHz+line*.035f))*p.drumFlutterPixels,flutter=std::sin(2*kPi*(time*p.flutterHz+line*.17f))*p.flutterPixels,stick=randomSigned(p.seed,p.frame,y/3,1)*p.stickSlipPixels,jitter=randomSigned(p.seed,p.frame,y,2)*p.lineJitterPixels,tracking=p.trackingOffsetPixels+p.trackingSlopePixels*(line-.5f),drift=time*p.slowDriftPixelsPerSecond,servoShift=servo.empty()?0.0f:servo[std::size_t(y)]*(1-epochMix)+servoNext[std::size_t(y)]*epochMix,materialSlip=stickySlip.empty()?0.0f:stickySlip[std::size_t(y)],shift=drum+flutter+stick+jitter+tracking+drift+servoShift+controlServo+materialSlip;
    float*row=dst.rgba+y*dst.rowStrideFloats;for(int x=0;x<w;++x){float q[4];sample(copy,w,h,float(x)-shift,float(y),q);row[x*4]=q[0];row[x*4+1]=q[1];row[x*4+2]=q[2];row[x*4+3]=q[3];}}
   return true;
