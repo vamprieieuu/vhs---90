@@ -14,7 +14,7 @@ class HandleSuiteScope {
 public:
     explicit HandleSuiteScope(PF_InData* in) noexcept : basic_(in ? in->pica_basicP : nullptr) {
         if (basic_ && basic_->AcquireSuite(kPFHandleSuite, kPFHandleSuiteVersion1,
-            reinterpret_cast<const void**>(&suite_)) == kSPError_NoError) acquired_ = true;
+            reinterpret_cast<const void**>(&suite_)) == kSPNoError) acquired_ = true;
         else suite_ = nullptr;
     }
     ~HandleSuiteScope() { if (acquired_ && basic_) basic_->ReleaseSuite(kPFHandleSuite,kPFHandleSuiteVersion1); }
