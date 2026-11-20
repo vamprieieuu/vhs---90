@@ -74,21 +74,35 @@ Latest verified source-pipeline fix: `eb8969184c2d80638cfcb1165dd1984ca02015c2` 
 Do not call VHS-90 test-ready until the Windows build and in-host validation gates pass.
 
 
-## NTSCRT integration update — 2026-11-20
+## NTSCRT integration update — 2026-11-20 (current)
 
-- Verified the upstream NTSCRT Git tree is complete (359 file blobs, 59 directory entries, not truncated); parsed all 45 preset JSON files.
-- Added a source-matched three-track overlap/azimuth-loss adaptation to `VHS90TrackReadEngine`.
-- Added deterministic render-local control-track PI servo replay to `VHS90TapeTransportEngine`, wired to the AE Tracking Servo control, including pulse dropout/false pulse handling and search/relock approximation.
-- Upgraded `VHS90HeadConditionEngine` to two alternating head states with deterministic debris pickup/lodging/clean-off and grease accumulation/decay. This uses proxy tape-shed/film inputs, not the upstream 12-position physical tape sampling.
-- Preserved NTSCRT MIT attribution under `ThirdParty/NTSCRT/`.
-- Latest Linux core CI run 449 passed the C++ core build and CTest 27/27: https://github.com/vamprieieuu/vhs---90/actions/runs/44619561972.
-- NTSCRT is **not complete**: the 359-file content audit and disposition ledger, physical tape map, full VCR RF/FM/color-under signal chain, receiver parity port, source parity/visual tests, Windows/MSVC build and live AE/MFR validation remain open. See `docs/source-audits/45-ntscrt-same-session-port-status.md`.
+### Source audit closure
 
+- Upstream recursive tree: 359 file blobs, 59 directory entries, not truncated.
+- All 359 blobs now have a final content disposition: 314 source/app/test/support/documentation/dependency/license/asset rows are content-reviewed; all 45 preset JSON rows are semantic-reviewed. Zero pending rows remain in the ledger.
+- The 45 presets are classified per look in docs/source-audits/47-ntscrt-preset-semantic-migration.md. The audit distinguishes active stages from serialized disabled-stage defaults, whole-state NTSC/shader keyframes, digital-only looks and five Screen Loop looks.
+- The audit closure means every upstream file was inspected and dispositioned. It does not mean every upstream subsystem has been ported.
 
-## NTSCRT continuation — 2026-11-20
+### NTSCRT-derived code currently in VHS-90
 
-- Ported the NTSCRT physical tape coordinate sampler into `VHS90TapeSurfaceEngine`: tape geometry, active-line/VBI mapping, SP/LP/EP field advance, four-point head-width sampling, source-derived wear/dropout/scratch/edge/crease curves and tape-seed transform. The sampler includes pinholes, flakes/shed, scratches, creases, edge lift, mold and Vaseline film; deck/control-head sampling uses source-compatible detail-off/flake-on mode.
-- Enabled optional physical tape sampling in the two-head deck recurrence (12 points per field) and physical control-track pulse detection from the AE parameter adapter. Full source deck history/snapshot parity and Windows/AE execution remain open.
-- Corrected three-track read to use absolute source overlap shares, source azimuth attenuation at FM/color-under frequencies, and VBI-scaled adjacent-track line offsets.
-- Added `VHS90VcrSignalEngine` coefficient helpers for NTSCRT's 28.636 MHz signal path, 64×81 spacing bank, 95-tap analytic FM bandpass and supporting biquad/shelf/trap filters. The full nine-stage VCR record/playback pipeline is not yet ported.
-- Hosted Linux core CI run [520](https://github.com/vamprieieuu/vhs---90/actions/runs/44623626784) passed 28/28 tests. Windows/MSVC, AE SDK, PiPL, AEX loading, live AE and MFR are not validated.
+- VHS90TrackReadEngine: three-track absolute overlap shares, source track selection and separate FM/color-under azimuth attenuation.
+- VHS90TapeTransportEngine: deterministic render-local control-track PI replay, physical control-head tape sampling and pulse dropout/false-pulse approximations. It is not the full line-domain capstan/guide/stick-slip model.
+- VHS90TapeSurfaceEngine: physical tape sampler with NTSCRT millimetre coordinates, helical track/active-line/VBI mapping, SP/LP/EP advance, four-point head-width sampling, source deterministic hash/value noise, remanence, pinholes, flakes/shed, scratches, creases, edge lift, mold and Vaseline. The source track origin is exactly 1.0 mm; a prior 1.52 mm assumption was corrected. Source wear/dropout/scratch/edge curves, crease top-end and tape-seed transform are exposed.
+- VHS90HeadConditionEngine: two-head recurrence with 12 physical tape samples per active field, detail-off/flake-on sampling, debris pickup/lodging/shedding/clean-off and grease transfer/decay. The upstream rolling 12-field snapshot/history behavior is not yet reproduced.
+- VHS90VcrSignalEngine: coefficient/helper layer for the 28.636 MHz / 1820 samples-per-line RF path, spacing bank, analytic FM bandpass and supporting filters. It is not yet a complete record/playback signal pipeline.
+
+### Remaining implementation gaps
+
+1. Finish source-exact TapePosition/field-history parity and independent AE controls for each physical tape condition, including user-selectable tape seed and sticky-binder/transport stick-slip coupling.
+2. Port and integrate all nine RF/FM/color-under stages (record, tape, magnetization, playback, FM band, line, comb, ACC and output) so the coefficient helpers are actually consumed by a sample-domain render path.
+3. Complete receiver parity: line/field sync, AFC/VCO, vertical integrator, burst phase, chroma PLL, ACC/color killer and deterministic history/resimulation. Current sync/composite effects are not a complete source receiver port.
+4. Convert the selected analog NTSCRT presets into native VHS-90/AE parameter presets and convert timeline snapshot keys/easing into host keyframes. Digital-only and Screen Loop presets are intentionally excluded from the analog tape engine.
+5. Perform deterministic source-vs-C++ sample/frame parity and visual comparisons.
+6. Compile with Windows/MSVC and the exact AE SDK, validate PiPL, AEX loading, SmartFX, MFR and live AE rendering. No successful Windows/AE-host validation is claimed.
+
+### CI and host boundary
+
+- The previous Linux core workflow passed run 561 after the tape geometry helper was added. A later correction changed the track origin to the upstream 1.0 mm value; runs 567/568 exposed a stale/incorrect test expectation, which was corrected in commit 7c07cfe. The follow-up workflow is run 572: https://github.com/vamprieieuu/vhs---90/actions/runs/44779518318. Do not mark this correction verified until that run reports success.
+- Linux core CI only validates host-independent C++ modules and smoke tests. It does not compile the AE adapter or establish Windows/MSVC, PiPL, AEX loading, After Effects rendering or MFR success.
+- NTSCRT MIT attribution remains under ThirdParty/NTSCRT. Per-component upstream shader/runtime licenses were reviewed; GPL shader source is excluded from reuse by default.
+
