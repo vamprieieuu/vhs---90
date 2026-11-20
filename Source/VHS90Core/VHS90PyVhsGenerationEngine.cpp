@@ -109,15 +109,21 @@ bool processPyVhsGeneration(ConstImageView src, ImageView dst,
             for (int x = 0; x < w; ++x) {
                 const std::size_t i = std::size_t(y)*w+x;
                 yy[i] = std::clamp(yy[i] + (mean + sigma * noiseGaussian(x,y,p.seed,p.frame))*inv255, 0.0f, 1.0f);
-                cr[i] += noiseGaussian(x,y,p.seed ^ 0x43524E4Fu,p.frame) * cnoise * inv255;
-                cb[i] += noiseGaussian(x,y,p.seed ^ 0x43424E4Fu,p.frame) * cnoise * inv255;
+                cr[i] += (hash01(std::uint32_t(x),std::uint32_t(y),p.seed ^ 0x43524E4Fu,p.frame)*2.0f-1.0f) * cnoise * inv255;
+                cb[i] += (hash01(std::uint32_t(x),std::uint32_t(y),p.seed ^ 0x43424E4Fu,p.frame)*2.0f-1.0f) * cnoise * inv255;
             }
             if (wave > 0.0f) {
+                std::vector<float> rowCr(std::size_t(w)), rowCb(std::size_t(w));
+                const std::size_t rowBase = std::size_t(y)*w;
+                std::copy_n(cr.data()+rowBase,w,rowCr.data());
+                std::copy_n(cb.data()+rowBase,w,rowCb.data());
                 for (int x = 0; x < w; ++x) {
                     const float sx = float(x) + rowWave;
-                    const std::size_t i = std::size_t(y)*w+x;
-                    cr[i] = sampleRow(cr,w,y,sx);
-                    cb[i] = sampleRow(cb,w,y,sx);
+                    const int x0 = int(std::floor(sx));
+                    const float t = sx - float(x0);
+                    const int a = std::clamp(x0,0,w-1), b = std::clamp(x0+1,0,w-1);
+                    cr[rowBase+x] = rowCr[std::size_t(a)]*(1.0f-t)+rowCr[std::size_t(b)]*t;
+                    cb[rowBase+x] = rowCb[std::size_t(a)]*(1.0f-t)+rowCb[std::size_t(b)]*t;
                 }
             }
         }
