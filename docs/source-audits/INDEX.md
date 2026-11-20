@@ -59,3 +59,6 @@ These reports are based on the supplied vhs.zip archive and the linked VHS-90 re
 
 See docs/PROJECT_STATUS.md for the current build/integration boundary. The repository contains an initial AE host adapter and optional AEX build target. Windows/MSVC compilation and AE runtime validation remain pending; do not describe it as a test-ready AEX.
 - 52-ntscqt-1.5.0-expanded-audit.md — expanded 28-entry/23-file ntscQT 1.5.0 audit, signal-stage mapping, Apache-2.0 record and explicit pre-emphasis/spectral-ringing parity gaps.
+
+- `vhs-phys-main-integration.md` — full 202-file physical tape/deck model audit and native physical-interference integration; dedicated smoke test and six AE controls.
+- 53-vaporwave-master-native-color-audit.md — 11-file Vaporwave image-stylizer audit and five new independent YIQ chroma gain/offset/quantization controls; CI 32/32 passed.
