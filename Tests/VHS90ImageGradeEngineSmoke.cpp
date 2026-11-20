@@ -12,6 +12,10 @@ int main(){using namespace vhs90;constexpr int w=64,h=32;std::vector<float>s(w*h
  assert(processImageGrade(si,zi,chromaOnly));assert(z!=s);
  chromaOnly.chromaSharpenCutoffHz=560000.0f;assert(processImageGrade(si,slowi,chromaOnly));assert(slow!=z);
  
+ ImageGradeParams color;std::vector<float> colorA(s.size()),colorB(s.size());ImageView colorAi{colorA.data(),w,h,w*4},colorBi{colorB.data(),w,h,w*4};
+ color.chromaIGain=1.8f;color.chromaQGain=.45f;color.chromaIOffset=.08f;color.chromaQOffset=-.06f;color.chromaQuantization=.025f;
+ assert(processImageGrade(si,colorAi,color));assert(processImageGrade(si,colorBi,color));assert(colorA==colorB&&colorA!=s);
+ color.chromaQuantization=0.0f;assert(processImageGrade(si,colorBi,color));assert(colorA!=colorB);
  ImageGradeParams off;assert(processImageGrade(si,zi,off));assert(z==s);
  std::vector<float>semi=s,out(s.size());for(size_t i=0;i<semi.size();i+=4){semi[i]*=.4f;semi[i+1]*=.4f;semi[i+2]*=.4f;semi[i+3]=.4f;}
  ConstImageView pi{semi.data(),w,h,w*4};ImageView po{out.data(),w,h,w*4};assert(processImageGrade(pi,po,p));
