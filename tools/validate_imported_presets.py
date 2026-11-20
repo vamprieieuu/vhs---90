@@ -67,8 +67,8 @@ camera_cases = set(map(int, re.findall(r"case (\d+):", source[source.find("stati
 ntsc_cases = set(map(int, re.findall(r"case (\d+):", source[source.find("static void ApplyNtscRsVhsLook"):source.find("static void ApplyVhsSourcePresets")])))
 assert style_cases == set(range(2, 18)), f"Missing VHS6RIFT style preset cases: {sorted(set(range(2,18))-style_cases)}"
 assert camera_cases == set(range(2, 11)), f"Missing VHS6RIFT camera profile cases: {sorted(set(range(2,11))-camera_cases)}"
-assert ntsc_cases == set(range(2, 11)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
+assert ntsc_cases == set(range(2, 12)), f"Missing NTSC-RS-derived look cases: {sorted(set(range(2,11))-ntsc_cases)}"
 
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
-print("PASS: 16 VHS6RIFT style presets, 9 camera profiles, 9 NTSC-RS-derived VHS looks.")
+print("PASS: 16 VHS6RIFT style presets, 9 camera profiles, 10 NTSC-RS-derived VHS looks.")
 print("PASS: SmartFX/legacy parameter reads and NTSC-RS engine controls are wired.")

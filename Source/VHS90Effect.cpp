@@ -151,15 +151,16 @@ static void ApplyNtscRsVhsLook(RenderSettings& s) noexcept {
     auto b=[&](float& v,float target){v=blendPreset(v,target,s.ntscRsIntensity);};
     auto bi=[&](A_long& v,float target){v=static_cast<A_long>(std::lround(blendPreset(float(v),target,s.ntscRsIntensity)));};
     switch(s.ntscRsLook) {
-    case 2: b(s.composite,32);bi(s.tapeSpeed,1);b(s.tapeDetail,88);b(s.chromaSubsample,22);b(s.verticalChroma,18);b(s.lumaSmear,18);b(s.ringing,12);b(s.edgeWave,30);b(s.headAmount,6);b(s.trackingAmount,18);b(s.lumaNoise,2);b(s.chromaNoise,10);b(s.colorPhaseDrift,8);b(s.ntscRsPhaseNoise,1);break;
-    case 3: b(s.composite,42);bi(s.tapeSpeed,2);b(s.tapeDetail,72);b(s.chromaSubsample,35);b(s.verticalChroma,30);b(s.lumaSmear,25);b(s.edgeWave,42);b(s.headAmount,8);b(s.trackingAmount,22);b(s.chromaNoise,16);break;
-    case 4: b(s.composite,52);bi(s.tapeSpeed,3);b(s.tapeDetail,58);b(s.chromaSubsample,48);b(s.verticalChroma,42);b(s.lumaSmear,34);b(s.edgeWave,55);b(s.headAmount,10);b(s.trackingAmount,28);b(s.chromaNoise,22);break;
-    case 5: b(s.trackingAmount,55);b(s.trackingHeight,16);b(s.trackingWidth,100);b(s.trackingServo,60);b(s.staticAmount,30);b(s.staticDensity,55);b(s.lumaNoise,20);b(s.headAmount,12);break;
-    case 6: b(s.chromaLoss,1600);b(s.chromaNoise,38);b(s.colorPhaseDrift,28);b(s.chromaFlutter,25);b(s.verticalChroma,42);break;
-    case 7: b(s.edgeWave,78);b(s.geometry,22);b(s.trackingAmount,12);b(s.trackingMotionY,22);b(s.edgeWaveFrequency,0.05f);b(s.edgeWaveSpeed,4.0f);b(s.edgeWaveDetail,4.0f);break;
-    case 8: b(s.interlace,65);b(s.verticalChroma,55);b(s.geometry,10);b(s.temporalGhost,15);break;
-    case 9: b(s.composite,68);b(s.lumaSmear,48);b(s.ringing,22);b(s.chromaSubsample,25);b(s.verticalChroma,22);break;
-    case 10: b(s.colorPhaseDrift,42);b(s.chromaFlutter,38);b(s.colorDrift,36);b(s.chromaDelay,7);b(s.chromaNoise,18);b(s.ntscRsPhaseNoise,35);break;
+    case 2: b(s.composite,28);b(s.tapeDetail,94);b(s.chromaSubsample,16);b(s.verticalChroma,14);b(s.lumaSmear,12);b(s.ringing,10);b(s.edgeWave,18);b(s.lumaNoise,1);b(s.chromaNoise,6);b(s.ntscRsPhaseNoise,0.5f);break;
+    case 3: b(s.composite,32);bi(s.tapeSpeed,1);b(s.tapeDetail,88);b(s.chromaSubsample,22);b(s.verticalChroma,18);b(s.lumaSmear,18);b(s.ringing,12);b(s.edgeWave,30);b(s.headAmount,6);b(s.trackingAmount,18);b(s.lumaNoise,2);b(s.chromaNoise,10);b(s.colorPhaseDrift,8);b(s.ntscRsPhaseNoise,1);break;
+    case 4: b(s.composite,42);bi(s.tapeSpeed,2);b(s.tapeDetail,72);b(s.chromaSubsample,35);b(s.verticalChroma,30);b(s.lumaSmear,25);b(s.edgeWave,42);b(s.headAmount,8);b(s.trackingAmount,22);b(s.chromaNoise,16);break;
+    case 5: b(s.composite,52);bi(s.tapeSpeed,3);b(s.tapeDetail,58);b(s.chromaSubsample,48);b(s.verticalChroma,42);b(s.lumaSmear,34);b(s.edgeWave,55);b(s.headAmount,10);b(s.trackingAmount,28);b(s.chromaNoise,22);break;
+    case 6: b(s.trackingAmount,55);b(s.trackingHeight,16);b(s.trackingWidth,100);b(s.trackingServo,60);b(s.staticAmount,30);b(s.staticDensity,55);b(s.lumaNoise,20);b(s.headAmount,12);break;
+    case 7: b(s.chromaLoss,1600);b(s.chromaNoise,38);b(s.colorPhaseDrift,28);b(s.chromaFlutter,25);b(s.verticalChroma,42);break;
+    case 8: b(s.edgeWave,78);b(s.geometry,22);b(s.trackingAmount,12);b(s.trackingMotionY,22);b(s.edgeWaveFrequency,0.05f);b(s.edgeWaveSpeed,4.0f);b(s.edgeWaveDetail,4.0f);break;
+    case 9: b(s.interlace,65);b(s.verticalChroma,55);b(s.geometry,10);b(s.temporalGhost,15);break;
+    case 10: b(s.composite,68);b(s.lumaSmear,48);b(s.ringing,22);b(s.chromaSubsample,25);b(s.verticalChroma,22);break;
+    case 11: b(s.colorPhaseDrift,42);b(s.chromaFlutter,38);b(s.colorDrift,36);b(s.chromaDelay,7);b(s.chromaNoise,18);b(s.ntscRsPhaseNoise,35);break;
     default:break;
     }
 }
