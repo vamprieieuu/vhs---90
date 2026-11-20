@@ -8,7 +8,7 @@ root = Path(__file__).resolve().parents[1]
 source = (root / "Source/VHS90Effect.cpp").read_text(encoding="utf-8")
 
 def enum_values(name):
-    match = re.search(r"enum\\s+" + re.escape(name) + r"\\s*\\{([\\s\\S]*?)\\};", source)
+    match = re.search(r"enum\s+" + re.escape(name) + r"\s*\{([\s\S]*?)\};", source)
     if not match:
         raise AssertionError(f"Missing enum {name}")
     return [item.strip() for item in match.group(1).split(",") if item.strip()]
