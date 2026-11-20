@@ -68,6 +68,18 @@ if ($missingFonts.Count -gt 0) {
     throw "Bundled OFL font files are missing. Supply the original vhs.zip using -VhsArchivePath or place both licensed font files in Resources/Fonts. Missing: $($missingFonts -join ', ')"
 }
 
+$expectedFontHashes = @{
+    "Rooyin_Free_Bold.ttf" = "b74d6379ee2c97049e2e144ac2bda09cc0f30771d8c5697c901fd39fe32b90f1"
+    "Sponge_Arabic_Regular.otf" = "15bed437224230c115ad8349f200211615eba5a7d3ddf007862199cf1ae90c5c"
+}
+foreach ($font in $fontFiles) {
+    $name = Split-Path $font -Leaf
+    $actualHash = (Get-FileHash -Algorithm SHA256 $font).Hash.ToLowerInvariant()
+    if ($actualHash -ne $expectedFontHashes[$name]) {
+        throw "Font checksum mismatch for $name. Use the unmodified original font from vhs.zip."
+    }
+}
+
 $FindSdkScript = Join-Path $PSScriptRoot "tools/find_ae_sdk.ps1"
 $SdkInfo = & $FindSdkScript -CandidatePath $AeSdkRoot -Quiet
 if (-not $SdkInfo -or -not $SdkInfo.IsValid) {
