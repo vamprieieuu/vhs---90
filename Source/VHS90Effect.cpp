@@ -1231,7 +1231,28 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                     }
                 }
                 const auto result=vhs90::win::drawDirectWriteText(osdView,options);
-                return result.rendered?PF_Err_NONE:PF_Err_INTERNAL_STRUCT_DAMAGED;
+                if(!result.rendered) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+                // Do not silently substitute an unrelated family when a selected
+                // font is unavailable. Keep the readable DirectWrite fallback, but
+                // visibly flag the missing family in the rendered OSD.
+                if(!result.requestedFontFound) {
+                    auto warning=options;
+                    warning.utf8Text="FONT?";
+                    warning.utf8FontFamily="Segoe UI";
+                    warning.fontWeight=700;
+                    warning.fontSize=std::max(9.0f,std::min(14.0f,options.fontSize*0.42f));
+                    warning.x=std::max(0.0f,float(w)-54.0f);
+                    warning.y=2.0f;
+                    warning.maxWidth=52.0f;
+                    warning.maxHeight=20.0f;
+                    warning.red=1.0f; warning.green=0.24f; warning.blue=0.08f;
+                    warning.opacity=0.95f;
+                    warning.direction=vhs90::win::TextDirection::LeftToRight;
+                    warning.alignment=vhs90::win::TextAlignment::Trailing;
+                    warning.utf8FontFamily="Segoe UI";
+                    (void)vhs90::win::drawDirectWriteText(osdView,warning);
+                }
+                return PF_Err_NONE;
             };
             const float textSize=7.0f*float(osdCell)*std::clamp(s.osdTextSize/100.0f,0.1f,5.0f);
             if(s.osdShowText) {
