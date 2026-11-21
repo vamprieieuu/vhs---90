@@ -166,7 +166,7 @@ struct RenderSettings {
     float tearChromaAmount=0, spectralSmear=75, spectralHueSpread=70, chromaSaturation=140, spectralCenterY=38, spectralCoverage=72, tearBandStartY=60, tearBandHeight=18, tearDisplacement=18, tearFragmentation=55, tearChromaShift=5, tearSmear=6, tearDropout=12, tearSeed=1;
     float tearBandAmount[4]={70,60,80,55}, tearBandY[4]={75,45,90,30}, tearBandHeightExtra[4]={15,12,8,10}, tearBandShift[4]={30,-24,40,-18}, tearBandFragmentation[4]={60,70,45,65}, tearBandChroma[4]={8,-6,12,-10}, tearBandSmear[4]={8,12,5,10}, tearBandDropout[4]={20,15,25,10};
     float headAmount=0, headY=95, headHeight=8, headShift=24;
-    float headPreset=1,headCenterX=50,headWidth=100,headShape=1,headAngle=0,headMotionX=0,headMotionY=0;
+    float headPreset=2,headCenterX=50,headWidth=100,headShape=1,headAngle=0,headMotionX=0,headMotionY=0;
     float headCondition=0;
     float tapeWear=35, tapeDropouts=12, tapeScratches=12, tapeCreases=8, tapeEdge=18, tapeMold=0, tapeVaseline=0, tapeSticky=5, tapeSeed=1, backTension=0;
     float tapeNoise=0;
@@ -676,7 +676,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_STATIC_TOPIC+100);
     AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Head Switching",ID_HEAD_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_AMOUNT);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Head Switching Preset",3,1,kHeadSwitchPresetChoices,ID_HEAD_PRESET);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Head Switching Preset",3,2,kHeadSwitchPresetChoices,ID_HEAD_PRESET);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_CENTER_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,95,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_WIDTH);
