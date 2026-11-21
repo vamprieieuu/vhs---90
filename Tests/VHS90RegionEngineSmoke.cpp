@@ -185,5 +185,29 @@ int main() {
     assert(processDamageRegions(csi,positiveView,pChroma));
     assert(positiveChroma[mid]<chromaSrc[mid]);
     assert(positiveChroma[mid+2]<chromaSrc[mid+2]);
+    // Tracking bands must travel through the frame and wrap back to their
+    // starting position. Hold frame/seed fixed to isolate spatial motion.
+    DamageRegion moving=top;
+    moving.centerX=.5f; moving.centerY=.5f; moving.width=1.0f; moving.height=.20f;
+    moving.motionYPerSecond=.25f; moving.maxShiftPx=0.0f;
+    moving.waveAmplitudePx=0.0f; moving.servoDriftPx=0.0f;
+    moving.tearProbability=0.0f; moving.dropoutProbability=0.0f;
+    moving.noiseAmount=.8f; moving.noiseDensity=1.0f; moving.chromaShiftPx=0.0f;
+    RegionEngineParams moveP; moveP.regions=&moving; moveP.regionCount=1;
+    moveP.seed=404; moveP.frame=17; moveP.timeSeconds=0.0;
+    std::vector<float> moveStart(src.size()),moveMiddle(src.size()),moveLoop(src.size());
+    ImageView moveStartView{moveStart.data(),w,h,w*4};
+    ImageView moveMiddleView{moveMiddle.data(),w,h,w*4};
+    ImageView moveLoopView{moveLoop.data(),w,h,w*4};
+    assert(processDamageRegions(si,moveStartView,moveP));
+    moveP.timeSeconds=2.0;
+    assert(processDamageRegions(si,moveMiddleView,moveP));
+    assert(moveStart!=moveMiddle);
+    moveP.timeSeconds=4.8; // (1 + region height) / 0.25 seconds
+    assert(processDamageRegions(si,moveLoopView,moveP));
+    float loopError=0.0f;
+    for(size_t i=0;i<moveStart.size();++i) loopError+=std::fabs(moveStart[i]-moveLoop[i]);
+    assert(loopError<1.0e-3f);
+
     return 0;
 }
