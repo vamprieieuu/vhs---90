@@ -28,7 +28,10 @@ enum class TrackingProfile : std::uint8_t {
     VhsMainTracking = 7
 };
 
-enum class HeadSwitchProfile : std::uint8_t { Custom = 0, Vhs6Rift = 1, NtscR = 2 };
+enum class HeadSwitchProfile : std::uint8_t {
+    Custom = 0, Vhs6Rift = 1, NtscR = 2, VhsPro = 3,
+    Crates = 4, VhsCraft = 5, UniverseBad = 6, UniverseVeryBad = 7
+};
 
 // All position and size values are normalized to [0,1] frame coordinates.
 // HorizontalBand uses width for horizontal span and height for thickness.

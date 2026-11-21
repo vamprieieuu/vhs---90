@@ -377,6 +377,42 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                         *(1.0f-transientX/transientLength)*transientIntensity;
                 }
             }
+        } else if(r.headSwitchProfile==HeadSwitchProfile::VhsPro) {
+            // VHSPro reverse-engineered tracking-error family: wide servo
+            // displacement with noisy line-to-line phase and a soft snow edge.
+            const float row=smoothHash2D(0.0f,float(iy)-noiseDriftY*t*cellH,regionSeed+0x5650524fu);
+            shiftX+=r.maxShiftPx*std::pow(headProgress,1.25f)+(row-0.5f)*r.servoDriftPx*1.8f;
+            sourceNoise+=(row-0.5f)*r.noiseAmount*1.4f*headProgress;
+            if(row>1.0f-headProgress*0.45f){sourceSnow=0.35f;sourceSnowValue=row;}
+        } else if(r.headSwitchProfile==HeadSwitchProfile::Crates) {
+            // Crates VHS Master: segmented, multi-scale head-switch ribbon.
+            const float broad=smoothHash2D(0.0f,float(iy)-noiseDriftY*t*cellH,regionSeed+0x43524154u)-0.5f;
+            const float fine=hashCell(cx/2,cy,regionSeed+0x43524649u,static_cast<std::int64_t>(t*24.0f))-0.5f;
+            shiftX+=r.maxShiftPx*headProgress*headProgress+broad*r.servoDriftPx*2.0f+fine*r.waveAmplitudePx;
+            if(fine>0.28f&&headProgress>0.2f){sourceSnow=0.55f;sourceSnowValue=0.5f+fine;}
+        } else if(r.headSwitchProfile==HeadSwitchProfile::VhsCraft) {
+            // VHSCraft: irregular broken line clusters with intermittent horizontal
+            // displacement; the random field is advected, not re-seeded per frame.
+            const float fragment=smoothHash2D(float(cx/3)-noiseDriftX*t,float(cy)-noiseDriftY*t,regionSeed+0x56484352u);
+            const float line=smoothHash2D(0.0f,float(iy)-noiseDriftY*t*cellH,regionSeed+0x5648434cu);
+            shiftX+=r.maxShiftPx*(fragment>0.52f?headProgress:headProgress*0.18f)+(line-0.5f)*r.servoDriftPx;
+            if(fragment>0.72f){sourceNoise+=r.noiseAmount*fragment;sourceSnow=0.2f;sourceSnowValue=fragment;}
+        } else if(r.headSwitchProfile==HeadSwitchProfile::UniverseBad) {
+            // Universe VHS Bad Tracking: broad unstable horizontal band with
+            // correlated chroma/luma disturbance.
+            const float broad=smoothHash2D(0.0f,(float(iy)-noiseDriftY*t*cellH)/3.0f,regionSeed+0x554e4241u)-0.5f;
+            shiftX+=r.maxShiftPx*headProgress+broad*r.servoDriftPx*2.4f;
+            sourceNoise+=broad*r.noiseAmount*headProgress;
+            sourceChromaAttenuation=1.0f-0.35f*headProgress;
+        } else if(r.headSwitchProfile==HeadSwitchProfile::UniverseVeryBad) {
+            // Universe VHS Very Bad Tracking: severe multi-row breakup, wide
+            // displacement and dense snow near the tracking edge.
+            const float coarse=smoothHash2D(0.0f,(float(iy)-noiseDriftY*t*cellH)/5.0f,regionSeed+0x55564244u)-0.5f;
+            const float fine=hashCell(cx/2,cy,regionSeed+0x55564649u,static_cast<std::int64_t>(t*30.0f))-0.5f;
+            shiftX+=r.maxShiftPx*headProgress*1.6f+coarse*r.servoDriftPx*3.0f+fine*r.waveAmplitudePx;
+            sourceNoise+=(coarse+fine)*r.noiseAmount*1.8f*headProgress;
+            if(fine>0.05f&&headProgress>0.1f){sourceSnow=0.75f;sourceSnowValue=0.5f+fine;}
+            sourceChromaAttenuation=1.0f-0.55f*headProgress;
         } else {
             const float tear=hashCell(0,iy/2,regionSeed+0x9e3779b9u,p.frame);
             shiftX+=(tear-0.5f)*r.maxShiftPx*1.75f;

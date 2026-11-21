@@ -116,7 +116,7 @@ constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
 static char kTrackingProfileChoices[]="Servo Sweep|RF Wave|Composite Ribbon|Tape Flutter|Four-Edge Crawl|VHS6RIFT Moving Band|NTSC-R Tracking|VHS Main Tracking";
 static char kTrackingPresetChoices[]="Custom|Fine Sweep|Fragmented Sweep|RF Snowline|Composite Flagging|Tape Flutter|Four-Edge Crawl|Full-Frame Breakdown|VHS6RIFT Moving Band|NTSC-R Tracking Noise|VHS Main Tracking Error|VHSPro Tracking Noise|Crates Tracking Noise|VHSCraft Moving Band|VHSTape Tracking Error|Universal VHS Bad Tracking|Universal VHS Very Bad Tracking|NTSCRT VCR Tracking|VHS-Phys Misalignment";
-static char kHeadSwitchPresetChoices[]="Custom|VHS6RIFT Head Switch|NTSC-R Head Switch";
+static char kHeadSwitchPresetChoices[]="Custom|VHS6RIFT Head Switch|NTSC-R Head Switch|VHSPro Tracking Error|Crates Head Switch|VHSCraft Head Switch|Universe Bad Tracking|Universe Very Bad Tracking";
 static char kParticleModeChoices[]="Dark-Field Speckles|Horizontal Fragments|Colored Speckles|Bottom-Weighted Streaks|Vertical Columns";
 static char kParticleDistributionChoices[]="Uniform|Top Weighted|Bottom Weighted|Center Weighted|Edge Weighted";
 static char kTearChromaModeChoices[]="Spectral Chroma Smear|Localized Headbleed|Chroma Streaks & Interleave|Multi-Band Tear|Spectral + Lower Tear";
@@ -722,7 +722,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SIGNAL_TOPIC+100);
     AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Head Switching",ID_HEAD_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_AMOUNT);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Head Switch Preset",3,2,kHeadSwitchPresetChoices,ID_HEAD_PRESET);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Head Switch Preset",8,2,kHeadSwitchPresetChoices,ID_HEAD_PRESET);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_CENTER_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,95,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_WIDTH);
@@ -1850,18 +1850,23 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.noiseAmount=0.22f; r.noiseDensity=0.62f; r.dropoutProbability=0.12f;
                 r.dropoutAmount=0.35f; r.tearProbability=0.12f; r.tearShiftPx=s.headShift*0.75f;
                 r.seedOffset=0x90A11D3Bu;
-                if(s.headPreset==2) {
-                    r.headSwitchProfile=HeadSwitchProfile::Vhs6Rift;
-                    r.noiseAmount=0.0f; r.noiseDensity=0.0f; r.dropoutProbability=0.0f;
-                    r.dropoutAmount=0.0f; r.tearProbability=0.0f; r.tearShiftPx=0.0f;
-                    r.servoDriftPx=0.0f; r.waveAmplitudePx=0.0f;
-                } else if(s.headPreset==3) {
-                    r.headSwitchProfile=HeadSwitchProfile::NtscR;
-                    r.noiseAmount=0.0f; r.noiseDensity=0.0f; r.dropoutProbability=0.0f;
-                    r.dropoutAmount=0.0f; r.tearProbability=1.0f; r.tearShiftPx=16.0f;
-                    r.servoDriftPx=1.0f; r.waveAmplitudePx=0.0f;
-                } else {
-                    r.headSwitchProfile=HeadSwitchProfile::Custom;
+                switch(s.headPreset) {
+                    case 2:
+                        r.headSwitchProfile=HeadSwitchProfile::Vhs6Rift;
+                        r.noiseAmount=0.0f; r.noiseDensity=0.0f; r.dropoutProbability=0.0f;
+                        r.dropoutAmount=0.0f; r.tearProbability=0.0f; r.tearShiftPx=0.0f;
+                        r.servoDriftPx=0.0f; r.waveAmplitudePx=0.0f; break;
+                    case 3:
+                        r.headSwitchProfile=HeadSwitchProfile::NtscR;
+                        r.noiseAmount=0.0f; r.noiseDensity=0.0f; r.dropoutProbability=0.0f;
+                        r.dropoutAmount=0.0f; r.tearProbability=1.0f; r.tearShiftPx=16.0f;
+                        r.servoDriftPx=1.0f; r.waveAmplitudePx=0.0f; break;
+                    case 4: r.headSwitchProfile=HeadSwitchProfile::VhsPro; break;
+                    case 5: r.headSwitchProfile=HeadSwitchProfile::Crates; break;
+                    case 6: r.headSwitchProfile=HeadSwitchProfile::VhsCraft; break;
+                    case 7: r.headSwitchProfile=HeadSwitchProfile::UniverseBad; break;
+                    case 8: r.headSwitchProfile=HeadSwitchProfile::UniverseVeryBad; break;
+                    default: r.headSwitchProfile=HeadSwitchProfile::Custom; break;
                 }
             }
             RegionEngineParams p; p.regions=regions; p.regionCount=count; p.seed=0x90DA6A6Eu;
