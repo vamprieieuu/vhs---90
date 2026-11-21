@@ -138,7 +138,8 @@ struct RenderSettings {
     A_long trackingLayerProfile[3]={2,3,4}, trackingLayerShape[3]={1,1,1};
     float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5};
     float particleAmount=0, particleDensity=18, particleSize=1.5f, particleLength=7, particleChroma=0, particleSpeed=1, particleSeed=1, particleSourceMix=100, particleBrightness=85, particleContrast=100;
-    A_long tearChromaMode=5, tearBandCount=2;
+    A_long tearChromaMode=5;
+    float tearBandCount=2.0f;
     float tearChromaAmount=0, spectralSmear=75, spectralHueSpread=70, chromaSaturation=140, spectralCenterY=38, spectralCoverage=72, tearBandStartY=60, tearBandHeight=18, tearDisplacement=18, tearFragmentation=55, tearChromaShift=5, tearSmear=6, tearDropout=12, tearSeed=1;
     float tearBandAmount[4]={70,60,80,55}, tearBandY[4]={75,45,90,30}, tearBandHeightExtra[4]={15,12,8,10}, tearBandShift[4]={30,-24,40,-18}, tearBandFragmentation[4]={60,70,45,65}, tearBandChroma[4]={8,-6,12,-10}, tearBandSmear[4]={8,12,5,10}, tearBandDropout[4]={20,15,25,10};
     float headAmount=0, headY=100, headHeight=4, headShift=24;
@@ -500,7 +501,7 @@ static PF_Err GlobalSetup(PF_InData* in_data,PF_OutData* out_data) {
 static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     PF_Err err=PF_Err_NONE;
     PF_ParamDef def;
-    AEFX_CLR_STRUCT(def); PF_ADD_INPUT("Source",PF_LayerDefault_MYSELF,PF_PixelFormat_ARGB32);
+    AEFX_CLR_STRUCT(def); PF_ADD_LAYER("Source",PF_LayerDefault_MYSELF,PARAM_INPUT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
@@ -2000,7 +2001,9 @@ extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in_data,PF_OutData*
 extern "C" DllExport PF_Err PluginDataEntryFunction2(PF_PluginDataPtr inPtr,
     PF_PluginDataCB2 callback,SPBasicSuite* spBasic,const char* hostName,const char* hostVersion) {
     (void)spBasic; (void)hostName; (void)hostVersion;
-    return PF_REGISTER_EFFECT_EXT2(inPtr,callback,"VHS-90","com.vhs90.effect",
+    PF_Err result=PF_Err_NONE;
+    PF_REGISTER_EFFECT_EXT2(inPtr,callback,"VHS-90","com.vhs90.effect",
         "Analog & Tape Effects",AE_RESERVED_INFO,"EffectMain",
         "https://github.com/vamprieieuu/vhs---90");
+    return result;
 }
