@@ -1,0 +1,31 @@
+name: VHS reference frame extraction
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "VHS/Vhs cams/**"
+      - "tools/extract_vhs_reference_frames.py"
+      - ".github/workflows/vhs-reference-frames.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install video decoder
+        run: python -m pip install --disable-pip-version-check imageio imageio-ffmpeg pillow
+      - name: Extract representative source frames
+        run: python tools/extract_vhs_reference_frames.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vhs-reference-frames
+          path: reference-frames/
+          if-no-files-found: error
+          retention-days: 14
