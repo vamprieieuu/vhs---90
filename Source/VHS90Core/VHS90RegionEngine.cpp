@@ -204,7 +204,7 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 const int block=static_cast<int>(x)/64;
                 for(int eventBlock=block-1;eventBlock<=block;++eventBlock) {
                     const float event=hashCell(eventBlock,iy,regionSeed+0x6u,p.frame);
-                    if(event>=snowProbability*64.0f) continue;
+                    if(event>=clamp01(snowProbability*64.0f)) continue;
                     const int start=eventBlock*64+static_cast<int>(hashCell(eventBlock+13,iy,regionSeed+0x8u,p.frame)*64.0f);
                     const float length=8.0f+hashCell(eventBlock+29,iy,regionSeed+0x9u,p.frame)*56.0f;
                     const float offset=x-float(start);
