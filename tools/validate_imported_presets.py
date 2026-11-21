@@ -205,7 +205,7 @@ for needle in [
     "rp.redOffsetPixels=s.redChannelOffset*master/100.0f;",
     "rp.blueOffsetPixels=s.blueChannelOffset*master/100.0f;",
     "processRgbChannelRegistration(in,out,rp)",
-    "r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,4));",
+    "r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,7));",
     "ApplyTrackingRecipe(r,s.trackingPresetBase);",
     "ApplyTrackingRecipe(r,s.trackingLayerPreset[0]);",
     "ApplyTrackingRecipe(r,s.trackingLayerPreset[1]);",

@@ -159,22 +159,22 @@ if "wrapMovingCenter" not in REGION:
 # to preserve saved-project disk IDs and render compatibility.
 visible_topics = re.findall(r'PF_ADD_TOPIC\("([^"]+)"', setup_body)
 expected_topics = [
-    "VHS Style & Camera Profiles", "Signal", "Chroma Offset",
-    "Grain & Tracking Noise", "Head Switching", "Ringing", "Waves",
-    "Color & Image", "Glow", "Tape", "Text / OSD",
+    "VHS Style & Camera Profiles", "Chroma Offset", "Grain & Tracking Noise",
+    "Tracking Noise", "Signal", "Head Switching", "Ringing", "Waves & Static",
+    "Static", "Color & Image", "Glow", "Tape", "Text / OSD",
 ]
 if visible_topics != expected_topics:
     fail("Visible VHS-90 topic order/layout differs from the approved compact panel.")
 if len(re.findall(r'kVhsStyleChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 20:
     fail("VHS Style list must remain curated to 20 distinct presets.")
-if len(re.findall(r'kTrackingPresetChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 10:
-    fail("Tracking presets must include the two source-backed profiles.")
-if 'PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' not in SOURCE:
-    fail("Tracking Noise preset popup must expose all 10 recipes.")
-if "Vhs6RiftBand = 5" not in REGION_HEADER or "NtscRTracking = 6" not in REGION_HEADER:
+if len(re.findall(r'kTrackingPresetChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 19:
+    fail("Tracking presets must include all 19 audited source families and reconstructions.")
+if 'PF_ADD_POPUP("Tracking Preset",19,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' not in SOURCE:
+    fail("Tracking Noise preset popup must expose all 19 recipes.")
+if "Vhs6RiftBand = 5" not in REGION_HEADER or "NtscRTracking = 6" not in REGION_HEADER or "VhsMainTracking = 7" not in REGION_HEADER:
     fail("VHS6RIFT and NTSC-R need dedicated tracking render profiles.")
-if "Vhs6RiftBand" not in REGION or "NtscRTracking" not in REGION:
-    fail("Source-backed tracking render profiles are not implemented.")
+if "Vhs6RiftBand" not in REGION or "NtscRTracking" not in REGION or "VhsMainTracking" not in REGION:
+    fail("VHS6RIFT, NTSC-R and VHS-main source tracking profiles are not implemented.")
 if "HeadSwitchProfile::Vhs6Rift" not in REGION or "HeadSwitchProfile::NtscR" not in REGION:
     fail("Head Switching must have distinct VHS6RIFT and NTSC-R source profiles.")
 if 'kHeadSwitchPresetChoices[]="Custom|VHS6RIFT Head Switch|NTSC-R Head Switch"' not in SOURCE:
