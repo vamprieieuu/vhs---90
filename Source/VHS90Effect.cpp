@@ -164,7 +164,8 @@ struct RenderSettings {
     float tearBandCount=2.0f;
     float tearChromaAmount=0, spectralSmear=75, spectralHueSpread=70, chromaSaturation=140, spectralCenterY=38, spectralCoverage=72, tearBandStartY=60, tearBandHeight=18, tearDisplacement=18, tearFragmentation=55, tearChromaShift=5, tearSmear=6, tearDropout=12, tearSeed=1;
     float tearBandAmount[4]={70,60,80,55}, tearBandY[4]={75,45,90,30}, tearBandHeightExtra[4]={15,12,8,10}, tearBandShift[4]={30,-24,40,-18}, tearBandFragmentation[4]={60,70,45,65}, tearBandChroma[4]={8,-6,12,-10}, tearBandSmear[4]={8,12,5,10}, tearBandDropout[4]={20,15,25,10};
-    float headAmount=0, headY=100, headHeight=4, headShift=24;
+    float headAmount=0, headY=95, headHeight=8, headShift=24;
+    float headPreset=1,headCenterX=50,headWidth=100,headShape=1,headAngle=0,headMotionX=0,headMotionY=0;
     float headCondition=0;
     float tapeWear=35, tapeDropouts=12, tapeScratches=12, tapeCreases=8, tapeEdge=18, tapeMold=0, tapeVaseline=0, tapeSticky=5, tapeSeed=1, backTension=0;
     float tapeNoise=0;
@@ -1063,7 +1064,10 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_TEAR_BAND5_CHROMA,tearBandChroma[3]); READ_FLOAT(PARAM_TEAR_BAND5_SMEAR,tearBandSmear[3]); READ_FLOAT(PARAM_TEAR_BAND5_DROPOUT,tearBandDropout[3]);
     READ_FLOAT(PARAM_HEAD_AMOUNT,headAmount); READ_FLOAT(PARAM_HEAD_BOTTOM_Y,headY);
     READ_FLOAT(PARAM_HEAD_HEIGHT,headHeight); READ_FLOAT(PARAM_HEAD_SHIFT,headShift);
-    READ_FLOAT(PARAM_HEAD_CONDITION,headCondition);
+    READ_POPUP(PARAM_HEAD_PRESET,headPreset); READ_FLOAT(PARAM_HEAD_CENTER_X,headCenterX);
+    READ_FLOAT(PARAM_HEAD_WIDTH,headWidth); READ_POPUP(PARAM_HEAD_SHAPE,headShape);
+    READ_FLOAT(PARAM_HEAD_ANGLE,headAngle); READ_FLOAT(PARAM_HEAD_MOTION_X,headMotionX);
+    READ_FLOAT(PARAM_HEAD_MOTION_Y,headMotionY); READ_FLOAT(PARAM_HEAD_CONDITION,headCondition);
     READ_FLOAT(PARAM_TAPE_WEAR,tapeWear); READ_FLOAT(PARAM_TAPE_DROPOUTS,tapeDropouts); READ_FLOAT(PARAM_TAPE_SCRATCHES,tapeScratches);
     READ_FLOAT(PARAM_TAPE_CREASES,tapeCreases); READ_FLOAT(PARAM_TAPE_EDGE,tapeEdge); READ_FLOAT(PARAM_TAPE_MOLD,tapeMold);
     READ_FLOAT(PARAM_TAPE_VASELINE,tapeVaseline); READ_FLOAT(PARAM_TAPE_STICKY,tapeSticky); READ_FLOAT(PARAM_TAPE_SEED,tapeSeed); READ_FLOAT(PARAM_TAPE_BACK_TENSION,backTension);
@@ -2015,6 +2019,13 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.headY=float(params[PARAM_HEAD_BOTTOM_Y]->u.fs_d.value);
     s.headHeight=float(params[PARAM_HEAD_HEIGHT]->u.fs_d.value);
     s.headShift=float(params[PARAM_HEAD_SHIFT]->u.fs_d.value);
+s.headPreset=float(params[PARAM_HEAD_PRESET]->u.pd.value);
+s.headCenterX=float(params[PARAM_HEAD_CENTER_X]->u.fs_d.value);
+s.headWidth=float(params[PARAM_HEAD_WIDTH]->u.fs_d.value);
+s.headShape=float(params[PARAM_HEAD_SHAPE]->u.pd.value);
+s.headAngle=float(params[PARAM_HEAD_ANGLE]->u.fs_d.value);
+s.headMotionX=float(params[PARAM_HEAD_MOTION_X]->u.fs_d.value);
+s.headMotionY=float(params[PARAM_HEAD_MOTION_Y]->u.fs_d.value);
     s.osdAmount=float(params[PARAM_OSD_AMOUNT]->u.fs_d.value); s.osdRec=float(params[PARAM_OSD_REC]->u.fs_d.value);
     s.osdPlay=float(params[PARAM_OSD_PLAY]->u.fs_d.value); s.osdTimestamp=float(params[PARAM_OSD_TIMESTAMP]->u.fs_d.value);
     s.osdOpacity=float(params[PARAM_OSD_OPACITY]->u.fs_d.value); s.osdScale=float(params[PARAM_OSD_SCALE]->u.fs_d.value);
