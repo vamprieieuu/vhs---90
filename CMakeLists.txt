@@ -38,6 +38,8 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90PhysicalInterferenceEngine.cpp
     Source/VHS90Core/VHS90PyVhsGenerationEngine.cpp
     Source/VHS90Core/VHS90OsdEngine.cpp
+    Source/VHS90Core/VHS90OsdTextData.cpp
+    Source/VHS90Core/VHS90OsdLocalization.cpp
     Source/VHS90Core/VHS90DeviceConnectionEngine.cpp
     Source/VHS90Core/VHS90ParticlePatternEngine.cpp
     Source/VHS90Core/VHS90TearChromaEngine.cpp
@@ -68,7 +70,7 @@ endif()
 
 if(VHS90_BUILD_TESTS)
     enable_testing()
-    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine AnalogGeometryEngine AnalogNoiseEngine RfInstabilityEngine ImpulseNoiseEngine MultipathEchoEngine ReceiverInstabilityEngine ImageGradeEngine TapeDetailEngine ChromaShiftEngine WaveformEngine RingingEngine DropoutEngine SignalGhostEngine AnalogGlowEngine CrtEqualizerEngine TrackReadEngine HeadConditionEngine VcrSignalEngine PhysicalInterferenceEngine PyVhsGenerationEngine OsdEngine DeviceConnectionEngine ParticlePatternEngine TearChromaEngine)
+    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine AnalogGeometryEngine AnalogNoiseEngine RfInstabilityEngine ImpulseNoiseEngine MultipathEchoEngine ReceiverInstabilityEngine ImageGradeEngine TapeDetailEngine ChromaShiftEngine WaveformEngine RingingEngine DropoutEngine SignalGhostEngine AnalogGlowEngine CrtEqualizerEngine TrackReadEngine HeadConditionEngine VcrSignalEngine PhysicalInterferenceEngine PyVhsGenerationEngine OsdEngine OsdTextData OsdLocalization DeviceConnectionEngine ParticlePatternEngine TearChromaEngine)
         add_executable(VHS90${test_name}Smoke Tests/VHS90${test_name}Smoke.cpp)
         target_link_libraries(VHS90${test_name}Smoke PRIVATE VHS90Core)
         # The smoke tests use assert(); keep those checks active in Release too.
@@ -96,6 +98,50 @@ if(VHS90_BUILD_AE_PLUGIN)
     endif()
     enable_language(C)
     enable_language(RC)
+endif()
+
+if(WIN32)
+    # Windows-only text backend; never leaks platform dependencies into VHS90Core.
+    add_library(VHS90DirectWrite STATIC Source/VHS90Windows/VHS90DirectWriteText.cpp)
+    target_include_directories(VHS90DirectWrite PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Windows
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources
+    )
+    target_compile_features(VHS90DirectWrite PUBLIC cxx_std_17)
+    target_compile_definitions(VHS90DirectWrite PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+    if(MSVC)
+        target_compile_options(VHS90DirectWrite PRIVATE /W4 /permissive- /EHsc)
+    else()
+        target_compile_options(VHS90DirectWrite PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    target_link_libraries(VHS90DirectWrite PRIVATE d2d1 dwrite windowscodecs ole32)
+
+    set(VHS90_FONT_RESOURCE_RC "")
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/Rooyin_Free_Bold.ttf"
+       AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/Sponge_Arabic_Regular.otf")
+        configure_file(resources/VHS90Fonts.rc.in "${CMAKE_CURRENT_BINARY_DIR}/VHS90Fonts.rc" @ONLY)
+        set(VHS90_FONT_RESOURCE_RC "${CMAKE_CURRENT_BINARY_DIR}/VHS90Fonts.rc")
+    endif()
+
+    if(VHS90_BUILD_TESTS)
+        add_executable(VHS90DirectWriteSmoke Tests/VHS90DirectWriteSmoke.cpp)
+        target_link_libraries(VHS90DirectWriteSmoke PRIVATE VHS90DirectWrite)
+        if(VHS90_FONT_RESOURCE_RC)
+            target_sources(VHS90DirectWriteSmoke PRIVATE "${VHS90_FONT_RESOURCE_RC}")
+            target_include_directories(VHS90DirectWriteSmoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/resources")
+            target_compile_definitions(VHS90DirectWriteSmoke PRIVATE VHS90_TEST_BUNDLED_FONTS=1)
+        endif()
+        if(MSVC)
+            target_compile_options(VHS90DirectWriteSmoke PRIVATE /UNDEBUG)
+        else()
+            target_compile_options(VHS90DirectWriteSmoke PRIVATE -UNDEBUG)
+        endif()
+        add_test(NAME VHS90DirectWriteSmoke COMMAND VHS90DirectWriteSmoke)
+    endif()
+endif()
+
+if(VHS90_BUILD_AE_PLUGIN)
     # VHS6RIFT build-foundation port: discover flat, Examples/, or nested SDK layouts.
     if(NOT AE_SDK_ROOT OR AE_SDK_ROOT STREQUAL "")
         if(DEFINED ENV{AE_SDK_PATH} AND NOT "$ENV{AE_SDK_PATH}" STREQUAL "")
@@ -175,13 +221,18 @@ if(VHS90_BUILD_AE_PLUGIN)
         VERBATIM
     )
 
-    add_library(VHS90 MODULE Source/VHS90Effect.cpp "${VHS90_PIPL_RC}")
-    target_link_libraries(VHS90 PRIVATE VHS90Core)
+    if(NOT VHS90_FONT_RESOURCE_RC)
+        message(FATAL_ERROR "The two licensed Arabic font files must be present in Resources/Fonts before building the AEX. Run build.ps1 with the original vhs.zip.")
+    endif()
+    add_library(VHS90 MODULE Source/VHS90Effect.cpp Source/VHS90Windows/VHS90OsdArbitraryData.cpp "${VHS90_PIPL_RC}" "${VHS90_FONT_RESOURCE_RC}")
+    target_link_libraries(VHS90 PRIVATE VHS90Core VHS90DirectWrite)
     target_include_directories(VHS90 PRIVATE
         "${VHS90_AE_HEADERS}"
+        "${VHS90_AE_HEADERS}/SP"
         "${VHS90_AE_UTIL}"
         "${VHS90_AE_INCLUDE_ROOT}/Examples/Headers"
         "${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources"
     )
     target_compile_features(VHS90 PRIVATE cxx_std_17)
     target_compile_definitions(VHS90 PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
@@ -190,13 +241,17 @@ if(VHS90_BUILD_AE_PLUGIN)
         PREFIX ""
         OUTPUT_NAME "VHS-90"
         SUFFIX ".aex"
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/AEX"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/AEX"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     )
-    add_custom_command(TARGET VHS90 POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/dist"
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:VHS90>" "${CMAKE_CURRENT_BINARY_DIR}/dist/VHS-90.aex"
-        VERBATIM
-    )
+    # Visual Studio is multi-config and otherwise appends Release/Debug.
+    # Keep the deliverable at exactly build/VHS-90.aex for a one-file handoff.
+    foreach(VHS90_CONFIG DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
+        set_target_properties(VHS90 PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_${VHS90_CONFIG} "${CMAKE_CURRENT_BINARY_DIR}"
+            LIBRARY_OUTPUT_DIRECTORY_${VHS90_CONFIG} "${CMAKE_CURRENT_BINARY_DIR}"
+        )
+    endforeach()
     add_custom_target(VHS90_AEX DEPENDS VHS90)
+    message(STATUS "VHS-90 AEX output: ${CMAKE_CURRENT_BINARY_DIR}/VHS-90.aex")
 endif()

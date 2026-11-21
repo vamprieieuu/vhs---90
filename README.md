@@ -2,7 +2,11 @@
 
 Native C++ Adobe After Effects VHS / analog signal processing plugin project.
 
-**Current state:** the host-independent C++ engine has 28 passing smoke tests, and an initial native AE host adapter, PiPL resource, optional Windows AEX CMake target and PowerShell build script are now in the repository. The Windows/MSVC build and After Effects runtime are not yet verified; there is no test-ready AEX artifact yet.
+**Current state:** the Windows x64 / MSVC 2022 AEX workflow has completed successfully. It builds the native plugin, runs the CPU smoke tests, verifies the single-file output and publishes a raw `.aex` release asset. After Effects host loading/rendering still requires an in-host test.
+
+**[Download the latest VHS-90.aex](https://github.com/vamprieieuu/vhs---90/releases/latest/download/VHS-90.aex)**
+
+Use **Actions → Build** for the Windows AEX build. **Core Tests (Linux - no AEX)** is only the host-independent test workflow and does not produce an AEX.
 
 ## Engineering status
 
@@ -39,15 +43,14 @@ cmake --build build --config Release
 ctest --test-dir build -C Release --output-on-failure
 ```
 
-The current 28 CTest targets pass in the latest hosted Linux core CI run. This is not a Windows/MSVC or After Effects runtime test.
+The Windows Build workflow runs the CPU CTest suite as part of the native AEX build. The separate Linux core workflow does not produce an AEX.
 
 ## Windows AEX build
 
-Requirements and SDK setup are documented in [Native AE Build](docs/AE_BUILD.md). With Visual Studio 2022 and a local AE SDK:
+Requirements and SDK setup are documented in [Windows AEX Build](docs/WINDOWS_AEX_BUILD.md). The checked-in VHS6RIFT SDK and approved font files are used by default; a separate SDK archive is not normally required.
 
 ```powershell
-$env:AE_SDK_ROOT = "C:\SDKs\AfterEffectsSDK"
-.\build.ps1
+ .\build.ps1 -BuildDir build -Configuration Release
 ```
 
-The configured output path is `build/dist/VHS-90.aex`. A successful CPU test run is not proof that the Windows AEX loads or renders in After Effects; host verification remains a separate gate.
+The output is the bare file `build/VHS-90.aex`. The workflow uploads it as `VHS-90-AEX` and publishes it as a raw release asset. A successful build is not proof that the plugin loads or renders correctly in After Effects; host verification remains a separate gate.

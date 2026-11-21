@@ -1,4 +1,4 @@
-name: VHS-90 Core CI
+name: Core Tests (Linux - no AEX)
 
 on:
   push:
@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   linux-core:
+    name: Core Tests (Linux - no AEX)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
