@@ -54,13 +54,31 @@ inline float smoothServoNoise(float yPx,float smoothnessPx,std::uint32_t seed,
     const float next=valueNoise1D(rowCoordinate,seed,epoch+1);
     return current+(next-current)*temporal;
 }
+inline float wrapMovingCenter(float center,float halfExtent,float displacement) noexcept {
+    const float half=std::max(0.0f,halfExtent);
+    const float span=1.0f+2.0f*half;
+    float phase=std::fmod(center+half+displacement,span);
+    if(phase<0.0f) phase+=span;
+    // The region enters from one edge, traverses the full frame, then exits
+    // before wrapping back in from the opposite edge. This is the moving-band
+    // behavior used by the VHS6RIFT reference, generalized to any region.
+    return phase-half;
+}
 inline float evaluateMask(const DamageRegion& r, float u, float v,
                           double timeSeconds) noexcept {
-    float cx = r.centerX + r.motionXPerSecond * static_cast<float>(timeSeconds);
-    float cy = r.centerY + r.motionYPerSecond * static_cast<float>(timeSeconds);
-    // Keep region centers outside [0,1] when needed. This lets edge-anchored
-    // regions (for example Head Switching with Bottom Edge Y near 0) clip
-    // naturally instead of being pulled back into the image.
+    const float elapsed=static_cast<float>(timeSeconds);
+    float cx=r.centerX,cy=r.centerY;
+    if(r.kind==RegionKind::TrackingNoise) {
+        if(std::fabs(r.motionXPerSecond)>1.0e-7f)
+            cx=wrapMovingCenter(cx,std::max(0.0f,r.width)*0.5f,r.motionXPerSecond*elapsed);
+        if(std::fabs(r.motionYPerSecond)>1.0e-7f)
+            cy=wrapMovingCenter(cy,std::max(0.0f,r.height)*0.5f,r.motionYPerSecond*elapsed);
+    } else {
+        // Keep head-switch regions freely placeable, including partially or
+        // fully outside the raster; only tracking bands use cyclic traversal.
+        cx+=r.motionXPerSecond*elapsed;
+        cy+=r.motionYPerSecond*elapsed;
+    }
 
     const float dx=u-cx,dy=v-cy;
     const float ca=std::cos(r.angleRadians),sa=std::sin(r.angleRadians);
