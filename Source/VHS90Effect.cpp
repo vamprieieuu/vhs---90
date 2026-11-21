@@ -19,6 +19,7 @@
 #include "VHS90OsdEngine.h"
 #include "VHS90OsdLocalization.h"
 #include "VHS90OsdArbitraryData.h"
+#include "VHS90OsdTextData.h"
 #include "VHS90DirectWriteText.h"
 #include "VHS90DeviceConnectionEngine.h"
 #include "VHS90SyncEngine.h"
@@ -2101,8 +2102,10 @@ static PF_Err HandleEvent(PF_InData* in_data,PF_ParamDef* params[],PF_EventExtra
         return PF_Err_NONE;
     }
     if(extra->e_type==PF_Event_CLOSE_CONTEXT) return PF_Err_NONE;
-    const bool textControl=(extra->effect_win.index==PARAM_OSD_TEXT_DATA);
-    if(extra->e_type==PF_Event_DRAW&&textControl) {
+    if((extra->e_type==PF_Event_DRAW||extra->e_type==PF_Event_DO_CLICK||
+        extra->e_type==PF_Event_ADJUST_CURSOR)&&extra->effect_win.index==PARAM_OSD_TEXT_DATA) {
+        const bool textControl=true;
+        if(extra->e_type==PF_Event_DRAW&&textControl) {
         std::string current;
         if(params&&params[PARAM_OSD_TEXT_DATA])
             VHS90ReadOsdText(in_data,params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,current);
@@ -2117,16 +2120,17 @@ static PF_Err HandleEvent(PF_InData* in_data,PF_ParamDef* params[],PF_EventExtra
         extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
         return PF_Err_NONE;
     }
-    if(extra->e_type==PF_Event_DO_CLICK&&textControl) {
-        if(context) context->plugin_state[0]=PARAM_OSD_TEXT_DATA;
-        extra->u.do_click.send_drag=FALSE;
-        extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
-        return PF_Err_NONE;
-    }
-    if(extra->e_type==PF_Event_ADJUST_CURSOR&&textControl) {
-        extra->u.adjust_cursor.set_cursor=PF_Cursor_HORZ_I_BEAM;
-        extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
-        return PF_Err_NONE;
+        if(extra->e_type==PF_Event_DO_CLICK) {
+            if(context) context->plugin_state[0]=PARAM_OSD_TEXT_DATA;
+            extra->u.do_click.send_drag=FALSE;
+            extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
+            return PF_Err_NONE;
+        }
+        if(extra->e_type==PF_Event_ADJUST_CURSOR) {
+            extra->u.adjust_cursor.set_cursor=PF_Cursor_HORZ_I_BEAM;
+            extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
+            return PF_Err_NONE;
+        }
     }
     if(extra->e_type==PF_Event_DEACTIVATE) {
         if(context) context->plugin_state[0]=-1;
