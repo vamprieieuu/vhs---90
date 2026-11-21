@@ -31,7 +31,8 @@ bool processDropouts(ConstImageView src,ImageView dst,const DropoutParams&p) noe
  if(amount<=0){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
  try{
   const int w=src.width,h=src.height;const std::size_t count=std::size_t(w)*h;
-  std::vector<float> y(count),i(count),q(count),alpha(count);\n  std::vector<std::uint8_t> affected(count,0u);
+  std::vector<float> y(count),i(count),q(count),alpha(count);
+  std::vector<std::uint8_t> affected(count,0u);
   for(int row=0;row<h;++row)for(int x=0;x<w;++x){
    const float*px=src.rgba+row*src.rowStrideFloats+x*4;const std::size_t n=std::size_t(row)*w+x;
    alpha[n]=px[3];RGB rgb{px[0],px[1],px[2]};
@@ -53,6 +54,7 @@ bool processDropouts(ConstImageView src,ImageView dst,const DropoutParams&p) noe
    const float sigma=(18.0f+amount*22.0f)/255.0f;
    for(int yy=row;yy<y1;++yy)for(int xx=x0;xx<x1;++xx){
     const std::size_t at=std::size_t(yy)*w+xx;
+    affected[at]=1u;
     y[at]=y[at]*(1.0f-mix)+(target+rng.normal()*sigma)*mix;
     const float chromaKeep=1.0f-mix*.75f;i[at]*=chromaKeep;q[at]*=chromaKeep;
    }
@@ -62,7 +64,8 @@ bool processDropouts(ConstImageView src,ImageView dst,const DropoutParams&p) noe
   for(int n=0;n<speckles;++n){const std::size_t at=std::size_t(rng.next())%count;affected[at]=1u;y[at]=rng.uniform();}
   for(int row=0;row<h;++row)for(int x=0;x<w;++x){
    const std::size_t n=std::size_t(row)*w+x;const float a=alpha[n];float*out=dst.rgba+row*dst.rowStrideFloats+x*4;
-   if(a<=1.0e-6f){std::copy_n(src.rgba+row*src.rowStrideFloats+x*4,4,out);continue;}
+   const float* original=src.rgba+row*src.rowStrideFloats+x*4;
+   if(a<=1.0e-6f||affected[n]==0u){std::copy_n(original,4,out);continue;}
    RGB rgb=yiqToRgb({y[n],i[n],q[n]});if(p.premultipliedAlpha){rgb.r*=a;rgb.g*=a;rgb.b*=a;}
    out[0]=rgb.r;out[1]=rgb.g;out[2]=rgb.b;out[3]=a;
   }
