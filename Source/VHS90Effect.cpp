@@ -1132,7 +1132,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_TEAR_BAND5_SHIFT,tearBandShift[3]); READ_FLOAT(PARAM_TEAR_BAND5_FRAGMENTATION,tearBandFragmentation[3]);
     READ_FLOAT(PARAM_TEAR_BAND5_CHROMA,tearBandChroma[3]); READ_FLOAT(PARAM_TEAR_BAND5_SMEAR,tearBandSmear[3]); READ_FLOAT(PARAM_TEAR_BAND5_DROPOUT,tearBandDropout[3]);
     READ_FLOAT(PARAM_HEAD_AMOUNT,headAmount); READ_FLOAT(PARAM_HEAD_BOTTOM_Y,headY);
-    err=CheckoutPopup(in_data,PARAM_HEAD_PRESET,headPreset); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_HEAD_PRESET,s.headPreset); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_HEAD_HEIGHT,headHeight); READ_FLOAT(PARAM_HEAD_SHIFT,headShift);
     READ_FLOAT(PARAM_HEAD_CONDITION,headCondition);
     READ_FLOAT(PARAM_TAPE_WEAR,tapeWear); READ_FLOAT(PARAM_TAPE_DROPOUTS,tapeDropouts); READ_FLOAT(PARAM_TAPE_SCRATCHES,tapeScratches);
