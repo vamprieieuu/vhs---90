@@ -76,3 +76,5 @@ See docs/PROJECT_STATUS.md for the current build/integration boundary. The repos
 - 61-ntscqt-spectral-ringing-preemphasis-exact-port-spec.md — source-code re-verification of both NTSC-QT frequency-domain ringing variants, the 720-sample response curve, Y/I/Q alternating-field application, pre-emphasis placement and explicit native FFT/fixture requirements; no false port-complete claim.
 
 - 62-osd-directwrite-arabic-vhs-tape-implementation-spec.md — re-verified current pre-VHS OSD insertion point, 5×7 bitmap limitations, smoke-test coverage and supplied font license metadata; specifies DirectWrite Arabic/RTL, eligible fonts, full VHS Tape parity and required tests. No font-backed renderer is claimed complete.
+
+- 63-vhs90-ui-split-and-visual-validation.md — verified current AE topic layout, identified Grain as still grouped under VHS-90 Signal Looks, defined legacy-ID migration rules and a frame/sequence-based visual validation matrix for signal, tape, chroma, glow and OSD effects.
