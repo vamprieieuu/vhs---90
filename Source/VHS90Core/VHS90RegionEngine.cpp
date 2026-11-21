@@ -42,6 +42,18 @@ inline float sampleChannel(ConstImageView im, float x, float y, int channel) noe
 inline float hashCell(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
     return hash01(static_cast<std::uint32_t>(x), static_cast<std::uint32_t>(y), seed, frame);
 }
+// Direct port of VHS6RIFT's VHS_Hash2D / VHS_HashFloat implementation.
+inline std::uint32_t vhs6RiftHash(std::uint32_t x) noexcept {
+    x = ((x >> 16) ^ x) * 0x45d9f3bu;
+    x = ((x >> 16) ^ x) * 0x45d9f3bu;
+    return (x >> 16) ^ x;
+}
+inline float vhs6RiftHash2D(int x, int y, std::uint32_t seed) noexcept {
+    const std::uint32_t h = seed ^
+        (static_cast<std::uint32_t>(x) * 374761393u) ^
+        (static_cast<std::uint32_t>(y) * 668265263u);
+    return static_cast<float>(vhs6RiftHash(h) & 0x00FFFFFFu) / 16777216.0f;
+}
 inline float smoothHash2D(float x, float y, std::uint32_t seed) noexcept {
     const int x0 = static_cast<int>(std::floor(x));
     const int y0 = static_cast<int>(std::floor(y));
@@ -272,16 +284,14 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 break;
             }
             case TrackingProfile::Vhs6RiftBand: {
-                // VHS6RIFT source model: time-stepped scanline jitter localized to a moving band,
-                // with independent high-frequency tape snow confined to the damaged rows.
-                const float bandJitter=smoothHash2D(static_cast<float>(iy)-noiseDriftY*t,
-                    t*8.0f,regionSeed+202u)-0.5f;
-                shiftX += bandJitter*r.maxShiftPx*bandFactor;
-                shiftX += (servo-0.5f)*r.servoDriftPx*0.35f;
-                if(tearEvent<clamp01(r.tearProbability*bandFactor))
-                    shiftX += (tearDirection-0.5f)*2.0f*r.tearShiftPx*bandFactor;
-                const float snowHash=smoothHash2D(static_cast<float>(x)-noiseDriftX*t,
-                    static_cast<float>(iy)-noiseDriftY*t,regionSeed+0x6u);
+                // Direct VHS6RIFT port: source VHS_Hash2D scanline jitter
+                // at 60 Hz and moving-band snow at 240 Hz. VHS-90 adds the
+                // requested editable region position, size and motion.
+                const float lineHash=vhs6RiftHash2D(iy,
+                    static_cast<int>(t*60.0f),regionSeed+202u);
+                shiftX=std::round((lineHash-0.5f)*r.maxShiftPx*bandFactor);
+                const float snowHash=vhs6RiftHash2D(x,iy,
+                    regionSeed+static_cast<std::uint32_t>(t*240.0f));
                 if(bandFactor>0.4f&&snowHash>0.55f) {
                     sourceSnow=0.70f;
                     sourceSnowValue=snowHash;
