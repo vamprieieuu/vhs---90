@@ -75,25 +75,23 @@ inline float fbmNoise1D(float x, std::uint32_t seed) noexcept {
     return normalization > 0.0f ? value / normalization : 0.0f;
 }
 
-inline float gaussianHash2D(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
-    const float u1 = std::max(1.0e-6f, hash01(static_cast<std::uint32_t>(x),
-        static_cast<std::uint32_t>(y), seed, frame));
-    const float u2 = hash01(static_cast<std::uint32_t>(x + 37),
-        static_cast<std::uint32_t>(y + 19), seed + 0x9e3779b9u, frame);
+inline float gaussianSmooth2D(float x, float y, std::uint32_t seed) noexcept {
+    const float u1 = std::max(1.0e-6f, smoothHash2D(x, y, seed));
+    const float u2 = smoothHash2D(x + 37.0f, y + 19.0f, seed + 0x9e3779b9u);
     const float value = std::sqrt(-2.0f * std::log(u1)) * std::cos(2.0f * kPi * u2);
     return std::max(-3.0f, std::min(3.0f, value));
 }
 
 inline float ntscRowSpeckles(float xPx, float yPx, float intensity,
                              float anisotropy, float cellW, float cellH,
-                             float driftX, float driftY,
+                             float driftX, float driftY, float timeSeconds,
                              std::uint32_t seed) noexcept {
     intensity = clamp01(intensity);
     anisotropy = clamp01(anisotropy);
     if (intensity <= 0.0f) return 0.0f;
 
-    const float patternX = xPx - driftX * std::max(1.0f, cellW);
-    const float patternY = yPx - driftY * std::max(1.0f, cellH);
+    const float patternX = xPx - driftX * timeSeconds * std::max(1.0f, cellW);
+    const float patternY = yPx - driftY * timeSeconds * std::max(1.0f, cellH);
     const float lineRandom = smoothHash2D(0.0f, patternY / 4.0f, seed + 0x6a09e667u);
     const float denominator = std::max(1.0e-6f,
         intensity * (1.0f - intensity) * (1.0f - anisotropy));
@@ -276,14 +274,14 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
             case TrackingProfile::Vhs6RiftBand: {
                 // VHS6RIFT source model: time-stepped scanline jitter localized to a moving band,
                 // with independent high-frequency tape snow confined to the damaged rows.
-                const float bandJitter=smoothHash2D(static_cast<float>(iy)-noiseDriftY,
+                const float bandJitter=smoothHash2D(static_cast<float>(iy)-noiseDriftY*t,
                     t*8.0f,regionSeed+202u)-0.5f;
                 shiftX += bandJitter*r.maxShiftPx*bandFactor;
                 shiftX += (servo-0.5f)*r.servoDriftPx*0.35f;
                 if(tearEvent<clamp01(r.tearProbability*bandFactor))
                     shiftX += (tearDirection-0.5f)*2.0f*r.tearShiftPx*bandFactor;
-                const float snowHash=smoothHash2D(static_cast<float>(x)-noiseDriftX,
-                    static_cast<float>(iy)-noiseDriftY,regionSeed+0x6u);
+                const float snowHash=smoothHash2D(static_cast<float>(x)-noiseDriftX*t,
+                    static_cast<float>(iy)-noiseDriftY*t,regionSeed+0x6u);
                 if(bandFactor>0.4f&&snowHash>0.55f) {
                     sourceSnow=0.70f;
                     sourceSnowValue=snowHash;
@@ -296,10 +294,11 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 // region geometry generalizes its original full-width moving band.
                 const float trackPhase = 1.0f - std::fabs(localProgress * 2.0f - 1.0f);
                 const int rowBlock = cy & ~3;
-                const float rowJitter = hash01(13u, static_cast<std::uint32_t>(rowBlock),
-                    regionSeed + 0x4f1bbcdcu, p.frame) * 2.0f - 1.0f;
+                const float rowJitter = smoothHash2D(13.0f,
+                    static_cast<float>(rowBlock)-noiseDriftY*t,regionSeed+0x4f1bbcdcu)*2.0f-1.0f;
                 shiftX = rowJitter * r.maxShiftPx * trackPhase;
-                sourceNoise = gaussianHash2D(cx, cy, regionSeed + 0x9e3779b9u, p.frame)
+                sourceNoise = gaussianSmooth2D(static_cast<float>(cx)-noiseDriftX*t,
+                    static_cast<float>(cy)-noiseDriftY*t,regionSeed+0x9e3779b9u)
                     * 0.25f * trackPhase;
                 sourceChromaAttenuation = 1.0f - 0.5f * trackPhase;
                 break;
@@ -321,7 +320,7 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                     regionSeed+0x564e4f49u)*intensityScale*intensityScale*r.noiseAmount*4.0f;
                 const float speckles=ntscRowSpeckles(x,y,
                     r.snowIntensity*intensityScale*intensityScale,r.snowAnisotropy,
-                    cellW*bandwidthScale,cellH,noiseDriftX,noiseDriftY,regionSeed+0x53504543u);
+                    cellW*bandwidthScale,cellH,noiseDriftX,noiseDriftY,t,regionSeed+0x53504543u);
                 sourceNoise=videoNoise+speckles*0.28f;
                 if(tearEvent<clamp01(r.tearProbability*intensityScale))
                     shiftX+=(tearDirection-0.5f)*r.tearShiftPx*intensityScale;

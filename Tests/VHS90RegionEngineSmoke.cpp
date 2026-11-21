@@ -205,6 +205,10 @@ int main() {
     VHS90_CHECK_MSG(processDamageRegions(profileInput,snowOffView,snowP));
     VHS90_CHECK_MSG(snowIndependent != snowOff);
     VHS90_CHECK_MSG(snowClumped != snowIndependent);
+    std::vector<float> snowMoving(src.size(),0.0f); ImageView snowMovingView{snowMoving.data(),w,h,w*4};
+    RegionEngineParams snowMoveP=snowP; snowMoveP.timeSeconds=0.9;
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,snowMovingView,snowMoveP));
+    VHS90_CHECK_MSG(snowMoving != snowIndependent);
 
     // Four differently typed tracking regions can coexist in one render stack.
     DamageRegion trackingStack[4];
