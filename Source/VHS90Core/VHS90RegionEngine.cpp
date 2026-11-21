@@ -42,6 +42,44 @@ inline float sampleChannel(ConstImageView im, float x, float y, int channel) noe
 inline float hashCell(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
     return hash01(static_cast<std::uint32_t>(x), static_cast<std::uint32_t>(y), seed, frame);
 }
+inline float fbmNoise1D(float x,std::uint32_t seed,std::int64_t frame) noexcept {
+    float value=0.0f,amplitude=1.0f,normalization=0.0f,frequency=1.0f;
+    for(std::uint32_t octave=0;octave<3;++octave) {
+        value+=(valueNoise1D(x*frequency,seed+octave*0x9e3779b9u,frame)-0.5f)*amplitude;
+        normalization+=amplitude; amplitude*=0.5f; frequency*=2.0f;
+    }
+    return normalization>0.0f?value/normalization:0.0f;
+}
+inline float ntscRRowSpeckles(float x,int y,std::uint32_t seed,std::int64_t frame,
+                              float snowIntensity,float anisotropy,float bandwidthScale) noexcept {
+    const float intensity=clamp01(snowIntensity);
+    if(intensity<=1.0e-5f) return 0.0f;
+    const float anis=clamp01(anisotropy);
+    const float random=hashCell(0,y,seed+0x534e4f57u,frame);
+    const float denominator=std::max(1.0e-5f,intensity*(1.0f-intensity)*(1.0f-anis));
+    const float logistic=std::exp(std::clamp((random-intensity)/denominator,-16.0f,16.0f));
+    float lineIntensity=(anis/(1.0f+logistic)+intensity*(1.0f-anis))*0.125f;
+    lineIntensity=clamp01(lineIntensity);
+    if(lineIntensity<=1.0e-6f) return 0.0f;
+    const float scale=std::clamp(bandwidthScale,0.25f,2.0f);
+    const int currentBlock=static_cast<int>(std::floor(x/8.0f));
+    const int lookback=std::clamp(static_cast<int>(std::ceil(8.0f*scale)),1,16);
+    const float eventProbability=1.0f-std::pow(1.0f-lineIntensity,8.0f);
+    float result=0.0f;
+    for(int block=currentBlock-lookback;block<=currentBlock;++block) {
+        const float event=hashCell(block,y,seed+0x45564e54u,frame);
+        if(event>=eventProbability) continue;
+        const float start=float(block*8)+hashCell(block+17,y,seed+0x53544152u,frame)*8.0f;
+        const float length=(8.0f+hashCell(block+31,y,seed+0x4c454e47u,frame)*56.0f)*scale;
+        const float offset=x-start;
+        if(offset<0.0f||offset>=length) continue;
+        const float frequency=length*(3.0f+hashCell(block+43,y,seed+0x46524551u,frame)*2.0f);
+        const float amplitude=hashCell(static_cast<int>(x),y,seed+static_cast<std::uint32_t>(block*131+0x414d50),frame)*3.0f-1.0f;
+        result+=std::cos(offset*kPi/std::max(1.0f,frequency))
+            *std::pow(1.0f-offset/length,2.0f)*amplitude;
+    }
+    return result;
+}
 inline float smoothServoNoise(float yPx,float smoothnessPx,std::uint32_t seed,
                                std::int64_t frame,int epochFrames) noexcept {
     const float rowCoordinate=yPx/std::max(1.0f,smoothnessPx);
