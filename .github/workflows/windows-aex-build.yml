@@ -1,6 +1,9 @@
 name: VHS-90 Windows AEX Build
 
 on:
+  push:
+    branches:
+      - work/osd-directwrite-integration-map
   workflow_dispatch:
     inputs:
       vhs_archive_url:
@@ -38,12 +41,12 @@ jobs:
 
       - name: Configure, build and test
         shell: pwsh
-        run: .\build.ps1 -BuildDir build -Configuration Release
+        run: .\\build.ps1 -BuildDir build -Configuration Release
 
       - name: Verify single-file output
         shell: pwsh
         run: |
-          $aex = Join-Path $env:GITHUB_WORKSPACE "build\VHS-90.aex"
+          $aex = Join-Path $env:GITHUB_WORKSPACE "build\\VHS-90.aex"
           if (-not (Test-Path $aex)) { throw "Missing root-level AEX: $aex" }
           $item = Get-Item $aex
           if ($item.Length -lt 65536) { throw "AEX is unexpectedly small ($($item.Length) bytes)." }
