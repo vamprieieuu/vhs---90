@@ -58,10 +58,14 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
   const float humGain=1.0f+(0.003f+0.042f*hum)*std::sin(humLinePhase+0.9f);
   // RF drift is time-base instability: slow, medium and stochastic line
   // displacement. It must not behave like a global exposure/opacity slider.
-  const float slowDrift=std::sin(2.0f*kPi*(rowPosition*1.15f-framePhase*0.07f));
-  const float mediumDrift=std::sin(2.0f*kPi*(rowPosition*4.3f+framePhase*0.13f));
-  const float randomDrift=valueNoise1D(rowPosition*17.0f+framePhase*0.05f,p.seed,p.frame/4)-0.5f;
-  const float shift=drift*(0.6f+10.0f*slowDrift+3.0f*mediumDrift+8.0f*randomDrift);
+  // RF time-base wander is a slow, correlated scanline displacement.
+  // Keep the three spatial scales low-amplitude; large full-frame sine
+  // excursions read as a synthetic wave/opacity effect rather than RF drift.
+  const float driftTime=framePhase*0.035f;
+  const float slowDrift=valueNoise1D(rowPosition*1.8f+driftTime,p.seed+0x5246534cu,0)-0.5f;
+  const float mediumDrift=valueNoise1D(rowPosition*8.5f+driftTime*1.7f,p.seed+0x52464d44u,0)-0.5f;
+  const float fineDrift=valueNoise1D(rowPosition*22.0f+driftTime*0.55f,p.seed+0x52464649u,0)-0.5f;
+  const float shift=drift*(4.0f*slowDrift+1.4f*mediumDrift+0.8f*fineDrift);
   const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
   for(int x=0;x<src.width;++x) {
    const float sx=float(x)-shift;const float alpha=sample(sr,src.width,sx,3);

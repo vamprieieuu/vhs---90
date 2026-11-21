@@ -24,6 +24,11 @@ int main(){using namespace vhs90;constexpr int w=64,h=32;std::vector<float>s(w*h
  ConstImageView gi{gradient.data(),w,h,w*4};ImageView go{driftOut.data(),w,h,w*4};
  RfInstabilityParams driftOnly;driftOnly.drift=1.0f;driftOnly.frame=22;driftOnly.seed=31;
  assert(processRfInstability(gi,go,driftOnly));assert(driftOut!=gradient);
+ // A full RF-drift setting should remain a modest line-timing error, not
+ // displace the entire picture by dozens of pixels.
+ float maxDriftDelta=0.0f;
+ for(size_t i=0;i<gradient.size();i+=4)maxDriftDelta=std::max(maxDriftDelta,std::fabs(driftOut[i]-gradient[i]));
+ assert(maxDriftDelta<0.08f);
  std::vector<float>premul=s,out(s.size());for(size_t i=0;i<premul.size();i+=4){premul[i]*=.25f;premul[i+1]*=.25f;premul[i+2]*=.25f;premul[i+3]=.25f;}
  ConstImageView pi{premul.data(),w,h,w*4};ImageView po{out.data(),w,h,w*4};assert(processRfInstability(pi,po,p));
  for(size_t i=3;i<out.size();i+=4)assert(std::fabs(out[i]-.25f)<1e-6f);
