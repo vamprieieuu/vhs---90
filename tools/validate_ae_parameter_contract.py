@@ -118,4 +118,19 @@ if (pipl_flags2 & (1 << 27)) == 0:
 if not re.search(r"case\s+PF_Cmd_RENDER\s*:\s*err=LegacyRender", SOURCE):
     fail("EffectMain must route PF_Cmd_RENDER through LegacyRender.")
 
+# Every parameter consumed by the previous SmartFX reader must also be
+# consumed by the active legacy renderer. This prevents UI controls from
+# silently becoming inert when using the VHS6RIFT-compatible host path.
+read_start = SOURCE.find("static PF_Err ReadSettings")
+read_end = SOURCE.find("static bool ConvertInputWorld", read_start)
+legacy_start = SOURCE.find("static PF_Err LegacyRender")
+legacy_end = SOURCE.find("} // namespace", legacy_start)
+if min(read_start, read_end, legacy_start, legacy_end) < 0:
+    fail("ReadSettings or LegacyRender function was not found.")
+read_params = set(re.findall(r"\bPARAM_[A-Z0-9_]+\b", SOURCE[read_start:read_end]))
+legacy_params = set(re.findall(r"\bPARAM_[A-Z0-9_]+\b", SOURCE[legacy_start:legacy_end]))
+unwired = sorted(read_params - legacy_params)
+if unwired:
+    fail("LegacyRender does not read these registered render controls: " + ", ".join(unwired))
+
 print(f"AE host contract OK: {len(actual_params)} registered parameters + implicit input, exact enum order, PARAM_COUNT, CUSTOM_UI flags, and VHS6RIFT-compatible legacy render flags.")
