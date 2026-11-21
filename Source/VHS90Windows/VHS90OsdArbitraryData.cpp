@@ -115,7 +115,7 @@ PF_Err VHS90WriteOsdText(PF_InData* in_data,PF_ArbitraryH* handle,std::string_vi
         *handle=makeBlob(hs,bytes);
         return *handle?PF_Err_NONE:PF_Err_OUT_OF_MEMORY;
     }
-    const PF_Err resizeErr=hs->host_resize_handle(static_cast<A_HandleSize>(bytes.size()),*handle);
+    const PF_Err resizeErr=hs->host_resize_handle(static_cast<A_HandleSize>(bytes.size()),handle);
     if(resizeErr!=PF_Err_NONE) return resizeErr;
     void* memory=hs->host_lock_handle(*handle);
     if(!memory) return PF_Err_INTERNAL_STRUCT_DAMAGED;
