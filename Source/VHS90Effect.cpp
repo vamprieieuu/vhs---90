@@ -154,7 +154,7 @@ struct RenderSettings {
     float hsyncNoise=0, vsyncNoise=0, burstNoise=0;
     float edgeEnhance=0, chromaEdgeEnhance=0, tapeFade=0, blackLift=0, temporalGhost=0, ringing=0, ringingPower=2, crtEqualizer=0, gradeContrast=100, gradeBrightness=0, gradeSaturation=100, chromaIGain=100, chromaQGain=100, chromaIOffset=0, chromaQOffset=0, chromaQuantization=0, vignette=0, flicker=0;
     float lumaSmear=0, bloom=0, analogGlow=0;
-    float tapeSurface=35, tapeTransport=0, geometry=0, interlace=0, verticalRoll=0, edgeWave=0, scanlines=0;
+    float tapeSurface=100, tapeTransport=0, geometry=0, interlace=0, verticalRoll=0, edgeWave=0, scanlines=0;
     float trackingAmount=22, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=12, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=12, trackingServo=12, trackingTear=4;
     A_long trackingShape=3, trackingProfile=1, particleMode=1, particleDistribution=1, trackingPresetBase=9, trackingLayerPreset[3]={3,4,5};
@@ -790,7 +790,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Analog Glow",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_ANALOG_GLOW);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_CAMCORDER_HUD_TOPIC+100);
     AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Tape",ID_TAPE_MATERIAL_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Wear",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_WEAR);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Dropouts",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DROPOUTS);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Scratches",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SCRATCHES);
