@@ -293,3 +293,10 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Rechecked the supplied font manifest and actual embedded license name records. `Rooyin_Free_Bold.ttf` and `Sponge_Arabic_Regular.otf` are the only supplied fonts currently cleared by the manifest for bundling under OFL terms, with complete files/notices retained. The repository currently contains only the manifest, not those font binaries or license bundle. Other fonts remain permission-restricted or unverified and must not be redistributed without permission.
 - Added `docs/source-audits/62-osd-directwrite-arabic-vhs-tape-implementation-spec.md`. It defines a Windows DirectWrite renderer isolated from the portable core, UTF-8/bidi/Arabic shaping, localized months and digit systems, arbitrary user text, font enumeration/fallback, VHS Tape states/positions/date/counter controls, and regression tests.
 - No OSD rendering code or AE UI parameters were changed in this checkpoint. Full OSD remains an open pre-AEX requirement.
+
+## 2026-11-21 continuation update
+
+- Separated the legacy VHS6RIFT-derived Grain controls into a dedicated `Grain` AE topic, independent of `VHS-90 Signal Looks`. Existing grain control disk IDs are unchanged; a new topic disk ID was appended to the disk-ID enum to avoid renumbering serialized controls. The `ParamIndex` order was updated to match the new registration order.
+- Tracking Noise and Tear & Chroma remain their existing independent topics; no duplicate controls were introduced.
+- This is a source/UI change only. Do not claim legacy-project migration or AE UI success until the Windows/MSVC AEX build and an actual AE 23.2.1 project reopen test are complete.
+- The frame-by-frame visual comparison matrix and legacy-ID safety rules are recorded in `docs/source-audits/63-vhs90-ui-split-and-visual-validation.md`. RF Drift, Mains Hum, AM Nonlinearity, AGC Pump, Impulse Noise, Tape Dropouts, Tape Material, Glow, Chroma Subsample, Vertical Chroma and OSD still require source-clip visual validation; host-independent smoke tests are not substitutes.
