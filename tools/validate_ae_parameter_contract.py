@@ -175,6 +175,14 @@ if "Vhs6RiftBand = 5" not in REGION_HEADER or "NtscRTracking = 6" not in REGION_
     fail("VHS6RIFT and NTSC-R need dedicated tracking render profiles.")
 if "Vhs6RiftBand" not in REGION or "NtscRTracking" not in REGION:
     fail("Source-backed tracking render profiles are not implemented.")
+if "HeadSwitchProfile::Vhs6Rift" not in REGION or "HeadSwitchProfile::NtscR" not in REGION:
+    fail("Head Switching must have distinct VHS6RIFT and NTSC-R source profiles.")
+if 'kHeadSwitchPresetChoices[]="Custom|VHS6RIFT Head Switch|NTSC-R Head Switch"' not in SOURCE:
+    fail("Head Switching must expose both source presets.")
+if 'PF_ADD_ARBITRARY2("Custom OSD Text",300,34,PF_ParamFlag_SUPERVISE,PF_PUI_CONTROL' not in SOURCE:
+    fail("Text / OSD must expose the editable custom text control.")
+if "case PF_Cmd_EVENT: err=HandleEvent" not in SOURCE or "VHS90WriteOsdText" not in SOURCE:
+    fail("OSD custom text control must handle drawing and keyboard input.")
 if "lineNoise" in SYNC_ENGINE or "const float noise=bandDamage*" not in SYNC_ENGINE:
     fail("Sync Collapse must not add full-frame static grain.")
 if "chromaMagnitude" not in IMAGE_GRADE or "quantizedMagnitude" not in IMAGE_GRADE:
