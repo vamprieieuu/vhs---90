@@ -43,7 +43,7 @@ for pos in range(brace_start, len(SOURCE)):
 if brace_end is None:
     fail("ParamsSetup braces are unbalanced.")
 setup_body = SOURCE[brace_start:brace_end]
-calls = re.findall(r"\b(PF_ADD_[A-Z0-9_]+|PF_END_TOPIC)\s*\(([^;\n]*)\)\s*;", setup_body)
+calls = re.findall(r"\b(PF_ADD_[A-Z0-9_]+|PF_END_TOPIC|VHS90_ADD_HIDDEN_[A-Z0-9_]+|VHS90_END_HIDDEN_TOPIC)\s*\(([^;\n]*)\)\s*;", setup_body)
 if any(macro == "PF_ADD_LAYER" for macro, _ in calls):
     fail("Do not add a second Source layer: AE already supplies PARAM_INPUT at index 0.")
 
@@ -72,7 +72,7 @@ aliases = {
 }
 actual_params = []
 for macro, args in calls:
-    if macro == "PF_END_TOPIC":
+    if macro in ("PF_END_TOPIC", "VHS90_END_HIDDEN_TOPIC"):
         match = re.search(r"(ID_[A-Z0-9_]+)\s*\+\s*100", args)
         if not match or match.group(1) not in end_map:
             fail(f"Unknown topic-end parameter registration: {args.strip()}")
@@ -81,7 +81,7 @@ for macro, args in calls:
     ids = re.findall(r"\bID_[A-Z0-9_]+\b", args)
     if not ids:
         fail(f"Parameter registration has no disk ID: {macro}({args.strip()})")
-    disk_id = ids[0] if macro == "PF_ADD_ARBITRARY2" else ids[-1]
+    disk_id = ids[0] if macro in ("PF_ADD_ARBITRARY2", "VHS90_ADD_HIDDEN_ARBITRARY2") else ids[-1]
     actual_params.append(aliases.get(disk_id, "PARAM_" + disk_id[3:]))
 
 if actual_params != expected_params:
