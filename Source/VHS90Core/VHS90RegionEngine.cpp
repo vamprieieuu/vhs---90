@@ -339,40 +339,45 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
         }
     } else {
         const float headProgress=clamp01(localProgress);
-        switch(r.trackingProfile) {
-            case TrackingProfile::Vhs6RiftBand: {
-                // VHS6RIFT head-switch port: progressively increasing line
-                // displacement and the source's independent 240 Hz snow field.
-                shiftX=headProgress*headProgress*r.maxShiftPx;
-                const float snowHash=vhs6RiftHash2D(x,iy,
-                    regionSeed+static_cast<std::uint32_t>(t*240.0f)+55u);
-                if(snowHash>1.0f-headProgress*0.7f) {
-                    sourceSnow=1.0f;
-                    sourceSnowValue=snowHash;
+        if(r.headSwitchProfile==HeadSwitchProfile::Vhs6Rift) {
+            // VHS6RIFT source: quadratic head-switch line jitter and localized
+            // grayscale snow, advection-enabled inside the user-positioned mask.
+            shiftX+=std::pow(headProgress,2.0f)*r.maxShiftPx;
+            const int snowX=static_cast<int>(std::floor(x-noiseDriftX*cellW));
+            const int snowY=static_cast<int>(std::floor(y-noiseDriftY*cellH));
+            const float snowHash=vhs6RiftHash2D(snowX,snowY,
+                regionSeed+static_cast<std::uint32_t>(t*240.0f)+55u);
+            if(snowHash>1.0f-headProgress*0.7f) {
+                sourceSnow=1.0f;
+                sourceSnowValue=snowHash;
+            }
+        } else if(r.headSwitchProfile==HeadSwitchProfile::NtscR) {
+            // NTSC-R source: 1.5-power row displacement plus its optional
+            // mid-line transient at the leading edge of the selected region.
+            shiftX+=r.maxShiftPx*std::pow(headProgress,1.5f);
+            const float rowJitter=smoothHash2D(0.0f,
+                static_cast<float>(iy)-noiseDriftY*t*cellH,regionSeed+0x4e545343u)-0.5f;
+            shiftX+=rowJitter*r.servoDriftPx;
+            const float regionRows=std::max(1.0f,r.shape==RegionShape::VerticalBand
+                ?r.width*float(std::max(1,src.width))
+                :r.height*float(std::max(1,src.height)));
+            if(r.tearProbability>0.0f&&headProgress*regionRows<1.0f) {
+                const float jitterRand=(hashCell(0,iy,regionSeed+0x4d49444cu,0)
+                    +hashCell(1,iy,regionSeed+0x4d49444du,0))*0.5f;
+                const float copyStart=float(src.width)*(0.5f+(jitterRand-0.5f)*0.12f);
+                if(x<copyStart) shiftX=0.0f;
+                const float transientLength=16.0f;
+                const float transientX=x-copyStart;
+                if(transientX>=0.0f&&transientX<transientLength) {
+                    const float transientIntensity=(hashCell(2,iy,regionSeed+0x4d49444eu,0)+0.5f)*0.5f;
+                    sourceNoise+=(1.0f-transientX/transientLength)
+                        *(1.0f-transientX/transientLength)
+                        *(1.0f-transientX/transientLength)*transientIntensity;
                 }
-                break;
             }
-            case TrackingProfile::NtscRTracking: {
-                // NTSC-R head switching: nonlinear row shift, stochastic
-                // line jitter and bottom-weighted transient snow.
-                const float rowRandom=hashCell(0,iy/2,regionSeed+0x48535754u,p.frame);
-                shiftX=headProgress*headProgress*headProgress*r.maxShiftPx+
-                    (rowRandom-0.5f)*2.0f*r.waveAmplitudePx*headProgress;
-                const float bandwidthScale=std::clamp(r.servoSmoothnessPx/12.0f,0.25f,2.0f);
-                const float videoNoise=fbmNoise1D(x*(0.25f/bandwidthScale)-noiseDriftX,
-                    regionSeed+0x48534e4fu)*headProgress*headProgress*r.noiseAmount*4.0f;
-                const float speckles=ntscRowSpeckles(x,y,
-                    r.snowIntensity*headProgress*headProgress,r.snowAnisotropy,
-                    cellW*bandwidthScale,cellH,noiseDriftX,noiseDriftY,t,
-                    regionSeed+0x48535045u);
-                sourceNoise=videoNoise+speckles*0.28f;
-                break;
-            }
-            default: {
-                const float tear = hashCell(0, iy / 2, regionSeed + 0x9e3779b9u, p.frame);
-                shiftX += (tear - 0.5f) * r.maxShiftPx * 1.75f;
-                break;
-            }
+        } else {
+            const float tear=hashCell(0,iy/2,regionSeed+0x9e3779b9u,p.frame);
+            shiftX+=(tear-0.5f)*r.maxShiftPx*1.75f;
         }
     }
 

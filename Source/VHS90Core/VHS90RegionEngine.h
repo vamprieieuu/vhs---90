@@ -28,6 +28,8 @@ enum class TrackingProfile : std::uint8_t {
     VhsMainTracking = 7
 };
 
+enum class HeadSwitchProfile : std::uint8_t { Custom = 0, Vhs6Rift = 1, NtscR = 2 };
+
 // All position and size values are normalized to [0,1] frame coordinates.
 // HorizontalBand uses width for horizontal span and height for thickness.
 // VerticalBand uses width for thickness and height for vertical span.
@@ -37,6 +39,7 @@ struct DamageRegion {
     RegionKind kind = RegionKind::TrackingNoise;
     RegionShape shape = RegionShape::HorizontalBand;
     TrackingProfile trackingProfile = TrackingProfile::ServoSweep;
+    HeadSwitchProfile headSwitchProfile = HeadSwitchProfile::Custom;
 
     float centerX = 0.5f;
     float centerY = 0.5f;
