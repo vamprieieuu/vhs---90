@@ -338,8 +338,42 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
             }
         }
     } else {
-        const float tear = hashCell(0, iy / 2, regionSeed + 0x9e3779b9u, p.frame);
-        shiftX += (tear - 0.5f) * r.maxShiftPx * 1.75f;
+        const float headProgress=clamp01(localProgress);
+        switch(r.trackingProfile) {
+            case TrackingProfile::Vhs6RiftBand: {
+                // VHS6RIFT head-switch port: progressively increasing line
+                // displacement and the source's independent 240 Hz snow field.
+                shiftX=headProgress*headProgress*r.maxShiftPx;
+                const float snowHash=vhs6RiftHash2D(x,iy,
+                    regionSeed+static_cast<std::uint32_t>(t*240.0f)+55u);
+                if(snowHash>1.0f-headProgress*0.7f) {
+                    sourceSnow=1.0f;
+                    sourceSnowValue=snowHash;
+                }
+                break;
+            }
+            case TrackingProfile::NtscRTracking: {
+                // NTSC-R head switching: nonlinear row shift, stochastic
+                // line jitter and bottom-weighted transient snow.
+                const float rowRandom=hashCell(0,iy/2,regionSeed+0x48535754u,p.frame);
+                shiftX=headProgress*headProgress*headProgress*r.maxShiftPx+
+                    (rowRandom-0.5f)*2.0f*r.waveAmplitudePx*headProgress;
+                const float bandwidthScale=std::clamp(r.servoSmoothnessPx/12.0f,0.25f,2.0f);
+                const float videoNoise=fbmNoise1D(x*(0.25f/bandwidthScale)-noiseDriftX,
+                    regionSeed+0x48534e4fu)*headProgress*headProgress*r.noiseAmount*4.0f;
+                const float speckles=ntscRowSpeckles(x,y,
+                    r.snowIntensity*headProgress*headProgress,r.snowAnisotropy,
+                    cellW*bandwidthScale,cellH,noiseDriftX,noiseDriftY,t,
+                    regionSeed+0x48535045u);
+                sourceNoise=videoNoise+speckles*0.28f;
+                break;
+            }
+            default: {
+                const float tear = hashCell(0, iy / 2, regionSeed + 0x9e3779b9u, p.frame);
+                shiftX += (tear - 0.5f) * r.maxShiftPx * 1.75f;
+                break;
+            }
+        }
     }
 
     const float sx = x + shiftX;
