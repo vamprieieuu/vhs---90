@@ -1,4 +1,4 @@
-name: VHS-90 Windows AEX Build
+name: Build
 
 on:
   push:
@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   build-aex:
+    name: Build
     runs-on: windows-2022
     steps:
       - name: Checkout
