@@ -1,0 +1,20 @@
+[package]
+name = "openfx-plugin"
+version = "0.1.4"
+edition = "2021"
+license = "MIT OR ISC OR Apache-2.0"
+repository = "https://github.com/valadaptive/ntsc-rs/tree/main/crates/openfx-plugin"
+
+[dependencies]
+allocator-api2 = "0.2.16"
+ntscrs = { path = "../ntscrs" }
+rfd = "0.15.0"
+
+[build-dependencies]
+bindgen = "0.70"
+
+[lib]
+crate-type = ["cdylib"]
+
+[lints]
+workspace = true

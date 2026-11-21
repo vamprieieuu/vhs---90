@@ -1,0 +1,246 @@
+VHSart — ADVANCED TRACKING NOISE & SNOW ENGINE
+
+Multi-Plugin Research, Source-Based Reconstruction & Advanced Preset System
+
+1. Main Objective
+
+Expand the VHSart Tracking Noise system into a comprehensive, highly configurable analog signal degradation engine.
+
+The goal is to research, reconstruct, and combine the distinctive Tracking Noise and Snow characteristics found in:
+
+1. Signal Plugin
+2. NTSC R
+3. VHS Tape
+4. Universal VHS
+5. VHS Pro
+
+Do not assume these plugins use identical algorithms. Investigate each implementation independently, identify its actual behavior, and preserve the distinctive characteristics that make each one visually recognizable.
+
+The final result must be a unified and extensible engine with multiple genuinely different presets, not five superficial copies of the original plugins.
+
+2. Source Code and Reverse-Engineering Research
+
+Use the actual available materials as the primary research sources:
+
+* NTSC R: Inspect the available original source code. Study its Tracking Noise implementation, parameters, internal calculations, rendering behavior, and related Snow/Noise controls.
+* VHS Tape: Inspect the available AEX binary and the engineer’s Ghidra reverse-engineering materials, including relevant C and H files. Recover as much implementation detail and parameter behavior as technically possible.
+* Signal Plugin: Investigate its actual Tracking Noise and Tape-related behavior using available source materials and technical references.
+* Universal VHS and VHS Pro: Examine all available source code, binaries, extracted files, interfaces, and documented behavior.
+
+If usable source code exists and its license and compatibility permit reuse, evaluate whether it can be integrated directly.
+
+Otherwise, reconstruct the behavior independently using the available technical evidence.
+
+Do not invent implementation details or claim exact reconstruction when the necessary source or evidence is unavailable.
+
+3. Tracking Noise — Expanded Position and Coverage System
+
+The Tracking Noise engine must support considerably more than a conventional horizontal tracking band.
+
+A. Tracking Noise Height
+
+Implement a genuinely extended Height control.
+
+The Height must be capable of increasing continuously until the Tracking Noise covers the entire image.
+
+For example:
+
+* Minimum: no visible tracking band.
+* Low: thin tracking band.
+* Medium: partial image coverage.
+* High: large tracking region.
+* Maximum: complete image coverage.
+
+Do not inherit arbitrary parameter limits from NTSC R. If its original Height parameter stops at 120, investigate what that value means internally, but design VHSart’s control to support full-frame coverage.
+
+At maximum coverage, the original image should be capable of becoming almost or completely obscured by the Tracking Noise.
+
+The result must remain visually convincing rather than simply stretching a static noise texture.
+
+B. Tracking Noise Position and Direction
+
+Allow the user to position Tracking Noise around the image, not just in one fixed horizontal region.
+
+Support:
+
+* Top
+* Bottom
+* Left
+* Right
+* Multiple simultaneous regions
+* Freely adjustable positioning where technically practical
+
+Each region must have independent controls for:
+
+* Position
+* Height or Width
+* Coverage
+* Intensity
+* Displacement
+* Edge behavior
+* Noise density
+
+For example, users must be able to create a tracking band entering from the top, another emerging from the bottom, or vertical tracking interference along either side.
+
+C. Tracking Noise Expansion
+
+Implement controls that allow the user to extend and enlarge the tracking region.
+
+The user must be able to increase its coverage progressively until it occupies the entire frame.
+
+Support independent control over horizontal and vertical expansion, with appropriate behavior for horizontal and vertical tracking regions.
+
+D. Wave Intensity
+
+Implement a dedicated Wave Intensity control.
+
+Research how the source plugins generate their tracking waves and reproduce the underlying behavior where possible.
+
+The control should affect the intensity and deformation of the tracking interference, not merely increase ordinary grain.
+
+E. Tracking Noise Enable/Disable
+
+Provide an independent enable/disable switch for Tracking Noise.
+
+Disabling it must not reset or destroy its saved parameter values.
+
+4. Advanced Snow Engine
+
+Snow must be treated as a complete signal-degradation system, not as a single generic noise slider.
+
+Research the Snow behavior in NTSC R, VHS Pro, VHS Tape, Universal VHS, and Signal Plugin.
+
+Combine the useful characteristics into a detailed Snow engine while preserving meaningful differences between the source implementations.
+
+Required controls:
+
+* Snow Enable/Disable
+* Snow Intensity
+* Snow Density
+* Snow Size
+* Snow Distribution
+* Snow Contrast
+* Snow Brightness
+* Snow Color
+* Monochrome/Colored Snow
+* Temporal Variation
+* Randomness
+* Animation Speed
+* Seed
+
+Investigate the actual Snow implementation in NTSC R before deciding what each original parameter does.
+
+In particular, inspect the parameter referred to in the source/interface as Snow Inspiratory (verify its exact name and purpose rather than guessing). Determine whether it controls a particular snow-generation behavior, modulation, distribution, or another signal characteristic.
+
+Do not discard unusual source-specific controls just because their meaning is initially unclear.
+
+If the original behavior can be recovered, implement it accurately. If it cannot, document the uncertainty and develop an independently designed equivalent only when technically justified.
+
+5. Additional Noise Intensity
+
+Implement a separate Noise Intensity control for the noise occurring beneath or around the Tracking Noise region.
+
+Do not automatically combine this with Snow Intensity.
+
+Investigate whether the source plugins distinguish between:
+
+* Tracking-band noise
+* Snow/static
+* Background signal noise
+* General image noise
+* Chroma noise
+* Luma interference
+
+Preserve these distinctions wherever the source behavior supports them.
+
+6. Source-Inspired Preset Collection
+
+Create a collection of independent presets inspired by the actual characteristics discovered in the five plugins.
+
+Each preset must have a new VHSart name.
+
+Do not use original plugin names in preset names.
+
+Do not create five presets that differ only in color or intensity.
+
+Presets must preserve distinctive differences in:
+
+* Tracking-band geometry
+* Position and movement
+* Height and coverage
+* Wave behavior
+* Snow generation
+* Noise distribution
+* Signal displacement
+* Chroma and luma degradation
+* Temporal behavior
+
+The user should be able to select a preset inspired by a particular source and still edit all relevant controls independently.
+
+The reference image previously supplied for the four-edge Tracking Noise analysis must also be considered as an independent visual target.
+
+7. Unified Engine Architecture
+
+Before implementing anything, inspect the complete VHSart project and identify existing engines, especially:
+
+* Localized Tear & Chroma Burst
+* Existing Tracking Noise functionality
+* Existing Static/Snow generators
+* Existing signal displacement and chroma systems
+
+Extend or reuse existing engines wherever technically appropriate.
+
+Do not create duplicate engines for functionality that already exists.
+
+The final architecture should support multiple independently configurable Tracking Noise regions, source-inspired behaviors, and advanced Snow generation.
+
+8. Visual and Technical Requirements
+
+All effects must be generated procedurally during rendering.
+
+Do not use pre-rendered images, videos, GIFs, or static noise overlays as the actual effect implementation.
+
+Preserve:
+
+* Native C++ After Effects SDK compatibility
+* Alpha and premultiplied-alpha correctness
+* Multi-Frame Rendering compatibility
+* Thread safety
+* Deterministic rendering when using a fixed seed
+* Independent parameter control
+* Existing VHSart functionality and presets
+
+9. Testing and Validation
+
+Test the engine at multiple Tracking Noise heights, including complete frame coverage.
+
+Test all four edge positions independently and in combination.
+
+Test extreme Snow Intensity values and combinations of Snow, Wave Intensity, Tracking Noise, and background Noise Intensity.
+
+Verify that:
+
+* Tracking Noise can completely obscure the original image.
+* Top, bottom, left, and right positioning work correctly.
+* Multiple regions can coexist.
+* Height and coverage controls behave progressively.
+* Snow remains independently adjustable.
+* Source-inspired presets produce genuinely distinct results.
+* Existing VHSart engines are not broken.
+
+10. Final Expected Result
+
+Deliver a distinctive VHSart Tracking Noise and Snow system built from the combined technical research of all five source plugins.
+
+The final system must offer:
+
+1. Source-inspired Tracking Noise behaviors.
+2. Full-frame Tracking Noise coverage.
+3. Four-edge and multi-region positioning.
+4. Independent region sizing and intensity.
+5. Wave Intensity.
+6. A comprehensive Snow Engine.
+7. Separate background Noise Intensity.
+8. A collection of visually distinct, editable presets.
+
+Important: The objective is not to imitate the appearance of a few reference screenshots. The objective is to understand the original implementations wherever possible, reconstruct their actual signal behavior, and combine their strongest characteristics into a much more capable VHSart engine.

@@ -1,0 +1,1826 @@
+//! NTSCRT for Windows — first skeleton: open a picture, NTSC on/off, the
+//! Downscale, a CRT shader, and a live preview. Rendering runs on a worker
+//! thread that owns the engine; the window shows the latest frame.
+//!
+//! Hooks (for checking it headlessly):
+//! - `NTSCRT_SOURCE=<image>` (or a path argument): open it at launch.
+//! - `NTSCRT_UI_SNAPSHOT=<png>`: once the first frame is on screen, save a
+//!   screenshot of the window there and quit.
+//! - `NTSCRT_OPEN=vcr,glitch`: open only these sidebar sections (source,
+//!   crop, downscale, digital, ntsc, vcr, glitch, crt).
+//! - `NTSCRT_GLITCH=vcr=1,tape_mold=0.7`: set glitch knobs (ids as in the
+//!   look files).
+
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+mod clip_frames;
+mod digital_panel;
+mod export;
+mod frame_cache;
+mod glitch_panel;
+mod vcr_panel;
+mod ntsc_panel;
+mod prefetch;
+mod producer;
+mod screen_loop;
+mod shader_panel;
+mod timeline_ui;
+mod update;
+mod worker;
+
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::mpsc::{channel, Receiver, Sender};
+
+use ntscrt_media::{Codec, VideoInfo};
+use std::sync::Arc;
+use worker::{Event, Request};
+use std::time::{Duration, Instant};
+
+use eframe::egui;
+use ntscrt_engine::serde_json::{Map, Value};
+use ntscrt_engine::{
+    app_shader_defaults, find_presets, find_shaders, write_look, Look, LookState, ntsc_default_values, ntsc_settings, ntsc_values_json, preset_parameters, DownscaleMethod,
+    DownscaleSpec, Image, NtscSetting, NtscSettings, Settings, ShaderParam, ShaderSpec, CRT_SHADERS,
+};
+use ntscrt_engine::crop::{Crop, Ratio};
+use ntscrt_engine::preview::{self, PreviewPlan};
+
+const SIDEBAR_WIDTH: f32 = 330.0;
+
+/// How far from the compare line (points) a press still takes hold of it.
+const COMPARE_GRAB: f32 = 12.0;
+/// The compare line's grip, a pill at mid-height.
+const COMPARE_GRIP: egui::Vec2 = egui::vec2(18.0, 30.0);
+
+/// The sidebar sections' open/closed state, starting as the Mac's do: Crop
+/// closed, Digital video closed until it's turned on, the rest open.
+struct Sections {
+    source: bool,
+    crop: bool,
+    downscale: bool,
+    digital: bool,
+    ntsc: bool,
+    vcr: bool,
+    glitch: bool,
+    crt: bool,
+}
+
+impl Default for Sections {
+    fn default() -> Self {
+        Self { source: true, crop: false, downscale: true, digital: false, ntsc: true, vcr: true, glitch: true, crt: true }
+    }
+}
+
+/// The chevron beside a section heading: click to show or hide the section.
+fn twirl(ui: &mut egui::Ui, open: &mut bool) {
+    let size = egui::vec2(ui.spacing().icon_width, ui.spacing().interact_size.y);
+    let (_, response) = ui.allocate_exact_size(size, egui::Sense::click());
+    let response = response.on_hover_text(if *open { "Hide this section" } else { "Show this section" });
+    if response.clicked() {
+        *open = !*open;
+    }
+    egui::collapsing_header::paint_default_icon(ui, if *open { 1.0 } else { 0.0 }, &response);
+}
+
+struct Rendered {
+    seq: u64,
+    result: Result<Image, String>,
+    millis: u128,
+}
+
+struct App {
+    requests: Sender<Request>,
+    events: Receiver<Event>,
+    adapter: String,
+    shaders: Option<PathBuf>,
+
+    source: Option<(String, u32, u32)>,
+    downscale: bool,
+    downscale_width: u32,
+    method: DownscaleMethod,
+    ntsc: bool,
+    ntsc_settings: Vec<NtscSetting>,
+    ntsc_values: Map<String, Value>,
+    /// The Glitch stage (on by default, healthy: no effect until a knob turns).
+    glitch_enabled: bool,
+    glitch_values: ntscrt_engine::glitch::GlitchSettings,
+    /// The Digital video stage (off by default; its controls start from
+    /// the Cheap camcorder look, as on the Mac).
+    digital_enabled: bool,
+    digital_values: std::collections::BTreeMap<String, f64>,
+    /// Which sidebar sections are open (the chevrons beside the headings).
+    open: Sections,
+    /// The Digital video stage as of the last frame drawn: its section
+    /// opens when the stage comes on, from the checkbox, a preset or a look.
+    digital_was_enabled: bool,
+    /// The receiver's clock on a still without a timeline: wall-clock time
+    /// while Live noise runs (the Mac's animateClock).
+    animate_clock: f64,
+    animate_last: Option<Instant>,
+    crt: bool,
+    shader: usize,
+    /// Each shader's parameters (as its preset declares them), loaded on first use.
+    shader_params: HashMap<usize, Result<Vec<ShaderParam>, String>>,
+    /// Each shader's current values; kept when switching between shaders.
+    shader_values: HashMap<usize, HashMap<String, f32>>,
+
+    presets: Option<PathBuf>,
+    /// The look last loaded: its name, the file's other sections (written
+    /// back on save), and what it uses that isn't here yet.
+    look_name: Option<String>,
+    look_raw: Option<Map<String, Value>>,
+    look_notes: Vec<&'static str>,
+    downscale_preset: String,
+
+    // Preview (the Mac's palette: Compare, Integer scale, Animate, Zoom).
+    integer_scale: bool,
+    zoom: f32,
+    /// Pan in normalized picture space.
+    pan: egui::Vec2,
+    compare: bool,
+    compare_x: f32,
+    dragging_compare: bool,
+    animate: bool,
+    /// Seeds the NTSC noise and is the shader's frame count; advances while
+    /// Animate is on (the Mac's frameCounter).
+    frame: usize,
+    last_tick: Instant,
+    source_texture: Option<egui::TextureHandle>,
+    /// The picture as the chain sees it (cropped), for Compare.
+    source_pixels: Option<Image>,
+    /// The picture's or clip's size as opened (before the crop).
+    original_size: Option<(u32, u32)>,
+    /// The open clip, if it's a video.
+    video: Option<VideoInfo>,
+    /// The clip's frame on screen, and playback (started at, from frame).
+    video_frame: usize,
+    playing: Option<(Instant, usize)>,
+    crop_enabled: bool,
+    crop: Crop,
+    /// Dragging the picture: the crop and pointer where the drag began.
+    crop_drag: Option<(Crop, egui::Pos2)>,
+
+    seq: u64,
+    sent: Option<(Settings, PreviewPlan, bool, usize, Option<Crop>, bool)>,
+    texture: Option<egui::TextureHandle>,
+    shown_seq: u64,
+    /// NTSCRT_PROFILE=1: frames shown, and where their time went, each second.
+    profile: Option<Profile>,
+    sent_at: Instant,
+    status: String,
+    error: Option<String>,
+
+    // Export (the Mac's popover, as a window).
+    export_open: bool,
+    export_format: export::Format,
+    export_long_edge: u32,
+    export_quality: usize,
+    export_loops: usize,
+    export_snap: bool,
+    gif_width: u32,
+    gif_fps: u32,
+    // The timeline (the Mac's Animate): keys, a still's length and rate,
+    // the playhead (0…1), still playback, and the key being edited.
+    timeline_open: bool,
+    keys: Vec<ntscrt_engine::timeline::Keyframe>,
+    timeline_seconds: f64,
+    timeline_fps: u32,
+    playhead: f64,
+    timeline_playing: Option<(Instant, f64)>,
+    /// The VCR and Glitch knobs as the user set them between keyframes,
+    /// while they still are: the preview runs on them rather than on the
+    /// keyframes, as every other panel's edits show until the next scrub.
+    glitch_off_key_edit: Option<ntscrt_engine::glitch::GlitchSettings>,
+    selected_key: Option<usize>,
+    key_drag: Option<usize>,
+    export_job: Option<(Arc<export::Progress>, Receiver<Result<String, String>>)>,
+    export_status: String,
+    /// The still as opened (exports render it on their own engine), or the clip's path.
+    still: Option<Image>,
+    source_path: Option<PathBuf>,
+
+    snapshot: Option<PathBuf>,
+    snapshot_requested: bool,
+    /// NTSCRT_SNAPSHOT_AFTER=seconds: wait this long first.
+    snapshot_after: Option<(Instant, f64)>,
+    /// NTSCRT_PLAY=1: play the clip as soon as it's open.
+    /// NTSCRT_PLAY=1 (or a number of seconds to wait first): play the clip
+    /// once it's open.
+    autoplay: Option<f64>,
+    /// NTSCRT_EXPORT=<file>: export there once the preview is up, then quit.
+    auto_export: Option<PathBuf>,
+    screen_loop: screen_loop::ScreenLoop,
+    /// Frames of the clip baked under the current settings (the frame cache).
+    cached_frames: usize,
+    autoplay_at: Option<Instant>,
+    /// NTSCRT_SCREEN_LOOP=1 (or a render hook): open it once a picture is up.
+    auto_screen_loop: bool,
+    /// Checking GitHub for a newer release (update.rs).
+    updates: update::Updates,
+}
+
+impl App {
+    fn new(cc: &eframe::CreationContext) -> Self {
+        let (req_tx, req_rx) = channel();
+        let (ev_tx, ev_rx) = channel();
+        let ctx = cc.egui_ctx.clone();
+        std::thread::spawn(move || worker::run(req_rx, ev_tx, ctx));
+        let mut app = Self {
+            requests: req_tx,
+            events: ev_rx,
+            adapter: "starting…".into(),
+            shaders: find_shaders(),
+            source: None,
+            downscale: true,
+            downscale_width: 320,
+            method: DownscaleMethod::Nearest,
+            ntsc: true,
+            ntsc_settings: ntsc_settings(),
+            ntsc_values: ntsc_default_values(),
+            glitch_enabled: true,
+            glitch_values: ntscrt_engine::glitch::GlitchSettings::default(),
+            digital_enabled: false,
+            digital_values: ntscrt_engine::codec::DigitalParam::starting_values(),
+            open: Sections::default(),
+            digital_was_enabled: false,
+            animate_clock: 0.0,
+            animate_last: None,
+            crt: true,
+            shader_params: HashMap::new(),
+            shader_values: HashMap::new(),
+            presets: find_presets(),
+            look_name: None,
+            look_raw: None,
+            look_notes: Vec::new(),
+            downscale_preset: "VGA (320px)".into(),
+            shader: CRT_SHADERS.iter().position(|s| s.0 == "glow_gauss").unwrap_or(0),
+            integer_scale: true,
+            zoom: 1.0,
+            pan: egui::Vec2::ZERO,
+            compare: false,
+            compare_x: 0.5,
+            dragging_compare: false,
+            animate: true,
+            frame: 0,
+            last_tick: Instant::now(),
+            source_texture: None,
+            source_pixels: None,
+            original_size: None,
+            video: None,
+            video_frame: 0,
+            playing: None,
+            crop_enabled: false,
+            crop: Crop::new(Ratio::SQUARE),
+            crop_drag: None,
+            seq: 0,
+            sent: None,
+            texture: None,
+            shown_seq: 0,
+            profile: std::env::var_os("NTSCRT_PROFILE").map(|_| Profile::new()),
+            sent_at: Instant::now(),
+            status: String::new(),
+            error: None,
+            export_open: false,
+            export_format: export::Format::Mp4(Codec::H264),
+            export_long_edge: 1920,
+            export_quality: 1,
+            export_loops: 1,
+            export_snap: false,
+            gif_width: 480,
+            gif_fps: 12,
+            timeline_open: false,
+            keys: Vec::new(),
+            timeline_seconds: 5.0,
+            timeline_fps: 30,
+            playhead: 0.0,
+            timeline_playing: None,
+            glitch_off_key_edit: None,
+            selected_key: None,
+            key_drag: None,
+            export_job: None,
+            export_status: String::new(),
+            still: None,
+            source_path: None,
+            snapshot: std::env::var_os("NTSCRT_UI_SNAPSHOT").map(PathBuf::from),
+            snapshot_requested: false,
+            snapshot_after: std::env::var("NTSCRT_SNAPSHOT_AFTER").ok().and_then(|v| v.parse().ok()).map(|s| (Instant::now(), s)),
+            autoplay: std::env::var("NTSCRT_PLAY").ok().and_then(|v| if v == "1" { Some(0.0) } else { v.parse().ok() }),
+            auto_export: std::env::var_os("NTSCRT_EXPORT").map(PathBuf::from),
+            screen_loop: screen_loop::ScreenLoop::new(std::env::var_os("NTSCRT_SCREEN_LOOP_RENDER").map(PathBuf::from)),
+            cached_frames: 0,
+            autoplay_at: None,
+            auto_screen_loop: std::env::var("NTSCRT_SCREEN_LOOP").as_deref() == Ok("1") || std::env::var_os("NTSCRT_SCREEN_LOOP_RENDER").is_some(),
+            updates: update::Updates::new(
+                &cc.egui_ctx,
+                ["NTSCRT_UI_SNAPSHOT", "NTSCRT_EXPORT", "NTSCRT_SCREEN_LOOP_RENDER"].iter().any(|k| std::env::var_os(k).is_some()),
+            ),
+        };
+        let start = std::env::args_os().nth(1).map(PathBuf::from).or_else(|| std::env::var_os("NTSCRT_SOURCE").map(PathBuf::from));
+        if let Some(p) = start {
+            app.open(&p);
+        }
+        if let Some(p) = std::env::var_os("NTSCRT_LOOK") {
+            app.load_look(Path::new(&p));
+        }
+        // NTSCRT_CROP=ratio[,x,y,zoom] and NTSCRT_COMPARE=1, for headless checks.
+        if let Ok(spec) = std::env::var("NTSCRT_CROP") {
+            let mut parts = spec.split(',');
+            if let Some(r) = parts.next().and_then(Ratio::from_label) {
+                let mut c = Crop::new(r);
+                let mut next = || parts.next().and_then(|v| v.trim().parse::<f64>().ok());
+                if let Some(x) = next() { c.x = x }
+                if let Some(y) = next() { c.y = y }
+                if let Some(z) = next() { c.scale = z }
+                app.crop = c;
+                app.crop_enabled = true;
+            }
+        }
+        if std::env::var("NTSCRT_ANIMATE").as_deref() == Ok("0") {
+            app.animate = false;
+        }
+        if let Some(p) = &app.auto_export {
+            let ext = p.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
+            app.export_format = match ext.as_str() {
+                "png" => export::Format::Png,
+                "gif" => export::Format::Gif,
+                _ if std::env::var("NTSCRT_EXPORT_HEVC").as_deref() == Ok("1") => export::Format::Mp4(Codec::Hevc),
+                _ => export::Format::Mp4(Codec::H264),
+            };
+            if let Some(n) = std::env::var("NTSCRT_EXPORT_LOOPS").ok().and_then(|v| v.parse().ok()) {
+                app.export_loops = n;
+            }
+            // 0–3: Standard … Maximum.
+            if let Some(q) = std::env::var("NTSCRT_EXPORT_QUALITY").ok().and_then(|v| v.parse::<usize>().ok()) {
+                app.export_quality = q.min(3);
+            }
+        }
+        if let Ok(list) = std::env::var("NTSCRT_OPEN") {
+            let has = |n: &str| list.split(',').any(|x| x.trim() == n);
+            app.open = Sections {
+                source: has("source"),
+                crop: has("crop"),
+                downscale: has("downscale"),
+                digital: has("digital"),
+                ntsc: has("ntsc"),
+                vcr: has("vcr"),
+                glitch: has("glitch"),
+                crt: has("crt"),
+            };
+        }
+        if let Ok(pairs) = std::env::var("NTSCRT_GLITCH") {
+            for kv in pairs.split(',') {
+                if let Some((k, v)) = kv.split_once('=') {
+                    if let Ok(f) = v.trim().parse::<f64>() {
+                        app.glitch_values.values.insert(k.trim().to_string(), f);
+                    }
+                }
+            }
+        }
+        if std::env::var("NTSCRT_COMPARE").as_deref() == Ok("1") {
+            app.compare = true;
+            app.compare_x = 0.6;
+        }
+        app
+    }
+
+    fn open(&mut self, path: &Path) {
+        let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        let ext = path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
+        self.sent = None;
+        self.error = None;
+        self.source_texture = None;
+        self.source_pixels = None;
+        self.source_path = Some(path.to_path_buf());
+        self.still = None;
+        if matches!(ext.as_str(), "mp4" | "mov" | "m4v") {
+            // The worker opens it and reports its size (see Event::Opened).
+            self.source = Some((name, 0, 0));
+            self.original_size = None;
+            self.video = None;
+            self.playing = None;
+            let _ = self.requests.send(Request::Video(path.to_path_buf()));
+            return;
+        }
+        // The image crate first; Windows' own codecs (HEIC, and whatever
+        // else is installed) for the rest.
+        let decoded = image::open(path).map(|img| {
+            let img = img.to_rgba8();
+            let (w, h) = img.dimensions();
+            (w, h, img.into_raw())
+        });
+        let decoded = decoded.or_else(|e| ntscrt_media::read_image(path).map_err(|wic| if matches!(ext.as_str(), "heic" | "heif") { format!("{wic:#}") } else { e.to_string() }));
+        match decoded {
+            Ok((w, h, rgba)) => {
+                self.source = Some((name, w, h));
+                self.original_size = Some((w, h));
+                self.video = None;
+                self.playing = None;
+                let image = Image::new(w, h, rgba);
+                self.still = Some(image.clone());
+                let _ = self.requests.send(Request::Still(image));
+            }
+            Err(e) => self.error = Some(format!("Couldn't open {}: {e}", path.display())),
+        }
+    }
+
+    /// Back to nothing open.
+    fn clear_source(&mut self) {
+        self.source = None;
+        self.source_path = None;
+        self.original_size = None;
+        self.still = None;
+        self.video = None;
+        self.playing = None;
+        self.texture = None;
+        self.source_texture = None;
+        self.source_pixels = None;
+        self.sent = None;
+        self.error = None;
+        self.cached_frames = 0;
+        self.close_screen_loop();
+    }
+
+    /// The picture the chain sees: the opened size, cropped.
+    fn picture_size(&self) -> Option<(u32, u32)> {
+        let (w, h) = self.original_size?;
+        Some(if self.crop_enabled {
+            let (_, _, cw, ch) = self.crop.rect(w, h);
+            (cw, ch)
+        } else {
+            (w, h)
+        })
+    }
+
+    fn crop_panel(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            twirl(ui, &mut self.open.crop);
+            ui.checkbox(&mut self.crop_enabled, egui::RichText::new("Crop").heading())
+                .on_hover_text("Cut the picture to an aspect ratio before anything else sees it. Drag the picture in the preview to move the crop.");
+        });
+        if !self.open.crop {
+            return;
+        }
+        // The ratios show while Crop is off too (as on the Mac): picking one
+        // turns it on.
+        let mut ratio_button = |ui: &mut egui::Ui, r: Ratio| {
+            if ui.selectable_label(self.crop_enabled && self.crop.ratio == r, r.label()).clicked() {
+                if !(self.crop_enabled && self.crop.ratio == r) {
+                    self.crop = Crop::new(r);
+                }
+                self.crop_enabled = true;
+            }
+        };
+        ui.horizontal(|ui| ratio_button(ui, Ratio::SQUARE));
+        ui.horizontal(|ui| Ratio::PORTRAIT.into_iter().for_each(|r| ratio_button(ui, r)));
+        ui.horizontal(|ui| Ratio::LANDSCAPE.into_iter().for_each(|r| ratio_button(ui, r)));
+        if !self.crop_enabled {
+            return;
+        }
+        let Some((w, h)) = self.original_size else { return };
+        let (_, _, cw, ch) = self.crop.rect(w, h);
+        if cw < w {
+            ui.label("Left / right");
+            ui.add(egui::Slider::new(&mut self.crop.x, 0.0..=1.0).show_value(false));
+        }
+        if ch < h {
+            ui.label("Up / down");
+            ui.add(egui::Slider::new(&mut self.crop.y, 0.0..=1.0).show_value(false));
+        }
+        ui.label("Zoom in");
+        let mut pct = self.crop.scale * 100.0;
+        if ui.add(egui::Slider::new(&mut pct, 100.0..=Crop::MAX_SCALE * 100.0).suffix("%").max_decimals(0)).changed() {
+            self.crop.scale = pct / 100.0;
+        }
+        ui.horizontal(|ui| {
+            ui.weak(format!("{cw} × {ch} of {w} × {h}"));
+            if ui.small_button("Center").clicked() {
+                (self.crop.x, self.crop.y) = (0.5, 0.5);
+            }
+        });
+    }
+
+    /// Load a look (the Mac app's preset JSON), as the Mac's `loadLook` does.
+    fn load_look(&mut self, path: &Path) {
+        let look = match std::fs::read_to_string(path).map_err(anyhow::Error::from).and_then(|j| Look::parse(&j)) {
+            Ok(l) => l,
+            Err(e) => {
+                self.error = Some(format!("Couldn't load {}: {e:#}", path.display()));
+                return;
+            }
+        };
+        if let Some(c) = look.crop {
+            self.crop = c;
+            self.crop_enabled = true;
+        }
+        if let Some(v) = look.downscale_enabled { self.downscale = v }
+        if let Some(v) = look.downscale_width { self.downscale_width = v }
+        if let Some(v) = &look.downscale_preset { self.downscale_preset = v.clone() }
+        if let Some(m) = look.downscale_method { self.method = m }
+        if let Some(settings) = &look.ntsc_settings { self.ntsc_values = settings.clone() }
+        if let Some(v) = look.ntsc_enabled { self.ntsc = v }
+        if let Some(id) = &look.shader_preset {
+            if let Some(i) = CRT_SHADERS.iter().position(|s| s.0 == id) {
+                self.shader = i;
+                // The shader's starting values with the look's on top.
+                self.shader_params.remove(&i);
+                self.shader_values.remove(&i);
+                self.ensure_shader();
+                if let Some(values) = self.shader_values.get_mut(&i) {
+                    values.extend(look.shader_params.iter().map(|(k, v)| (k.clone(), *v)));
+                }
+            }
+        }
+        if let Some(v) = look.shader_enabled { self.crt = v }
+        self.glitch_enabled = look.glitch_enabled;
+        self.glitch_values = look.glitch_values.clone();
+        // Looks from before the Digital video stage leave it off.
+        match &look.digital {
+            Some((enabled, values)) => {
+                let mut v = ntscrt_engine::codec::DigitalParam::default_values();
+                v.extend(values.iter().map(|(k, x)| (k.clone(), *x)));
+                self.digital_values = v;
+                self.digital_enabled = *enabled;
+            }
+            None => self.digital_enabled = false,
+        }
+        if let Some(d) = look.timeline_duration { self.timeline_seconds = d }
+        if let Some(f) = look.timeline_fps { self.timeline_fps = f }
+        if look.raw.contains_key("timeline") {
+            self.keys = look.keys.clone();
+            self.selected_key = None;
+            self.timeline_playing = None;
+            self.timeline_open = look.timeline_enabled.unwrap_or(false);
+        }
+        // A look with keyframes opens the timeline at its start (as the Mac
+        // does: otherwise the animation is loaded but invisible).
+        if !self.keys.is_empty() && look.raw.contains_key("timeline") {
+            self.timeline_open = true;
+            self.scrub(0.0);
+        }
+        self.look_notes = look.unported();
+        self.look_name = path.file_stem().map(|n| n.to_string_lossy().into_owned());
+        self.look_raw = Some(look.raw);
+        self.error = None;
+    }
+
+    fn save_look(&mut self, path: &Path) {
+        self.ensure_shader();
+        let empty = HashMap::new();
+        let json = write_look(
+            self.look_raw.as_ref(),
+            &LookState {
+                downscale_enabled: self.downscale,
+                downscale_width: self.downscale_width,
+                downscale_preset: &self.downscale_preset,
+                downscale_method: self.method,
+                ntsc_enabled: self.ntsc,
+                ntsc_settings: &self.ntsc_values,
+                shader_enabled: self.crt,
+                shader_preset: CRT_SHADERS[self.shader].0,
+                shader_params: self.shader_values.get(&self.shader).unwrap_or(&empty),
+                crop: self.crop_enabled.then_some(self.crop),
+                glitch: Some((self.glitch_enabled, &self.glitch_values)),
+                digital: Some((self.digital_enabled, &self.digital_values)),
+                timeline: Some(ntscrt_engine::TimelineState {
+                    enabled: self.timeline_open,
+                    duration: self.timeline_seconds,
+                    fps: self.timeline_fps,
+                    keys: &self.keys,
+                }),
+            },
+        );
+        match std::fs::write(path, json) {
+            Ok(()) => self.look_name = path.file_stem().map(|n| n.to_string_lossy().into_owned()),
+            Err(e) => self.error = Some(format!("Couldn't save {}: {e}", path.display())),
+        }
+    }
+
+    fn preset_menu(&mut self, ui: &mut egui::Ui) {
+        ui.menu_button("Preset", |ui| {
+            if ui.button("Load…").clicked() {
+                if let Some(p) = rfd::FileDialog::new().add_filter("Look", &["json"]).pick_file() {
+                    self.load_look(&p);
+                }
+                ui.close();
+            }
+            if ui.button("Save…").clicked() {
+                let name = format!("{}.json", self.look_name.as_deref().unwrap_or("Look"));
+                if let Some(p) = rfd::FileDialog::new().add_filter("Look", &["json"]).set_file_name(name).save_file() {
+                    self.save_look(&p);
+                }
+                ui.close();
+            }
+            if let Some(dir) = self.presets.clone() {
+                ui.separator();
+                let mut names: Vec<PathBuf> = std::fs::read_dir(&dir)
+                    .map(|r| r.flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|x| x == "json")).collect())
+                    .unwrap_or_default();
+                names.sort_by_key(|p| p.file_stem().map(|s| s.to_string_lossy().to_lowercase()));
+                egui::ScrollArea::vertical().max_height(500.0).show(ui, |ui| {
+                    for p in names {
+                        let label = p.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+                        if ui.button(label).clicked() {
+                            self.load_look(&p);
+                            ui.close();
+                        }
+                    }
+                });
+            }
+            // Starting points for the Digital video stage alone: they switch
+            // it on and set its controls and the Downscale width, leaving the
+            // rest of the look as it is.
+            ui.separator();
+            ui.weak("Digital video");
+            for f in ntscrt_engine::codec::DigitalFormat::all() {
+                if ui.button(f.name).on_hover_text(f.blurb).clicked() {
+                    self.apply_digital_format(f);
+                    ui.close();
+                }
+            }
+        });
+    }
+
+    /// A format's settings, and its resolution as the Downscale's (the
+    /// Mac's applyDigitalFormat), with the stage switched on.
+    fn apply_digital_format(&mut self, f: &ntscrt_engine::codec::DigitalFormat) {
+        let mut v = ntscrt_engine::codec::DigitalParam::default_values();
+        v.extend(f.values_map());
+        self.digital_values = v;
+        self.digital_enabled = true;
+        self.downscale = true;
+        self.downscale_width = f.width as u32;
+        self.downscale_preset = format!("{} ({}px)", f.name, f.width);
+        self.auto_key();
+    }
+
+    fn digital_settings(&self) -> ntscrt_engine::codec::DigitalSettings {
+        ntscrt_engine::codec::DigitalSettings::new(self.digital_values.iter().map(|(k, v)| (k.clone(), *v)))
+    }
+
+    /// The Downscale for a picture: half the lines with the Digital video
+    /// stage's One field on (the Mac's downscaleSpec).
+    fn downscale_spec(&self, picture: (u32, u32)) -> Option<DownscaleSpec> {
+        if !self.downscale {
+            return None;
+        }
+        let d = DownscaleSpec::for_width(self.downscale_width, picture, self.method);
+        Some(if self.digital_enabled && self.digital_settings().get("fields") >= 0.5 { d.one_field() } else { d })
+    }
+
+    /// The frame number the Digital stage gets: a clip's own, the
+    /// timeline's on a still, else the Live noise counter.
+    fn digital_frame_index(&self) -> i64 {
+        if self.video.is_some() {
+            return self.video_frame as i64;
+        }
+        if self.timeline_open {
+            return (self.playhead * self.timeline_frames().saturating_sub(1).max(1) as f64).round() as i64;
+        }
+        self.frame as i64
+    }
+
+    /// How the Digital knobs vary over the timeline, by frame (a still's
+    /// export wraps around it pass after pass). None without keyframes.
+    fn digital_history(&self) -> Option<ntscrt_engine::DigitalHistoryRef> {
+        if !self.timeline_open || self.keys.is_empty() {
+            return None;
+        }
+        let ev = ntscrt_engine::timeline::Evaluator::new(&self.keys, HashMap::new(), &self.ntsc_settings)?;
+        let total = self.timeline_frames() as i64;
+        let base = self.digital_values.clone();
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        for k in &self.keys {
+            k.t.to_bits().hash(&mut hasher);
+            for (n, v) in &k.digital {
+                n.hash(&mut hasher);
+                v.to_string().hash(&mut hasher);
+            }
+        }
+        total.hash(&mut hasher);
+        // The base only matters for keys saved without the stage's values;
+        // hashing it otherwise would restart the stream every time the
+        // playhead applies keyed values.
+        if self.keys.iter().any(|k| k.digital.is_empty()) {
+            for (n, v) in &base {
+                n.hash(&mut hasher);
+                v.to_bits().hash(&mut hasher);
+            }
+        }
+        let history = ntscrt_engine::codec::DigitalHistory::new(hasher.finish() as i64, move |n| {
+            let i = n.rem_euclid(total.max(1));
+            let t = if total > 1 { i as f64 / (total - 1) as f64 } else { 0.0 };
+            let mut v = base.clone();
+            for (k, x) in ev.digital(t) {
+                if let Some(f) = x.as_f64() {
+                    v.insert(k, f);
+                }
+            }
+            ntscrt_engine::codec::DigitalSettings::new(v)
+        });
+        Some(ntscrt_engine::DigitalHistoryRef(Arc::new(history)))
+    }
+
+    /// The Digital stage's input for a picture, None when it's off.
+    fn digital_frame(&self, picture: (u32, u32)) -> Option<ntscrt_engine::DigitalFrame> {
+        if !self.digital_enabled {
+            return None;
+        }
+        let spec = self.downscale_spec(picture);
+        Some(ntscrt_engine::DigitalFrame {
+            settings: self.digital_settings(),
+            frame: self.digital_frame_index(),
+            source_fps: self.video.map_or(self.timeline_fps.max(1) as f64, |v| (v.fps as f32).max(1.0) as f64),
+            capture: ntscrt_engine::DigitalFrame::capture_size(picture, spec.map(|d| (d.width, d.picture_height()))),
+            history: self.digital_history(),
+        })
+    }
+
+    /// The shader's parameters and values, loading them on first use: the
+    /// preset's own values with the Mac's tweaks on top.
+    fn ensure_shader(&mut self) {
+        let Some(root) = &self.shaders else { return };
+        let i = self.shader;
+        if self.shader_params.contains_key(&i) {
+            return;
+        }
+        let (id, _, rel) = CRT_SHADERS[i];
+        let params = preset_parameters(&root.join(rel)).map_err(|e| format!("{e:#}"));
+        if let Ok(ps) = &params {
+            let mut values: HashMap<String, f32> = ps.iter().map(|p| (p.name.clone(), p.initial)).collect();
+            values.extend(app_shader_defaults(id));
+            self.shader_values.insert(i, values);
+        }
+        self.shader_params.insert(i, params);
+    }
+
+    fn reset_shader(&mut self) {
+        self.shader_params.remove(&self.shader);
+        self.shader_values.remove(&self.shader);
+        self.ensure_shader();
+    }
+
+    fn input_height(&self) -> Option<u32> {
+        let (_, w, h) = self.source.as_ref()?;
+        Some(self.downscale_spec((*w, *h)).map_or(*h, |d| d.height))
+    }
+
+    /// The receiver's clock for the frame on screen: a clip's own time, the
+    /// timeline's frame on a still, else wall-clock time while Live noise
+    /// runs (the Mac's glitchTime).
+    fn glitch_time(&self) -> f64 {
+        if let Some(v) = self.video {
+            return self.video_frame as f64 / v.fps.max(1.0);
+        }
+        if self.timeline_open {
+            let frame = (self.playhead * self.timeline_frames().saturating_sub(1).max(1) as f64).round();
+            return frame / self.timeline_fps.max(1) as f64;
+        }
+        self.animate_clock
+    }
+
+    /// How the knobs vary over the timeline, so a jump re-simulates the
+    /// history an export would run through (None without keyframes).
+    fn glitch_history(&self) -> Option<ntscrt_engine::glitch::GlitchHistory> {
+        if !self.timeline_open || self.keys.is_empty() || self.glitch_off_key_edit.as_ref() == Some(&self.glitch_values) {
+            return None;
+        }
+        let ev = Arc::new(ntscrt_engine::timeline::Evaluator::new(&self.keys, HashMap::new(), &self.ntsc_settings)?);
+        let fps = self.video.map_or(self.timeline_fps as f64, |v| v.fps).max(1.0);
+        let total = self.timeline_frames();
+        let base = self.glitch_values.clone();
+        let reception_on = self.glitch_enabled;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        for k in &self.keys {
+            k.t.to_bits().hash(&mut hasher);
+            for (n, v) in &k.glitch {
+                n.hash(&mut hasher);
+                v.to_string().hash(&mut hasher);
+            }
+        }
+        total.hash(&mut hasher);
+        reception_on.hash(&mut hasher);
+        for (n, v) in &base.values {
+            n.hash(&mut hasher);
+            v.to_bits().hash(&mut hasher);
+        }
+        Some(ntscrt_engine::glitch::GlitchHistory {
+            frame_duration: 1.0 / fps,
+            id: hasher.finish(),
+            settings_at: Arc::new(move |t| {
+                let frame = (t * fps).round();
+                let nt = if total > 1 { (frame / (total - 1) as f64).clamp(0.0, 1.0) } else { 0.0 };
+                let mut s = base.clone();
+                for (k, v) in ev.glitch(nt) {
+                    if let Some(f) = v.as_f64() {
+                        s.values.insert(k, f);
+                    }
+                }
+                if reception_on {
+                    s
+                } else {
+                    s.reception_healthy()
+                }
+            }),
+        })
+    }
+
+    /// The glitch stage runs when either of its sections is on: Glitch (the
+    /// TV) or the VCR — keyframed on anywhere counts.
+    fn glitch_stage_active(&self) -> bool {
+        self.glitch_enabled
+            || self.glitch_values.vcr()
+            || (self.timeline_open && self.keys.iter().any(|k| k.glitch.get(ntscrt_engine::glitch::VCR_ID).and_then(|v| v.as_f64()).unwrap_or(0.0) >= 0.5))
+    }
+
+    fn settings(&self, source: (u32, u32)) -> Settings {
+        let shader = match (&self.shaders, self.crt) {
+            (Some(root), true) => {
+                let (_, _, rel) = CRT_SHADERS[self.shader];
+                let mut params: Vec<(String, f32)> =
+                    self.shader_values.get(&self.shader).map(|v| v.iter().map(|(k, v)| (k.clone(), *v)).collect()).unwrap_or_default();
+                params.sort_by(|a, b| a.0.cmp(&b.0));
+                Some(ShaderSpec { preset: root.join(rel), params })
+            }
+            _ => None,
+        };
+        Settings {
+            ntsc: self.ntsc.then(|| NtscSettings::Json(ntsc_values_json(&self.ntsc_values))),
+            downscale: self.downscale_spec(source),
+            shader,
+            // A clip's noise is seeded by its frame number + 1, as the Mac's
+            // video export and PNG do; a still's by the Animate counter.
+            frame: if self.video.is_some() { self.video_frame + 1 } else { self.frame },
+            glitch: self.glitch_stage_active().then(|| ntscrt_engine::glitch::GlitchFrame {
+                settings: if self.glitch_enabled { self.glitch_values.clone() } else { self.glitch_values.reception_healthy() },
+                time: self.glitch_time(),
+                history: self.glitch_history(),
+            }),
+            digital: self.digital_frame(source),
+        }
+    }
+
+    fn sidebar(&mut self, ui: &mut egui::Ui) {
+        ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+            ui.add_space(4.0);
+            ui.weak(&self.status);
+            ui.weak(format!("GPU: {}", self.adapter));
+            ui.separator();
+            ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
+                egui::ScrollArea::vertical().auto_shrink(false).show(ui, |ui| {
+                    ui.set_max_width(SIDEBAR_WIDTH - 16.0);
+                    self.sidebar_contents(ui);
+                });
+            });
+        });
+    }
+
+    fn sidebar_contents(&mut self, ui: &mut egui::Ui) {
+        // A fixed slider width: sizing sliders from the space available makes
+        // the panel grow to fit them, which leaves more space, every frame
+        // (the sidebar swallowed the window on Windows).
+        ui.spacing_mut().slider_width = SIDEBAR_WIDTH - 120.0;
+        ui.add_space(6.0);
+        ui.horizontal(|ui| {
+            twirl(ui, &mut self.open.source);
+            ui.heading("Source");
+        });
+        if self.open.source {
+            self.source_section(ui);
+        }
+        ui.separator();
+        self.crop_panel(ui);
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            twirl(ui, &mut self.open.downscale);
+            ui.checkbox(&mut self.downscale, egui::RichText::new("Downscale").heading());
+        });
+        if self.open.downscale {
+            self.downscale_section(ui);
+        }
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            twirl(ui, &mut self.open.digital);
+            ui.checkbox(&mut self.digital_enabled, egui::RichText::new("Digital video").heading())
+                .on_hover_text("Record the picture with a digital camera and codec before it goes out as an analog signal. Ready-made formats — webcam, video call, MiniDV and more — are in the Preset menu, and also set the Downscale resolution.");
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.small_button("Reset").on_hover_text("Back to the starting values (Cheap camcorder)").clicked() {
+                    self.digital_values = ntscrt_engine::codec::DigitalParam::starting_values();
+                }
+            });
+        });
+        // Turning the stage on (here, from a preset or a look) opens it.
+        if self.digital_enabled && !self.digital_was_enabled {
+            self.open.digital = true;
+        }
+        self.digital_was_enabled = self.digital_enabled;
+        if self.open.digital {
+            ui.add_enabled_ui(self.digital_enabled, |ui| digital_panel::controls(ui, &mut self.digital_values));
+        }
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            twirl(ui, &mut self.open.ntsc);
+            ui.checkbox(&mut self.ntsc, egui::RichText::new("NTSC (TV)").heading());
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.small_button("Reset").on_hover_text("Back to the house look").clicked() {
+                    self.ntsc_values = ntsc_default_values();
+                }
+            });
+        });
+        if self.open.ntsc {
+            ui.add_enabled_ui(self.ntsc, |ui| ntsc_panel::controls(ui, &self.ntsc_settings, &mut self.ntsc_values));
+        }
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            twirl(ui, &mut self.open.vcr);
+            let mut on = self.glitch_values.vcr();
+            if ui
+                .checkbox(&mut on, egui::RichText::new("VCR").heading())
+                .on_hover_text("Play the picture from a simulated VHS tape: recorded as FM on slanted tracks, read back by two spinning heads through everything the tape and heads are doing to it.")
+                .changed()
+            {
+                self.glitch_values.values.insert(ntscrt_engine::glitch::VCR_ID.into(), if on { 1.0 } else { 0.0 });
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.small_button("Reset").on_hover_text("A brand-new tape in a deck with clean heads").clicked() {
+                    vcr_panel::reset(&mut self.glitch_values);
+                }
+            });
+        });
+        if self.open.vcr {
+            let on = self.glitch_values.vcr();
+            ui.add_enabled_ui(on, |ui| vcr_panel::controls(ui, &mut self.glitch_values));
+        }
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            twirl(ui, &mut self.open.glitch);
+            ui.checkbox(&mut self.glitch_enabled, egui::RichText::new("Glitch").heading())
+                .on_hover_text("A simulated TV, for dramatic failures: rolling, tearing, bending, snow. With every knob healthy the picture is untouched.");
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.small_button("Reset").on_hover_text("Every knob back to healthy").clicked() {
+                    for p in ntscrt_engine::glitch::controls(ntscrt_engine::glitch::Group::Reception) {
+                        self.glitch_values.values.insert(p.id.into(), p.default);
+                    }
+                }
+            });
+        });
+        if self.open.glitch {
+            ui.add_enabled_ui(self.glitch_enabled, |ui| glitch_panel::controls(ui, &mut self.glitch_values));
+        }
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            twirl(ui, &mut self.open.crt);
+            ui.checkbox(&mut self.crt, egui::RichText::new("CRT").heading());
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.small_button("Reset").on_hover_text("This shader's parameters back to their starting values").clicked() {
+                    self.reset_shader();
+                }
+            });
+        });
+        if self.open.crt {
+            self.crt_section(ui);
+        }
+    }
+
+    fn source_section(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            if ui.button("Open…").clicked() {
+                if let Some(p) = rfd::FileDialog::new()
+                    .add_filter("Pictures and videos", &["png", "jpg", "jpeg", "heic", "heif", "mp4", "mov", "m4v"])
+                    .add_filter("Pictures", &["png", "jpg", "jpeg", "heic", "heif", "bmp", "tif", "tiff", "webp"])
+                    .add_filter("Videos", &["mp4", "mov", "m4v"])
+                    .pick_file()
+                {
+                    self.open(&p);
+                }
+            }
+            if self.source.is_some() && ui.button("Clear").clicked() {
+                self.clear_source();
+            }
+        });
+        match &self.source {
+            Some((name, _, _)) => {
+                ui.label(name);
+                if let Some((w, h)) = self.original_size {
+                    match self.video {
+                        Some(v) => ui.weak(format!("{w} × {h} px · {} frames · {:.2} fps", v.total_frames, v.fps)),
+                        None => ui.weak(format!("{w} × {h} px")),
+                    };
+                } else if self.error.is_none() {
+                    ui.weak("Opening…");
+                }
+            }
+            None => {
+                ui.weak("Open a picture (PNG, JPEG, HEIC) or a video (MP4, MOV), or drop one on the window.");
+            }
+        }
+    }
+
+    fn downscale_section(&mut self, ui: &mut egui::Ui) {
+        ui.add_enabled_ui(self.downscale, |ui| {
+            ui.horizontal(|ui| {
+                ui.label("Width");
+                ui.add(egui::DragValue::new(&mut self.downscale_width).range(64..=1920).suffix(" px"));
+            });
+            if let Some(spec) = self.picture_size().and_then(|p| self.downscale_spec(p)) {
+                if spec.line_height > 1 {
+                    ui.weak(format!("Resolution: {} × {} (one field: {} lines)", spec.width, spec.picture_height(), spec.height));
+                } else {
+                    ui.weak(format!("Resolution: {} × {}", spec.width, spec.height));
+                }
+            }
+            ui.horizontal(|ui| {
+                ui.label("Sampling");
+                ui.selectable_value(&mut self.method, DownscaleMethod::Nearest, "Chunky")
+                    .on_hover_text("One source pixel per block: hard pixel edges.");
+                ui.selectable_value(&mut self.method, DownscaleMethod::Area, "Smooth")
+                    .on_hover_text("The average of the whole block: softer, steady.");
+            });
+            if !matches!(self.method, DownscaleMethod::Nearest | DownscaleMethod::Area) {
+                ui.weak(format!("Using {}, from the loaded preset.", self.method.display_name()));
+            }
+        });
+    }
+
+    fn crt_section(&mut self, ui: &mut egui::Ui) {
+        if self.shaders.is_none() {
+            ui.colored_label(egui::Color32::LIGHT_RED, "Shaders not found (set NTSCRT_SHADERS).");
+            return;
+        }
+        self.ensure_shader();
+        let input_height = self.input_height();
+        ui.add_enabled_ui(self.crt, |ui| {
+            egui::ComboBox::from_id_salt("shader")
+                .selected_text(CRT_SHADERS[self.shader].1)
+                .show_ui(ui, |ui| {
+                    for (i, s) in CRT_SHADERS.iter().enumerate() {
+                        ui.selectable_value(&mut self.shader, i, s.1);
+                    }
+                });
+            self.ensure_shader();
+            let id = CRT_SHADERS[self.shader].0;
+            match self.shader_params.get(&self.shader) {
+                Some(Ok(params)) => {
+                    let values = self.shader_values.entry(self.shader).or_default();
+                    let (pre, sections) = shader_panel::sections(params);
+                    ui.weak(format!("Parameters ({})", params.len()));
+                    for p in pre {
+                        shader_panel::control(ui, id, p, values, input_height);
+                    }
+                    for section in sections {
+                        egui::CollapsingHeader::new(egui::RichText::new(&section.title).strong())
+                            .id_salt(("shader-section", id, &section.title))
+                            .default_open(true)
+                            .show(ui, |ui| {
+                                for p in section.params {
+                                    shader_panel::control(ui, id, p, values, input_height);
+                                }
+                            });
+                    }
+                }
+                Some(Err(e)) => {
+                    ui.colored_label(egui::Color32::LIGHT_RED, e);
+                }
+                None => {}
+            }
+        });
+    }
+
+    fn palette(&mut self, ui: &mut egui::Ui) {
+        // Its own backing: the preview behind it is near-black in either theme.
+        let frame = egui::Frame::new().fill(ui.visuals().panel_fill).corner_radius(6.0).inner_margin(egui::Margin::symmetric(8, 3));
+        if let Some(v) = self.video {
+            frame.show(ui, |ui| ui.horizontal(|ui| {
+                if ui.button(if self.playing.is_some() { "Pause" } else { "Play" }).on_hover_text("Space").clicked() {
+                    self.toggle_play();
+                }
+                let mut f = self.video_frame;
+                let last = v.total_frames.saturating_sub(1);
+                ui.spacing_mut().slider_width = (ui.available_width() - 190.0).max(120.0);
+                if ui.add(egui::Slider::new(&mut f, 0..=last).show_value(false)).changed() {
+                    self.playing = None;
+                    self.video_frame = f;
+                    self.sync_playhead_to_frame();
+                }
+                ui.monospace(format!("{}/{} · {:.2}s", self.video_frame + 1, v.total_frames, self.video_frame as f64 / v.timescale()));
+                if self.cached_frames > 0 {
+                    ui.weak(format!("{} cached", if self.cached_frames >= v.total_frames { "all".to_string() } else { format!("{}", self.cached_frames) }))
+                        .on_hover_text("Frames with Digital video and NTSC already done under these settings: they play back without decoding.");
+                }
+            }));
+            ui.add_space(4.0);
+        }
+        frame.show(ui, |ui| ui.horizontal(|ui| {
+            ui.toggle_value(&mut self.compare, "Compare")
+                .on_hover_text("Split the view: the full pipeline on the left, the original on the right. Drag the line to move the split.");
+            ui.toggle_value(&mut self.integer_scale, "Integer scale")
+                .on_hover_text("Snap the picture to whole-pixel multiples, for perfectly even scanlines.");
+            ui.toggle_value(&mut self.animate, "Live noise")
+                .on_hover_text("Keep tape noise and jitter moving.");
+            ui.separator();
+            ui.label("Zoom");
+            let mut pct = self.zoom * 100.0;
+            if ui.add(egui::Slider::new(&mut pct, 100.0..=1200.0).suffix("%").max_decimals(0)).changed() {
+                self.set_zoom(pct / 100.0);
+            }
+            if ui.button("Fit").on_hover_text("Back to 100% (or double-click the picture)").clicked() {
+                self.set_zoom(1.0);
+            }
+            ui.weak("Alt/Ctrl-scroll to zoom; drag to pan.");
+        }));
+    }
+
+    /// The chain input's size (for snapping exports onto the scanline grid).
+    /// (width, lines) and the line height.
+    fn chain_input(&self) -> Option<((u32, u32), u32)> {
+        let (w, h) = self.picture_size()?;
+        Some(match self.downscale_spec((w, h)) {
+            Some(d) => ((d.width, d.height), d.line_height),
+            None => ((w, h), 1),
+        })
+    }
+
+    fn export_size(&self) -> Option<(u32, u32)> {
+        let (w, h) = self.picture_size()?;
+        let aspect = w as f64 / h.max(1) as f64;
+        let snap = if self.export_snap { self.chain_input() } else { None };
+        Some(match self.export_format {
+            export::Format::Gif => ntscrt_engine::export::gif_size(self.gif_width, aspect, snap),
+            _ => ntscrt_engine::export::video_size(self.export_long_edge, aspect, snap),
+        })
+    }
+
+    fn export_window(&mut self, ctx: &egui::Context) {
+        let mut open = self.export_open;
+        egui::Window::new("Export").open(&mut open).resizable(false).collapsible(false).show(ctx, |ui| {
+            use export::Format;
+            ui.horizontal(|ui| {
+                ui.label("Format");
+                for (f, name) in [(Format::Png, "PNG"), (Format::Mp4(Codec::H264), "MP4 (H.264)"), (Format::Mp4(Codec::Hevc), "MP4 (HEVC)"), (Format::Gif, "GIF")] {
+                    ui.selectable_value(&mut self.export_format, f, name);
+                }
+            });
+            let video = self.video;
+            match self.export_format {
+                Format::Gif => {
+                    ui.horizontal(|ui| {
+                        ui.label("Width");
+                        ui.add(egui::DragValue::new(&mut self.gif_width).range(64..=1920).suffix(" px"));
+                        ui.label("Frame rate");
+                        ui.add(egui::DragValue::new(&mut self.gif_fps).range(1..=50).suffix(" fps"));
+                    });
+                }
+                _ => {
+                    ui.horizontal(|ui| {
+                        ui.label("Long edge");
+                        ui.add(egui::DragValue::new(&mut self.export_long_edge).range(64..=4096).suffix(" px"));
+                    });
+                }
+            }
+            if let Format::Mp4(_) = self.export_format {
+                ui.horizontal(|ui| {
+                    ui.label("Quality");
+                    for (i, (name, _)) in ntscrt_engine::export::QUALITIES.iter().enumerate() {
+                        ui.selectable_value(&mut self.export_quality, i, *name);
+                    }
+                });
+                if video.is_some() {
+                    ui.horizontal(|ui| {
+                        ui.label("Loop");
+                        ui.add(egui::DragValue::new(&mut self.export_loops).range(1..=50).suffix("×"))
+                            .on_hover_text("Repeat the clip inside the file, for places that don't loop video.");
+                    });
+                }
+            }
+            if video.is_none() && self.export_format != Format::Png {
+                ui.horizontal(|ui| {
+                    ui.label("Length");
+                    ui.add(egui::DragValue::new(&mut self.timeline_seconds).range(0.5..=120.0).speed(0.1).suffix(" s"));
+                    if let Format::Mp4(_) = self.export_format {
+                        ui.add(egui::DragValue::new(&mut self.timeline_fps).range(1..=60).suffix(" fps"));
+                    }
+                });
+            }
+            ui.checkbox(&mut self.export_snap, "Snap size to scanline grid")
+                .on_hover_text("Pick a nearby size where every scanline lands evenly. Without it, exports avoid banding by rendering larger and scaling down.");
+            if let Some((w, h)) = self.export_size() {
+                let mut line = format!("{w} × {h}");
+                if self.export_format == Format::Gif {
+                    let seconds = video.map_or(self.timeline_seconds, |v| v.duration);
+                    let mb = 0.8 * (w * h) as f64 * (seconds * self.gif_fps as f64) / 1e6;
+                    line += &format!(", about {mb:.1} MB");
+                    if mb > 10.0 {
+                        line += " (over 10 MB: many places won't take it)";
+                    }
+                }
+                ui.weak(line);
+            }
+            ui.separator();
+            match &self.export_job {
+                Some((progress, _)) => {
+                    let done = progress.done.load(std::sync::atomic::Ordering::Relaxed) as f32 / 1000.0;
+                    ui.add(egui::ProgressBar::new(done).show_percentage());
+                    if ui.button("Cancel").clicked() {
+                        progress.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
+                    }
+                    ctx.request_repaint_after(Duration::from_millis(100));
+                }
+                None => {
+                    if ui.add_enabled(self.source.is_some() && self.original_size.is_some(), egui::Button::new("Export…")).clicked() {
+                        self.start_export(None);
+                    }
+                }
+            }
+            if !self.export_status.is_empty() {
+                ui.label(&self.export_status);
+            }
+        });
+        self.export_open = open;
+    }
+
+    /// Start an export into `path`, or ask where.
+    fn start_export(&mut self, path: Option<PathBuf>) {
+        use export::Format;
+        let Some(size) = self.export_size() else { return };
+        let ext = match self.export_format {
+            Format::Png => "png",
+            Format::Mp4(_) | Format::Frames => "mp4",
+            Format::Gif => "gif",
+        };
+        let path = path.or_else(|| {
+            let stem = self.source_path.as_ref().and_then(|p| p.file_stem()).map(|s| s.to_string_lossy().into_owned()).unwrap_or("NTSCRT".into());
+            rfd::FileDialog::new().add_filter(ext.to_uppercase(), &[ext]).set_file_name(format!("{stem} NTSCRT.{ext}")).save_file()
+        });
+        let Some(path) = path else { return };
+        let Some(job) = self.export_job(self.export_format, path, size) else { return };
+        let progress = Arc::new(export::Progress::default());
+        let (tx, rx) = channel();
+        let p = progress.clone();
+        std::thread::spawn(move || {
+            let _ = tx.send(export::run(job, p).map_err(|e| format!("{e:#}")));
+        });
+        self.export_status = "Exporting…".into();
+        self.export_job = Some((progress, rx));
+    }
+
+    /// An export of the current look (the Export window's, and Screen Loop's
+    /// renders and drafts, which adjust it).
+    pub(crate) fn export_job(&mut self, format: export::Format, path: PathBuf, size: (u32, u32)) -> Option<export::Job> {
+        let picture = self.picture_size()?;
+        let media = match (&self.still, &self.source_path, self.video) {
+            (Some(img), _, None) => export::Media::Still(img.clone()),
+            (_, Some(p), Some(_)) => export::Media::Video(p.clone()),
+            _ => return None,
+        };
+        let fps = self.video.map_or(self.timeline_fps as f64, |v| v.fps);
+        let timeline = (self.timeline_open && !self.keys.is_empty()).then(|| {
+            self.ensure_shader();
+            let meta = match self.shader_params.get(&self.shader) {
+                Some(Ok(ps)) => ps
+                    .iter()
+                    .map(|p| (p.name.clone(), ntscrt_engine::timeline::ShaderMeta { minimum: p.minimum, maximum: p.maximum, step: p.step }))
+                    .collect(),
+                _ => HashMap::new(),
+            };
+            (self.keys.clone(), meta, self.ntsc_settings.clone())
+        });
+        Some(export::Job {
+            format,
+            path,
+            size,
+            media,
+            crop: self.crop_enabled.then_some(self.crop),
+            settings: self.settings(picture),
+            png_frame: if self.video.is_some() { self.video_frame } else { self.frame },
+            png_t: self.playhead,
+            bitrate: ntscrt_engine::export::bitrate(size, fps, ntscrt_engine::export::QUALITIES[self.export_quality].1),
+            loops: self.export_loops,
+            still_seconds: self.timeline_seconds,
+            still_fps: self.timeline_fps,
+            timeline,
+            gif_fps: self.gif_fps,
+            howl: None,
+            frame_limit: None,
+            sink: None,
+        })
+    }
+
+    /// A UI snapshot is due: Live noise holds still, so the frame it waits
+    /// for arrives.
+    fn snapshot_due(&self) -> bool {
+        self.snapshot.is_some() && self.snapshot_after.is_none_or(|(t, s)| t.elapsed().as_secs_f64() >= s)
+    }
+
+    fn toggle_play(&mut self) {
+        self.playing = match self.playing {
+            Some(_) => None,
+            None => Some((Instant::now(), self.video_frame)),
+        };
+    }
+
+    fn set_zoom(&mut self, z: f32) {
+        self.zoom = z.clamp(1.0, 12.0);
+        if self.zoom <= 1.0 {
+            self.pan = egui::Vec2::ZERO;
+        }
+        self.clamp_pan();
+    }
+
+    /// Panning can't go past the picture's edge at the current zoom.
+    fn clamp_pan(&mut self) {
+        let half = (1.0 - 1.0 / self.zoom) * 0.5;
+        self.pan = egui::vec2(self.pan.x.clamp(-half, half), self.pan.y.clamp(-half, half));
+    }
+
+    fn preview(&mut self, ui: &mut egui::Ui) {
+        let Some((_, w, h)) = self.source else {
+            ui.centered_and_justified(|ui| ui.label("Open an image (or drop one here) to start."));
+            return;
+        };
+        let ctx = ui.ctx().clone();
+        let full = ui.available_rect_before_wrap();
+        let palette_h = if self.video.is_some() { 80.0 } else { 40.0 };
+        let avail = egui::Rect::from_min_max(full.min, egui::pos2(full.max.x, full.max.y - palette_h));
+        let mut palette_ui = ui.new_child(
+            egui::UiBuilder::new().max_rect(egui::Rect::from_min_max(egui::pos2(full.min.x + 8.0, avail.max.y + 4.0), full.max)),
+        );
+        self.palette(&mut palette_ui);
+
+        // The chain input's size: the Downscale's, else the picture's. Sized
+        // as the picture, so one field (lines twice as tall as wide) shows at
+        // its true shape.
+        let input = match self.downscale_spec((w, h)) {
+            Some(d) => (d.width, d.picture_height()),
+            None => (w, h),
+        };
+        let ppp = ctx.pixels_per_point();
+        let aspect = input.0 as f32 / input.1 as f32;
+        let mut fit = avail.size();
+        if fit.x / fit.y > aspect { fit.x = fit.y * aspect } else { fit.y = fit.x / aspect }
+        let drawable = (((fit.x * ppp).floor() as u32).max(16), ((fit.y * ppp).floor() as u32).max(16));
+        let plan = preview::plan(input, drawable, self.integer_scale);
+        // The picture's rect: the display size in pixels, centered, on whole pixels.
+        let center_px = avail.center().to_vec2() * ppp;
+        let min_px = egui::vec2(
+            (center_px.x - plan.display_width as f32 / 2.0).round(),
+            (center_px.y - plan.display_height as f32 / 2.0).round(),
+        );
+        let target = egui::Rect::from_min_size(
+            (min_px / ppp).to_pos2(),
+            egui::vec2(plan.display_width as f32, plan.display_height as f32) / ppp,
+        );
+        let zoomed = self.zoom > 1.001;
+
+        // Animate: the frame advances at 30 frames a second with NTSC on and
+        // 60 without (the Mac's draw rates), as fast as rendering keeps up.
+        if self.animate && self.video.is_none() {
+            let interval = Duration::from_secs_f64(if self.ntsc { 1.0 / 30.0 } else { 1.0 / 60.0 });
+            // One frame may wait behind the one rendering, so the render
+            // thread never sits idle waiting for the window.
+            if self.seq <= self.shown_seq + 1 && self.last_tick.elapsed() >= interval && !self.snapshot_due() {
+                self.frame = self.frame.wrapping_add(1);
+                self.last_tick = Instant::now();
+            }
+            ctx.request_repaint_after(interval);
+        }
+
+        // Playback: the frame the clock says, dropping what rendering can't keep up with.
+        if let (Some((since, from)), Some(v)) = (self.playing, self.video) {
+            let f = from + (since.elapsed().as_secs_f64() * v.fps) as usize;
+            self.video_frame = f % v.total_frames.max(1);
+            self.sync_playhead_to_frame();
+            ctx.request_repaint();
+        }
+
+        let settings = self.settings((w, h));
+        let crop = self.crop_enabled.then_some(self.crop);
+        let want = (settings, plan, zoomed, self.video_frame, crop, self.compare);
+        // While playing, ask for the next frame while the last is still on
+        // its way (one waiting behind the one being rendered), so the
+        // render thread never sits idle waiting for the window.
+        let ready = self.playing.is_none() || self.seq <= self.shown_seq + 1;
+        if self.sent.as_ref() != Some(&want) && ready {
+            self.seq += 1;
+            let _ = self.requests.send(Request::Render {
+                seq: self.seq,
+                settings: want.0.clone(),
+                plan,
+                full: zoomed,
+                frame: self.video_frame,
+                crop,
+                want_source: self.compare,
+                playing: self.playing.is_some(),
+            });
+            self.sent = Some(want);
+            self.sent_at = Instant::now();
+        }
+
+        // What part of the picture is shown: all of it, or zoomed and panned.
+        let uv = if zoomed {
+            let c = egui::pos2(0.5 - self.pan.x, 0.5 - self.pan.y);
+            let half = 0.5 / self.zoom;
+            egui::Rect::from_min_max(egui::pos2(c.x - half, c.y - half), egui::pos2(c.x + half, c.y + half))
+        } else {
+            egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0))
+        };
+        let painter = ui.painter_at(avail);
+        if let Some(tex) = &self.texture {
+            painter.image(tex.id(), target, uv, egui::Color32::WHITE);
+        }
+        if self.compare {
+            if self.source_texture.is_none() {
+                if let Some(img) = &self.source_pixels {
+                    let color = egui::ColorImage::from_rgba_unmultiplied([img.width as usize, img.height as usize], &img.rgba);
+                    self.source_texture = Some(ctx.load_texture("original", color, egui::TextureOptions::LINEAR));
+                }
+            }
+            let x = target.left() + self.compare_x * target.width();
+            if let Some(tex) = &self.source_texture {
+                let right = egui::Rect::from_min_max(egui::pos2(x, target.top()), target.max);
+                painter.with_clip_rect(right).image(tex.id(), target, uv, egui::Color32::WHITE);
+            }
+        }
+
+        // Interaction: drag the compare line, drag to pan when zoomed,
+        // Alt/Ctrl-scroll or pinch to zoom, double-click to fit.
+        let response = ui.interact(avail, ui.scope_id().with("preview"), egui::Sense::click_and_drag());
+        // The line takes a press anywhere within COMPARE_GRAB of it, or on
+        // its grip; judged where the press began (a drag only starts once
+        // the pointer has moved, by which time it may have left the line).
+        let line_x = target.left() + self.compare_x * target.width();
+        let grip = egui::Rect::from_center_size(egui::pos2(line_x, target.center().y), egui::vec2(COMPARE_GRIP.x + 8.0, COMPARE_GRIP.y + 8.0));
+        let on_line = |p: egui::Pos2| (p.x - line_x).abs() <= COMPARE_GRAB && p.y >= target.top() - COMPARE_GRAB && p.y <= target.bottom() + COMPARE_GRAB || grip.contains(p);
+        let hovering_line = self.compare && response.hover_pos().is_some_and(on_line);
+        if self.compare {
+            let x = line_x;
+            let lit = hovering_line || self.dragging_compare;
+            let shadow = egui::Color32::from_black_alpha(110);
+            painter.line_segment([egui::pos2(x, target.top()), egui::pos2(x, target.bottom())], egui::Stroke::new(3.0, shadow));
+            painter.line_segment([egui::pos2(x, target.top()), egui::pos2(x, target.bottom())], egui::Stroke::new(if lit { 2.0 } else { 1.0 }, egui::Color32::WHITE));
+            // The grip: a pill with arrows, on the line at mid-height.
+            let pill = egui::Rect::from_center_size(egui::pos2(x, target.center().y), COMPARE_GRIP);
+            let fill = if lit { egui::Color32::WHITE } else { egui::Color32::from_gray(235) };
+            painter.rect_filled(pill.expand(1.0), COMPARE_GRIP.x / 2.0 + 1.0, shadow);
+            painter.rect_filled(pill, COMPARE_GRIP.x / 2.0, fill);
+            let ink = egui::Color32::from_gray(40);
+            let c = pill.center();
+            for dir in [-1.0f32, 1.0] {
+                let tip = egui::pos2(c.x + dir * 6.0, c.y);
+                let back = c.x + dir * 2.0;
+                painter.add(egui::Shape::convex_polygon(vec![tip, egui::pos2(back, c.y - 4.0), egui::pos2(back, c.y + 4.0)], ink, egui::Stroke::NONE));
+            }
+        }
+        if self.compare && (hovering_line || self.dragging_compare) {
+            ctx.set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
+        }
+
+        if response.drag_started() {
+            let origin = ctx.input(|i| i.pointer.press_origin()).or(response.interact_pointer_pos());
+            if let Some(p) = origin {
+                self.dragging_compare = self.compare && on_line(p);
+                self.crop_drag = Some((self.crop, p));
+            }
+        }
+        if response.dragged() {
+            if self.dragging_compare {
+                if let Some(p) = response.interact_pointer_pos() {
+                    // A few points inside the edges, so it can always be grabbed again.
+                    let m = (3.0 / target.width().max(1.0)).min(0.5);
+                    self.compare_x = ((p.x - target.left()) / target.width()).clamp(m, 1.0 - m);
+                }
+            } else if self.crop_enabled && !zoomed {
+                // Drag the picture to move the crop: the picture follows the hand.
+                if let (Some((ow, oh)), Some((start, from)), Some(p)) = (self.original_size, self.crop_drag, response.interact_pointer_pos()) {
+                    let (x, y, cw, _) = start.rect(ow, oh);
+                    // Source pixels per point on screen.
+                    let k = cw as f32 / target.width();
+                    let d = p - from;
+                    self.crop = start.placed(x as f64 - (d.x * k) as f64, y as f64 - (d.y * k) as f64, cw as f64, ow, oh);
+                }
+            } else if zoomed {
+                let d = response.drag_delta();
+                self.pan += egui::vec2(d.x / target.width(), d.y / target.height()) / self.zoom;
+                self.clamp_pan();
+            }
+        }
+        if response.drag_stopped() {
+            self.dragging_compare = false;
+            self.crop_drag = None;
+        }
+        if response.double_clicked() {
+            self.set_zoom(1.0);
+        }
+        if response.hovered() {
+            let (scroll, pinch, modifier) = ctx.input(|i| (i.smooth_scroll_delta().y, i.zoom_delta(), i.modifiers.alt || i.modifiers.command));
+            if pinch != 1.0 {
+                self.set_zoom(self.zoom * pinch);
+            } else if modifier && scroll != 0.0 {
+                self.set_zoom(self.zoom * (1.0 + scroll * 0.005));
+            }
+        }
+        if let Some(e) = &self.error {
+            painter.text(avail.left_top() + egui::vec2(8.0, 8.0), egui::Align2::LEFT_TOP, e, egui::FontId::proportional(14.0), egui::Color32::LIGHT_RED);
+        }
+    }
+}
+
+impl eframe::App for App {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = ui.ctx().clone();
+        if let Some(p) = &mut self.profile {
+            p.painted();
+        }
+        let events: Vec<Event> = self.events.try_iter().collect();
+        for e in events {
+            let (seq, result, millis) = match e {
+                Event::Adapter(a) => {
+                    self.adapter = a;
+                    continue;
+                }
+                Event::Cached(n) => {
+                    self.cached_frames = n;
+                    continue;
+                }
+                Event::Opened(Ok(info)) => {
+                    self.video = Some(info);
+                    self.original_size = Some((info.width, info.height));
+                    if let Some(src) = &mut self.source {
+                        (src.1, src.2) = (info.width, info.height);
+                    }
+                    self.video_frame = 0;
+                    if let Some(wait) = self.autoplay {
+                        self.autoplay_at = Some(Instant::now() + Duration::from_secs_f64(wait));
+                    }
+                    continue;
+                }
+                Event::Opened(Err(e)) => {
+                    self.error = Some(format!("Couldn't open the video: {e}"));
+                    self.source = None;
+                    continue;
+                }
+                Event::Rendered { seq, result, millis, source } => {
+                    if let Some(src) = source {
+                        // While a clip plays this is every frame: refill the
+                        // texture rather than make a new one, and a clip's
+                        // frames are opaque, so they need no premultiplying.
+                        let size = [src.width as usize, src.height as usize];
+                        let color = if self.video.is_some() {
+                            egui::ColorImage::from_rgba_premultiplied(size, &src.rgba)
+                        } else {
+                            egui::ColorImage::from_rgba_unmultiplied(size, &src.rgba)
+                        };
+                        match &mut self.source_texture {
+                            Some(t) => t.set(color, egui::TextureOptions::LINEAR),
+                            None => self.source_texture = Some(ctx.load_texture("original", color, egui::TextureOptions::LINEAR)),
+                        }
+                        self.source_pixels = Some(src);
+                    }
+                    (seq, result, millis)
+                }
+            };
+            let r = Rendered { seq, result, millis };
+            match r.result {
+                Ok(img) => {
+                    let upload = Instant::now();
+                    let color = egui::ColorImage::from_rgba_unmultiplied([img.width as usize, img.height as usize], &img.rgba);
+                    match &mut self.texture {
+                        Some(t) => t.set(color, egui::TextureOptions::NEAREST),
+                        None => self.texture = Some(ctx.load_texture("preview", color, egui::TextureOptions::NEAREST)),
+                    }
+                    if let Some(p) = &mut self.profile {
+                        p.shown(r.millis as f64, upload.elapsed().as_secs_f64() * 1000.0, self.sent_at.elapsed().as_secs_f64() * 1000.0);
+                    }
+                    self.shown_seq = r.seq;
+                    self.status = format!("{} × {}, rendered in {} ms", img.width, img.height, r.millis);
+                    self.error = None;
+                }
+                Err(e) => {
+                    self.error = Some(e);
+                    // Answered all the same: playback asks for the next.
+                    self.shown_seq = r.seq;
+                }
+            }
+        }
+        // The picture's size follows the crop.
+        if let Some((w, h)) = self.picture_size() {
+            if let Some(src) = &mut self.source {
+                (src.1, src.2) = (w, h);
+            }
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::Space)) && !ctx.egui_wants_keyboard_input() {
+            if self.timeline_open {
+                self.toggle_timeline_play();
+            } else if self.video.is_some() {
+                self.toggle_play();
+            }
+        }
+        self.advance_timeline(&ctx);
+        if let Some(at) = self.autoplay_at {
+            if Instant::now() >= at {
+                self.autoplay_at = None;
+                self.playing = Some((Instant::now(), self.video_frame));
+            } else {
+                ctx.request_repaint_after(at - Instant::now());
+            }
+        }
+        // The receiver's wall clock while Live noise runs on a still (steps
+        // capped, so a stall doesn't read as a jump and re-simulate).
+        let running = self.animate && self.video.is_none() && !self.timeline_open && !self.snapshot_due();
+        if running {
+            if let Some(last) = self.animate_last {
+                self.animate_clock += last.elapsed().as_secs_f64().clamp(0.0, 0.1);
+            }
+            self.animate_last = Some(Instant::now());
+        } else {
+            self.animate_last = None;
+        }
+        let dropped = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().to_path_buf()).find(|p| !p.as_os_str().is_empty()));
+        if let Some(p) = dropped {
+            self.open(&p);
+        }
+
+        if let Some((_, rx)) = &self.export_job {
+            if let Ok(r) = rx.try_recv() {
+                self.export_status = match r {
+                    Ok(m) => m,
+                    Err(e) => format!("Export failed: {e}"),
+                };
+                self.export_job = None;
+                if let Some(p) = self.auto_export.take() {
+                    let _ = std::fs::write(p.with_extension("log"), &self.export_status);
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                }
+            }
+        }
+        if let Some(p) = self.auto_export.clone() {
+            if self.export_job.is_none() && self.shown_seq != 0 && self.shown_seq == self.seq {
+                self.start_export(Some(p));
+            }
+            ctx.request_repaint_after(Duration::from_millis(50));
+        }
+        self.export_window(&ctx);
+        self.updates.show(&ctx);
+        if self.auto_screen_loop && self.original_size.is_some() && self.shown_seq != 0 {
+            self.auto_screen_loop = false;
+            // For the UI snapshot: the window inside the main one, where the
+            // screenshot sees it.
+            if self.snapshot.is_some() {
+                ctx.set_embed_viewports(true);
+            }
+            if let Some(p) = std::env::var_os("NTSCRT_SCREEN_LOOP_PRESET") {
+                self.load_screen_loop_preset(Path::new(&p));
+            }
+            self.open_screen_loop();
+        }
+        self.screen_loop_window(&ctx);
+        egui::Panel::top("toolbar").show(ui, |ui| {
+            ui.horizontal(|ui| {
+                self.preset_menu(ui);
+                if ui.button("Export…").clicked() {
+                    self.export_open = true;
+                }
+                let can = self.original_size.is_some() && !self.screen_loop.rendering();
+                if ui
+                    .add_enabled(can, egui::Button::new("Screen Loop"))
+                    .on_hover_text("Screen Loop: point a camcorder at the TV that's showing its own picture — video feedback, a tunnel of copies with your look on every pass")
+                    .clicked()
+                {
+                    self.open_screen_loop();
+                }
+                if ui.toggle_value(&mut self.timeline_open, "Animate").on_hover_text("Keyframe the whole look and export it as video.").changed() && self.timeline_open {
+                    self.scrub(self.playhead);
+                }
+                if let Some(name) = &self.look_name {
+                    ui.label(name);
+                }
+                if !self.look_notes.is_empty() {
+                    ui.colored_label(
+                        egui::Color32::from_rgb(230, 150, 40),
+                        format!("Not in the Windows version yet: {}", self.look_notes.join(", ")),
+                    );
+                }
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.menu_button("Help", |ui| self.updates.menu(ui));
+                });
+            });
+        });
+        // Editing while parked on a keyframe updates it: compare the values
+        // before and after the panels are drawn.
+        let before = (self.shader_values.get(&self.shader).cloned(), self.ntsc_values.clone(), self.glitch_values.clone(), self.digital_values.clone());
+        egui::Panel::left("sidebar").resizable(false).exact_size(SIDEBAR_WIDTH).show(ui, |ui| self.sidebar(ui));
+        if (self.shader_values.get(&self.shader).cloned(), self.ntsc_values.clone(), self.glitch_values.clone(), self.digital_values.clone()) != before {
+            let playing = self.timeline_playing.is_some() || self.playing.is_some();
+            if self.glitch_values != before.2 && self.timeline_open && !self.keys.is_empty() && (self.parked_key().is_none() || playing) {
+                self.glitch_off_key_edit = Some(self.glitch_values.clone());
+            }
+            self.auto_key();
+        }
+        if self.timeline_open {
+            egui::Panel::bottom("timeline").show(ui, |ui| {
+                ui.add_space(4.0);
+                self.timeline_bar(ui);
+                ui.add_space(4.0);
+            });
+        }
+        egui::CentralPanel::default()
+            .frame(egui::Frame::NONE.fill(egui::Color32::from_rgb(13, 13, 15)))
+            .show(ui, |ui| self.preview(ui));
+
+        // NTSCRT_UI_SNAPSHOT: screenshot once the latest request is on screen
+        // (while playing, there's always one more on its way).
+        if let Some(path) = self.snapshot.clone() {
+            let waited = self.snapshot_after.is_none_or(|(t, s)| t.elapsed().as_secs_f64() >= s);
+            if !waited {
+                ctx.request_repaint();
+            }
+            let caught_up = self.shown_seq == self.seq || self.playing.is_some() && self.seq <= self.shown_seq + 1;
+            if waited && !self.snapshot_requested && self.shown_seq != 0 && caught_up {
+                self.snapshot_requested = true;
+                let close = ctx.clone();
+                ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(egui::ScreenshotCallback::new(move |image| {
+                    let [w, h] = image.size;
+                    let rgba: Vec<u8> = image.pixels.iter().flat_map(|c| c.to_array()).collect();
+                    if let Some(buf) = image::RgbaImage::from_raw(w as u32, h as u32, rgba) {
+                        let _ = buf.save(&path);
+                    }
+                    close.send_viewport_cmd(egui::ViewportCommand::Close);
+                    close.request_repaint();
+                })));
+            } else if self.error.is_some() && self.source.is_some() {
+                eprintln!("error: {}", self.error.as_deref().unwrap_or_default());
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
+        }
+    }
+}
+
+fn main() -> eframe::Result {
+    // `ntscrt --check-update`: the update check without the window, its
+    // answer on stdout (for CI; redirect it, as release builds have no console).
+    if std::env::args().nth(1).as_deref() == Some("--check-update") {
+        let current = update::current_version();
+        println!("version {current}: {:?}", update::check(&current));
+        return Ok(());
+    }
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default().with_title(format!("NTSCRT {} (Windows preview)", update::current_version())).with_inner_size([1200.0, 780.0]),
+        ..Default::default()
+    };
+    eframe::run_native("NTSCRT", options, Box::new(|cc| Ok(Box::new(App::new(cc)))))
+}
+
+/// Show a file in Explorer (Finder on the Mac).
+fn reveal(path: &Path) {
+    #[cfg(windows)]
+    let _ = std::process::Command::new("explorer").arg(format!("/select,{}", path.display())).spawn();
+    #[cfg(target_os = "macos")]
+    let _ = std::process::Command::new("open").arg("-R").arg(path).spawn();
+    #[cfg(not(any(windows, target_os = "macos")))]
+    let _ = path;
+}
+
+/// Preview frames per second and their average costs, on stderr.
+struct Profile {
+    since: Instant,
+    shown: u32,
+    render: f64,
+    upload: f64,
+    latency: f64,
+    paints: u32,
+}
+
+impl Profile {
+    fn new() -> Self {
+        Self { since: Instant::now(), shown: 0, render: 0.0, upload: 0.0, latency: 0.0, paints: 0 }
+    }
+    fn shown(&mut self, render: f64, upload: f64, latency: f64) {
+        self.shown += 1;
+        self.render += render;
+        self.upload += upload;
+        self.latency += latency;
+    }
+    fn painted(&mut self) {
+        self.paints += 1;
+        let t = self.since.elapsed().as_secs_f64();
+        if t >= 1.0 {
+            let n = self.shown.max(1) as f64;
+            eprintln!(
+                "profile ui: {:.1} frames/s shown, {:.0} paints/s; per frame: render {:.1} ms, upload {:.1} ms, request→shown {:.1} ms",
+                self.shown as f64 / t,
+                self.paints as f64 / t,
+                self.render / n,
+                self.upload / n,
+                self.latency / n
+            );
+            *self = Self::new();
+        }
+    }
+}

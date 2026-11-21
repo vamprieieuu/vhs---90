@@ -1,0 +1,263 @@
+VHSart — IMPLEMENT REFERENCE PRESET: DENSE CHROMA NOISE BAND & BLEED
+
+Objective
+
+Reconstruct the visual effect shown in the attached reference image as a new, independent VHSart preset.
+
+The reference features three dominant visual elements:
+
+1. A dense, highly saturated, multi-color horizontal interference and static band.
+2. Strong directional chroma bleeding directly below the main noise band, dominated by green, yellow, orange, and red.
+3. A globally degraded, soft, low-resolution analog image with subtle noise and horizontal artifacts.
+
+The goal is to reproduce this specific visual identity, not to create a generic VHS distortion effect.
+
+1. Inspect the Existing VHSart Architecture First
+
+Before implementing anything:
+
+* Inspect the complete project structure and identify all existing rendering engines.
+* Inspect the previously implemented Localized Tear & Chroma Burst engine.
+* Determine which existing algorithms can produce the required effects.
+* Extend and reuse existing functionality wherever possible.
+* Do not create duplicate engines for functionality that already exists.
+* Preserve all existing presets and effects.
+
+This preset is a distinct visual variation, not a replacement for the previous Mid-Band Sync Tear & Chroma Smear preset.
+
+If the existing engine can support both visual styles through independent parameters and processing modes, extend it rather than creating an unnecessary duplicate.
+
+2. Main Component — Dense Horizontal Chroma Noise Band
+
+This is the dominant element of the reference.
+
+Reconstruct a wide horizontal band of extremely dense, multi-colored interference.
+
+Visual requirements:
+
+* Extend the band across the full image width.
+* Position it around the upper-middle to middle region of the frame.
+* Make it occupy approximately 20–30% of the image height.
+* Fill it with dense, irregular horizontal noise fragments and broken scanline structures.
+* Combine bright and dark interruptions with highly saturated colored static.
+* Include cyan, blue, red, green, magenta, white, and black interference fragments.
+* Create irregular horizontal RGB channel displacement.
+* Introduce abrupt horizontal shifts and fragmented image sampling.
+* Preserve recognizable image content outside the most damaged region.
+
+The band must look like severe analog signal interference, not a simple rectangular overlay containing random colored noise.
+
+Required Processing
+
+Use a combination of:
+
+* Per-scanline horizontal displacement.
+* Independently generated RGB/chroma noise.
+* Small horizontal noise cells and fragmented line segments.
+* Irregular Luma interruptions.
+* Localized RGB channel separation.
+* Variable horizontal tearing and signal disruption.
+
+The noise should have visible horizontal structure and irregular density.
+
+Avoid uniform pixel noise that lacks the reference’s characteristic horizontal appearance.
+
+3. Secondary Component — Directional Chroma Bleeding
+
+This is the second major visual feature.
+
+Directly below the main interference band, reconstruct a highly saturated chroma-smearing region.
+
+Visual requirements:
+
+* Create a broad region immediately below the main noise band.
+* Make it occupy approximately 15–25% of the image height.
+* Produce strong green, yellow, orange, and red color spreading.
+* Combine vertical and horizontal color smearing.
+* Create irregular, elongated chroma structures rather than uniform color gradients.
+* Allow the colors to overlap and blend while preserving visible differences between color regions.
+* Make the effect interact with the underlying image content.
+
+The bleeding should appear as a directional analog signal/color failure, not as a conventional gradient or simple color overlay.
+
+Required Processing
+
+Implement procedural directional chroma sampling and smearing.
+
+Possible techniques include:
+
+* Vertical and horizontal chroma displacement.
+* Directional sampling offsets.
+* Localized chroma spreading.
+* Controlled saturation amplification.
+* Irregular displacement fields.
+* Chroma separation and recombination.
+
+Use YCbCr or another suitable color-space approach where appropriate.
+
+The chroma bleeding must be independently controllable from the horizontal noise band.
+
+4. Global Analog Degradation
+
+Apply a supporting degradation layer across the entire image.
+
+Requirements:
+
+* Subtle-to-moderate softness.
+* Low-resolution analog appearance.
+* Reduced fine-detail clarity.
+* Fine grain and low-intensity global noise.
+* Sparse horizontal scanline and dropout artifacts.
+* Slight degradation of high-frequency image details.
+
+The global degradation must remain secondary to the two main components.
+
+Do not destroy the image structure outside the damaged regions.
+
+5. Processing Architecture
+
+Use a hybrid architecture that combines existing VHSart engines with the existing or extended Localized Tear & Chroma Burst engine.
+
+Recommended processing order:
+
+1. Base image preparation and optional low-resolution degradation.
+2. Global softness and subtle analog noise.
+3. Main horizontal interference band mask.
+4. Horizontal displacement and dense multi-color static generation.
+5. Localized Luma interruptions and RGB channel separation.
+6. Directional chroma bleeding below the main band.
+7. Final color processing and output.
+
+Use independent masks for the main noise band and the chroma bleeding region.
+
+Both regions should have adjustable positions, heights, strengths, and falloff characteristics.
+
+Do not hardcode the exact color distribution or positions visible in the reference. They should be adjustable and capable of producing variations through the Random Seed.
+
+6. Adjustable Parameters
+
+Implement functional controls for:
+
+Main Noise Band
+
+* Noise Band Y Position
+* Noise Band Height
+* Chroma Noise Amount
+* Chroma Noise Density
+* Horizontal Tear Amount
+* Horizontal Shift
+* RGB Channel Displacement
+* Luma Interruption
+* Noise Fragment Size
+* Band Edge Irregularity
+
+Chroma Bleeding
+
+* Chroma Bleed Amount
+* Chroma Bleed Height
+* Chroma Bleed Offset
+* Chroma Bleed Direction
+* Horizontal Spread
+* Vertical Spread
+* Chroma Saturation
+* Color Variation
+
+Global Degradation
+
+* Global Softness
+* Low-Resolution Amount
+* Global Noise Amount
+* Fine Scanline Amount
+* Dropout Amount
+
+General
+
+* Random Seed
+* Effect Intensity
+
+All controls must affect the actual rendered output.
+
+Do not create decorative or non-functional UI parameters.
+
+7. Initial Preset Values
+
+Create the following preset:
+
+Dense Chroma Noise Band & Bleed
+
+Use these estimated starting values:
+
+* Noise Band Y Position: 0.32–0.48
+* Noise Band Height: 0.20–0.30
+* Chroma Noise Intensity: 75–95%
+* Chroma Bleed Amount: 65–85%
+* Global Softness / Low-Res: 45–65%
+
+These are approximate reconstruction values, not verified original plugin settings.
+
+Tune the final values through direct visual comparison with the supplied reference image.
+
+The main band must be visually dominant, with the directional chroma bleeding clearly visible immediately below it.
+
+8. Temporal Behavior
+
+The supplied reference is a single still image.
+
+Do not invent or claim a verified animation pattern.
+
+Instead:
+
+* Make noise generation deterministic for a fixed Random Seed and time.
+* Provide optional time-dependent variation.
+* Allow the main band position and chroma bleeding to be animated through After Effects keyframes.
+* Keep temporal behavior controllable.
+* Do not introduce unnecessary full-frame flickering.
+
+Actual animation behavior must be calibrated later if video references become available.
+
+9. Reference Matching and Validation
+
+Compare the rendered output directly against the supplied reference.
+
+Evaluate:
+
+* Main band position and height.
+* Horizontal noise density and fragmentation.
+* Multi-color static distribution.
+* RGB channel displacement.
+* Bright and dark Luma interruptions.
+* Green/yellow/orange/red chroma bleeding below the band.
+* Vertical and horizontal smearing characteristics.
+* Global softness and image-detail preservation.
+* Relative damage intensity inside and outside both regions.
+
+Test at 100% and 200% magnification.
+
+Do not declare the effect matched merely because it contains colored noise and distortion. Its visual structure and spatial distribution must resemble the reference.
+
+10. Technical Requirements
+
+* Native C++ implementation using the Adobe After Effects SDK.
+* Real procedural image processing inside VHSart.
+* No pre-rendered images, video overlays, GIFs, or external texture assets for the final effect.
+* Correct Alpha and Premultiplied Alpha handling.
+* Multi-Frame Rendering compatibility.
+* Thread-safe rendering.
+* Deterministic output for identical settings, seed, and time.
+* No regressions in existing engines, presets, or rendering behavior.
+
+Final Deliverable
+
+Deliver a fully functional VHSart preset named:
+
+Dense Chroma Noise Band & Bleed
+
+It must reproduce the reference’s distinctive combination of:
+
+1. Extremely dense, multi-color horizontal interference.
+2. Strong directional green/yellow/orange/red chroma bleeding directly below the interference band.
+3. Supporting low-resolution analog degradation.
+
+Preserve the previous Mid-Band Sync Tear & Chroma Smear preset as a separate visual style.
+
+Do not stop at analysis, documentation, or UI implementation. Complete the actual rendering implementation and test it inside After Effects.

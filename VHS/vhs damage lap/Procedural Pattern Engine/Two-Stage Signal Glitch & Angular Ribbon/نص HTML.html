@@ -1,0 +1,254 @@
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+
+<h1><span class="s1"><b>VHSart — Two-Stage Signal Glitch &amp; Angular Ribbon</b></span></h1>
+
+<h2><span class="s1"><b>Dedicated Native After Effects Preset Implementation</b></span></h2>
+
+<h3><span class="s1"><b>Reference</b></span></h3>
+
+<ul><li><span class="s1">Reference file: </span><code>video_1.mov</code></li><li><span class="s1">Duration: approximately 3.916 seconds.</span></li><li><span class="s1">Preset name: </span><span class="s2"><b>Two-Stage Signal Glitch &amp; Angular Ribbon</b></span></li><li><span class="s1">Category: VHS DAMAGE LAB.</span></li><li><span class="s1">Architecture: Hybrid — existing VHSart signal/noise engines plus a dedicated Angular Ribbon &amp; Signal Glitch Engine.</span></li></ul>
+
+<h2><span class="s1"><b>1. Inspect the Existing Project First</b></span></h2>
+
+<p class="p3">Before implementation, inspect the complete VHSart project structure and identify existing implementations for:</p>
+
+<ul><li><span class="s1">Horizontal static and segmented line generation.</span></li><li><span class="s1">Chroma and RGB channel displacement.</span></li><li><span class="s1">Luma noise and colored noise.</span></li><li><span class="s1">Horizontal tracking tears and dropouts.</span></li><li><span class="s1">Procedural geometric distortion.</span></li><li><span class="s1">Signal bands and split-field processing.</span></li><li><span class="s1">Temporal phase control.</span></li><li><span class="s1">Compositing and alpha handling.</span></li><li><span class="s1">Deterministic random generation.</span></li><li><span class="s1">Existing preset and parameter registration.</span></li></ul>
+
+<p class="p4">Reuse existing engines for base noise, horizontal streaks, chromatic operations, and compositing wherever appropriate.</p>
+
+<p class="p4">Do not duplicate functioning systems.</p>
+
+<p class="p4">However, do not force the angular geometric distortion and spectral ribbon into an unrelated generic noise engine. They require dedicated procedural geometry and color-field logic.</p>
+
+<p class="p4">Do not modify unrelated presets or break existing functionality.</p>
+
+<h2><span class="s1"><b>2. Core Visual Identity</b></span></h2>
+
+<p class="p4">Reconstruct the reference as a two-stage analog/composite signal breakdown.</p>
+
+<p class="p4">The two stages must have distinctly different visual structures.</p>
+
+<h3><span class="s1"><b>Stage 1 — Top Overdriven Band &amp; Dark Chromatic Static</b></span></h3>
+
+<p class="p4">Approximate reference interval: 00:00.000–00:01.333.</p>
+
+<p class="p3">Visual characteristics:</p>
+
+<ul><li><span class="s1">A bright white or pale-yellow horizontal upper region.</span></li><li><span class="s1">Approximate upper coverage around one-third of the frame, adjustable.</span></li><li><span class="s1">An occasional subtle diagonal pink/purple line crossing the bright region.</span></li><li><span class="s1">A dark lower field.</span></li><li><span class="s1">Short and medium horizontal colored streaks and speckles.</span></li><li><span class="s1">Scattered green, red, blue, white, and yellow signal artifacts.</span></li><li><span class="s1">A narrow lower horizontal band.</span></li><li><span class="s1">Irregular flicker and changing line distributions.</span></li></ul>
+
+<p class="p4">The reference contains a small AV / NTSC indicator near the upper-right corner.</p>
+
+<p class="p4">Important: Do not generate this text as part of the procedural effect. It is reference footage content, not an effect requirement. Do not introduce arbitrary text or watermarks.</p>
+
+<p class="p4">The bright upper band and dark lower field must be independently controllable.</p>
+
+<h3><span class="s1"><b>Stage 2 — Angular Sawtooth Distortion &amp; Spectral Chroma Ribbon</b></span></h3>
+
+<p class="p4">Approximate reference interval: 00:02.000–00:03.333.</p>
+
+<p class="p4">This is the defining visual phase.</p>
+
+<p class="p3">Generate:</p>
+
+<ul><li><span class="s1">Large, sharp, irregular angular polygons.</span></li><li><span class="s1">Black and very dark geometric regions.</span></li><li><span class="s1">Jagged sawtooth-like boundaries.</span></li><li><span class="s1">Broken diagonal and horizontal angular structures.</span></li><li><span class="s1">A highly saturated spectral ribbon crossing the frame.</span></li><li><span class="s1">Green, red, blue, and purple chromatic regions.</span></li><li><span class="s1">RGB separation and chromatic fringes along selected edges.</span></li><li><span class="s1">Horizontal static and grain beneath and around the geometric structures.</span></li><li><span class="s1">Continuously changing polygon positions, ribbon shape, and noise distribution.</span></li></ul>
+
+<p class="p4">The geometry must have sharp, deliberate angular boundaries rather than smooth organic blobs.</p>
+
+<p class="p4">The spectral ribbon must be a recognizable continuous or fragmented ribbon-like structure, not merely random rainbow noise.</p>
+
+<h2><span class="s1"><b>3. Dedicated Engine Architecture</b></span></h2>
+
+<p class="p4">Implement:</p>
+
+<p class="p5"><b>Angular Ribbon &amp; Signal Glitch Engine</b></p>
+
+<p class="p4">It must contain two coordinated but independently controllable subsystems.</p>
+
+<h3><span class="s1"><b>A. Angular Sawtooth Geometry System</b></span></h3>
+
+<p class="p4">Responsible for the second stage’s sharp geometric distortion.</p>
+
+<p class="p3">Requirements:</p>
+
+<ul><li><span class="s1">Procedural polygon generation.</span></li><li><span class="s1">Sawtooth and angular boundary functions.</span></li><li><span class="s1">Configurable angular frequency and scale.</span></li><li><span class="s1">Irregular polygon widths and heights.</span></li><li><span class="s1">Diagonal and horizontal geometric orientation.</span></li><li><span class="s1">Sharp threshold-based region masks.</span></li><li><span class="s1">Large dark polygonal regions.</span></li><li><span class="s1">Temporal changes in polygon placement and geometry.</span></li><li><span class="s1">Optional edge fragmentation.</span></li><li><span class="s1">Configurable geometric distortion intensity.</span></li></ul>
+
+<p class="p4">Use mathematically generated masks and geometric functions.</p>
+
+<p class="p4">Possible approaches include piecewise linear functions, triangular/sawtooth wave functions, seeded polygon vertices, and thresholded signed-distance fields.</p>
+
+<p class="p4">Do not use pre-rendered polygon images or texture overlays.</p>
+
+<p class="p4">Preserve sharp boundaries. Do not blur the geometry unless a separate subtle edge treatment is explicitly enabled.</p>
+
+<h3><span class="s1"><b>B. Spectral Chroma Ribbon System</b></span></h3>
+
+<p class="p4">Responsible for the colored ribbon visible during the second stage.</p>
+
+<p class="p3">Requirements:</p>
+
+<ul><li><span class="s1">Procedural curved or segmented ribbon path.</span></li><li><span class="s1">Adjustable path direction, curvature, width, and position.</span></li><li><span class="s1">High-saturation spectral color distribution.</span></li><li><span class="s1">Green, red, blue, and purple hues.</span></li><li><span class="s1">Color progression along the ribbon.</span></li><li><span class="s1">Irregular chromatic edges.</span></li><li><span class="s1">Optional horizontal chroma smearing.</span></li><li><span class="s1">Optional RGB channel displacement.</span></li><li><span class="s1">Temporal variation in ribbon curvature and position.</span></li></ul>
+
+<p class="p4">The ribbon should remain visually structured and recognizable.</p>
+
+<p class="p4">Do not replace it with a generic full-frame rainbow gradient.</p>
+
+<p class="p4">The ribbon’s shape and color progression must be independently adjustable from the angular polygons.</p>
+
+<h2><span class="s1"><b>4. Stage 1 Signal Band System</b></span></h2>
+
+<p class="p4">Reuse and extend existing VHSart engines where possible.</p>
+
+<p class="p3">Implement the first stage using:</p>
+
+<ul><li><span class="s1">Top Overdriven Band.</span></li><li><span class="s1">Dark Lower Field.</span></li><li><span class="s1">Horizontal Chromatic Streaks.</span></li><li><span class="s1">Colored Speckle Noise.</span></li><li><span class="s1">Narrow Lower Signal Band.</span></li><li><span class="s1">Optional Diagonal Chroma Line.</span></li></ul>
+
+<p class="p3">Requirements:</p>
+
+<ul><li><span class="s1">Adjustable upper band height and brightness.</span></li><li><span class="s1">Adjustable lower-field darkness.</span></li><li><span class="s1">Independent upper/lower contrast.</span></li><li><span class="s1">Short and medium horizontal streaks.</span></li><li><span class="s1">Variable RGB-colored speckles.</span></li><li><span class="s1">Irregular dropout segments.</span></li><li><span class="s1">Optional subtle diagonal chromatic line.</span></li><li><span class="s1">Per-frame flicker.</span></li></ul>
+
+<p class="p4">The result must retain the strong bright-top/dark-bottom contrast visible in the reference.</p>
+
+<p class="p4">Do not make the entire frame uniformly bright or uniformly noisy.</p>
+
+<h2><span class="s1"><b>5. Shared Horizontal Noise System</b></span></h2>
+
+<p class="p4">Use existing VHSart noise and streak engines where appropriate.</p>
+
+<p class="p3">The noise system must support:</p>
+
+<ul><li><span class="s1">Fine grain.</span></li><li><span class="s1">Horizontal segmented lines.</span></li><li><span class="s1">Short and medium streaks.</span></li><li><span class="s1">Luma variation.</span></li><li><span class="s1">Colored speckles.</span></li><li><span class="s1">Limited chroma variation.</span></li><li><span class="s1">Per-frame flicker.</span></li><li><span class="s1">Deterministic random distribution.</span></li></ul>
+
+<p class="p4">The noise must support both stages but allow different parameter profiles for each.</p>
+
+<p class="p4">Stage 1 should emphasize colored horizontal artifacts in the dark lower field.</p>
+
+<p class="p4">Stage 2 should emphasize gray/black horizontal static and grain beneath the angular geometry and spectral ribbon.</p>
+
+<p class="p4">Avoid excessive circular speckles or unrelated film-damage effects.</p>
+
+<h2><span class="s1"><b>6. Temporal Stage Controller</b></span></h2>
+
+<p class="p4">Implement a dedicated two-stage temporal controller.</p>
+
+<p class="p3">Conceptually:</p>
+
+<ul><li><code>stage1Weight(t)</code></li><li><code>stage2Weight(t)</code></li><li><code>topBandWeight(t)</code></li><li><code>angularGeometryWeight(t)</code></li><li><code>spectralRibbonWeight(t)</code></li><li><code>horizontalNoiseWeight(t)</code></li></ul>
+
+<p class="p4">The reference indicates a major transition around 00:02.000.</p>
+
+<p class="p4">Use this as an initial calibration point, not as a hardcoded trigger.</p>
+
+<p class="p3">Requirements:</p>
+
+<ul><li><span class="s1">Adjustable stage timing.</span></li><li><span class="s1">Adjustable transition duration.</span></li><li><span class="s1">Abrupt or controlled transition behavior.</span></li><li><span class="s1">Independent subsystem activation weights.</span></li><li><span class="s1">Automatic temporal evolution.</span></li><li><span class="s1">Manual stage selection.</span></li><li><span class="s1">Frozen state.</span></li></ul>
+
+<p class="p4">The transition should preserve the identity of both stages rather than gradually blending every feature into an indistinguishable mixture.</p>
+
+<p class="p4">Support compositions with arbitrary duration and frame rate.</p>
+
+<p class="p4">Do not assume that every use of this preset will last 3.916 seconds.</p>
+
+<h2><span class="s1"><b>7. Deterministic Temporal Generation</b></span></h2>
+
+<p class="p3">Use deterministic procedural randomness based on:</p>
+
+<ul><li><span class="s1">User Seed.</span></li><li><span class="s1">Composition time or frame identity.</span></li><li><span class="s1">Subsystem identity.</span></li><li><span class="s1">Temporal stage.</span></li></ul>
+
+<p class="p3">Requirements:</p>
+
+<ul><li><span class="s1">Repeatable output for the same frame and settings.</span></li><li><span class="s1">Different streak and speckle arrangements across frames.</span></li><li><span class="s1">Changing polygon positions and ribbon curvature.</span></li><li><span class="s1">Stable temporal behavior independent of render-call order.</span></li><li><span class="s1">No global mutable random state.</span></li><li><span class="s1">Thread safety and MFR compatibility.</span></li></ul>
+
+<p class="p4">Frozen mode must preserve both geometry and noise.</p>
+
+<h2><span class="s1"><b>8. Parameters and UI</b></span></h2>
+
+<p class="p4">Organize controls into meaningful groups.</p>
+
+<h3><span class="s1"><b>Stage Control</b></span></h3>
+
+<ul><li><span class="s1">Temporal Mode.</span></li><li><span class="s1">Stage Selection.</span></li><li><span class="s1">Stage 1 Timing.</span></li><li><span class="s1">Stage 2 Timing.</span></li><li><span class="s1">Transition Duration.</span></li><li><span class="s1">Animation Speed.</span></li><li><span class="s1">Animate With Time.</span></li><li><span class="s1">Random Seed.</span></li></ul>
+
+<h3><span class="s1"><b>Stage 1 — Top Band &amp; Lower Static</b></span></h3>
+
+<ul><li><span class="s1">Top Band Height.</span></li><li><span class="s1">Top Band Brightness.</span></li><li><span class="s1">Top Band Color.</span></li><li><span class="s1">Lower Field Darkness.</span></li><li><span class="s1">Horizontal Streak Density.</span></li><li><span class="s1">Colored Speckle Amount.</span></li><li><span class="s1">Chroma Variation.</span></li><li><span class="s1">Lower Band Amount.</span></li><li><span class="s1">Diagonal Chroma Line Amount.</span></li></ul>
+
+<h3><span class="s1"><b>Stage 2 — Angular Geometry</b></span></h3>
+
+<ul><li><span class="s1">Angular Skew Amount.</span></li><li><span class="s1">Polygon Density.</span></li><li><span class="s1">Angular Scale.</span></li><li><span class="s1">Sawtooth Frequency.</span></li><li><span class="s1">Geometric Direction.</span></li><li><span class="s1">Edge Sharpness.</span></li><li><span class="s1">Dark Polygon Amount.</span></li><li><span class="s1">Geometry Variation.</span></li></ul>
+
+<h3><span class="s1"><b>Stage 2 — Spectral Ribbon</b></span></h3>
+
+<ul><li><span class="s1">Spectral Ribbon Amount.</span></li><li><span class="s1">Ribbon Width.</span></li><li><span class="s1">Ribbon Position.</span></li><li><span class="s1">Ribbon Curvature.</span></li><li><span class="s1">Spectral Saturation.</span></li><li><span class="s1">Color Progression.</span></li><li><span class="s1">Chroma Smear.</span></li><li><span class="s1">RGB Displacement.</span></li></ul>
+
+<h3><span class="s1"><b>Shared Signal Noise</b></span></h3>
+
+<ul><li><span class="s1">Grain Amount.</span></li><li><span class="s1">Horizontal Line Density.</span></li><li><span class="s1">Segment Length.</span></li><li><span class="s1">Luma Variation.</span></li><li><span class="s1">Colored Noise Amount.</span></li><li><span class="s1">Flicker Amount.</span></li></ul>
+
+<h3><span class="s1"><b>Output</b></span></h3>
+
+<ul><li><span class="s1">Output Mode.</span></li><li><span class="s1">Input Blend.</span></li><li><span class="s1">Compositing Mode.</span></li></ul>
+
+<p class="p4">Controls must genuinely affect rendering. Do not create decorative or nonfunctional UI parameters.</p>
+
+<p class="p4">Preserve parameter values when subsystems are disabled.</p>
+
+<h2><span class="s1"><b>9. Output Modes and Compositing</b></span></h2>
+
+<p class="p4">Support the existing VHSart output architecture.</p>
+
+<p class="p3">Provide:</p>
+
+<ul><li><span class="s1">Fully Generated Signal.</span></li><li><span class="s1">Apply Over Original.</span></li><li><span class="s1">Adjustable Input Blend.</span></li><li><span class="s1">Compatible Screen/Add and other existing blending modes.</span></li></ul>
+
+<p class="p4">Generated output must work independently of original footage.</p>
+
+<p class="p4">Handle alpha and premultiplied alpha correctly.</p>
+
+<p class="p4">For geometric transformations and displacement, sample RGB and alpha consistently. Prevent unwanted edge halos and invalid transparent pixels.</p>
+
+<h2><span class="s1"><b>10. Native After Effects Requirements</b></span></h2>
+
+<p class="p4">Implement using the project’s native C++ After Effects SDK architecture.</p>
+
+<p class="p3">Preserve:</p>
+
+<ul><li><span class="s1">Existing build system.</span></li><li><span class="s1">Parameter registration conventions.</span></li><li><span class="s1">PiPL and effect version consistency.</span></li><li><span class="s1">Multi-Frame Rendering compatibility.</span></li><li><span class="s1">Thread safety.</span></li><li><span class="s1">Deterministic rendering.</span></li><li><span class="s1">Supported pixel formats.</span></li><li><span class="s1">Correct alpha handling.</span></li><li><span class="s1">Existing plugin integration.</span></li></ul>
+
+<p class="p4">The entire visual effect must be procedurally generated at render time.</p>
+
+<p class="p3">Do not use:</p>
+
+<ul><li><span class="s1">Pre-rendered images.</span></li><li><span class="s1">Video or GIF overlays.</span></li><li><span class="s1">Static rainbow textures.</span></li><li><span class="s1">External polygon images.</span></li><li><span class="s1">Pre-baked signal damage.</span></li></ul>
+
+<p class="p4">Avoid unnecessary dependencies.</p>
+
+<h2><span class="s1"><b>11. Reference-Based Validation</b></span></h2>
+
+<p class="p4">Build and test the actual native plugin in After Effects.</p>
+
+<p class="p3">Compare against </span><code>video_1.mov</code><span class="s2"> at:</p>
+
+<ul><li><span class="s1">00:00.000</span></li><li><span class="s1">00:00.667</span></li><li><span class="s1">00:01.333</span></li><li><span class="s1">00:02.000</span></li><li><span class="s1">00:02.667</span></li><li><span class="s1">00:03.333</span></li></ul>
+
+<p class="p4">Inspect intermediate frames around the transition.</p>
+
+<p class="p3">Validate:</p>
+
+<ol start="1"><li><span class="s1">Stage 1 has a bright upper band and dark lower field.</span></li><li><span class="s1">Stage 1 contains fragmented colored horizontal artifacts.</span></li><li><span class="s1">The optional diagonal line remains subtle.</span></li><li><span class="s1">Stage 2 contains sharp angular and sawtooth geometry.</span></li><li><span class="s1">Dark polygonal regions have clear, crisp boundaries.</span></li><li><span class="s1">The spectral ribbon is structured and visibly multicolored.</span></li><li><span class="s1">RGB displacement is controlled and does not destroy the geometry.</span></li><li><span class="s1">Horizontal static remains visible beneath the geometric structures.</span></li><li><span class="s1">The transition between stages is recognizable and correctly timed.</span></li><li><span class="s1">The output changes deterministically across frames.</span></li><li><span class="s1">Frozen mode remains stable.</span></li><li><span class="s1">Both stages work independently when manually selected.</span></li><li><span class="s1">Existing VHSart presets remain functional.</span></li></ol>
+
+<p class="p4">Do not claim visual matching without direct comparison against rendered reference frames.</p>
+
+<h2><span class="s1"><b>12. Deliverables</b></span></h2>
+
+<p class="p3">Provide:</p>
+
+<ul><li><span class="s1">Completed </span><span class="s2"><b>Two-Stage Signal Glitch &amp; Angular Ribbon</b></span><span class="s1"> preset.</span></li><li><span class="s1">Dedicated Angular Ribbon &amp; Signal Glitch Engine.</span></li><li><span class="s1">Angular Sawtooth Geometry System.</span></li><li><span class="s1">Spectral Chroma Ribbon System.</span></li><li><span class="s1">Two-stage temporal controller.</span></li><li><span class="s1">Integrated Stage 1 signal-band configuration.</span></li><li><span class="s1">Reused and modified engine documentation.</span></li><li><span class="s1">Updated native C++ source.</span></li><li><span class="s1">Successful After Effects plugin build.</span></li><li><span class="s1">Reference comparison report.</span></li><li><span class="s1">List of any remaining visual differences.</span></li></ul>
+
+<p class="p6">Prioritize the sharp geometric identity, spectral ribbon structure, and accurate two-stage transition over unnecessary feature expansion.</p>
+
+</body>
+</html>

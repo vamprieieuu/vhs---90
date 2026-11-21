@@ -1,0 +1,239 @@
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+
+<h1><span class="s1"><b>VHSart — IMPLEMENT MULTI-BAND TRACKING TEAR &amp; CHROMA SMEAR</b></span></h1>
+
+<h2><span class="s1"><b>Objective</b></span></h2>
+
+<p class="p3">Reconstruct the visual behavior of the supplied reference video </span><code>video_1.mp4</code><span class="s2"> (approximately 0.85 seconds) as a dedicated, fully procedural VHS effect inside the native C++ After Effects plugin, VHSart.</p>
+
+<p class="p4">The target appearance combines:</p>
+
+<ul><li><span class="s1">Multiple independently moving horizontal tracking-interference bands.</span></li><li><span class="s1">Strong horizontal tearing and scanline displacement.</span></li><li><span class="s1">Localized horizontal chroma smearing.</span></li><li><span class="s1">RGB/chroma separation and displacement.</span></li><li><span class="s1">Short horizontal dropout streaks and brightness flicker.</span></li><li><span class="s1">A subtle low-resolution analog tape base with global softness and grain.</span></li></ul>
+
+<p class="p3">The result must reproduce the reference’s distinctive multi-band structure and temporal behavior, not merely apply generic VHS noise or a conventional single tracking bar.</p>
+
+<h2><span class="s1"><b>1. Mandatory Project Inspection</b></span></h2>
+
+<p class="p4">Before implementation:</p>
+
+<ol start="1"><li><span class="s1">Inspect the complete VHSart project structure and existing rendering architecture.</span></li><li><span class="s1">Identify all existing engines responsible for:</p>
+<p class="p2"></span><br><ul><li><span class="s1">Tracking noise and tracking damage.</span></li><li><span class="s1">Horizontal displacement and scanline processing.</span></li><li><span class="s1">Chroma separation and chroma smearing.</span></li><li><span class="s1">Dropouts and signal interference.</span></li><li><span class="s1">Grain, noise, softness, and low-resolution simulation.</span></li></ul></li><li><span class="s1">Reuse and extend existing compatible engines wherever possible.</span></li><li><span class="s1">Do not create duplicate implementations of existing functionality.</span></li><li><span class="s1">Introduce a dedicated engine only for the behavior that cannot be accurately achieved through the existing architecture.</span></li><li><span class="s1">Preserve all existing effects, presets, parameter behavior, and project compatibility.</span></li></ol>
+
+<p class="p3">Do not assume an engine exists merely because its name appears in the project. Inspect its actual implementation before integrating it.</p>
+
+<h2><span class="s1"><b>2. Dedicated Engine</b></span></h2>
+
+<p class="p3">Implement:</p>
+
+<p class="p5"><b>Multi-Band Tracking &amp; Tear Engine</b></p>
+
+<p class="p3">This engine must independently control multiple horizontal interference bands distributed across the frame.</p>
+
+<p class="p4">Each band must have its own procedural behavior, including:</p>
+
+<ul><li><span class="s1">Vertical center position.</span></li><li><span class="s1">Thickness.</span></li><li><span class="s1">Horizontal displacement.</span></li><li><span class="s1">Tear intensity.</span></li><li><span class="s1">Internal line fragmentation.</span></li><li><span class="s1">Chroma displacement.</span></li><li><span class="s1">Smear strength.</span></li><li><span class="s1">Dropout probability.</span></li><li><span class="s1">Brightness flicker.</span></li><li><span class="s1">Temporal movement and variation.</span></li></ul>
+
+<p class="p3">Support approximately 1–5 active bands, with 2–3 as the default range.</p>
+
+<p class="p3">Bands must be able to overlap, approach one another, separate, and move independently.</p>
+
+<p class="p3">Avoid making all bands identical copies with different vertical positions.</p>
+
+<h2><span class="s1"><b>3. Horizontal Band Generation</b></span></h2>
+
+<p class="p3">Generate irregular horizontal masks procedurally.</p>
+
+<p class="p3">For each band, calculate a time-dependent center, thickness, and intensity using deterministic noise and the selected random seed.</p>
+
+<p class="p4">The mask should have:</p>
+
+<ul><li><span class="s1">Irregular upper and lower boundaries.</span></li><li><span class="s1">Uneven intensity across its height.</span></li><li><span class="s1">Fine internal scanline structures.</span></li><li><span class="s1">Broken and fragmented horizontal sections.</span></li><li><span class="s1">Variable horizontal displacement.</span></li><li><span class="s1">Occasional short bright and dark streaks.</span></li></ul>
+
+<p class="p3">The bands should extend across most or all of the image width, but their internal damage must remain irregular rather than forming perfectly uniform rectangular bars.</p>
+
+<p class="p3">Use smooth band envelopes combined with high-frequency procedural variation to avoid artificial hard-edged masks.</p>
+
+<h2><span class="s1"><b>4. Horizontal Tear and Displacement</b></span></h2>
+
+<p class="p3">Within each active band, independently displace image samples horizontally.</p>
+
+<p class="p3">Implement row-based displacement:</p>
+
+<p class="p5"><code>sourceX = x - horizontalDisplacement(y, time, band, seed)</code></p>
+
+<p class="p3">Displacement must vary across scanlines and may contain abrupt jumps, short segmented shifts, and fine jitter.</p>
+
+<p class="p4">Support:</p>
+
+<ul><li><span class="s1">Small continuous horizontal shifts.</span></li><li><span class="s1">Strong localized tearing.</span></li><li><span class="s1">Segmented horizontal offsets.</span></li><li><span class="s1">Irregular scanline displacement.</span></li><li><span class="s1">Independent displacement behavior for overlapping bands.</span></li></ul>
+
+<p class="p3">Keep the primary distortion horizontal.</p>
+
+<p class="p3">Do not introduce full-frame vertical rolling, global rotation, diagonal shearing, or unrelated geometric distortions.</p>
+
+<h2><span class="s1"><b>5. Chroma Smearing and RGB Displacement</b></span></h2>
+
+<p class="p3">Implement localized chroma smearing that follows the active tracking bands.</p>
+
+<p class="p3">The effect should produce horizontal color extensions and fragmented color streaks, particularly in high-contrast regions.</p>
+
+<p class="p4">Support:</p>
+
+<ul><li><span class="s1">Horizontal chroma sample displacement.</span></li><li><span class="s1">Independent red, green, and blue channel offsets where appropriate.</span></li><li><span class="s1">Chroma-only displacement.</span></li><li><span class="s1">Optional limited RGB displacement.</span></li><li><span class="s1">Localized color bleeding.</span></li><li><span class="s1">Irregular magenta, purple, green, cyan, blue, white, and dark streaks.</span></li></ul>
+
+<p class="p3">Keep chroma damage concentrated inside the bands and their immediate neighboring scanlines.</p>
+
+<p class="p3">Do not turn the entire image into a strong RGB-split effect.</p>
+
+<h2><span class="s1"><b>6. Dropout and Flicker System</b></span></h2>
+
+<p class="p3">Create a procedural dropout system associated with the horizontal bands.</p>
+
+<p class="p4">Generate short, irregular horizontal segments with:</p>
+
+<ul><li><span class="s1">Bright flashes.</span></li><li><span class="s1">Dark interruptions.</span></li><li><span class="s1">White or gray streaks.</span></li><li><span class="s1">Colored interference fragments.</span></li><li><span class="s1">Uneven segment lengths.</span></li><li><span class="s1">Variable opacity and intensity.</span></li></ul>
+
+<p class="p3">The dropout pattern must evolve over time using deterministic randomness.</p>
+
+<p class="p3">Avoid uniform repeating patterns and avoid making every segment blink simultaneously.</p>
+
+<h2><span class="s1"><b>7. Global Analog Base</b></span></h2>
+
+<p class="p3">Reuse VHSart’s existing compatible processing engines for the background tape appearance.</p>
+
+<p class="p4">The base treatment should provide:</p>
+
+<ul><li><span class="s1">Subtle global softness.</span></li><li><span class="s1">Mild low-resolution character.</span></li><li><span class="s1">Fine analog grain.</span></li><li><span class="s1">Slight high-frequency detail reduction.</span></li><li><span class="s1">Low-intensity global noise.</span></li></ul>
+
+<p class="p3">The base effect must remain relatively restrained. The main visual intensity belongs inside the tracking bands.</p>
+
+<p class="p3">Expose independent controls for base softness and global grain without duplicating existing controls unnecessarily.</p>
+
+<h2><span class="s1"><b>8. Temporal Behavior</b></span></h2>
+
+<p class="p3">The reference demonstrates intermittent, unstable horizontal interference.</p>
+
+<p class="p3">Implement independently evolving band positions and intensities.</p>
+
+<p class="p4">Requirements:</p>
+
+<ul><li><span class="s1">Bands must move vertically over time.</span></li><li><span class="s1">Each band must have an independent temporal phase.</span></li><li><span class="s1">Band thickness and intensity may vary gradually or abruptly.</span></li><li><span class="s1">Dropout segments must change between frames.</span></li><li><span class="s1">Chroma smearing must respond consistently to the active band masks.</span></li><li><span class="s1">Temporal behavior must not depend on rendering order.</span></li><li><span class="s1">The same frame, time, and seed must always produce the same result.</span></li></ul>
+
+<p class="p4">Support:</p>
+
+<ul><li><span class="s1">Animated procedural mode.</span></li><li><span class="s1">Frozen/static mode.</span></li><li><span class="s1">User-controlled temporal rate.</span></li><li><span class="s1">Random Seed.</span></li><li><span class="s1">Deterministic frame evaluation and timeline scrubbing.</span></li></ul>
+
+<p class="p3">Do not hardcode the reference’s 0.85-second duration or its observed frame timestamps.</p>
+
+<h2><span class="s1"><b>9. Preset</b></span></h2>
+
+<p class="p3">Create a dedicated preset:</p>
+
+<p class="p5"><b>VHSart — Multi-Band Tracking Tear &amp; Chroma Smear</b></p>
+
+<p class="p6">Suggested starting configuration:</p>
+
+
+<table border="1" cellspacing="0" cellpadding="8" width="100%" style="width: 100%; border-collapse: collapse; border: 1px solid;"><thead><tr><th style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1"><b>Parameter</b></p>
+</th><th style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1"><b>Initial value</b></p>
+</th></tr></thead><tbody><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Band Count</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">2–3</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Horizontal Tear Amount</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">75%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Band Thickness</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">15%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Chroma Smear Strength</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">65%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Dropout &amp; Flicker Amount</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">60%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Temporal Shift / Flicker</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">60%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Base Softness</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">40%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Global Grain</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">35%</p>
+</td></tr></tbody></table>
+
+
+<p class="p1">These are starting values, not fixed limits. Calibrate them visually against the supplied reference.</p>
+
+<h2><span class="s1"><b>10. User Controls</b></span></h2>
+
+<p class="p4">Expose the following meaningful controls:</p>
+
+<ol start="1"><li><span class="s1">Enable.</span></li><li><span class="s1">Band Count.</span></li><li><span class="s1">Horizontal Tear Amount.</span></li><li><span class="s1">Band Thickness.</span></li><li><span class="s1">Band Position Variation.</span></li><li><span class="s1">Chroma Smear Strength.</span></li><li><span class="s1">RGB Displacement.</span></li><li><span class="s1">Dropout Amount.</span></li><li><span class="s1">Flicker Amount.</span></li><li><span class="s1">Temporal Shift Rate.</span></li><li><span class="s1">Base Softness.</span></li><li><span class="s1">Global Grain.</span></li><li><span class="s1">Animation Enable.</span></li><li><span class="s1">Random Seed.</span></li></ol>
+
+<p class="p1">Avoid redundant sliders that control the same underlying operation.</p>
+
+<p class="p1">If individual band controls fit the existing UI architecture, provide advanced per-band controls without cluttering the default interface.</p>
+
+<p class="p1">Disabling a component must preserve its stored parameter values.</p>
+
+<h2><span class="s1"><b>11. Processing Order</b></span></h2>
+
+<p class="p4">Use a carefully integrated processing pipeline:</p>
+
+<ol start="1"><li><span class="s1">Existing VHSart base softness / low-resolution processing.</span></li><li><span class="s1">Existing global grain and subtle analog noise.</span></li><li><span class="s1">Multi-band mask generation.</span></li><li><span class="s1">Horizontal band displacement and tearing.</span></li><li><span class="s1">Localized chroma displacement and smearing.</span></li><li><span class="s1">Dropout and brightness flicker.</span></li><li><span class="s1">Final compositing and alpha handling.</span></li></ol>
+
+<p class="p1">The implementation may reorder compatible stages when technically necessary, but must preserve the intended relationship between the band masks, geometric displacement, chroma smearing, and dropouts.</p>
+
+<h2><span class="s1"><b>12. Alpha, Performance, and AE Compatibility</b></span></h2>
+
+<p class="p4">The implementation must:</p>
+
+<ul><li><span class="s1">Preserve source alpha.</span></li><li><span class="s1">Correctly handle premultiplied RGB.</span></li><li><span class="s1">Avoid color contamination in transparent pixels.</span></li><li><span class="s1">Support different footage dimensions and pixel formats supported by the existing plugin.</span></li><li><span class="s1">Be thread-safe.</span></li><li><span class="s1">Support After Effects Multi-Frame Rendering.</span></li><li><span class="s1">Avoid shared mutable render state.</span></li><li><span class="s1">Use deterministic per-frame randomness.</span></li><li><span class="s1">Avoid unnecessary full-frame allocations.</span></li><li><span class="s1">Avoid out-of-bounds sampling.</span></li><li><span class="s1">Remain stable during timeline scrubbing and repeated rendering.</span></li></ul>
+
+<p class="p1">Follow VHSart’s existing native After Effects SDK architecture and parameter conventions.</p>
+
+<h2><span class="s1"><b>13. Visual Validation</b></span></h2>
+
+<p class="p1">Use the actual supplied </span><code>video_1.mp4</code><span class="s1"> as the visual reference.</p>
+
+<p class="p4">Compare representative frames, especially:</p>
+
+<ul><li><span class="s1">00:00.000</span></li><li><span class="s1">00:00.250</span></li><li><span class="s1">00:00.500</span></li></ul>
+
+<p class="p4">Evaluate:</p>
+
+<ul><li><span class="s1">Number and distribution of active bands.</span></li><li><span class="s1">Band thickness and irregularity.</span></li><li><span class="s1">Horizontal displacement strength.</span></li><li><span class="s1">Chroma smearing and color fragmentation.</span></li><li><span class="s1">Dropout shape and brightness variation.</span></li><li><span class="s1">Temporal movement between frames.</span></li><li><span class="s1">Preservation of readable image content outside damaged regions.</span></li></ul>
+
+<p class="p1">Test on different footage, including faces, high-contrast graphics, bright clothing, dark backgrounds, and detailed scenes.</p>
+
+<p class="p1">Do not claim visual matching without actually rendering and comparing the result.</p>
+
+<p class="p1">If the first implementation looks like generic horizontal glitch bars, refine the band geometry, internal fragmentation, chroma behavior, and temporal independence.</p>
+
+<h2><span class="s1"><b>14. Deliverables</b></span></h2>
+
+<p class="p4">Deliver:</p>
+
+<ol start="1"><li><span class="s1">The integrated Multi-Band Tracking &amp; Tear Engine source code.</span></li><li><span class="s1">The dedicated preset and its default parameter configuration.</span></li><li><span class="s1">All required UI and parameter registrations.</span></li><li><span class="s1">Integration with existing VHSart engines.</span></li><li><span class="s1">Successful native plugin build using the project’s established build architecture.</span></li><li><span class="s1">Visual validation results and any remaining known limitations.</span></li></ol>
+
+<p class="p1">Do not remove or break existing engines, presets, or functionality.</p>
+
+<p class="p5"><b>Final quality target:</b></span><span class="s1"> multiple independently moving, irregular horizontal tracking bands with strong localized tearing, chroma smearing, and fragmented analog interference, while the surrounding footage retains its original visual structure and remains recognizable.</p>
+
+</body>
+</html>

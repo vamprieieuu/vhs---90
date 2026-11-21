@@ -1,0 +1,1072 @@
+{
+ "version": 1,
+ "canvas": {
+  "w": 1180,
+  "h": 620
+ },
+ "theme": {
+  "bg": "#010804",
+  "faint": "#0e4a22",
+  "dim": "#1c9a45",
+  "phosphor": "#39ff6e",
+  "hot": "#d8ffe3",
+  "warn": "#ffb347",
+  "line": {
+   "hair": 1.0,
+   "thin": 1.6,
+   "bold": 2.6
+  },
+  "glow": [
+   {
+    "w": 9,
+    "a": 0.05
+   },
+   {
+    "w": 5,
+    "a": 0.13
+   },
+   {
+    "w": 2.6,
+    "a": 0.32
+   }
+  ],
+  "scanline": {
+   "period": 3,
+   "alpha": 0.16
+  },
+  "vignette": 0.35,
+  "font": {
+   "family": [
+    "JetBrains Mono",
+    "DejaVu Sans Mono",
+    "monospace"
+   ],
+   "size": 12,
+   "tracking": 0.6
+  }
+ },
+ "title": {
+  "text": "VHS-PHYS // HELICAL-SCAN SIGNAL CHAIN",
+  "x": 20,
+  "y": 24,
+  "size": 14
+ },
+ "blocks": [
+  {
+   "id": "source",
+   "title": "SOURCE",
+   "x": 20,
+   "y": 40,
+   "w": 200,
+   "h": 196,
+   "frame": "box",
+   "caption": "SETS MASTER AND NOISE"
+  },
+  {
+   "id": "camera",
+   "title": "CAMERA",
+   "x": 240,
+   "y": 40,
+   "w": 223,
+   "h": 140,
+   "frame": "box",
+   "caption": "LAGS AND SMEARS HIGHLIGHTS"
+  },
+  {
+   "id": "record_deck",
+   "title": "RECORD DECK",
+   "x": 20,
+   "y": 252,
+   "w": 200,
+   "h": 268,
+   "frame": "box",
+   "caption": "BAKES WEAR INTO EACH COPY"
+  },
+  {
+   "id": "cassette",
+   "title": "CASSETTE",
+   "x": 240,
+   "y": 196,
+   "w": 224,
+   "h": 375,
+   "frame": "box",
+   "caption": "SHEDS OXIDE, SOFTENS DETAIL"
+  },
+  {
+   "id": "head_drum",
+   "title": "HEAD DRUM",
+   "x": 484,
+   "y": 40,
+   "w": 200,
+   "h": 244,
+   "frame": "box",
+   "caption": "DROPS RF AS HEADS WEAR"
+  },
+  {
+   "id": "transport",
+   "title": "TRANSPORT",
+   "x": 484,
+   "y": 300,
+   "w": 200,
+   "h": 220,
+   "frame": "box",
+   "caption": "STEERS TRACKING AND SKEW"
+  },
+  {
+   "id": "power",
+   "title": "POWER",
+   "x": 704,
+   "y": 40,
+   "w": 200,
+   "h": 244,
+   "frame": "box",
+   "caption": "FEEDS RIPPLE AND DRIFT"
+  },
+  {
+   "id": "output",
+   "title": "OUTPUT",
+   "x": 704,
+   "y": 344,
+   "w": 200,
+   "h": 176,
+   "frame": "box",
+   "caption": "SPLITS LUMA AND CHROMA"
+  },
+  {
+   "id": "tv",
+   "title": "TV",
+   "x": 924,
+   "y": 40,
+   "w": 236,
+   "h": 360,
+   "frame": "box",
+   "caption": ""
+  }
+ ],
+ "instances": [
+  {
+   "glyph": "source_gate",
+   "x": 28,
+   "y": 70,
+   "scale": 1.0,
+   "block": "source"
+  },
+  {
+   "glyph": "pickup_tube",
+   "x": 248,
+   "y": 60,
+   "scale": 1.0,
+   "block": "camera"
+  },
+  {
+   "glyph": "rec_deck",
+   "x": 28,
+   "y": 280,
+   "scale": 1.0,
+   "block": "record_deck"
+  },
+  {
+   "glyph": "dub_loop",
+   "x": 28,
+   "y": 404,
+   "scale": 1.0,
+   "block": "record_deck"
+  },
+  {
+   "glyph": "cassette",
+   "x": 248,
+   "y": 218,
+   "scale": 1.0,
+   "block": "cassette"
+  },
+  {
+   "glyph": "tape_strip",
+   "x": 248,
+   "y": 398,
+   "scale": 1.0,
+   "block": "cassette"
+  },
+  {
+   "glyph": "drum",
+   "x": 492,
+   "y": 70,
+   "scale": 1.0,
+   "block": "head_drum"
+  },
+  {
+   "glyph": "azimuth_pair",
+   "x": 600,
+   "y": 70,
+   "scale": 1.0,
+   "block": "head_drum"
+  },
+  {
+   "glyph": "ctl_head",
+   "x": 492,
+   "y": 330,
+   "scale": 1.0,
+   "block": "transport"
+  },
+  {
+   "glyph": "capstan",
+   "x": 588,
+   "y": 330,
+   "scale": 1.0,
+   "block": "transport"
+  },
+  {
+   "glyph": "capacitor",
+   "x": 712,
+   "y": 70,
+   "scale": 1.0,
+   "block": "power"
+  },
+  {
+   "glyph": "transformer",
+   "x": 806,
+   "y": 70,
+   "scale": 1.0,
+   "block": "power"
+  },
+  {
+   "glyph": "comb_filter",
+   "x": 712,
+   "y": 372,
+   "scale": 1.0,
+   "block": "output"
+  },
+  {
+   "glyph": "av_socket",
+   "x": 806,
+   "y": 372,
+   "scale": 1.0,
+   "block": "output"
+  },
+  {
+   "glyph": "tv",
+   "x": 930,
+   "y": 48,
+   "scale": 1.0,
+   "block": "tv"
+  }
+ ],
+ "wires": [
+  {
+   "id": "w_source",
+   "kind": "video",
+   "points": [
+    [
+     120,
+     236
+    ],
+    [
+     120,
+     252
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_camera",
+   "kind": "video",
+   "points": [
+    [
+     240,
+     90
+    ],
+    [
+     230,
+     90
+    ],
+    [
+     230,
+     262
+    ],
+    [
+     220,
+     262
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_record",
+   "kind": "video",
+   "points": [
+    [
+     220,
+     278
+    ],
+    [
+     240,
+     278
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_tape",
+   "kind": "video",
+   "points": [
+    [
+     464,
+     262
+    ],
+    [
+     474,
+     262
+    ],
+    [
+     474,
+     126
+    ],
+    [
+     484,
+     126
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_ctl",
+   "kind": "video",
+   "points": [
+    [
+     464,
+     310
+    ],
+    [
+     474,
+     310
+    ],
+    [
+     474,
+     372
+    ],
+    [
+     484,
+     372
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_servo",
+   "kind": "video",
+   "points": [
+    [
+     584,
+     300
+    ],
+    [
+     584,
+     284
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_heads",
+   "kind": "video",
+   "points": [
+    [
+     684,
+     126
+    ],
+    [
+     694,
+     126
+    ],
+    [
+     694,
+     388
+    ],
+    [
+     704,
+     388
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_out",
+   "kind": "video",
+   "points": [
+    [
+     904,
+     424
+    ],
+    [
+     1042,
+     424
+    ],
+    [
+     1042,
+     400
+    ]
+   ],
+   "label": "VIDEO",
+   "label_at": [
+    950,
+    418
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_mech",
+   "kind": "power",
+   "points": [
+    [
+     704,
+     100
+    ],
+    [
+     684,
+     100
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_power_out",
+   "kind": "power",
+   "points": [
+    [
+     804,
+     284
+    ],
+    [
+     804,
+     344
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_audio",
+   "kind": "audio",
+   "points": [
+    [
+     464,
+     546
+    ],
+    [
+     760,
+     546
+    ],
+    [
+     760,
+     520
+    ]
+   ],
+   "label": "SOUND",
+   "label_at": [
+    536,
+    540
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_dub",
+   "kind": "dub",
+   "points": [
+    [
+     848,
+     520
+    ],
+    [
+     848,
+     584
+    ],
+    [
+     120,
+     584
+    ],
+    [
+     120,
+     520
+    ]
+   ],
+   "label": "DUB",
+   "label_at": [
+    500,
+    578
+   ],
+   "arrow": true
+  }
+ ],
+ "labels": [
+  {
+   "text": "NTSC 525 / 29.97 FPS",
+   "x": 1160,
+   "y": 24,
+   "size": 11,
+   "align": "r",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "ntsc"
+    ]
+   }
+  },
+  {
+   "text": "PAL 625 / 25 FPS",
+   "x": 1160,
+   "y": 24,
+   "size": 11,
+   "align": "r",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "pal"
+    ]
+   }
+  },
+  {
+   "text": "PAL-60: NTSC 525 TAPE, PAL SET",
+   "x": 1160,
+   "y": 24,
+   "size": 11,
+   "align": "r",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "pal60"
+    ]
+   }
+  },
+  {
+   "text": "CLICK SCREEN TO ENLARGE",
+   "x": 924,
+   "y": 450,
+   "size": 11,
+   "align": "l",
+   "b": "dim"
+  },
+  {
+   "text": "LUMA FM 3.4-4.4 MHZ",
+   "x": 924,
+   "y": 470,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "ntsc",
+     "pal60"
+    ]
+   }
+  },
+  {
+   "text": "LUMA FM 3.8-4.8 MHZ",
+   "x": 924,
+   "y": 470,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "pal"
+    ]
+   }
+  },
+  {
+   "text": "CHROMA 629 KHZ HETERO",
+   "x": 924,
+   "y": 490,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "ntsc",
+     "pal60"
+    ]
+   }
+  },
+  {
+   "text": "CHROMA 627 KHZ HETERO",
+   "x": 924,
+   "y": 490,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "pal"
+    ]
+   }
+  },
+  {
+   "text": "DRUM 1800 RPM / 62 MM",
+   "x": 924,
+   "y": 510,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "ntsc",
+     "pal60"
+    ]
+   }
+  },
+  {
+   "text": "DRUM 1500 RPM / 62 MM",
+   "x": 924,
+   "y": 510,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "pal"
+    ]
+   }
+  },
+  {
+   "text": "SP 33.35 MM/S // EP 11.12 MM/S",
+   "x": 924,
+   "y": 530,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "ntsc",
+     "pal60"
+    ]
+   }
+  },
+  {
+   "text": "SP 23.39 MM/S // LP 11.70 MM/S",
+   "x": 924,
+   "y": 530,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "standard": [
+     "pal"
+    ]
+   }
+  },
+  {
+   "text": "SET ON THE CAMERA PAGE",
+   "x": 246,
+   "y": 142,
+   "size": 11,
+   "align": "l",
+   "b": "dim"
+  }
+ ],
+ "hint": {
+  "x": 20,
+  "y": 606,
+  "w": 1140,
+  "size": 12,
+  "default": "HOVER A LINE. DRAG TO SET. WHEEL TO STEP. DOUBLE CLICK TO RESET."
+ },
+ "controls": [
+  {
+   "id": "preset",
+   "block": "source",
+   "label": "PRESET",
+   "x": 26,
+   "y": 162,
+   "w": 188,
+   "kind": "choice",
+   "choices": [
+    "pristine",
+    "good",
+    "worn",
+    "bad",
+    "ruined",
+    "dry-caps",
+    "dirty-heads",
+    "mistracked",
+    "stretched",
+    "humid-attic"
+   ]
+  },
+  {
+   "id": "seed",
+   "block": "source",
+   "label": "SEED",
+   "x": 26,
+   "y": 184,
+   "w": 188,
+   "kind": "stepper",
+   "min": 0,
+   "max": 2147483647
+  },
+  {
+   "id": "rec_deck_age_years",
+   "block": "record_deck",
+   "label": "REC AGE",
+   "x": 26,
+   "y": 356,
+   "w": 188,
+   "kind": "slider",
+   "unit": "years",
+   "min": 0,
+   "max": 50,
+   "step": 0.5,
+   "decimals": 1
+  },
+  {
+   "id": "rec_deck_temp_c",
+   "block": "record_deck",
+   "label": "REC TEMP",
+   "x": 26,
+   "y": 378,
+   "w": 188,
+   "kind": "slider",
+   "unit": "\u00b0C",
+   "min": 20,
+   "max": 90,
+   "step": 1,
+   "decimals": 0
+  },
+  {
+   "id": "generations",
+   "block": "record_deck",
+   "label": "GENERATIONS",
+   "x": 26,
+   "y": 464,
+   "w": 188,
+   "kind": "stepper",
+   "min": 1,
+   "max": 8
+  },
+  {
+   "id": "tape_speed",
+   "block": "cassette",
+   "label": "SPEED",
+   "x": 246,
+   "y": 332,
+   "w": 212,
+   "kind": "choice",
+   "choices": [
+    "sp",
+    "lp",
+    "ep"
+   ]
+  },
+  {
+   "id": "tape_passes",
+   "block": "cassette",
+   "label": "PLAYS",
+   "x": 246,
+   "y": 354,
+   "w": 212,
+   "kind": "slider",
+   "unit": "",
+   "min": 0,
+   "max": 200,
+   "step": 1,
+   "decimals": 0
+  },
+  {
+   "id": "tape_position_m",
+   "block": "cassette",
+   "label": "POSITION",
+   "x": 246,
+   "y": 376,
+   "w": 212,
+   "kind": "slider",
+   "unit": "m",
+   "min": 0,
+   "max": 400,
+   "step": 1,
+   "decimals": 0
+  },
+  {
+   "id": "tape_age_years",
+   "block": "cassette",
+   "label": "TAPE AGE",
+   "x": 246,
+   "y": 468,
+   "w": 212,
+   "kind": "slider",
+   "unit": "years",
+   "min": 0,
+   "max": 50,
+   "step": 0.5,
+   "decimals": 1
+  },
+  {
+   "id": "tape_storage",
+   "block": "cassette",
+   "label": "STORAGE",
+   "x": 246,
+   "y": 490,
+   "w": 212,
+   "kind": "slider",
+   "unit": "",
+   "min": 0,
+   "max": 1,
+   "step": 0.01,
+   "decimals": 2
+  },
+  {
+   "id": "tape_quality",
+   "block": "cassette",
+   "label": "QUALITY",
+   "x": 246,
+   "y": 512,
+   "w": 212,
+   "kind": "slider",
+   "unit": "",
+   "min": 0,
+   "max": 1,
+   "step": 0.01,
+   "decimals": 2
+  },
+  {
+   "id": "tape_stretch",
+   "block": "cassette",
+   "label": "STRETCH",
+   "x": 246,
+   "y": 534,
+   "w": 212,
+   "kind": "slider",
+   "unit": "",
+   "min": 0,
+   "max": 1,
+   "step": 0.01,
+   "decimals": 2
+  },
+  {
+   "id": "head_wear",
+   "block": "head_drum",
+   "label": "HEAD WEAR",
+   "x": 490,
+   "y": 186,
+   "w": 188,
+   "kind": "slider",
+   "unit": "",
+   "min": 0,
+   "max": 1,
+   "step": 0.01,
+   "decimals": 2
+  },
+  {
+   "id": "head_clog",
+   "block": "head_drum",
+   "label": "HEAD CLOG",
+   "x": 490,
+   "y": 208,
+   "w": 188,
+   "kind": "slider",
+   "unit": "",
+   "min": 0,
+   "max": 1,
+   "step": 0.01,
+   "decimals": 2
+  },
+  {
+   "id": "drum_wear",
+   "block": "head_drum",
+   "label": "DRUM WEAR",
+   "x": 490,
+   "y": 230,
+   "w": 188,
+   "kind": "slider",
+   "unit": "",
+   "min": 0,
+   "max": 1,
+   "step": 0.01,
+   "decimals": 2
+  },
+  {
+   "id": "tracking_error_um",
+   "block": "transport",
+   "label": "TRACK ERROR",
+   "x": 490,
+   "y": 422,
+   "w": 188,
+   "kind": "slider",
+   "unit": "\u00b5m",
+   "min": -40,
+   "max": 40,
+   "step": 0.5,
+   "decimals": 1
+  },
+  {
+   "id": "tracking_slope_um",
+   "block": "transport",
+   "label": "TRACK SLOPE",
+   "x": 490,
+   "y": 444,
+   "w": 188,
+   "kind": "slider",
+   "unit": "\u00b5m",
+   "min": -100,
+   "max": 100,
+   "step": 1,
+   "decimals": 0
+  },
+  {
+   "id": "tension_error",
+   "block": "transport",
+   "label": "TENSION",
+   "x": 490,
+   "y": 466,
+   "w": 188,
+   "kind": "slider",
+   "unit": "",
+   "min": -1,
+   "max": 1,
+   "step": 0.05,
+   "decimals": 2
+  },
+  {
+   "id": "deck_age_years",
+   "block": "power",
+   "label": "DECK AGE",
+   "x": 710,
+   "y": 164,
+   "w": 188,
+   "kind": "slider",
+   "unit": "years",
+   "min": 0,
+   "max": 50,
+   "step": 0.5,
+   "decimals": 1
+  },
+  {
+   "id": "deck_temp_c",
+   "block": "power",
+   "label": "CAP TEMP",
+   "x": 710,
+   "y": 186,
+   "w": 188,
+   "kind": "slider",
+   "unit": "\u00b0C",
+   "min": 20,
+   "max": 90,
+   "step": 1,
+   "decimals": 0
+  },
+  {
+   "id": "deck_humidity",
+   "block": "power",
+   "label": "HUMIDITY",
+   "x": 710,
+   "y": 208,
+   "w": 188,
+   "kind": "slider",
+   "unit": "",
+   "min": 0,
+   "max": 1,
+   "step": 0.01,
+   "decimals": 2
+  },
+  {
+   "id": "psu_smps",
+   "block": "power",
+   "label": "SMPS PSU",
+   "x": 710,
+   "y": 230,
+   "w": 188,
+   "kind": "toggle"
+  },
+  {
+   "id": "signal",
+   "block": "output",
+   "label": "SIGNAL",
+   "x": 710,
+   "y": 448,
+   "w": 188,
+   "kind": "choice",
+   "choices": [
+    "svideo",
+    "notch",
+    "comb1h",
+    "comb2h"
+   ]
+  },
+  {
+   "id": "audio",
+   "block": "output",
+   "label": "SOUND",
+   "x": 710,
+   "y": 470,
+   "w": 188,
+   "kind": "choice",
+   "choices": [
+    "process",
+    "copy",
+    "none"
+   ]
+  },
+  {
+   "id": "standard",
+   "block": "tv",
+   "label": "STANDARD",
+   "x": 930,
+   "y": 364,
+   "w": 224,
+   "kind": "choice",
+   "choices": [
+    "ntsc",
+    "pal",
+    "pal60"
+   ]
+  }
+ ],
+ "animation": {
+  "pulse_speed": 90,
+  "pulse_spacing": 70,
+  "reel_rpm": 12,
+  "flicker": 0.03,
+  "boot_ms": 1800,
+  "refresh_flash_ms": 250
+ }
+}

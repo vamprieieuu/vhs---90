@@ -1,0 +1,26 @@
+[project]
+name = "comfyui_retrotape"
+version = "1.0.0"
+description = "NTSC/VHS analog tape effect for ComfyUI, with a live preview inside the node."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "SKBv0" }]
+keywords = ["comfyui", "vhs", "ntsc", "analog", "retro", "video-effect"]
+dependencies = [
+    "numpy>=1.25",
+    "opencv-python-headless>=4.8",
+    "scipy>=1.10",
+    "Pillow>=10",
+]
+
+[project.urls]
+Repository = "https://github.com/SKBv0/ComfyUI_RetroTape"
+Issues = "https://github.com/SKBv0/ComfyUI_RetroTape/issues"
+
+[tool.comfy]
+PublisherId = "skb"
+DisplayName = "RetroTape"
+Icon = ""
+Banner = "https://raw.githubusercontent.com/SKBv0/ComfyUI_RetroTape/main/docs/banner.webp"
+requires-comfyui = ">=0.3.40"

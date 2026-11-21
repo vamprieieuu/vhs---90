@@ -1,0 +1,12 @@
+[package]
+name = "ntscrt-spike"
+version = "0.1.0"
+edition = "2021"
+description = "Windows-port spike: a still through ntscrt-engine, mirroring the Mac's crt-smoke"
+license = "MIT"
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+image.workspace = true
+ntscrt-engine = { path = "../engine" }

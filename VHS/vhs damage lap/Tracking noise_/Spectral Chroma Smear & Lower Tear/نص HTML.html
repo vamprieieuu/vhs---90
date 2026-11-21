@@ -1,0 +1,292 @@
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+
+<h1><span class="s1"><b>VHSart — IMPLEMENT SPECTRAL CHROMA SMEAR &amp; LOWER TRACKING TEAR</b></span></h1>
+
+<h2><span class="s1"><b>Objective</b></span></h2>
+
+<p class="p3">Reconstruct the supplied visual reference </span><code>IMG_4654.jpeg</code><span class="s2"> as a dedicated, fully procedural effect inside the native C++ After Effects plugin, VHSart.</p>
+
+<p class="p4">The reference has a distinctive two-part visual structure:</p>
+
+<ol start="1"><li><span class="s1"><b>Upper and Mid-Frame Spectral Chroma Smear:</b></span><span class="s2"> Extremely saturated, irregular rainbow-like chromatic bleeding and spectral color displacement spreading across the upper and middle portions of the image.</span></li><li><span class="s1"><b>Lower Horizontal Tracking Interference:</b></span><span class="s2"> A dense, full-width horizontal tracking and signal-interference band occupying approximately the bottom 35–40% of the frame, containing horizontal tearing, scanline fragmentation, RGB displacement, colored noise, and bright/dark dropouts.</span></li></ol>
+
+<p class="p3">These two components must be independently generated and controlled, while visually interacting where their regions meet.</p>
+
+<p class="p3">The effect must be reconstructed mathematically and procedurally. Do not use pre-rendered overlays, stock textures, images, video clips, GIFs, or baked-in reference material.</p>
+
+<h2><span class="s1"><b>1. Mandatory Project Inspection</b></span></h2>
+
+<p class="p4">Before implementation:</p>
+
+<ul><li><span class="s1">Inspect the complete VHSart project and rendering architecture.</span></li><li><span class="s1">Identify existing chroma, RGB displacement, color processing, tracking, tearing, dropout, grain, scanline, softness, and noise engines.</span></li><li><span class="s1">Reuse or extend existing compatible engines.</span></li><li><span class="s1">Do not duplicate functionality that already exists.</span></li><li><span class="s1">Build a dedicated engine only for the distinctive spectral chroma distribution and lower-band tracking behavior that existing engines cannot reproduce accurately.</span></li><li><span class="s1">Preserve all existing effects, presets, parameters, and functionality.</span></li></ul>
+
+<p class="p3">Do not assume existing functionality works correctly without inspecting its actual implementation.</p>
+
+<h2><span class="s1"><b>2. Dedicated Engine Architecture</b></span></h2>
+
+<p class="p3">Implement a dedicated hybrid engine:</p>
+
+<p class="p5"><b>Spectral Chroma &amp; Lower Tear Engine</b></p>
+
+<p class="p3">It must contain two independently configurable processing systems:</p>
+
+<h3><span class="s1"><b>A. Spectral Chroma Smear System</b></span></h3>
+
+<p class="p3">Responsible for the upper and middle frame’s saturated spectral color bleeding.</p>
+
+<h3><span class="s1"><b>B. Lower Tracking Tear System</b></span></h3>
+
+<p class="p3">Responsible for the dense horizontal tracking-interference region occupying the lower portion of the frame.</p>
+
+<p class="p3">Both systems must have independent controls, masks, intensity, and seed behavior.</p>
+
+<p class="p3">They must not be implemented as one generic glitch operation with different colors.</p>
+
+<h2><span class="s1"><b>3. Spectral Chroma Smear &amp; Shift</b></span></h2>
+
+<p class="p3">Reconstruct the broad, irregular, highly saturated rainbow-like chromatic contamination visible across the upper and middle portions of the reference.</p>
+
+<p class="p4">The color behavior must include:</p>
+
+<ul><li><span class="s1">Red.</span></li><li><span class="s1">Orange.</span></li><li><span class="s1">Yellow.</span></li><li><span class="s1">Green.</span></li><li><span class="s1">Cyan.</span></li><li><span class="s1">Blue.</span></li><li><span class="s1">Violet.</span></li><li><span class="s1">Magenta.</span></li></ul>
+
+<p class="p3">Generate irregular, overlapping spectral color regions rather than a simple linear rainbow gradient.</p>
+
+<p class="p4">The chromatic appearance should resemble broad analog color bleeding and spectral contamination:</p>
+
+<ul><li><span class="s1">Organic, uneven color boundaries.</span></li><li><span class="s1">Wide chromatic transitions.</span></li><li><span class="s1">Localized color displacement.</span></li><li><span class="s1">Horizontal chroma extensions.</span></li><li><span class="s1">Some vertical and diagonal color spreading.</span></li><li><span class="s1">Overlapping color regions.</span></li><li><span class="s1">High saturation with controlled brightness interaction.</span></li><li><span class="s1">Irregular spectral distribution across the image.</span></li></ul>
+
+<p class="p3">The spectral color behavior must interact with the underlying footage rather than simply cover it with opaque colored shapes.</p>
+
+<p class="p3">Preserve recognizable scene structure where the reference retains it.</p>
+
+<h3><span class="s1"><b>Spatial Distribution</b></span></h3>
+
+<p class="p3">The spectral effect should primarily occupy the upper and middle portions of the frame.</p>
+
+<p class="p4">Use an adjustable spatial mask with:</p>
+
+<ul><li><span class="s1">Upper-region influence.</span></li><li><span class="s1">Middle-region influence.</span></li><li><span class="s1">Adjustable vertical falloff.</span></li><li><span class="s1">Adjustable horizontal distribution.</span></li><li><span class="s1">Irregular organic variation.</span></li><li><span class="s1">Optional localized spectral regions.</span></li></ul>
+
+<p class="p3">The mask must not be permanently restricted to a fixed 50% upper-frame rectangle. Its distribution should be adjustable.</p>
+
+<h3><span class="s1"><b>Chroma Processing</b></span></h3>
+
+<p class="p4">Implement appropriate chroma-space or RGB-space processing, including:</p>
+
+<ul><li><span class="s1">Horizontal chroma smearing.</span></li><li><span class="s1">Localized channel displacement.</span></li><li><span class="s1">Spectral hue spreading.</span></li><li><span class="s1">Saturation enhancement.</span></li><li><span class="s1">Controlled chroma bleeding.</span></li><li><span class="s1">Optional subtle luminance interaction.</span></li></ul>
+
+<p class="p3">Prefer chroma-aware processing where possible so that luminance detail does not become unnecessarily destroyed.</p>
+
+<p class="p3">Do not turn the entire image into a uniform rainbow gradient.</p>
+
+<h2><span class="s1"><b>4. Lower Horizontal Tracking &amp; Interference Band</b></span></h2>
+
+<p class="p3">Create a dedicated lower-frame tracking-interference region.</p>
+
+<p class="p4">Default starting position:</p>
+
+<ul><li><span class="s1">Lower Band Start: approximately 60% of frame height.</span></li><li><span class="s1">Coverage: approximately 35–40% of frame height.</span></li><li><span class="s1">Horizontal coverage: full frame width.</span></li></ul>
+
+<p class="p4">The band must contain:</p>
+
+<ul><li><span class="s1">Irregular horizontal scanline displacement.</span></li><li><span class="s1">Broken and fragmented horizontal strips.</span></li><li><span class="s1">Uneven horizontal tearing.</span></li><li><span class="s1">Bright white and gray streaks.</span></li><li><span class="s1">Dark interruptions.</span></li><li><span class="s1">Red, green, blue, cyan, violet, and magenta interference fragments.</span></li><li><span class="s1">Localized RGB separation.</span></li><li><span class="s1">Chroma displacement.</span></li><li><span class="s1">Dense signal noise.</span></li><li><span class="s1">Irregular dropout segments.</span></li><li><span class="s1">Abrupt local brightness changes.</span></li></ul>
+
+<p class="p3">The result must look like a damaged analog tracking region, not a conventional clean rectangular glitch bar.</p>
+
+<h3><span class="s1"><b>Horizontal Displacement</b></span></h3>
+
+<p class="p3">Apply row-based horizontal displacement inside the lower-band mask:</p>
+
+<p class="p5"><code>sourceX = x - displacement(y, x, time, seed)</code></p>
+
+<p class="p4">Use a combination of:</p>
+
+<ul><li><span class="s1">Smooth low-frequency row offsets.</span></li><li><span class="s1">Abrupt displacement jumps.</span></li><li><span class="s1">Fine horizontal jitter.</span></li><li><span class="s1">Segmented scanline shifts.</span></li><li><span class="s1">Irregular displacement amplitude.</span></li></ul>
+
+<p class="p3">The displacement must remain predominantly horizontal.</p>
+
+<h3><span class="s1"><b>Internal Fragmentation</b></span></h3>
+
+<p class="p4">Generate independently varying horizontal segments with:</p>
+
+<ul><li><span class="s1">Different lengths.</span></li><li><span class="s1">Different brightness.</span></li><li><span class="s1">Different color contamination.</span></li><li><span class="s1">Different displacement amplitudes.</span></li><li><span class="s1">Irregular gaps.</span></li><li><span class="s1">Nonuniform density.</span></li></ul>
+
+<p class="p3">Avoid identical repeating scanlines or synchronized flashing across the entire band.</p>
+
+<h2><span class="s1"><b>5. Interaction Between the Two Main Systems</b></span></h2>
+
+<p class="p3">The upper/middle spectral chroma system and the lower tracking system must remain independently adjustable.</p>
+
+<p class="p3">However, their boundary should support natural interaction.</p>
+
+<p class="p4">For example:</p>
+
+<ul><li><span class="s1">Spectral color bleeding may extend slightly into the upper edge of the tracking band.</span></li><li><span class="s1">The lower band may introduce additional chromatic fragmentation.</span></li><li><span class="s1">RGB displacement may become stronger inside the tracking region.</span></li><li><span class="s1">The spectral system must not automatically become disabled when the lower band is enabled.</span></li></ul>
+
+<p class="p3">Provide separate controls for each system’s intensity and spatial coverage.</p>
+
+<h2><span class="s1"><b>6. Global Analog Base</b></span></h2>
+
+<p class="p4">Reuse VHSart’s existing engines for:</p>
+
+<ul><li><span class="s1">Low-resolution analog character.</span></li><li><span class="s1">Mild softness.</span></li><li><span class="s1">Fine global grain.</span></li><li><span class="s1">Subtle scanlines.</span></li><li><span class="s1">High-frequency detail reduction.</span></li></ul>
+
+<p class="p3">The base effect must remain secondary to the two main components.</p>
+
+<p class="p3">Provide independent softness, grain, and scanline controls where they are not already available through existing shared controls.</p>
+
+<p class="p3">Avoid redundant parameters.</p>
+
+<h2><span class="s1"><b>7. Processing Pipeline</b></span></h2>
+
+<p class="p4">Use the following logical processing order:</p>
+
+<ol start="1"><li><span class="s1">Existing low-resolution / softness processing.</span></li><li><span class="s1">Existing global grain and fine scanline processing.</span></li><li><span class="s1">Spectral chroma mask generation.</span></li><li><span class="s1">Spectral chroma bleeding and hue displacement.</span></li><li><span class="s1">Lower tracking-band mask generation.</span></li><li><span class="s1">Lower horizontal displacement and tearing.</span></li><li><span class="s1">Localized RGB/chroma fragmentation.</span></li><li><span class="s1">Dropouts, brightness flicker, and interference noise.</span></li><li><span class="s1">Final compositing and alpha handling.</span></li></ol>
+
+<p class="p3">Adjust the exact implementation order if the existing rendering architecture requires it, but preserve the independent behavior and spatial masks of both systems.</p>
+
+<h2><span class="s1"><b>8. Preset Specification</b></span></h2>
+
+<p class="p3">Create:</p>
+
+<p class="p5"><b>VHSart — Spectral Chroma Smear &amp; Lower Tear</b></p>
+
+<p class="p5">Reference: </span><code>IMG_4654.jpeg</code></p>
+
+<p class="p6">Suggested starting values:</p>
+
+
+<table border="1" cellspacing="0" cellpadding="8" width="100%" style="width: 100%; border-collapse: collapse; border: 1px solid;"><thead><tr><th style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1"><b>Parameter</b></p>
+</th><th style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1"><b>Initial Value</b></p>
+</th></tr></thead><tbody><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Spectral Chroma Smear</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">75%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Spectral Hue Spread</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">70%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Chroma Saturation</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">75%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Upper/Mid Spectral Coverage</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">80%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Lower Band Start Y</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">60%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Lower Band Coverage</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">40%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Lower Tear Intensity</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">75%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Lower Line Glitch</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">70%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">RGB Displacement</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">55%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Base Softness</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">40%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Global Grain</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">35%</p>
+</td></tr><tr><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">Fine Scanlines</p>
+</td><td style="border: 1px solid; padding: 8px 12px; white-space: nowrap;">
+<p class="p1">30%</p>
+</td></tr></tbody></table>
+
+
+<p class="p1">These are initial calibration values, not hardcoded behavior.</p>
+
+<h2><span class="s1"><b>9. User Controls</b></span></h2>
+
+<h3><span class="s1"><b>Spectral Chroma Section</b></span></h3>
+
+<ul><li><span class="s1">Enable Spectral Chroma.</span></li><li><span class="s1">Spectral Chroma Smear.</span></li><li><span class="s1">Spectral Shift / Hue Spread.</span></li><li><span class="s1">Chroma Saturation.</span></li><li><span class="s1">Spectral Coverage.</span></li><li><span class="s1">Vertical Position.</span></li><li><span class="s1">Horizontal Distribution.</span></li><li><span class="s1">Chroma Bleeding.</span></li><li><span class="s1">RGB Displacement.</span></li><li><span class="s1">Spectral Irregularity.</span></li></ul>
+
+<h3><span class="s1"><b>Lower Tracking Section</b></span></h3>
+
+<ul><li><span class="s1">Enable Lower Tracking Band.</span></li><li><span class="s1">Lower Band Start Y.</span></li><li><span class="s1">Lower Band Height / Coverage.</span></li><li><span class="s1">Lower Tear Intensity.</span></li><li><span class="s1">Horizontal Displacement.</span></li><li><span class="s1">Line Glitch Density.</span></li><li><span class="s1">Dropout Amount.</span></li><li><span class="s1">Brightness Flicker.</span></li><li><span class="s1">Chroma Interference.</span></li><li><span class="s1">RGB Separation.</span></li></ul>
+
+<h3><span class="s1"><b>Global Base Section</b></span></h3>
+
+<ul><li><span class="s1">Base Softness.</span></li><li><span class="s1">Global Grain.</span></li><li><span class="s1">Fine Scanlines.</span></li><li><span class="s1">Random Seed.</span></li></ul>
+
+<p class="p1">Do not create controls that merely duplicate existing shared VHSart parameters.</p>
+
+<p class="p1">Disabling a component must preserve its parameter values.</p>
+
+<h2><span class="s1"><b>10. Temporal Behavior and Uncertainty</b></span></h2>
+
+<p class="p1">The supplied reference is a single still image. Its actual temporal behavior cannot be established from this evidence.</p>
+
+<p class="p4">Therefore:</p>
+
+<ul><li><span class="s1">Do not claim that the spectral colors animate in a particular way.</span></li><li><span class="s1">Do not assume the lower band moves vertically.</span></li><li><span class="s1">Do not hardcode an animation cycle based on invented timing.</span></li><li><span class="s1">Provide optional procedural animation controls.</span></li><li><span class="s1">Support static/frozen mode.</span></li><li><span class="s1">Support deterministic time-based animation.</span></li><li><span class="s1">Keep temporal behavior independent between the spectral and lower tracking systems.</span></li></ul>
+
+<p class="p1">The same frame, time, and seed must always produce identical output.</p>
+
+<h2><span class="s1"><b>11. Alpha, Performance, and After Effects Compatibility</b></span></h2>
+
+<p class="p4">Ensure:</p>
+
+<ul><li><span class="s1">Correct alpha preservation.</span></li><li><span class="s1">Correct premultiplied RGB handling.</span></li><li><span class="s1">No color leakage into transparent pixels.</span></li><li><span class="s1">Thread-safe rendering.</span></li><li><span class="s1">Multi-Frame Rendering compatibility.</span></li><li><span class="s1">Deterministic frame evaluation.</span></li><li><span class="s1">Safe boundary sampling.</span></li><li><span class="s1">No out-of-bounds memory access.</span></li><li><span class="s1">Efficient memory allocation.</span></li><li><span class="s1">Compatibility with the existing VHSart native After Effects SDK architecture.</span></li></ul>
+
+<p class="p1">Do not introduce shared mutable state into render-time processing.</p>
+
+<h2><span class="s1"><b>12. Visual Validation</b></span></h2>
+
+<p class="p1">Use the actual </span><code>IMG_4654.jpeg</code><span class="s1"> reference for visual comparison.</p>
+
+<p class="p1">Evaluate the following separately:</p>
+
+<h3><span class="s1"><b>Spectral Region</b></span></h3>
+
+<ul><li><span class="s1">Rainbow color distribution.</span></li><li><span class="s1">Organic chromatic boundaries.</span></li><li><span class="s1">Saturation and hue variation.</span></li><li><span class="s1">Chroma smearing.</span></li><li><span class="s1">RGB displacement.</span></li><li><span class="s1">Preservation of underlying image structure.</span></li></ul>
+
+<h3><span class="s1"><b>Lower Tracking Region</b></span></h3>
+
+<ul><li><span class="s1">Correct lower-frame placement.</span></li><li><span class="s1">Approximate 35–40% coverage.</span></li><li><span class="s1">Full-width horizontal interference.</span></li><li><span class="s1">Fragmented scanlines.</span></li><li><span class="s1">Horizontal tearing.</span></li><li><span class="s1">Bright/dark dropouts.</span></li><li><span class="s1">Colored noise and chromatic displacement.</span></li></ul>
+
+<h3><span class="s1"><b>Combined Result</b></span></h3>
+
+<p class="p1">Verify that the effect reproduces the reference’s defining contrast:</p>
+
+<p class="p5"><b>Broad, saturated, organic spectral chroma contamination above and dense, fragmented horizontal tracking interference below.</b></p>
+
+<p class="p1">Test with different footage, including people, equipment, bright ceilings, dark interiors, detailed backgrounds, and high-contrast objects.</p>
+
+<p class="p1">Do not claim successful reference matching without rendering and visually comparing actual output.</p>
+
+<h2><span class="s1"><b>13. Deliverables</b></span></h2>
+
+<p class="p4">Deliver:</p>
+
+<ol start="1"><li><span class="s1">Dedicated Spectral Chroma &amp; Lower Tear engine.</span></li><li><span class="s1">Integrated source code.</span></li><li><span class="s1">Dedicated preset with calibrated initial values.</span></li><li><span class="s1">Registered UI controls.</span></li><li><span class="s1">Integration with existing VHSart engines.</span></li><li><span class="s1">Successful native After Effects plugin build.</span></li><li><span class="s1">Visual validation results.</span></li><li><span class="s1">A list of any remaining limitations.</span></li></ol>
+
+<p class="p1">Preserve all existing VHSart functionality.</p>
+
+<p class="p6"><b>Final quality target:</b></span><span class="s1"> A highly saturated, irregular spectral chromatic smear across the upper and middle image, combined with a dense, full-width lower tracking-interference band containing horizontal tearing, fragmented scanlines, RGB displacement, colored noise, and analog dropouts. The two systems must remain independently controllable and fully procedural.</p>
+
+</body>
+</html>

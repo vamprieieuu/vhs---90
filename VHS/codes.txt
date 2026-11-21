@@ -1,0 +1,1096 @@
+//YIQ/RGB shit
+	vec3 rgb2yiq(vec3 c){   
+					return vec3(
+						(0.2989*c.x + 0.5959*c.y + 0.2115*c.z),
+						(0.5870*c.x - 0.2744*c.y - 0.5229*c.z),
+						(0.1140*c.x - 0.3216*c.y + 0.3114*c.z)
+					);
+				}
+
+	vec3 yiq2rgb(vec3 c){				
+					return vec3(
+						(	 1.0*c.x +	  1.0*c.y + 	1.0*c.z),
+						( 0.956*c.x - 0.2720*c.y - 1.1060*c.z),
+						(0.6210*c.x - 0.6474*c.y + 1.7046*c.z)
+					);
+				}
+        
+        vec2 Circle(float Start, float Points, float Point) 
+{
+	float Rad = (3.141592 * 2.0 * (1.0 / Points)) * (Point + Start);
+	//return vec2(sin(Rad), cos(Rad));
+		return vec2(-(.3+Rad), cos(Rad));
+
+}
+
+vec3 Blur(vec2 uv, float f, float d){
+  //  d=abs(d);
+  float t = (sin(iTime*5.0+uv.y*5.0))/10.0;
+    float b = 1.0;
+   //t=sin(iTime*5.0+f)/10.0;
+    t=0.0;
+    vec2 PixelOffset=vec2(d+.0005*t,0);
+    
+    float Start = 2.0 / 14.0;
+    vec2 Scale = 0.66 * 4.0 * 2.0 * PixelOffset.xy;
+    
+    vec3 N0 = texture(iChannel0, uv + Circle(Start, 14.0, 0.0) * Scale).rgb;
+    vec3 N1 = texture(iChannel0, uv + Circle(Start, 14.0, 1.0) * Scale).rgb;
+    vec3 N2 = texture(iChannel0, uv + Circle(Start, 14.0, 2.0) * Scale).rgb;
+    vec3 N3 = texture(iChannel0, uv + Circle(Start, 14.0, 3.0) * Scale).rgb;
+    vec3 N4 = texture(iChannel0, uv + Circle(Start, 14.0, 4.0) * Scale).rgb;
+    vec3 N5 = texture(iChannel0, uv + Circle(Start, 14.0, 5.0) * Scale).rgb;
+    vec3 N6 = texture(iChannel0, uv + Circle(Start, 14.0, 6.0) * Scale).rgb;
+    vec3 N7 = texture(iChannel0, uv + Circle(Start, 14.0, 7.0) * Scale).rgb;
+    vec3 N8 = texture(iChannel0, uv + Circle(Start, 14.0, 8.0) * Scale).rgb;
+    vec3 N9 = texture(iChannel0, uv + Circle(Start, 14.0, 9.0) * Scale).rgb;
+    vec3 N10 = texture(iChannel0, uv + Circle(Start, 14.0, 10.0) * Scale).rgb;
+    vec3 N11 = texture(iChannel0, uv + Circle(Start, 14.0, 11.0) * Scale).rgb;
+    vec3 N12 = texture(iChannel0, uv + Circle(Start, 14.0, 12.0) * Scale).rgb;
+    vec3 N13 = texture(iChannel0, uv + Circle(Start, 14.0, 13.0) * Scale).rgb;
+    vec3 N14 = texture(iChannel0, uv).rgb;
+    
+    vec4 clr = texture(iChannel0, uv);
+    float W = 1.0 / 15.0;
+    
+    clr.rgb= 
+		(N0 * W) +
+		(N1 * W) +
+		(N2 * W) +
+		(N3 * W) +
+		(N4 * W) +
+		(N5 * W) +
+		(N6 * W) +
+		(N7 * W) +
+		(N8 * W) +
+		(N9 * W) +
+		(N10 * W) +
+		(N11 * W) +
+		(N12 * W) +
+		(N13 * W) +
+    (N14 * W);
+    
+   
+    return  vec3(clr.xyz)*b;
+    }
+
+
+        
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+   // float d = (iResolution.x/500.0)/2.0-.1*iMouse.x/50.0;
+    float d = .1*iMouse.x/50.0;
+   // d=.1-round(mod(iTime/3.0,1.0))*.1;
+    	vec2 uv = fragCoord.xy / iResolution.xy;
+    
+
+    float s = (texture(iChannel1,fragCoord).r);// - texture(iChannel1,vec2(0.01+uv.y/1000.0,1.0)).r)*2.0;
+   
+        
+            float e = min(.30,pow(max(0.0,cos(uv.y*4.0+.3)-.75)*(s+0.5)*1.0,3.0))*25.0;
+     s-=pow(texture(iChannel1,vec2(0.01+(uv.y*32.0)/32.0,1.0)).r,1.0);
+uv.x+=e*abs(s*3.0);
+    float r = texture(iChannel2,vec2(mod(iTime*10.0,mod(iTime*10.0,256.0)*(1.0/256.0)),0.0)).r*(2.0*s);
+    uv.x+=abs(r*pow(min(.003,(uv.y-.15))*6.0,2.0));
+    
+    d=.051+abs(sin(s/4.0));
+    float c = max(0.0001,.002*d);
+	vec2 uvo = uv;
+   // uv.x+=.1*d;
+    fragColor.xyz =Blur(uv,0.0,c+c*(uv.x));
+    float y = rgb2yiq(fragColor.xyz).r;
+    
+    
+    
+   uv.x+=.01*d;
+    c*=6.0;
+    fragColor.xyz =Blur(uv,.333,c);
+    // texture(iChannel0, uv);
+    float i = rgb2yiq(fragColor.xyz).g;
+    
+    
+    uv.x+=.005*d;
+    
+    c*=2.50;
+    fragColor.xyz =Blur(uv,.666,c);
+    float q = rgb2yiq(fragColor.xyz).b;
+    
+   
+    
+    fragColor.xyz=yiq2rgb(vec3(y,i,q))-pow(s+e*2.0,3.0);
+    fragColor.xyz*=smoothstep(1.0,.999,uv.x-.1);
+    
+   // fragColor.xyz-=min(0.10,pow(uv.x,3.0))*d;
+}// VHS Shader
+//
+// A shader in which I tried to mimic VHS as true as possible :)
+//
+// It's built up of a few passes:
+// - A:      Lowers horizontal resolution of luminance and color/chroma   
+// - B:      Applies unsharp mask to regain crisp + level/color balancing
+// - C:      Interlacing + subtle full screen noise blend
+// - D:      Glitches: some warps + white noise lines
+// - Image:  Final overall blur + TV vignette
+//
+// Pass A and B's Unsharp Mask are the bread and butter of the effect, rest is just minor balancing to taste.
+// It initially relied heavily on gaussian and box blur, but I achieved similar effects by blurring through mip maps.
+//
+// Click mouse to A/B between effect and original.
+//
+// Hope you like it :)
+
+const float FINAL_BLUR_BIAS = 1.0;
+
+vec4 Televisionfy(in vec4 pixel, const in vec2 uv)
+{
+    float vignette = pow(uv.x * (1.0 - uv.x) * uv.y * (1.0 - uv.y), 0.25) * 2.2;
+    return pixel * vignette;;
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
+{
+    vec2 uv = fragCoord/iResolution.xy;
+
+    if (iMouse.z <= 0.0)
+    {
+        fragColor = texture(iChannel0, uv, FINAL_BLUR_BIAS);
+        fragColor = Televisionfy(fragColor, uv);
+    }
+    else
+    {
+        fragColor = texture(iChannel1, uv);
+    }       
+}
+
+vec2 rotate(vec2 v, float a)
+{
+	float s = sin(a);
+	float c = cos(a);
+	mat2 m = mat2(c, -s, s, c);
+	return m * v;
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    vec2 uv = fragCoord / iResolution.xy;
+    vec2 mouseNormalized = iMouse.xy / iResolution.xy;
+    
+    vec2 resLuminance = min(maxResLuminance, vec2(iResolution));
+    vec2 resChroma = min(maxResChroma, vec2(iResolution));
+    
+    vec2 uvLuminance = uv * (resLuminance / vec2(iResolution));
+    vec2 uvChroma = uv * (resChroma / vec2(iResolution));
+    
+    vec3 result;
+    
+    if (uv.x > mouseNormalized.x)
+    {
+        float luminance = textureBicubic(iChannel1, uvLuminance).x;
+        vec2 chroma = textureBicubic(iChannel1, uvChroma).yz;
+        result = vec3(luminance, chroma) * yiq2rgb;
+    }
+    else
+    {
+        result = texture(iChannel0, uv).rgb;
+    }
+    
+    fragColor = vec4(result, 1);
+}// Taken from https://www.shadertoy.com/view/tdjyzz
+float rbgToluminance(vec3 rgb)
+{
+    return (rgb.r * 0.3) + (rgb.g * 0.59) + (rgb.b * 0.11);
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    // Normalized pixel coordinates (from 0 to 1)
+    vec2 uv = fragCoord/iResolution.xy;
+    
+    vec2 pixelSize = 1.5/iResolution.xy;
+    
+    vec2 right = vec2(pixelSize.x, 0);
+    vec2 up = vec2(0, pixelSize.y);
+
+    // Input linear image + bloom.
+    vec3 colorC = texture(iChannel0, uv).rgb;
+    
+    //fragColor = vec4(colorC, 1.0);
+    //return;
+    
+    vec3 colorT = textureLod(iChannel0, uv + up, 0.5).rgb;
+    vec3 colorB = textureLod(iChannel0, uv - up, 0.5).rgb;
+    vec3 colorL = textureLod(iChannel0, uv - right, 0.5).rgb;
+    vec3 colorR = textureLod(iChannel0, uv + right, 0.5).rgb;
+    
+    right *= 2.0;
+    up *= 2.0;
+    
+    vec3 colorTR = textureLod(iChannel0, uv + up + right, 1.5).rgb;
+    vec3 colorTL = textureLod(iChannel0, uv + up - right, 1.5).rgb;
+    vec3 colorBR = textureLod(iChannel0, uv - up + right, 1.5).rgb;
+    vec3 colorBL = textureLod(iChannel0, uv - up - right, 1.5).rgb;
+        
+        
+    vec3 color = colorC + (colorT + colorB + colorL + colorR) * 0.03 + (colorTR + colorTL + colorBR + colorBL) * 0.01;    
+    //color = (colorT + colorB + colorL + colorR) * 0.03;   
+    //color = (colorTR + colorTL + colorBR + colorBL) * 0.01;    
+
+    // Tonemap 
+    float lum = rbgToluminance(color);
+    color += vec3(lum * 0.01); // Allow colors to whiten when saturated.
+    color = color / (0.5 + mix(vec3(lum), color, 0.95));
+    
+    // Convert to gamma.
+	color = pow(color, vec3(1.0/2.2));
+    
+	fragColor = vec4(color, 1.0);
+    
+}void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    // 画像の解像度を取得
+    vec2 resolution = iResolution.xy;
+
+    // ピクセルのUV座標を取得
+    vec2 uv = fragCoord / resolution;
+
+    // テクスチャからピクセルカラーを取得
+    // 畳み込みフィルタのカーネルを定義
+    float kernel[9];
+    kernel[0] = -4.0 / 9.0;
+    kernel[1] = -3.0 / 9.0;
+    kernel[2] = -2.0 / 9.0;
+    kernel[3] = -1.0 / 9.0;
+    kernel[4] = 0.0 / 9.0;
+    kernel[5] = 1.0 / 9.0;
+    kernel[6] = 2.0 / 9.0;
+    kernel[7] = 3.0 / 9.0;
+    kernel[8] = 4.0 / 9.0;
+
+    vec3 convolvedColor = vec3(0.0);
+
+    // hsyncジッターを計算
+    float hsync = floor(noise(vec2(uv.g*50.0,0.0),iTime*5.5383)*3.0);
+    // 畳み込み演算を実行
+    for (int i = -4; i <= 4; i++) {
+        for (int j = -0; j <= 0; j++) {
+            vec2 offset = vec2(float(i), float(j));
+            convolvedColor += texture(iChannel0, uv + (offset + vec2(hsync,0.0)) / resolution).rgb * kernel[(i + 5)  + (j + 1)];
+        }
+    }
+    // テクスチャからピクセルカラーを取得
+    vec3 originalColor = convolvedColor;
+
+    fragColor = vec4(originalColor,1.0);
+}// Taken from https://www.shadertoy.com/view/tdjyzz
+float rbgToluminance(vec3 rgb)
+{
+    return (rgb.r * 0.3) + (rgb.g * 0.59) + (rgb.b * 0.11);
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    // Normalized pixel coordinates (from 0 to 1)
+    vec2 uv = fragCoord/iResolution.xy;
+    
+    vec2 pixelSize = 1.5/iResolution.xy;
+    
+    vec2 right = vec2(pixelSize.x, 0);
+    vec2 up = vec2(0, pixelSize.y);
+
+    // Input linear image + bloom.
+    vec3 colorC = texture(iChannel0, uv).rgb;
+    
+    //fragColor = vec4(colorC, 1.0);
+    //return;
+    
+    vec3 colorT = textureLod(iChannel0, uv + up, 0.5).rgb;
+    vec3 colorB = textureLod(iChannel0, uv - up, 0.5).rgb;
+    vec3 colorL = textureLod(iChannel0, uv - right, 0.5).rgb;
+    vec3 colorR = textureLod(iChannel0, uv + right, 0.5).rgb;
+    
+    right *= 2.0;
+    up *= 2.0;
+    
+    vec3 colorTR = textureLod(iChannel0, uv + up + right, 1.5).rgb;
+    vec3 colorTL = textureLod(iChannel0, uv + up - right, 1.5).rgb;
+    vec3 colorBR = textureLod(iChannel0, uv - up + right, 1.5).rgb;
+    vec3 colorBL = textureLod(iChannel0, uv - up - right, 1.5).rgb;
+        
+        
+    vec3 color = colorC + (colorT + colorB + colorL + colorR) * 0.03 + (colorTR + colorTL + colorBR + colorBL) * 0.01;    
+    //color = (colorT + colorB + colorL + colorR) * 0.03;   
+    //color = (colorTR + colorTL + colorBR + colorBL) * 0.01;    
+
+    // Tonemap 
+    float lum = rbgToluminance(color);
+    color += vec3(lum * 0.01); // Allow colors to whiten when saturated.
+    color = color / (0.5 + mix(vec3(lum), color, 0.95));
+    
+    // Convert to gamma.
+	color = pow(color, vec3(1.0/2.2));
+    
+	fragColor = vec4(color, 1.0);
+    
+}#define VHSRES vec2(320.0,240.0)
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
+  vec2 uv = fragCoord.xy / iResolution.xy / iResolution.xy * VHSRES;
+  fragColor = texture( iChannel0, uv );
+}vec3 doBloom(vec2 uv, float blur, float threshold)
+{
+    vec3 col;
+    int cnt = 50;
+    float fcnt = float(cnt);
+    for (int i = 0;i <cnt;++i)
+    {
+        float fi = float(i);
+        float coef = (fi/fcnt);
+        float sz = 1.+pow(coef,2.)*blur;
+        float samplePerTurn = 5.;
+        float an = (fi/(fcnt/samplePerTurn))*PI;
+        vec2 p = uv - vec2(sin(an), cos(an))*(1.)*blur;
+        vec3 smple = texture(iChannel0, p).xyz;
+        if (length(smple) > threshold)
+            col += smple;
+    }
+    
+    return col/float(cnt);
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    vec2 uv = fragCoord/iResolution.xy;
+    vec2 cuv = (fragCoord-vec2(.5)*iResolution.xy)/iResolution.xx;
+    
+    vec3 col = texture(iChannel0, uv).xyz;
+    
+    float bloomIntensity = 624./640.;  
+    vec3 bloomSample = doBloom(uv, 2./360., 117./ 640.);
+    bloomSample = pow(bloomSample, vec3(0.5));
+    
+    col = (col + (bloomSample*bloomIntensity))/2.;
+   // col = texture(iChannel0, uv).xyz;
+    
+    fragColor = vec4(col, 1.);
+}#define PI 3.141592654f
+
+vec3 RGB_to_YIQ(vec3 RGB)
+{
+    return mat3
+    (
+        0.299f, 0.587f, 0.114f,
+        0.596f, -0.275f, -0.321f,
+        0.212f, -0.523f, 0.311f
+    ) * RGB;
+}
+
+vec3 YIQ_to_RGB(vec3 YIQ)
+{
+    return mat3
+    (
+        1.f, 0.956f, 0.619f,
+        1.f, -0.272f, -0.647f,
+        1.f, -1.106f, 1.703f
+    ) * YIQ;
+}
+
+// Converts color from RGB to YIQ, blur the I and Q, then apply a dot crawl effect
+vec3 VHS_effect(vec2 fragCoord, float color_fuckery)
+{
+    vec2    IQ = vec2(0,0),
+            blur_size = vec2(16, 4),
+            focal_point = blur_size * 0.5f;
+    
+    float   smear_factor = blur_size.x * blur_size.y;
+    
+    vec2    UV_Y = fragCoord / iResolution.xy;
+    
+    // IQ blur
+    for (int i = 0; i < int(smear_factor); i++)
+    {
+        vec2 uv_prime = vec2
+        (
+            (fragCoord.x + float(i % int(blur_size.x)) - focal_point.x) / iResolution.x,
+            (fragCoord.y + float(i / int(blur_size.y)) - focal_point.y) / iResolution.y
+        );
+        IQ += RGB_to_YIQ(texture(iChannel0, uv_prime).xyz).yz;
+    }
+    IQ /= smear_factor;
+    
+    vec3 color = vec3
+    (
+        RGB_to_YIQ(texture(iChannel0, UV_Y).xyz).r,
+        IQ * (1.f + color_fuckery)
+    );
+    
+    // NTSC Dot Crawl
+    color.x += (IQ.x*sin((fragCoord.x))) *
+               (IQ.y*sin( fragCoord.y * PI * 0.5f));
+    
+    color = YIQ_to_RGB(color);
+    
+    return color;
+}
+
+
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    //fragColor = vec4(vec3(sin(fragCoord.x)), 1.f);
+    fragColor = vec4(VHS_effect(fragCoord, 0.2f),1.0);
+    //fragColor = texture(iChannel0, fragCoord / iResolution.xy);
+}#define blur 80.0
+#define chromaFactor 14.0
+
+float downscale(float a, float factor)
+{
+    return floor(a * factor + 2.0 * factor / 100.0) / factor;
+}
+
+vec3 rgb2yuv(vec3 rgb)
+{
+    return vec3(0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b,
+                -0.147 * rgb.r - 0.289 * rgb.g + 0.436 * rgb.b,
+                0.615 * rgb.r - 0.515 * rgb.g - 0.100 * rgb.b);
+}
+
+vec3 yuv2rgb(vec3 yuv)
+{
+    return vec3(yuv.r + 1.140 * yuv.b, yuv.r - 0.395*yuv.g - 0.581*yuv.b, yuv.r + 2.032*yuv.g);
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    // Normalized pixel coordinates (from 0 to 1)
+    vec2 uv = fragCoord/iResolution.xy;
+    float x_offset = -(fragCoord.x - 1.0) / iResolution.x + uv.x;
+
+    vec2 chroma = vec2(.0, .0);
+    
+    float x_sample = max(uv.x - blur * x_offset, 0.0);
+    
+    int count = 0;
+    int y_count = 0;
+    
+    float Y = .0;
+    
+    while (x_sample < 1. && x_sample < uv.x + blur * x_offset)
+    {
+        vec4 samples = texture(iChannel0, vec2(x_sample, uv.y));
+        if (x_sample > uv.x - (blur * x_offset) / chromaFactor && x_sample < uv.x + (blur * x_offset) / chromaFactor)
+        {
+            Y += samples.r;
+            y_count++;
+        }
+        chroma += samples.gb;
+        count++;
+        x_sample += x_offset;
+    }
+    chroma /= float(count);
+    Y /= float(y_count);
+    
+    fragColor = vec4(yuv2rgb(vec3(Y, chroma)), 1.0);
+}float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+vec2 warpSmart(vec2 uv, float offsetValue, float currentTime)
+{
+    bool bendTop    = (offsetValue == 4.0);
+    bool bendBottom = (offsetValue == -0.3);
+    bool noBend     = (offsetValue == 0.5);
+
+    if (noBend || (!bendTop && !bendBottom)) return uv;
+
+    float baseStrength = 0.4 + 0.4 * rand(vec2(floor(currentTime / 2.0), 123.0));
+    float jitter = 5.3 * sin(currentTime * 45.7 + 1.3);
+    float strength = clamp(baseStrength + jitter, -1.0, 0.5);
+
+    float curve;
+    if (bendTop) {
+        float curveRand = rand(vec2(floor(currentTime / 1.5), 456.0));
+        curve = 7.0 + curveRand * 5.0;  // 7.0 → 12.0
+    } else {
+        curve = 8.0;
+    }
+
+    float localT = 0.0;
+    float offset = 0.0;
+
+    if (bendTop) {
+        if (uv.y <= 0.5) return uv;
+        localT = (uv.y - 0.5) * 2.0;
+        offset = -strength * pow(localT, curve);
+    }
+    else if (bendBottom) {
+        if (uv.y >= 0.5) return uv;
+        localT = (0.5 - uv.y) * 2.0;
+        offset = +strength * pow(localT, curve);
+    }
+
+    uv.x = clamp(uv.x + offset, 0.0, 1.0);
+    return uv;
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    float targetAspect = 4.0 / 3.0;
+    float currentAspect = iResolution.x / iResolution.y;
+    
+    vec2 uv = fragCoord.xy / iResolution.xy;
+    vec2 center = vec2(0.5, 0.5);
+
+    if (currentAspect > targetAspect) {
+        float scale = currentAspect / targetAspect;
+        uv.x = (uv.x - center.x) * scale + center.x;
+        if (uv.x < 0.0 || uv.x > 1.0) {
+            fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            return;
+        }
+    } else {
+        float scale = targetAspect / currentAspect;
+        uv.y = (uv.y - center.y) * scale + center.y;
+        if (uv.y < 0.0 || uv.y > 1.0) {
+            fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            return;
+        }
+    }
+
+    vec2 adjustedFragCoord = uv * iResolution.xy;
+    vec4 texColor = vec4(0.0);
+    int ghostSamples = 3;
+
+    for(int g = 0; g < ghostSamples; g++){
+        float timeOffset    = float(g) * 0.016;
+        float ghostWeight   = 1.0 / float(ghostSamples);
+        float currentTime   = iTime - timeOffset;
+
+        vec2 samplePosition = adjustedFragCoord.xy / iResolution.xy;
+        samplePosition.y += (rand(vec2(currentTime)) - 0.5) / 18.0;
+
+        float horizontalJitter = (rand(vec2(currentTime, adjustedFragCoord.y)) - 0.5) / 64.0;
+
+        float timeSegment = floor(currentTime / 1.5);
+        float valueIndex  = rand(vec2(timeSegment, 456.0));
+        float offsetValue;
+
+        if (valueIndex < 0.6) {
+            offsetValue = 4.0;   
+        }
+        else if (valueIndex < 0.7) {
+            offsetValue = -0.3; 
+        }
+        else {
+            offsetValue = 0.5; 
+        }
+
+        float whiteNoiseOffset = (rand(vec2(currentTime * 0.5)) - offsetValue) * 0.22;
+        float adjustedY = samplePosition.y + whiteNoiseOffset;
+
+        float bwBandOffset = (rand(vec2(currentTime * 0.7 + 200.0)) - 0.5) * 2.5;
+        float bwBandY = samplePosition.y + bwBandOffset;
+        float bwBandPattern = rand(vec2(floor(bwBandY * 3.0), currentTime * 0.05));
+        bool isInBWBand = bwBandPattern > 0.6;
+
+        float colorNoiseOffset = (rand(vec2(currentTime * 0.7 + 100.0)) - 0.5) * 12.25;
+
+        vec2 noiseSamplePos = samplePosition;
+        noiseSamplePos.x += horizontalJitter;
+
+        float whiteNoise = rand(vec2(floor(adjustedY * 1500.0),
+                                    floor(noiseSamplePos.x * 50.0)) + vec2(currentTime, 0.0));
+
+        vec2 warpUV = samplePosition;
+        warpUV = warpSmart(warpUV, offsetValue, currentTime);
+
+        if (whiteNoise > 15.5 - 50.0 * adjustedY || whiteNoise < 1.5 - 5.0 * adjustedY) {
+            vec2 pixelatedPos = warpUV;
+            float pixelBlockSize = 200.0;
+            pixelatedPos = floor(pixelatedPos * pixelBlockSize) / pixelBlockSize;
+            pixelatedPos.y = 1.0 - pixelatedPos.y;
+
+            float aberrationAmount = 0.004;
+            vec2 aberrationOffset = vec2(aberrationAmount, 0.0);
+            float r = texture(iChannel0, pixelatedPos - aberrationOffset).r;
+            float g = texture(iChannel0, pixelatedPos).g;
+            float b = texture(iChannel0, pixelatedPos + aberrationOffset).b;
+            vec4 frameColor = vec4(r, g, b, 1.0);
+
+            vec2 pixelSize = 1.0 / iResolution.xy;
+            vec4 sharpenKernel = vec4(0.0);
+            sharpenKernel += texture(iChannel0, pixelatedPos + vec2(-pixelSize.x, 0.0)) * -0.25;
+            sharpenKernel += texture(iChannel0, pixelatedPos + vec2( pixelSize.x, 0.0)) * -0.25;
+            sharpenKernel += texture(iChannel0, pixelatedPos + vec2(0.0, -pixelSize.y)) * -0.25;
+            sharpenKernel += texture(iChannel0, pixelatedPos + vec2(0.0,  pixelSize.y)) * -0.25;
+            sharpenKernel += frameColor * 2.0;
+            frameColor = mix(frameColor, sharpenKernel, 1.0);
+
+            frameColor.rgb = floor(frameColor.rgb * 24.0) / 24.0;
+
+
+            vec3 tint = vec3(0.88, 0.94, 1.12);
+            frameColor.rgb *= tint;
+
+            float brightnessBoost = 1.0 / max(max(tint.r, tint.g), tint.b);
+            frameColor.rgb *= brightnessBoost * 0.98;
+            frameColor.rgb = clamp(frameColor.rgb, 0.0, 1.0);
+
+            // B&W band desaturation
+            if (isInBWBand) {
+                float gray = dot(frameColor.rgb, vec3(0.299, 0.587, 0.114));
+                float desatAmount = 0.8;
+                frameColor.rgb = mix(frameColor.rgb, vec3(gray), desatAmount);
+            }
+
+            texColor += frameColor * ghostWeight;
+        }
+        else {
+            float staticNoise = rand(adjustedFragCoord.xy + vec2(currentTime * 10.0, 0.0));
+            vec2 jitteredTextureSample = samplePosition;
+            jitteredTextureSample.x += horizontalJitter;
+            jitteredTextureSample.y = 1.0 - jitteredTextureSample.y;
+            vec4 backgroundTexture = texture(iChannel0, jitteredTextureSample);
+
+            float colorNoiseY = adjustedFragCoord.y + colorNoiseOffset * iResolution.y;
+            vec4 colorNoise = (vec4(-0.5) + vec4(
+                rand(vec2(colorNoiseY, currentTime)),
+                rand(vec2(colorNoiseY, currentTime + 1.0)),
+                rand(vec2(colorNoiseY, currentTime + 2.0)), 0.0)) * 2.5;
+
+            vec4 noiseColor = vec4(staticNoise) * 0.9
+                            + vec4(2.0) * 0.17
+                            + colorNoise * 0.5
+                            + backgroundTexture * 0.2;
+
+            texColor += noiseColor * ghostWeight;
+        }
+    }
+
+    fragColor = texColor;
+}vec3 vhs_noise(vec2 uv, float time, float colorize)
+{
+    vec2 dist = uv;
+   
+    float tear_offset = uv.y + pow(uv.x - 0.5, 2.) * (uv.y - 0.5) * 0.5;
+    float tear = tan(tear_offset - time);
+
+#if 0
+    tear += tan(tear_offset - time * 0.2 + 0.2) * 0.5;
+    tear += tan(tear_offset - time * 0.2) * 0.75;
+    tear += tan(tear_offset - time * 0.2 + PI / 2.) * 0.75;
+#endif
+
+    float hnoise = texture(iChannel1, uv.yy * 0.5 + time * 10.).r * 0.1;
+    hnoise = (hnoise - 0.5) * 0.75;
+    hnoise = hnoise * 0.5 + hnoise * min(abs(tear) * 0.1, 1.);
+   
+    tear += hnoise * 2.5 * tear;
+    dist.x += tear / 40.0;
+   
+    float noise_amt = abs(tear) * 0.1;
+    noise_amt = clamp(noise_amt + 0.2, 0.0, 1.0);
+
+    float blur = max(abs(tear) - 0.5, 0.) * 2.0;
+
+    vec3 c = textureLod(iChannel0, dist, 1.0 + blur).rgb;
+    float noise = (texture(iChannel1, uv * 2. + time * 8.).r - 0.05) * 6. * hnoise * hnoise;
+
+    float sep = 0.01 + noise * 0.005;
+    sep = 0.02;
+    sep += tear * 0.001;
+
+    vec3 l = vec3(0.0);
+    vec3 r = vec3(0.0);
+    const int iters = 4;
+    for (int i = 0; i < iters; ++i) {
+        float lod = blur + 4.0 + float(i) * 0.5;
+        l += textureLod(iChannel0, vec2(dist.x - sep, uv.y), lod).rgb;
+        r += textureLod(iChannel0, vec2(dist.x + sep, uv.y), lod).rgb;
+    }
+
+    float scale = 1.0 / float(iters - 1);
+    l *= scale;
+    r *= scale;
+
+    // smudge colors
+    c = c.ggg + vec3(l.r - l.g, 0, r.b - r.g) * colorize;
+
+    c = mix(c, vec3(noise), noise_amt);
+    return c;
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    vec2 uv = fragCoord/iResolution.xy;
+    fragColor = vec4(vhs_noise(uv, iTime, 3.0), 1.0);
+}
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{   
+    vec2 rez = TVREZ;
+    
+    vec2 uvscale = rez / iResolution.xy;
+    
+    vec2 uv = (fragCoord / iResolution.xy);// * vec2(iResolution.x / iResolution.y,1);
+    
+    
+
+    vec3 col = texture(iChannel0, uv * uvscale).rgb;
+    
+    // Output to screen
+    fragColor = vec4(col,1.0);
+    //fragColor = texelFetch(iChannel0, ivec2(fragCoord), 0);
+}// Simple NTSC codec
+// Change Buffer A to whatever you want
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    fragColor = texture(iChannel0, fragCoord.xy / iResolution.xy);
+} // https://www.shadertoy.com/view/MdffD7
+// Fork of FMS_Cat's VCR distortion shader
+
+shader_type canvas_item;
+
+// TODO: Add uniforms for tape crease discoloration and image jiggle
+
+uniform sampler2D screen_texture: hint_screen_texture, filter_linear_mipmap, repeat_disable;
+
+uniform vec2 vhs_resolution = vec2(320.0, 240.0);
+
+uniform int samples = 2;
+uniform float crease_noise: hint_range(0.0, 2.0, 0.1) = 1.0;
+uniform float crease_opacity: hint_range(0.0, 1.0, 0.1) = 0.5;
+uniform float filter_intensity: hint_range(0.0, 1.0, 0.1) = 0.1;
+
+group_uniforms tape_crease;
+uniform float tape_crease_smear: hint_range(0.0, 2.0, 0.1) = 0.2;
+uniform float tape_crease_intensity: hint_range(0.0, 1.0, 0.1) = 0.2;
+uniform float tape_crease_jitter: hint_range(0.0, 1.0, 0.01) = 0.10;
+uniform float tape_crease_speed: hint_range(-2.0, 2.0, 0.1) = 0.5;
+uniform float tape_crease_discoloration: hint_range(0.0, 2.0, 0.1) = 1.0;
+
+group_uniforms bottom_border;
+uniform float bottom_border_thickness: hint_range(0.0,32.0, 0.1) = 6.0;
+uniform float bottom_border_jitter: hint_range(0.0, 24.0, 0.5) = 6.0;
+
+group_uniforms noise;
+uniform float noise_intensity: hint_range(0.0, 1.0, 0.1) = 0.1;
+uniform sampler2D noise_texture: filter_linear_mipmap, repeat_enable;
+
+float v2random(vec2 uv) {
+	return texture(noise_texture, mod(uv, vec2(1.0))).x;
+}
+
+mat2 rotate2D(float t) {
+	return mat2(vec2(cos(t), sin(t)), vec2(-sin(t), cos(t)));
+}
+
+vec3 rgb2yiq(vec3 rgb) {
+	return mat3(vec3(0.299, 0.596, 0.211), vec3(0.587, -0.274, -0.523), vec3(0.114, -0.322, 0.312)) * rgb;
+}
+
+vec3 yiq2rgb(vec3 yiq) {
+	return mat3(vec3(1.0, 1.0, 1.0), vec3(0.956, -0.272, -1.106), vec3(0.621, -0.647, 1.703)) * yiq;
+}
+
+vec3 vhx_tex_2D(sampler2D tex, vec2 uv, float rot) {
+	vec3 yiq = vec3(0.0);
+	for (int i = 0; i < samples; i++) {
+		yiq += rgb2yiq(texture(tex, uv - vec2(float(i), 0.0) / vhs_resolution).xyz) *
+				vec2(float(i), float(samples - 1 - i)).yxx / float(samples - 1)
+				/ float(samples) * 2.0;
+	}
+	if (rot != 0.0) {
+		yiq.yz *= rotate2D(rot * tape_crease_discoloration);
+	}
+	return yiq2rgb(yiq);
+}
+
+void fragment() {
+	vec2 uvn = UV;
+	vec3 col = vec3(0.0, 0.0, 0.0);
+
+	// Tape wave.
+	uvn.x += (v2random(vec2(uvn.y / 10.0, TIME / 10.0) / 1.0) - 0.5) / vhs_resolution.x * 1.0;
+	uvn.x += (v2random(vec2(uvn.y, TIME * 10.0)) - 0.5) / vhs_resolution.x * 1.0;
+
+	// tape crease
+	float tc_phase = smoothstep(0.9, 0.96, sin(uvn.y * 8.0 - (TIME * tape_crease_speed + tape_crease_jitter * v2random(TIME * vec2(0.67, 0.59))) * PI * 1.2));
+	float tc_noise = smoothstep(0.3, 1.0, v2random(vec2(uvn.y * 4.77, TIME)));
+	float tc = tc_phase * tc_noise;
+	uvn.x = uvn.x - tc / vhs_resolution.x * 8.0 * tape_crease_smear;
+
+	// switching noise
+	float sn_phase = smoothstep(1.0 - bottom_border_thickness / vhs_resolution.y, 1.0, uvn.y);
+	uvn.x += sn_phase * (v2random(vec2(UV.y * 100.0, TIME * 10.0)) - 0.5) / vhs_resolution.x * bottom_border_jitter;
+
+	// fetch
+	col = vhx_tex_2D(screen_texture, uvn, tc_phase * 0.2 + sn_phase * 2.0);
+
+	// crease noise
+	float cn = tc_noise * crease_noise * (0.7 * tc_phase * tape_crease_intensity + 0.3);
+	if (0.29 < cn) {
+		vec2 V = vec2(0.0, crease_opacity);
+		vec2 uvt = (uvn + V.yx * v2random(vec2(uvn.y, TIME))) * vec2(0.1, 1.0);
+		float n0 = v2random(uvt);
+		float n1 = v2random(uvt + V.yx / vhs_resolution.x);
+		if (n1 < n0) {
+			col = mix(col, 2.0 * V.yyy, pow(n0, 10.0));
+		}
+	}
+
+	// ac beat
+	col *= 1.0 + 0.1 * smoothstep(0.4, 0.6, v2random(vec2(0.0, 0.1 * (UV.y + TIME * 0.2)) / 10.0));
+
+	// color noise
+	col *= 1.0 - noise_intensity * 0.5 + noise_intensity * texture(noise_texture, mod(uvn * vec2(1.0, 1.0) + TIME * vec2(5.97, 4.45), vec2(1.0))).xyz;
+	col = clamp(col, 0.0, 1.0);
+
+	// yiq
+	col = rgb2yiq(col);
+	col = vec3(0.9, 1.1, 1.5) * col + vec3(0.1, -0.1, 0.0) * filter_intensity;
+	col = yiq2rgb(col);
+
+	COLOR = vec4(col, 1.0);
+}// Analog Horror VHS Shader Pack LITE - VHS tape effect (tracking, noise, chroma bleed)
+// (c) 2026 assetsmithpixels — MIT License (see LICENSE.txt)
+shader_type canvas_item;
+
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear, repeat_disable;
+
+uniform float intensity : hint_range(0.0, 1.0) = 1.0;
+group_uniforms Chroma;
+uniform float chroma_shift : hint_range(0.0, 12.0) = 2.5;   // horizontal color fringe in pixels
+uniform float chroma_bleed : hint_range(0.0, 1.0) = 0.6;    // horizontal color smear
+uniform float saturation : hint_range(0.0, 2.0) = 0.8;
+uniform vec3 tint : source_color = vec3(1.0, 0.96, 0.9);
+group_uniforms Tracking;
+uniform float line_wobble : hint_range(0.0, 6.0) = 1.2;     // per-line jitter in pixels
+uniform float tracking_amount : hint_range(0.0, 1.0) = 0.35;
+uniform float tracking_speed : hint_range(0.0, 4.0) = 0.6;
+uniform float tracking_height : hint_range(0.01, 0.4) = 0.08;
+uniform float head_switch_height : hint_range(0.0, 0.15) = 0.03; // distorted band at bottom
+group_uniforms Noise;
+uniform float noise_amount : hint_range(0.0, 1.0) = 0.12;
+uniform float static_lines : hint_range(0.0, 1.0) = 0.25;
+uniform float flicker : hint_range(0.0, 0.3) = 0.04;
+
+float hash(vec2 p) {
+	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+const vec3 LUMA = vec3(0.299, 0.587, 0.114);
+
+void fragment() {
+	vec2 uv = SCREEN_UV;
+	vec2 px = SCREEN_PIXEL_SIZE;
+	float t = TIME;
+	float line = floor(uv.y / px.y);
+	float frame = floor(t * 30.0);
+
+	// per-line horizontal wobble
+	float off = (hash(vec2(line * 0.07, frame)) - 0.5) * line_wobble * px.x;
+
+	// rolling tracking band
+	float band_y = 1.0 - fract(t * tracking_speed * 0.15);
+	float band = smoothstep(tracking_height, 0.0, abs(uv.y - band_y));
+	off += band * tracking_amount * (hash(vec2(line, frame + 3.0)) - 0.3) * 40.0 * px.x;
+
+	// head-switching noise at the bottom of the frame
+	float head = smoothstep(1.0 - head_switch_height, 1.0, uv.y) * step(0.0001, head_switch_height);
+	off += head * (0.5 + hash(vec2(line, frame)) * 0.5) * 30.0 * px.x;
+
+	vec2 suv = clamp(uv + vec2(off, 0.0), vec2(0.0), vec2(1.0));
+	vec3 src = texture(screen_tex, suv).rgb;
+
+	// sharp luma, blurry shifted chroma (like composite video)
+	float y = dot(src, LUMA);
+	vec3 acc = vec3(0.0);
+	for (int i = -2; i <= 2; i++) {
+		float dx = (float(i) * chroma_bleed * 3.0 + chroma_shift) * px.x;
+		acc += texture(screen_tex, clamp(suv + vec2(dx, 0.0), vec2(0.0), vec2(1.0))).rgb;
+	}
+	acc /= 5.0;
+	vec3 col = vec3(y) + (acc - vec3(dot(acc, LUMA))) * saturation;
+	// extra red/blue fringe
+	col.r = mix(col.r, texture(screen_tex, suv + vec2(chroma_shift * px.x, 0.0)).r, 0.35);
+	col.b = mix(col.b, texture(screen_tex, suv - vec2(chroma_shift * px.x, 0.0)).b, 0.35);
+
+	// grain
+	float n = hash(uv * vec2(1.0 / px.x, 1.0 / px.y) * 0.001 + fract(t * 7.13));
+	col += (n - 0.5) * noise_amount;
+	// white static streaks
+	float streak = step(1.0 - static_lines * 0.015, hash(vec2(line * 0.13, frame)));
+	streak *= step(0.4, hash(vec2(floor(uv.x * 40.0), line + frame)));
+	col += streak * 0.6;
+	// noise inside tracking / head bands
+	col += (band * tracking_amount + head) * (hash(vec2(uv.x * 300.0, line + frame)) - 0.4) * 0.5;
+
+	col *= tint;
+	col *= 1.0 - flicker * hash(vec2(frame, 1.7));
+
+	COLOR = vec4(mix(texture(screen_tex, uv).rgb, clamp(col, 0.0, 1.0), intensity), 1.0);
+}
+shader_type canvas_item;
+
+group_uniforms Wiggle;
+uniform float wiggle : hint_range(0.0, 1.5, 0.01) = 0.03;
+uniform float wiggle_speed : hint_range(0.0, 100.0, 1.0) = 25;
+group_uniforms Smear;
+uniform float smear : hint_range(0.0, 2.0) = 1.0;
+
+uniform sampler2D Source : hint_screen_texture, filter_linear_mipmap, repeat_disable;
+
+group_uniforms Blur;
+uniform int blur_samples : hint_range(3, 15, 1) = 15;
+
+float onOff(float a, float b, float c, float framecount) {
+    return step(c, sin((framecount * 0.001) + a * cos((framecount * 0.001) * b)));
+}
+
+vec2 jumpy(vec2 uv, float framecount) {
+    vec2 look = uv;
+    float window = 1.0 / (1.0 + 80.0 * (look.y - mod(framecount / 4.0, 1.0)) * (look.y - mod(framecount / 4.0, 1.0)));
+    look.x += 0.05 * sin(look.y * 10.0 + framecount) / 20.0 * onOff(4.0, 4.0, 0.3, framecount) * (0.5 + cos(framecount * 20.0)) * window;
+    float vShift = (0.1 * wiggle) * 0.4 * onOff(2.0, 3.0, 0.9, framecount) * (sin(framecount) * sin(framecount * 20.0) + (0.5 + 0.1 * sin(framecount * 200.0) * cos(framecount)));
+    look.y = mod(look.y - 0.01 * vShift, 1.0);
+    return look;
+}
+
+vec2 Circle(float Start, float Points, float Point) {
+    float Rad = (3.141592 * 2.0 * (1.0 / Points)) * (Point + Start);
+    return vec2(-(.3 + Rad), cos(Rad));
+}
+
+vec3 rgb2yiq(vec3 c) {
+    return vec3(
+        (0.2989 * c.x + 0.5959 * c.y + 0.2115 * c.z),
+        (0.5870 * c.x - 0.2744 * c.y - 0.5229 * c.z),
+        (0.1140 * c.x - 0.3216 * c.y + 0.3114 * c.z)
+    );
+}
+
+vec3 yiq2rgb(vec3 c) {
+    return vec3(
+        (1.0 * c.x + 1.0 * c.y + 1.0 * c.z),
+        (0.956 * c.x - 0.2720 * c.y - 1.1060 * c.z),
+        (0.6210 * c.x - 0.6474 * c.y + 1.7046 * c.z)
+    );
+}
+
+vec3 Blur(vec2 uv, float d, int samples) {
+    vec3 sum = vec3(0.0);
+    float W = 1.0 / float(samples);
+    for (int i = 0; i < samples; ++i) {
+        float t = (sin(TIME * 5.0 + uv.y * 5.0)) / 10.0;
+
+        t = 0.0;
+        vec2 PixelOffset = vec2(d + 0.0005 * t, 0);
+        
+        float Start = 2.0 / float(samples);
+        vec2 Scale = 0.66 * 4.0 * 2.0 * PixelOffset.xy;
+        
+        vec3 N = texture(Source, uv + Circle(Start, float(samples), float(i)) * Scale).rgb;
+        sum += N * W;
+    }
+    return sum;
+}
+
+void fragment() {
+    vec2 uv = UV;
+
+    float d=0.1-round(mod(TIME/3.0,1.0))*.1;;
+    uv = jumpy(uv, mod(TIME * wiggle_speed, 7.0));
+
+    float s = 0.0001 * -d + 0.0001 * wiggle *(sin(TIME * wiggle_speed));
+    float e = min(.30,pow(max(0.0,cos(uv.y*4.0+.3)-.75)*(s+0.5)*1.0,3.0))*25.0;
+    float r = (250.0*(2.0*s));
+    uv.x += abs(r*pow(min(.003,(-uv.y+(.01*mod(TIME, 5.0))))*3.0,2.0)) * wiggle;
+    
+    d = 0.051+abs(sin(s/4.0));
+    float c = max(0.0001,.002*d) * smear;
+    vec4 final;
+
+    final.rgb = Blur(uv, c + c * uv.x, blur_samples);
+    float y = rgb2yiq(final.rgb).r;
+
+    uv.x += 0.01 * d;
+    c *= 6.0;
+    final.rgb = Blur(uv, c, blur_samples);
+    float i = rgb2yiq(final.rgb).g;
+
+    uv.x += 0.005 * d;
+    c *= 2.50;
+    final.rgb = Blur(uv, c, blur_samples);
+    float q = rgb2yiq(final.rgb).b;
+    final.rgb = yiq2rgb(vec3(y, i, q)) - pow(s + e * 2.0, 3.0);
+
+    final.a = 1.0;
+
+    COLOR = final;
+}
+shader_type canvas_item;
+
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
+
+uniform float aberration_strength : hint_range(0.0, 5.0) = 3.0;
+uniform float blur_strength : hint_range(0.0, 3.0) = 2.0;
+uniform float noise_strength : hint_range(0.0, 0.3) = 0.048;
+uniform float vignette_strength : hint_range(0.0, 1.0) = 0.78;
+uniform float scanline_strength : hint_range(0.0, 1.0) = 0.016;
+uniform float distortion_strength : hint_range(0.0, 1.0) = 0.1;
+uniform float ghost_strength : hint_range(0.0,0.3)=0.12;
+uniform float flicker_strength : hint_range(0.0, 0.1) = 0.005; 
+
+float rand(vec2 co) {
+    return fract(sin(dot(co, vec2(12.9898,78.233))) * 43758.5453);
+}
+
+vec3 blur_sample(vec2 uv) {
+    vec2 texel = 1.0 / vec2(textureSize(screen_tex,0));
+    vec3 col = texture(screen_tex, uv).rgb;
+    col += texture(screen_tex, uv + vec2(texel.x, 0.0)).rgb;
+    col += texture(screen_tex, uv - vec2(texel.x, 0.0)).rgb;
+    col += texture(screen_tex, uv + vec2(0.0, texel.y)).rgb;
+    col += texture(screen_tex, uv - vec2(0.0, texel.y)).rgb;
+    return col / 5.0;
+}
+
+void fragment() {
+    vec2 uv = SCREEN_UV;
+
+    float wave = sin(uv.y * 200.0 + TIME * 10.0) * 0.002 * distortion_strength;
+    uv.x += wave;
+
+    uv.y += (rand(vec2(uv.y * 100.0, TIME * 10.0)) - 0.5) * 0.002;
+
+    vec2 offset = (uv - 0.5) * 0.004 * aberration_strength;
+    float r = texture(screen_tex, uv + offset).r;
+    float g = texture(screen_tex, uv).g;
+    float b = texture(screen_tex, uv - offset).b;
+    vec3 col = vec3(r, g, b);
+
+
+    col = mix(col, blur_sample(uv), blur_strength);
+
+
+    vec2 ghost_uv = uv;
+    ghost_uv.x -= 0.01;
+    vec3 ghost_col = texture(screen_tex, ghost_uv).rgb;
+    col = mix(col, ghost_col, ghost_strength);
+
+    float scanline = sin(uv.y * 800.0 + sin(TIME*5.0)*10.0) * 0.5 + 0.5;
+    col *= 1.0 - scanline * scanline_strength;
+
+
+    float noise = (rand(uv * TIME * 50.0) - 0.5) * 2.0 * noise_strength;
+    col += noise;
+
+
+    float dist = distance(uv, vec2(0.5));
+    float vignette = smoothstep(0.6, 0.9, dist);
+    col *= mix(1.0, 1.0 - vignette, vignette_strength);
+
+    float flicker = 1.0 + flicker_strength * (sin(TIME * 50.0) + (rand(vec2(TIME*10.0,0.0))-0.5));
+    col *= flicker;
+
+    COLOR = vec4(col, 1.0);
+}
