@@ -100,7 +100,7 @@ enum ParamDiskID {
     ID_TAPE_MATERIAL_TOPIC, ID_TAPE_WEAR, ID_TAPE_DROPOUTS, ID_TAPE_SCRATCHES, ID_TAPE_CREASES, ID_TAPE_EDGE, ID_TAPE_MOLD, ID_TAPE_VASELINE, ID_TAPE_STICKY, ID_TAPE_SEED, ID_TAPE_BACK_TENSION, ID_TAPE_NOISE, ID_PHYSICAL_TOPIC, ID_MAGNET_MOMENT, ID_MAGNET_DISTANCE, ID_GROUND_LOOP, ID_MAINS_HUM, ID_RF_FIELD, ID_RF_PICKUP, ID_PYVHS_TOPIC, ID_PYVHS_LUMA_COMPRESSION, ID_PYVHS_CHROMA_COMPRESSION, ID_PYVHS_LUMA_NOISE, ID_PYVHS_CHROMA_NOISE, ID_PYVHS_CHROMA_WAVE, ID_PYVHS_GENERATION, ID_OSD_TOPIC, ID_OSD_AMOUNT, ID_OSD_REC, ID_OSD_PLAY, ID_OSD_TIMESTAMP, ID_OSD_OPACITY, ID_OSD_SCALE, ID_OSD_GLITCH, ID_OSD_GHOST, ID_OSD_REC_BLINK, ID_OSD_TIME_SPEED, ID_OSD_YEAR, ID_OSD_MONTH, ID_OSD_DAY, ID_OSD_HOUR, ID_OSD_MINUTE, ID_OSD_SECOND, ID_OSD_REC_COLOR, ID_VHS_STYLE_TOPIC, ID_VHS_STYLE, ID_VHS_STYLE_INTENSITY, ID_CAMERA_PROFILE, ID_CAMERA_INTENSITY, ID_NTSCRS_TOPIC, ID_NTSCRS_LOOK, ID_NTSCRS_INTENSITY, ID_NTSCRS_PHASE_NOISE, ID_VHS6RIFT_GRAIN, ID_VHS6RIFT_GRAIN_SIZE, ID_VHS6RIFT_NOISE_DETAIL, ID_VHS6RIFT_SHADOW_BIAS, ID_VHS6RIFT_NOISE_ENABLE, ID_VHS6RIFT_NOISE_SEED, ID_SIGNAL_HUE_NOISE, ID_DEVICE_CONNECTION_TOPIC, ID_DEVICE_CONNECTION_AMOUNT, ID_DEVICE_CONNECTION_DENSITY, ID_DEVICE_CONNECTION_SIZE, ID_DEVICE_CONNECTION_SPEED, ID_DEVICE_CONNECTION_DISTRIBUTION, ID_DEVICE_CONNECTION_SEED, ID_VHS_PLAYBACK_TOPIC, ID_CHROMA_EDGE_ENHANCE, ID_COMPOSITE_DECODER_TOPIC, ID_COMPOSITE_DECODER, ID_VHS_FRAME_TOPIC, ID_VHS_43_FRAME, ID_ROUNDED_OVERSCAN, ID_LENS_DISTORTION, ID_DIGITAL_ZOOM, ID_CAMCORDER_HUD_TOPIC, ID_OSD_BATTERY, ID_FRAME_REPEAT_TOPIC, ID_FRAME_REPEAT_FREQUENCY, ID_FRAME_REPEAT_STRENGTH, ID_TRACKING_PROFILE, ID_PARTICLE_TOPIC, ID_PARTICLE_AMOUNT, ID_PARTICLE_MODE, ID_PARTICLE_DENSITY, ID_PARTICLE_SIZE, ID_PARTICLE_LENGTH, ID_PARTICLE_DISTRIBUTION, ID_PARTICLE_CHROMA, ID_PARTICLE_SPEED, ID_PARTICLE_SEED, ID_PARTICLE_SOURCE_MIX, ID_PARTICLE_BRIGHTNESS, ID_PARTICLE_CONTRAST, ID_TEAR_CHROMA_TOPIC, ID_TEAR_CHROMA_AMOUNT, ID_TEAR_CHROMA_MODE, ID_SPECTRAL_SMEAR, ID_SPECTRAL_HUE_SPREAD, ID_CHROMA_SATURATION, ID_SPECTRAL_CENTER_Y, ID_SPECTRAL_COVERAGE, ID_TEAR_BAND_START_Y, ID_TEAR_BAND_HEIGHT, ID_TEAR_BAND_COUNT, ID_TEAR_DISPLACEMENT, ID_TEAR_FRAGMENTATION, ID_TEAR_CHROMA_SHIFT, ID_TEAR_SMEAR, ID_TEAR_DROPOUT, ID_TEAR_SEED,
     ID_TRACK_LAYER2_TOPIC, ID_TRACK_LAYER2_AMOUNT, ID_TRACK_LAYER2_PROFILE, ID_TRACK_LAYER2_SHAPE, ID_TRACK_LAYER2_X, ID_TRACK_LAYER2_Y, ID_TRACK_LAYER2_WIDTH, ID_TRACK_LAYER2_HEIGHT, ID_TRACK_LAYER2_SERVO, ID_TRACK_LAYER2_SHIFT, ID_TRACK_LAYER2_WAVE, ID_TRACK_LAYER2_TEAR,
     ID_TRACK_LAYER3_TOPIC, ID_TRACK_LAYER3_AMOUNT, ID_TRACK_LAYER3_PROFILE, ID_TRACK_LAYER3_SHAPE, ID_TRACK_LAYER3_X, ID_TRACK_LAYER3_Y, ID_TRACK_LAYER3_WIDTH, ID_TRACK_LAYER3_HEIGHT, ID_TRACK_LAYER3_SERVO, ID_TRACK_LAYER3_SHIFT, ID_TRACK_LAYER3_WAVE, ID_TRACK_LAYER3_TEAR,
-    ID_TRACK_LAYER4_TOPIC, ID_TRACK_LAYER4_AMOUNT, ID_TRACK_LAYER4_PROFILE, ID_TRACK_LAYER4_SHAPE, ID_TRACK_LAYER4_X, ID_TRACK_LAYER4_Y, ID_TRACK_LAYER4_WIDTH, ID_TRACK_LAYER4_HEIGHT, ID_TRACK_LAYER4_SERVO, ID_TRACK_LAYER4_SHIFT, ID_TRACK_LAYER4_WAVE, ID_TRACK_LAYER4_TEAR, ID_TRACKING_PRESETS_TOPIC, ID_TRACKING_PRESET_BASE, ID_TRACKING_PRESET_2, ID_TRACKING_PRESET_3, ID_TRACKING_PRESET_4, ID_PATTERN_TOPIC, ID_PATTERN_MODE, ID_PATTERN_ANGLE, ID_PATTERN_WIDTH, ID_PATTERN_GREEN, ID_PATTERN_PHASE_COUNT,
+    ID_TRACK_LAYER4_TOPIC, ID_TRACK_LAYER4_AMOUNT, ID_TRACK_LAYER4_PROFILE, ID_TRACK_LAYER4_SHAPE, ID_TRACK_LAYER4_X, ID_TRACK_LAYER4_Y, ID_TRACK_LAYER4_WIDTH, ID_TRACK_LAYER4_HEIGHT, ID_TRACK_LAYER4_SERVO, ID_TRACK_LAYER4_SHIFT, ID_TRACK_LAYER4_WAVE, ID_TRACK_LAYER4_TEAR, ID_TRACKING_PRESETS_TOPIC, ID_TRACKING_PRESET_BASE, ID_TRACKING_SNOW_INTENSITY=9055, ID_TRACKING_SNOW_ANISOTROPY=9056, ID_TRACKING_PRESET_2, ID_TRACKING_PRESET_3, ID_TRACKING_PRESET_4, ID_PATTERN_TOPIC, ID_PATTERN_MODE, ID_PATTERN_ANGLE, ID_PATTERN_WIDTH, ID_PATTERN_GREEN, ID_PATTERN_PHASE_COUNT,
     ID_TEAR_BAND2_TOPIC, ID_TEAR_BAND2_AMOUNT, ID_TEAR_BAND2_Y, ID_TEAR_BAND2_HEIGHT, ID_TEAR_BAND2_SHIFT, ID_TEAR_BAND2_FRAGMENTATION, ID_TEAR_BAND2_CHROMA, ID_TEAR_BAND2_SMEAR, ID_TEAR_BAND2_DROPOUT,
     ID_TEAR_BAND3_TOPIC, ID_TEAR_BAND3_AMOUNT, ID_TEAR_BAND3_Y, ID_TEAR_BAND3_HEIGHT, ID_TEAR_BAND3_SHIFT, ID_TEAR_BAND3_FRAGMENTATION, ID_TEAR_BAND3_CHROMA, ID_TEAR_BAND3_SMEAR, ID_TEAR_BAND3_DROPOUT,
     ID_TEAR_BAND4_TOPIC, ID_TEAR_BAND4_AMOUNT, ID_TEAR_BAND4_Y, ID_TEAR_BAND4_HEIGHT, ID_TEAR_BAND4_SHIFT, ID_TEAR_BAND4_FRAGMENTATION, ID_TEAR_BAND4_CHROMA, ID_TEAR_BAND4_SMEAR, ID_TEAR_BAND4_DROPOUT,
@@ -114,8 +114,8 @@ enum ParamDiskID {
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
-static char kTrackingProfileChoices[]="Servo Sweep|RF Wave|Composite Ribbon|Tape Flutter|Four-Edge Crawl|VHS6RIFT Moving Band|NTSC-R Tracking";
-static char kTrackingPresetChoices[]="Custom|Fine Sweep|Fragmented Sweep|RF Snowline|Composite Flagging|Tape Flutter|Four-Edge Crawl|Full-Frame Breakdown|VHS6RIFT Moving Band|NTSC-R Tracking Noise";
+static char kTrackingProfileChoices[]="Servo Sweep|RF Wave|Composite Ribbon|Tape Flutter|Four-Edge Crawl|VHS6RIFT Moving Band|NTSC-R Tracking|VHS Main Tracking";
+static char kTrackingPresetChoices[]="Custom|Fine Sweep|Fragmented Sweep|RF Snowline|Composite Flagging|Tape Flutter|Four-Edge Crawl|Full-Frame Breakdown|VHS6RIFT Moving Band|NTSC-R Tracking Noise|VHS Main Tracking Error|VHSPro Tracking Noise|Crates Tracking Noise|VHSCraft Moving Band|VHSTape Tracking Error|Universal VHS Bad Tracking|Universal VHS Very Bad Tracking|NTSCRT VCR Tracking|VHS-Phys Misalignment";
 static char kHeadSwitchPresetChoices[]="Custom|VHS6RIFT Head Switch|NTSC-R Head Switch";
 static char kParticleModeChoices[]="Dark-Field Speckles|Horizontal Fragments|Colored Speckles|Bottom-Weighted Streaks|Vertical Columns";
 static char kParticleDistributionChoices[]="Uniform|Top Weighted|Bottom Weighted|Center Weighted|Edge Weighted";
@@ -158,6 +158,7 @@ struct RenderSettings {
     float trackingAmount=22, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=12, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=12, trackingServo=12, trackingTear=4;
     A_long trackingShape=3, trackingProfile=1, particleMode=1, particleDistribution=1, trackingPresetBase=1, trackingLayerPreset[3]={3,4,5};
+    float trackingSnowIntensity=35.0f, trackingSnowAnisotropy=55.0f;
     A_long trackingLayerProfile[3]={2,3,4}, trackingLayerShape[3]={1,1,1};
     float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5};
     float particleAmount=0, particleDensity=18, particleSize=1.5f, particleLength=7, particleChroma=0, particleSpeed=1, particleSeed=1, particleSourceMix=100, particleBrightness=85, particleContrast=100;
@@ -237,6 +238,55 @@ static void ApplyTrackingRecipe(DamageRegion& r,A_long preset) noexcept {
             r.servoSmoothnessPx=std::max(r.servoSmoothnessPx,18.0f);
             r.noiseAmount=0.30f; r.noiseDensity=0.52f; r.snowAnisotropy=0.10f;
             r.tearProbability=0.0f; r.tearShiftPx=0.0f;
+            break;
+        case 11: // VHS-main Tracking Error source profile.
+            r.trackingProfile=TrackingProfile::VhsMainTracking; r.maxShiftPx=22.0f;
+            r.waveAmplitudePx=0.0f; r.servoSmoothnessPx=16.0f; r.noiseAmount=0.25f;
+            r.noiseDensity=0.0f; r.cellWidthPx=8.0f; r.cellHeightPx=2.0f; r.chromaShiftPx=0.0f;
+            break;
+        case 12: // VHSPro tracking/snow/head-switch source family.
+            r.trackingProfile=TrackingProfile::NtscRTracking; r.maxShiftPx=8.0f;
+            r.waveAmplitudePx=6.0f; r.servoSmoothnessPx=12.0f; r.noiseAmount=0.34f;
+            r.noiseDensity=0.48f; r.cellWidthPx=3.0f; r.cellHeightPx=1.0f; r.chromaShiftPx=1.5f;
+            break;
+        case 13: // Crates VHS Master segmented tracking.
+            r.trackingProfile=TrackingProfile::CompositeRibbon; r.maxShiftPx=14.0f;
+            r.waveAmplitudePx=7.0f; r.servoSmoothnessPx=9.0f; r.noiseAmount=0.28f;
+            r.noiseDensity=0.42f; r.cellWidthPx=4.0f; r.cellHeightPx=2.0f;
+            r.chromaShiftPx=2.5f; r.tearShiftPx=18.0f;
+            break;
+        case 14: // VHSCraft moving-band tracking.
+            r.trackingProfile=TrackingProfile::Vhs6RiftBand; r.maxShiftPx=6.0f;
+            r.waveAmplitudePx=12.0f; r.servoSmoothnessPx=14.0f; r.noiseAmount=0.34f;
+            r.noiseDensity=0.50f; r.cellWidthPx=6.0f; r.cellHeightPx=2.0f;
+            r.chromaShiftPx=1.5f; r.tearShiftPx=14.0f;
+            break;
+        case 15: // VHSTape Tracking Error reconstruction.
+            r.trackingProfile=TrackingProfile::VhsMainTracking; r.maxShiftPx=18.0f;
+            r.waveAmplitudePx=0.0f; r.servoSmoothnessPx=12.0f; r.noiseAmount=0.25f;
+            r.noiseDensity=0.0f; r.cellWidthPx=8.0f; r.cellHeightPx=2.0f; r.chromaShiftPx=1.0f;
+            break;
+        case 16: // Universe VHS Bad Tracking family.
+            r.trackingProfile=TrackingProfile::ServoSweep; r.maxShiftPx=16.0f;
+            r.waveAmplitudePx=10.0f; r.servoSmoothnessPx=8.0f; r.noiseAmount=0.38f;
+            r.noiseDensity=0.58f; r.cellWidthPx=4.0f; r.cellHeightPx=2.0f;
+            r.chromaShiftPx=2.0f; r.tearShiftPx=22.0f;
+            break;
+        case 17: // Universe VHS Very Bad Tracking family.
+            r.trackingProfile=TrackingProfile::FourEdgeCrawl; r.maxShiftPx=30.0f;
+            r.waveAmplitudePx=24.0f; r.servoSmoothnessPx=5.0f; r.noiseAmount=0.55f;
+            r.noiseDensity=0.82f; r.cellWidthPx=2.0f; r.cellHeightPx=1.0f;
+            r.chromaShiftPx=4.0f; r.tearShiftPx=38.0f;
+            break;
+        case 18: // NTSCRT VCR tracking-offset reconstruction.
+            r.trackingProfile=TrackingProfile::VhsMainTracking; r.maxShiftPx=12.0f;
+            r.waveAmplitudePx=0.0f; r.servoSmoothnessPx=20.0f; r.noiseAmount=0.22f;
+            r.noiseDensity=0.0f; r.cellWidthPx=8.0f; r.cellHeightPx=2.0f; r.chromaShiftPx=0.5f;
+            break;
+        case 19: // VHS-Phys mechanical tracking misalignment.
+            r.trackingProfile=TrackingProfile::NtscRTracking; r.maxShiftPx=9.0f;
+            r.waveAmplitudePx=4.0f; r.servoSmoothnessPx=24.0f; r.noiseAmount=0.18f;
+            r.noiseDensity=0.25f; r.cellWidthPx=6.0f; r.cellHeightPx=2.0f; r.chromaShiftPx=0.75f;
             break;
         default: break;
     }
@@ -520,17 +570,26 @@ static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
         b(s.lumaNoise,8);b(s.chromaNoise,10);b(s.compositeNoise,6);
         b(s.vhs6RiftGrain,20);b(s.vhs6RiftNoiseDetail,65);b(s.vhs6RiftShadowBias,70);
         break;
-    case 12: // Gen 7 Reference — teal/yellow camcorder color, stronger chroma instability and intermittent signal damage.
-        b(s.tapeDetail,50);b(s.chromaSubsample,32);b(s.chromaShift,6);
-        b(s.gradeContrast,108);b(s.gradeBrightness,-3);b(s.gradeSaturation,132);
-        b(s.chromaIGain,130);b(s.chromaQGain,115);b(s.chromaIOffset,-6);b(s.chromaQOffset,8);
-        b(s.verticalChroma,25);b(s.verticalLuma,14);b(s.lumaNoise,18);b(s.chromaNoise,24);b(s.compositeNoise,20);
-        b(s.rfDrift,16);b(s.colorPhaseDrift,18);b(s.chromaFlutter,14);
-        b(s.vhs6RiftGrain,28);b(s.vhs6RiftNoiseDetail,80);b(s.vhs6RiftShadowBias,75);
-        b(s.staticAmount,22);b(s.staticDensity,70);b(s.trackingAmount,20);
-        s.trackingProfile=2;s.trackingPresetBase=4;s.staticMode=9;
-        b(s.tearChromaAmount,15);s.tearChromaMode=5;s.tearBandCount=3;
+    case 12: { // Gen 7 reference: deterministic colorized/interference/recovery cycle.
+        b(s.tapeDetail,56);b(s.chromaSubsample,26);b(s.chromaShift,5);
+        b(s.gradeContrast,104);b(s.gradeBrightness,-1);b(s.gradeSaturation,118);
+        b(s.chromaIGain,120);b(s.chromaQGain,110);b(s.chromaIOffset,-5);b(s.chromaQOffset,7);
+        b(s.verticalChroma,18);b(s.verticalLuma,10);b(s.lumaNoise,14);b(s.chromaNoise,18);
+        b(s.vhs6RiftGrain,22);b(s.vhs6RiftNoiseDetail,75);b(s.vhs6RiftShadowBias,70);
+        b(s.staticDensity,70);s.trackingProfile=2;s.trackingPresetBase=4;s.staticMode=8;
+        s.tearChromaMode=5;s.tearBandCount=3;
+        const float t=static_cast<float>(s.timeSeconds);
+        const std::uint32_t seed=static_cast<std::uint32_t>(s.vhs6RiftNoiseSeed)+0x47374e37u;
+        const float slow=valueNoise1D(t*0.08f,seed,0),fast=valueNoise1D(t*0.21f,seed+0x9e3779b9u,0);
+        const float raw=slow*0.72f+fast*0.28f;
+        const float ramp=clamp01((raw-0.45f)/0.42f),interference=ramp*ramp*(3.0f-2.0f*ramp);
+        b(s.staticAmount,22.0f+52.0f*interference);b(s.trackingAmount,16.0f+34.0f*interference);
+        b(s.tearChromaAmount,12.0f+38.0f*interference);b(s.sync,6.0f+54.0f*interference);
+        b(s.compositeNoise,14.0f+30.0f*interference);b(s.gradeSaturation,118.0f-18.0f*interference);
+        b(s.gradeBrightness,-1.0f-14.0f*interference);b(s.rfDrift,10.0f+16.0f*interference);
+        b(s.colorPhaseDrift,12.0f+18.0f*interference);b(s.chromaFlutter,10.0f+10.0f*interference);
         break;
+    }
     default:break;
     }
 }
@@ -584,22 +643,13 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     PF_ArbitraryH osdTextDefault=nullptr;
     const PF_Err osdTextDefaultErr=VHS90CreateOsdTextDefault(in_data,&osdTextDefault);
     if(osdTextDefaultErr!=PF_Err_NONE) return osdTextDefaultErr;
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,500,0,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
     AEFX_CLR_STRUCT(def); def.flags=0; PF_ADD_TOPIC("VHS Style & Camera Profiles",ID_VHS_STYLE_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",20,1,kVhsStyleChoices,ID_VHS_STYLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Style Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS_STYLE_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile",12,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_VHS_STYLE_TOPIC+100);
-    AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,28,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sync Collapse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Color System",2,1,kColorSystemChoices,ID_PAL_MODE);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tape Speed",3,1,kTapeSpeedChoices,ID_TAPE_SPEED);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Detail",6,100,6,100,84,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DETAIL);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Signal Look",11,1,kNtscRsLookChoices,ID_NTSCRS_LOOK);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Look Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_NTSCRS_INTENSITY);
-    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SIGNAL_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,500,0,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
     AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Chroma Offset",ID_PARTICLE_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",0,20,0,20,1.5f,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Red Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_RED);
@@ -623,8 +673,6 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("AFC Hunt",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_AFC_HUNT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PARTICLE_TOPIC+100);
     AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Grain & Tracking Noise",ID_STATIC_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Static Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_STATIC_AMOUNT);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Static Density",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_STATIC_DENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Noise",0,100,0,100,6,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Noise",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE_NOISE);
@@ -644,6 +692,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Noise Random Seed",1,32767,1,32767,1,0,PF_ValueDisplayFlag_NONE,0,ID_VHS6RIFT_NOISE_SEED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Hue Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SIGNAL_HUE_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Scanline Chroma Phase Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_NTSCRS_PHASE_NOISE);
+    AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Tracking Noise",ID_TRACKING_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,22,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Region Shape",3,3,kTrackingShapeChoices,ID_TRACKING_SHAPE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_X);
@@ -655,7 +704,9 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100,-100,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_MOTION_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SERVO);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_TEAR);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Preset",19,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Intensity",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SNOW_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Anisotropy",0,100,0,100,55,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SNOW_ANISOTROPY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear & Chroma Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_CHROMA_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tear & Chroma Mode",5,5,kTearChromaModeChoices,ID_TEAR_CHROMA_MODE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Spectral Smear",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_SPECTRAL_SMEAR);
@@ -671,7 +722,17 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Smear",0,100,0,100,6,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_SMEAR);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dropout Probability",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_DROPOUT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Random Seed",1,32767,1,32767,1,0,PF_ValueDisplayFlag_NONE,0,ID_TEAR_SEED);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACKING_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_STATIC_TOPIC+100);
+    AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,28,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sync Collapse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Color System",2,1,kColorSystemChoices,ID_PAL_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tape Speed",3,1,kTapeSpeedChoices,ID_TAPE_SPEED);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Detail",6,100,6,100,84,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DETAIL);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Signal Look",11,1,kNtscRsLookChoices,ID_NTSCRS_LOOK);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Look Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_NTSCRS_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SIGNAL_TOPIC+100);
     AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Head Switching",ID_HEAD_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Head Switching Preset",3,2,kHeadSwitchPresetChoices,ID_HEAD_PRESET);
@@ -691,7 +752,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Ringing Power",0,8,0,8,2,1,PF_ValueDisplayFlag_NONE,0,ID_RINGING_POWER);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("CRT 3-Band EQ",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CRT_EQUALIZER);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_COMPOSITE_DECODER_TOPIC+100);
-    AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Waves",ID_VHS_PLAYBACK_TOPIC);
+    AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Waves & Static",ID_VHS_PLAYBACK_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("VHS Edge Wave",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_EDGE_WAVE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("VHS Edge Wave Frequency",0.005f,0.2f,0.005f,0.2f,0.05f,3,PF_ValueDisplayFlag_NONE,0,ID_EDGE_WAVE_FREQUENCY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("VHS Edge Wave Speed",0,20,0,20,4,2,PF_ValueDisplayFlag_NONE,0,ID_EDGE_WAVE_SPEED);
@@ -704,6 +765,15 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Interlace / Field Weave",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_INTERLACE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Scanlines",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_SCANLINES);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Smear",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_SMEAR);
+    AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Static",ID_PATTERN_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Static Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_STATIC_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Static Density",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_STATIC_DENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Static Pattern",11,2,kStaticPatternChoices,ID_PATTERN_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Pattern Angle",0,360,0,360,0,1,PF_ValueDisplayFlag_NONE,0,ID_PATTERN_ANGLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Pattern Width",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_PATTERN_WIDTH);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Green Line",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_PATTERN_GREEN);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Phase Count",1,8,1,8,4,0,PF_ValueDisplayFlag_NONE,0,ID_PATTERN_PHASE_COUNT);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PATTERN_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_VHS_PLAYBACK_TOPIC+100);
     AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Color & Image",ID_VHS_FRAME_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Edge Enhancement",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_EDGE_ENHANCE);
@@ -826,7 +896,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_ADD_HIDDEN_FLOAT("OSD Battery",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_BATTERY);
     VHS90_ADD_HIDDEN_FLOAT("Frame Repeat Frequency",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_FREQUENCY);
     VHS90_ADD_HIDDEN_FLOAT("Frame Repeat Strength",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_STRENGTH);
-    VHS90_ADD_HIDDEN_POPUP("Tracking Type",7,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
+    VHS90_ADD_HIDDEN_POPUP("Tracking Type",8,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
     VHS90_ADD_HIDDEN_FLOAT("Particle Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_AMOUNT);
     VHS90_ADD_HIDDEN_POPUP("Pattern",5,1,kParticleModeChoices,ID_PARTICLE_MODE);
     VHS90_ADD_HIDDEN_FLOAT("Density",0,100,0,100,18,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_DENSITY);
@@ -875,11 +945,8 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_ADD_HIDDEN_POPUP("Layer 2 Preset",10,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
     VHS90_ADD_HIDDEN_POPUP("Layer 3 Preset",10,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
     VHS90_ADD_HIDDEN_POPUP("Layer 4 Preset",10,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
-    VHS90_ADD_HIDDEN_POPUP("Pattern Type",11,2,kStaticPatternChoices,ID_PATTERN_MODE);
-    VHS90_ADD_HIDDEN_FLOAT("Pattern Angle",-90,90,-90,90,24,1,PF_ValueDisplayFlag_NONE,0,ID_PATTERN_ANGLE);
     VHS90_ADD_HIDDEN_FLOAT("Ribbon / Diagonal Width",1,50,1,50,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_PATTERN_WIDTH);
     VHS90_ADD_HIDDEN_FLOAT("Green Line Intensity",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_PATTERN_GREEN);
-    VHS90_ADD_HIDDEN_FLOAT("Phase Count",2,8,2,8,3,0,PF_ValueDisplayFlag_NONE,0,ID_PATTERN_PHASE_COUNT);
     VHS90_ADD_HIDDEN_FLOAT("Band Amount",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_AMOUNT);
     VHS90_ADD_HIDDEN_FLOAT("Center Y",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_Y);
     VHS90_ADD_HIDDEN_FLOAT("Height",0,100,0,100,15,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_HEIGHT);
@@ -921,8 +988,6 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_ADD_HIDDEN_POPUP("Extra VHS Label",18,1,kOsdExtraLabelChoices,ID_OSD_EXTRA_LABEL);
     VHS90_ADD_HIDDEN_FLOAT("Extra Label Horizontal Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_EXTRA_X);
     VHS90_ADD_HIDDEN_FLOAT("Extra Label Vertical Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_EXTRA_Y);
-    VHS90_ADD_HIDDEN_TOPIC("Legacy compatibility",ID_TRACKING_TOPIC);
-    VHS90_END_HIDDEN_TOPIC(ID_TRACKING_TOPIC+100);
     VHS90_ADD_HIDDEN_TOPIC("Legacy compatibility",ID_PHYSICAL_TOPIC);
     VHS90_END_HIDDEN_TOPIC(ID_PHYSICAL_TOPIC+100);
     VHS90_ADD_HIDDEN_TOPIC("Legacy compatibility",ID_PYVHS_TOPIC);
@@ -943,8 +1008,6 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_END_HIDDEN_TOPIC(ID_TRACK_LAYER4_TOPIC+100);
     VHS90_ADD_HIDDEN_TOPIC("Legacy compatibility",ID_TRACKING_PRESETS_TOPIC);
     VHS90_END_HIDDEN_TOPIC(ID_TRACKING_PRESETS_TOPIC+100);
-    VHS90_ADD_HIDDEN_TOPIC("Legacy compatibility",ID_PATTERN_TOPIC);
-    VHS90_END_HIDDEN_TOPIC(ID_PATTERN_TOPIC+100);
     VHS90_ADD_HIDDEN_TOPIC("Legacy compatibility",ID_TEAR_BAND2_TOPIC);
     VHS90_END_HIDDEN_TOPIC(ID_TEAR_BAND2_TOPIC+100);
     VHS90_ADD_HIDDEN_TOPIC("Legacy compatibility",ID_TEAR_BAND3_TOPIC);
@@ -1742,8 +1805,12 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.width=clamp01(s.trackingWidth/100.0f); r.height=clamp01(s.trackingHeight/100.0f);
                 r.intensity=clamp01(s.trackingAmount/100.0f*master);
                 r.motionXPerSecond=s.trackingMotionX/100.0f; r.motionYPerSecond=s.trackingMotionY/100.0f;
+                r.noiseDriftXCellsPerSecond=s.trackingMotionX/100.0f*2.0f;
+                r.noiseDriftYCellsPerSecond=s.trackingMotionY/100.0f*2.0f;
+                r.snowIntensity=clamp01(s.trackingSnowIntensity/100.0f);
+                r.snowAnisotropy=clamp01(s.trackingSnowAnisotropy/100.0f);
                 r.servoDriftPx=s.trackingServo; r.tearProbability=clamp01(s.trackingTear/100.0f);
-                r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,4));
+                r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,7));
                 ApplyTrackingRecipe(r,s.trackingPresetBase);
             }
             if(s.trackingLayerAmount[0]>0.0f) {
