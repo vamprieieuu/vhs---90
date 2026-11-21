@@ -8,6 +8,16 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  AnalogGlowParams p;assert(processAnalogGlow(si,zi,p));assert(z==s);p.amount=.9f;
  assert(processAnalogGlow(si,ai,p));assert(processAnalogGlow(si,bi,p));assert(a==b&&a!=s);
  for(size_t i=3;i<a.size();i+=4)assert(a[i]==1.0f);
+ // Glow must be highlight-selective: spread around the hot pixel, leave dark field untouched.
+ const size_t center=(size_t(h/2)*w+w/2)*4;
+ const size_t near=(size_t(h/2)*w+w/2+5)*4;
+ const size_t far=(size_t(0)*w+0)*4;
+ assert(a[near]>s[near]);
+ assert(std::fabs(a[far]-s[far])<1e-6f);
+ std::vector<float> dark(s.size()),darkOut(s.size());
+ for(size_t i=0;i<dark.size();i+=4){dark[i]=dark[i+1]=dark[i+2]=.12f;dark[i+3]=1.0f;}
+ ConstImageView darkView{dark.data(),w,h,w*4};ImageView darkOutView{darkOut.data(),w,h,w*4};
+ assert(processAnalogGlow(darkView,darkOutView,p));assert(darkOut==dark);
  std::vector<float>semi=s,out(s.size());for(size_t i=0;i<semi.size();i+=4){semi[i]*=.4f;semi[i+1]*=.4f;semi[i+2]*=.4f;semi[i+3]=.4f;}
  ConstImageView pi{semi.data(),w,h,w*4};ImageView oi{out.data(),w,h,w*4};p.premultipliedAlpha=true;assert(processAnalogGlow(pi,oi,p));
  for(size_t i=3;i<out.size();i+=4)assert(std::fabs(out[i]-.4f)<1e-6f);
