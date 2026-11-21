@@ -5,6 +5,7 @@
 #include "AE_EffectCB.h"
 #include "AE_EffectCBSuites.h"
 #include "AE_EffectPixelFormat.h"
+#include "AE_Macros.h"
 #include "Param_Utils.h"
 #include "VHS90SignalKernels.h"
 #include "VHS90RegionEngine.h"
