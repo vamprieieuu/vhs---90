@@ -45,6 +45,12 @@ jobs:
           }
           Write-Host "Checked-in SDK/font availability verified."
 
+      - name: Validate After Effects host contract
+        shell: pwsh
+        run: |
+          python tools/validate_ae_parameter_contract.py
+          if ($LASTEXITCODE -ne 0) { throw "After Effects host contract validation failed." }
+
       - name: Configure, build and test
         shell: pwsh
         run: .\\build.ps1 -BuildDir build -Configuration Release

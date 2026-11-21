@@ -6,6 +6,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+$contractValidator = Join-Path $PSScriptRoot "tools/validate_ae_parameter_contract.py"
+python $contractValidator
+if ($LASTEXITCODE -ne 0) { throw "After Effects parameter/PiPL contract validation failed." }
 $repoRoot = $PSScriptRoot
 $checkedInVhsRoot = Join-Path $repoRoot "VHS"
 $checkedInSdk = Join-Path $checkedInVhsRoot "open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK"
