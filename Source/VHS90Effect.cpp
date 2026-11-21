@@ -295,6 +295,35 @@ static void ApplyCratesMasterPreset(RenderSettings& s,int preset) noexcept {
     b(s.ringing,std::clamp(v[40]*0.5f,0.0f,100.0f));b(s.edgeEnhance,std::clamp(v[41]*0.5f,0.0f,100.0f));
     b(s.gradeBrightness,v[42]-100.0f);b(s.gradeContrast,v[43]);
 }
+static void ApplyHeadSwitchRecipe(DamageRegion& r,A_long preset) noexcept {
+    // Source presets change the head-switch signal; geometry stays user-editable.
+    switch(preset) {
+        case 2:
+            r.trackingProfile=TrackingProfile::Vhs6RiftBand;
+            r.maxShiftPx=std::max(r.maxShiftPx,13.0f);
+            r.waveAmplitudePx=std::max(r.waveAmplitudePx,4.0f);
+            r.servoDriftPx=std::max(r.servoDriftPx,7.0f);
+            r.noiseAmount=0.30f; r.noiseDensity=0.58f;
+            r.dropoutProbability=std::max(r.dropoutProbability,0.08f);
+            r.dropoutAmount=std::max(r.dropoutAmount,0.25f);
+            r.tearProbability=std::max(r.tearProbability,0.14f);
+            r.tearShiftPx=std::max(r.tearShiftPx,18.0f);
+            break;
+        case 3:
+            r.trackingProfile=TrackingProfile::NtscRTracking;
+            r.maxShiftPx=std::max(r.maxShiftPx,10.0f);
+            r.waveAmplitudePx=std::max(r.waveAmplitudePx,9.0f);
+            r.servoSmoothnessPx=std::max(r.servoSmoothnessPx,18.0f);
+            r.noiseAmount=0.28f; r.noiseDensity=0.52f;
+            r.dropoutProbability=std::max(r.dropoutProbability,0.10f);
+            r.dropoutAmount=std::max(r.dropoutAmount,0.28f);
+            r.tearProbability=std::max(r.tearProbability,0.10f);
+            r.tearShiftPx=std::max(r.tearShiftPx,14.0f);
+            break;
+        default: r.trackingProfile=TrackingProfile::ServoSweep; break;
+    }
+}
+
 static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     // The user-facing list is intentionally curated to 20 distinct looks.
     // Each entry maps to its source-backed native recipe below.
@@ -1754,11 +1783,18 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.noiseDensity=0.22f; r.noiseAmount=0.12f; r.seedOffset=0x1200u; ApplyTrackingRecipe(r,s.trackingLayerPreset[2]);
             }
             if(s.headAmount>0) {
-                DamageRegion& r=regions[count++]; r.kind=RegionKind::HeadSwitch; r.shape=RegionShape::HorizontalBand;
-                r.centerX=0.5f; r.width=1.0f; r.height=clamp01(s.headHeight/100.0f);
-                r.centerY=clamp01(s.headY/100.0f)-r.height*0.5f;
-                r.intensity=clamp01(s.headAmount/100.0f*master); r.maxShiftPx=s.headShift;
-                r.noiseAmount=0.25f; r.dropoutProbability=0.2f;
+                DamageRegion& r=regions[count++]; r.kind=RegionKind::HeadSwitch;
+                r.shape=static_cast<RegionShape>(std::clamp<A_long>(static_cast<A_long>(s.headShape)-1,0,2));
+                r.centerX=clamp01(s.headCenterX/100.0f); r.centerY=clamp01(s.headY/100.0f);
+                r.width=clamp01(s.headWidth/100.0f); r.height=clamp01(s.headHeight/100.0f);
+                r.angleRadians=s.headAngle*(kPi/180.0f);
+                r.motionXPerSecond=s.headMotionX/100.0f; r.motionYPerSecond=s.headMotionY/100.0f;
+                r.intensity=clamp01(s.headAmount/100.0f*master); r.maxShiftPx=s.headShift*0.45f;
+                r.waveAmplitudePx=s.headShift*0.12f; r.servoDriftPx=s.headShift*0.16f; r.servoSmoothnessPx=12.0f;
+                r.noiseAmount=0.22f; r.noiseDensity=0.62f; r.dropoutProbability=0.12f;
+                r.dropoutAmount=0.35f; r.tearProbability=0.12f; r.tearShiftPx=s.headShift*0.75f;
+                r.seed=0x90A11D3Bu; r.frame=s.frame;
+                ApplyHeadSwitchRecipe(r,static_cast<A_long>(s.headPreset));
             }
             RegionEngineParams p; p.regions=regions; p.regionCount=count; p.seed=0x90DA6A6Eu;
             p.frame=s.frame; p.timeSeconds=s.timeSeconds; p.premultipliedAlpha=true;
