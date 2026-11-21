@@ -2070,6 +2070,8 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.trackingTear=float(params[PARAM_TRACKING_TEAR]->u.fs_d.value);
     s.trackingProfile=params[PARAM_TRACKING_PROFILE]->u.pd.value;
     s.trackingPresetBase=params[PARAM_TRACKING_PRESET_BASE]->u.pd.value;
+    s.trackingSnowIntensity=float(params[PARAM_TRACKING_SNOW_INTENSITY]->u.fs_d.value);
+    s.trackingSnowAnisotropy=float(params[PARAM_TRACKING_SNOW_ANISOTROPY]->u.fs_d.value);
     s.trackingLayerPreset[0]=params[PARAM_TRACKING_PRESET_2]->u.pd.value; s.trackingLayerPreset[1]=params[PARAM_TRACKING_PRESET_3]->u.pd.value; s.trackingLayerPreset[2]=params[PARAM_TRACKING_PRESET_4]->u.pd.value;
     s.particleAmount=float(params[PARAM_PARTICLE_AMOUNT]->u.fs_d.value); s.particleMode=params[PARAM_PARTICLE_MODE]->u.pd.value;
     s.particleDensity=float(params[PARAM_PARTICLE_DENSITY]->u.fs_d.value); s.particleSize=float(params[PARAM_PARTICLE_SIZE]->u.fs_d.value);
