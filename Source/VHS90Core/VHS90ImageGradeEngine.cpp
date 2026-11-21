@@ -23,10 +23,10 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
     !std::isfinite(p.chromaIGain)||!std::isfinite(p.chromaQGain)||!std::isfinite(p.chromaIOffset)||!std::isfinite(p.chromaQOffset)||!std::isfinite(p.chromaQuantization)||
     !std::isfinite(p.vignette)||!std::isfinite(p.flicker))return false;
  const float edge=clamp01(p.edgeEnhancement),chromaEdge=clamp01(p.chromaEdgeEnhancement),fade=clamp01(p.fade),blackLift=clamp01(p.blackLift),contrast=std::clamp(p.contrast,0.0f,3.0f);
- const float sat=std::clamp(p.saturation,0.0f,3.0f),vignette=clamp01(p.vignette),flicker=clamp01(p.flicker);
+ const float sat=std::clamp(p.saturation,0.0f,5.0f),vignette=clamp01(p.vignette),flicker=clamp01(p.flicker);
  const float iGain=std::clamp(p.chromaIGain,0.0f,3.0f),qGain=std::clamp(p.chromaQGain,0.0f,3.0f);
  const float iOffset=std::clamp(p.chromaIOffset,-0.5f,0.5f),qOffset=std::clamp(p.chromaQOffset,-0.5f,0.5f);
- const float chromaStep=std::clamp(p.chromaQuantization,0.0f,0.25f);
+ const float chromaStep=std::clamp(p.chromaQuantization,0.0f,0.0833333f);
  if(edge==0&&chromaEdge==0&&fade==0&&contrast==1&&p.brightness==0&&blackLift==0&&sat==1&&iGain==1&&qGain==1&&iOffset==0&&qOffset==0&&chromaStep==0&&vignette==0&&flicker==0){
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
@@ -79,7 +79,16 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
    yiq.y=(yiq.y-0.5f)*contrast+0.5f+p.brightness;
    yiq.i=yiq.i*sat*fadeSat*iGain+iOffset;
    yiq.q=yiq.q*sat*fadeSat*qGain+qOffset;
-   if(chromaStep>1.0e-6f){yiq.i=std::round(yiq.i/chromaStep)*chromaStep;yiq.q=std::round(yiq.q/chromaStep)*chromaStep;}
+   if(chromaStep>1.0e-6f){
+    // Quantize chroma magnitude while preserving its phase. Independent I/Q
+    // rounding rotates hue and can create unrelated false-colour patches.
+    const float chromaMagnitude=std::sqrt(yiq.i*yiq.i+yiq.q*yiq.q);
+    if(chromaMagnitude>1.0e-6f){
+     const float quantizedMagnitude=std::round(chromaMagnitude/chromaStep)*chromaStep;
+     const float scale=quantizedMagnitude/chromaMagnitude;
+     yiq.i*=scale;yiq.q*=scale;
+    }
+   }
    const float dx=(float(x)-cx)/cx,dy=(float(y)-cy)/cy;
    const float d=std::sqrt(dx*dx+dy*dy)/maxD;
    const float vig=1.0f-std::min(0.80f,vignette*0.70f)*d*d;
