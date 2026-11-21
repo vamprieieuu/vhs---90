@@ -167,11 +167,11 @@ if visible_topics != expected_topics:
     fail("Visible VHS-90 topic order/layout differs from the approved compact panel.")
 if len(re.findall(r'kVhsStyleChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 20:
     fail("VHS Style list must remain curated to 20 distinct presets.")
-if len(re.findall(r'kTrackingPresetChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 10:
-    fail("Tracking presets must include the two source-backed profiles.")
-if 'PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' not in SOURCE:
-    fail("Tracking Noise preset popup must expose all 10 recipes.")
-if "Vhs6RiftBand = 5" not in REGION_HEADER or "NtscRTracking = 6" not in REGION_HEADER:
+if len(re.findall(r'kTrackingPresetChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 19:
+    fail("Tracking presets must include the source-backed plugin and repository profiles.")
+if 'PF_ADD_POPUP("Tracking Preset",19,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' not in SOURCE:
+    fail("Tracking Noise preset popup must expose all 19 source recipes.")
+if "Vhs6RiftBand = 5" not in REGION_HEADER or "NtscRTracking = 6" not in REGION_HEADER or "VhsMainTracking = 7" not in REGION_HEADER:
     fail("VHS6RIFT and NTSC-R need dedicated tracking render profiles.")
 if "Vhs6RiftBand" not in REGION or "NtscRTracking" not in REGION:
     fail("Source-backed tracking render profiles are not implemented.")

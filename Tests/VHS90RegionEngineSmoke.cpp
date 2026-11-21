@@ -157,7 +157,7 @@ int main() {
     for(int py=0;py<h;++py) for(int px=0;px<w;++px) { const size_t pi=(py*w+px)*4; profileSource[pi]=float(px)/float(w-1); profileSource[pi+1]=float(py)/float(h-1); profileSource[pi+2]=1.0f-float(px)/float(w-1); profileSource[pi+3]=1.0f; }
     ConstImageView profileInput{profileSource.data(),w,h,w*4};
     std::vector<float> profileOutputs[7];
-    for(int profile=0;profile<7;++profile) {
+    for(int profile=0;profile<8;++profile) {
         profileOutputs[profile].resize(src.size(),0.0f);
         DamageRegion variant=top;
         variant.kind=RegionKind::TrackingNoise; variant.shape=RegionShape::HorizontalBand;

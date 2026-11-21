@@ -24,7 +24,8 @@ enum class TrackingProfile : std::uint8_t {
     TapeFlutter = 3,
     FourEdgeCrawl = 4,
     Vhs6RiftBand = 5,
-    NtscRTracking = 6
+    NtscRTracking = 6,
+    VhsMainTracking = 7
 };
 
 // All position and size values are normalized to [0,1] frame coordinates.

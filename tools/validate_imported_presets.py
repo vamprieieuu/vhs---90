@@ -296,8 +296,8 @@ assert "Vhs6RiftBand" in source and "NtscRTracking" in source, "Missing source-s
 tracking_recipe_start = source.find("static void ApplyTrackingRecipe")
 tracking_recipe_end = source.find("static void ApplyCratesMasterPreset", tracking_recipe_start)
 tracking_recipe = source[tracking_recipe_start:tracking_recipe_end]
-assert "case 9:" in tracking_recipe and "case 10:" in tracking_recipe, "Missing VHS6RIFT/NTSC-R tracking presets"
-assert 'PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' in source, "Tracking preset popup must expose ten curated entries"
+assert all(f"case {i}:" in tracking_recipe for i in range(9,20)), "Missing source-specific tracking presets (VHS6RIFT, NTSC-R, VHS-main, plugins and repositories)"
+assert 'PF_ADD_POPUP("Tracking Preset",19,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' in source, "Tracking preset popup must expose nineteen source-backed entries"
 
 assert 'PF_ADD_FLOAT_SLIDERX("Snow Intensity"' in source and 'PF_ADD_FLOAT_SLIDERX("Snow Anisotropy"' in source, "Missing NTSC-R snow controls"
 assert "r.snowIntensity=clamp01(s.trackingSnowIntensity/100.0f)" in source, "Snow intensity is not wired into Tracking Noise"

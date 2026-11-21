@@ -110,8 +110,8 @@ enum ParamDiskID {
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
-static char kTrackingProfileChoices[]="Servo Sweep|RF Wave|Composite Ribbon|Tape Flutter|Four-Edge Crawl|VHS6RIFT Moving Band|NTSC-R Tracking";
-static char kTrackingPresetChoices[]="Custom|Fine Sweep|Fragmented Sweep|RF Snowline|Composite Flagging|Tape Flutter|Four-Edge Crawl|Full-Frame Breakdown|VHS6RIFT Moving Band|NTSC-R Tracking Noise";
+static char kTrackingProfileChoices[]="Servo Sweep|RF Wave|Composite Ribbon|Tape Flutter|Four-Edge Crawl|VHS6RIFT Moving Band|NTSC-R Tracking|VHS Main Tracking";
+static char kTrackingPresetChoices[]="Custom|Fine Sweep|Fragmented Sweep|RF Snowline|Composite Flagging|Tape Flutter|Four-Edge Crawl|Full-Frame Breakdown|VHS6RIFT Moving Band|NTSC-R Tracking Noise|VHS Main Tracking Error|VHSPro Tracking Noise|Crates Tracking Noise|VHSCraft Moving Band|VHSTape Tracking Error|Universal VHS Bad Tracking|Universal VHS Very Bad Tracking|NTSCRT VCR Tracking|VHS-Phys Misalignment";
 static char kParticleModeChoices[]="Dark-Field Speckles|Horizontal Fragments|Colored Speckles|Bottom-Weighted Streaks|Vertical Columns";
 static char kParticleDistributionChoices[]="Uniform|Top Weighted|Bottom Weighted|Center Weighted|Edge Weighted";
 static char kTearChromaModeChoices[]="Spectral Chroma Smear|Localized Headbleed|Chroma Streaks & Interleave|Multi-Band Tear|Spectral + Lower Tear";
@@ -234,6 +234,58 @@ static void ApplyTrackingRecipe(DamageRegion& r,A_long preset) noexcept {
             r.servoSmoothnessPx=std::max(r.servoSmoothnessPx,18.0f);
             r.noiseAmount=0.30f; r.noiseDensity=0.52f;
             r.tearProbability=std::max(r.tearProbability,0.10f);
+            break;
+        case 11: // VHS-main Tracking Error: direct moving-band/Gaussian-noise model.
+            r.trackingProfile=TrackingProfile::VhsMainTracking; r.maxShiftPx=22.0f;
+            r.waveAmplitudePx=0.0f; r.servoSmoothnessPx=16.0f; r.noiseAmount=0.25f;
+            r.noiseDensity=0.0f; r.cellWidthPx=8.0f; r.cellHeightPx=2.0f; r.chromaShiftPx=0.0f;
+            break;
+        case 12: // VHSPro: decompiled UI exposes Tracking Noise + Snow + Head Switching.
+            r.trackingProfile=TrackingProfile::NtscRTracking; r.maxShiftPx=8.0f;
+            r.waveAmplitudePx=6.0f; r.servoSmoothnessPx=12.0f; r.noiseAmount=0.34f;
+            r.noiseDensity=0.48f; r.cellWidthPx=3.0f; r.cellHeightPx=1.0f; r.chromaShiftPx=1.5f;
+            break;
+        case 13: // Crates VHS Master: Tracking Speed/Size/Distortion + segmented interference.
+            r.trackingProfile=TrackingProfile::CompositeRibbon; r.maxShiftPx=14.0f;
+            r.waveAmplitudePx=7.0f; r.servoSmoothnessPx=9.0f; r.noiseAmount=0.28f;
+            r.noiseDensity=0.42f; r.cellWidthPx=4.0f; r.cellHeightPx=2.0f;
+            r.chromaShiftPx=2.5f; r.tearShiftPx=18.0f;
+            break;
+        case 14: // VHSCraft: moving band + bottom-noise character.
+            r.trackingProfile=TrackingProfile::Vhs6RiftBand; r.maxShiftPx=6.0f;
+            r.waveAmplitudePx=12.0f; r.servoSmoothnessPx=14.0f; r.noiseAmount=0.34f;
+            r.noiseDensity=0.50f; r.cellWidthPx=6.0f; r.cellHeightPx=2.0f;
+            r.chromaShiftPx=1.5f; r.tearShiftPx=14.0f;
+            break;
+        case 15: // VHSTape: reconstructed Tracking Error controls from binary UI strings.
+            r.trackingProfile=TrackingProfile::VhsMainTracking; r.maxShiftPx=18.0f;
+            r.waveAmplitudePx=0.0f; r.servoSmoothnessPx=12.0f; r.noiseAmount=0.25f;
+            r.noiseDensity=0.0f; r.cellWidthPx=8.0f; r.cellHeightPx=2.0f;
+            r.chromaShiftPx=1.0f;
+            break;
+        case 16: // Universe VHS "Bad Tracking" preset family.
+            r.trackingProfile=TrackingProfile::ServoSweep; r.maxShiftPx=16.0f;
+            r.waveAmplitudePx=10.0f; r.servoSmoothnessPx=8.0f; r.noiseAmount=0.38f;
+            r.noiseDensity=0.58f; r.cellWidthPx=4.0f; r.cellHeightPx=2.0f;
+            r.chromaShiftPx=2.0f; r.tearShiftPx=22.0f;
+            break;
+        case 17: // Universe VHS "Very Bad Tracking" preset family.
+            r.trackingProfile=TrackingProfile::FourEdgeCrawl; r.maxShiftPx=30.0f;
+            r.waveAmplitudePx=24.0f; r.servoSmoothnessPx=5.0f; r.noiseAmount=0.55f;
+            r.noiseDensity=0.82f; r.cellWidthPx=2.0f; r.cellHeightPx=1.0f;
+            r.chromaShiftPx=4.0f; r.tearShiftPx=38.0f;
+            break;
+        case 18: // NTSCRT VCR servo/tracking-offset reconstruction.
+            r.trackingProfile=TrackingProfile::VhsMainTracking; r.maxShiftPx=12.0f;
+            r.waveAmplitudePx=0.0f; r.servoSmoothnessPx=20.0f; r.noiseAmount=0.22f;
+            r.noiseDensity=0.0f; r.cellWidthPx=8.0f; r.cellHeightPx=2.0f;
+            r.chromaShiftPx=0.5f;
+            break;
+        case 19: // VHS-Phys mechanical tracking misalignment mapped to the visual region model.
+            r.trackingProfile=TrackingProfile::NtscRTracking; r.maxShiftPx=9.0f;
+            r.waveAmplitudePx=4.0f; r.servoSmoothnessPx=24.0f; r.noiseAmount=0.18f;
+            r.noiseDensity=0.25f; r.cellWidthPx=6.0f; r.cellHeightPx=2.0f;
+            r.chromaShiftPx=0.75f;
             break;
         default: break;
     }
@@ -612,7 +664,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100,-100,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_MOTION_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SERVO);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_TEAR);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Preset",19,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Intensity",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SNOW_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Anisotropy",0,100,0,100,55,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SNOW_ANISOTROPY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear & Chroma Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_CHROMA_AMOUNT);
@@ -795,7 +847,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_ADD_HIDDEN_FLOAT("OSD Battery",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_BATTERY);
     VHS90_ADD_HIDDEN_FLOAT("Frame Repeat Frequency",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_FREQUENCY);
     VHS90_ADD_HIDDEN_FLOAT("Frame Repeat Strength",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_STRENGTH);
-    VHS90_ADD_HIDDEN_POPUP("Tracking Type",7,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
+    VHS90_ADD_HIDDEN_POPUP("Tracking Type",8,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
     VHS90_ADD_HIDDEN_FLOAT("Particle Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_AMOUNT);
     VHS90_ADD_HIDDEN_POPUP("Pattern",5,1,kParticleModeChoices,ID_PARTICLE_MODE);
     VHS90_ADD_HIDDEN_FLOAT("Density",0,100,0,100,18,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_DENSITY);
@@ -1704,8 +1756,10 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.intensity=clamp01(s.trackingAmount/100.0f*master);
                 r.motionXPerSecond=s.trackingMotionX/100.0f; r.motionYPerSecond=s.trackingMotionY/100.0f;
                 r.servoDriftPx=s.trackingServo; r.tearProbability=clamp01(s.trackingTear/100.0f);
-                r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,4));
+                r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,7));
                 ApplyTrackingRecipe(r,s.trackingPresetBase);
+                r.motionXPerSecond=s.trackingMotionX/100.0f; r.motionYPerSecond=s.trackingMotionY/100.0f;
+                r.servoDriftPx=s.trackingServo; r.tearProbability=clamp01(s.trackingTear/100.0f);
                 r.snowIntensity=clamp01(s.trackingSnowIntensity/100.0f);
                 r.snowAnisotropy=clamp01(s.trackingSnowAnisotropy/100.0f);
             }

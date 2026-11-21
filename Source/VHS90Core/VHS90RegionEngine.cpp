@@ -63,6 +63,15 @@ inline float smoothHash2D(float x, float y, std::uint32_t seed) noexcept {
 // Deterministic NTSC-R row_speckles port. Geometric inter-arrival sampling
 // creates short horizontal transients; a smooth spatial offset advects the
 // pattern so it travels instead of being regenerated as frame-wide flicker.
+inline float gaussianHash2D(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
+    const float u1 = std::max(1.0e-6f, hash01(static_cast<std::uint32_t>(x),
+        static_cast<std::uint32_t>(y), seed, frame));
+    const float u2 = hash01(static_cast<std::uint32_t>(x + 37),
+        static_cast<std::uint32_t>(y + 19), seed + 0x9e3779b9u, frame);
+    const float value = std::sqrt(-2.0f * std::log(u1)) * std::cos(2.0f * kPi * u2);
+    return std::max(-2.5f, std::min(2.5f, value));
+}
+
 inline float ntscRowSpeckles(float xPx, float yPx, float intensity,
                              float anisotropy, float cellW, float cellH,
                              float driftX, float driftY,
@@ -205,6 +214,7 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
     const float localProgress=r.shape==RegionShape::VerticalBand?localX:localY;
     const float bandFactor=std::sin(localProgress*kPi);
     float sourceNoise=0.0f,sourceSnow=0.0f,sourceSnowValue=0.0f;
+    float sourceChromaAttenuation=1.0f;
 
     float shiftX = (rowN - 0.5f) * r.maxShiftPx + rowWave * r.waveAmplitudePx;
     const float shiftY = (n - 0.5f) * r.verticalShiftPx;
@@ -268,6 +278,20 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 }
                 break;
             }
+            case TrackingProfile::VhsMainTracking: {
+                // VHS-main source port: Gaussian luma disturbance, four-line-correlated
+                // horizontal sampling jitter and chroma attenuation. The existing
+                // region geometry generalizes its original full-width moving band.
+                const float trackPhase = 1.0f - std::fabs(localProgress * 2.0f - 1.0f);
+                const int rowBlock = cy & ~3;
+                const float rowJitter = hash01(13u, static_cast<std::uint32_t>(rowBlock),
+                    regionSeed + 0x4f1bbcdcu, p.frame) * 2.0f - 1.0f;
+                shiftX = rowJitter * r.maxShiftPx * trackPhase;
+                sourceNoise = gaussianHash2D(cx, cy, regionSeed + 0x9e3779b9u, p.frame)
+                    * 0.25f * trackPhase;
+                sourceChromaAttenuation = 1.0f - 0.5f * trackPhase;
+                break;
+            }
             case TrackingProfile::NtscRTracking: {
                 // NTSC-R scalar port: gradient-noise row displacement, luma FBM-like noise,
                 // bottom-to-top intensity ramp generalized to the selected user region,
@@ -324,8 +348,15 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
         }
     }
 
+    if (sourceChromaAttenuation < 0.99999f) {
+        const float luma = 0.299f * sr + 0.587f * sg + 0.114f * sb;
+        sr = luma + (sr - luma) * sourceChromaAttenuation;
+        sg = luma + (sg - luma) * sourceChromaAttenuation;
+        sb = luma + (sb - luma) * sourceChromaAttenuation;
+    }
+
     float noise = sourceNoise;
-    if(r.trackingProfile!=TrackingProfile::NtscRTracking && n<clamp01(r.noiseDensity)) {
+    if(r.trackingProfile!=TrackingProfile::NtscRTracking && r.trackingProfile!=TrackingProfile::VhsMainTracking && n<clamp01(r.noiseDensity)) {
         const float signedNoise = smoothHash2D(static_cast<float>(cx + 41) - noiseDriftX,
                                                 static_cast<float>(cy + 97) - noiseDriftY,
                                                 regionSeed + 0x85ebca6bu) - 0.5f;
