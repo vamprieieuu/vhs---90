@@ -228,6 +228,7 @@ if(VHS90_BUILD_AE_PLUGIN)
     target_link_libraries(VHS90 PRIVATE VHS90Core VHS90DirectWrite)
     target_include_directories(VHS90 PRIVATE
         "${VHS90_AE_HEADERS}"
+        "${VHS90_AE_HEADERS}/SP"
         "${VHS90_AE_UTIL}"
         "${VHS90_AE_INCLUDE_ROOT}/Examples/Headers"
         "${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core"
