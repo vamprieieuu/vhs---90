@@ -552,6 +552,9 @@ static PF_Err GlobalSetup(PF_InData* in_data,PF_OutData* out_data) {
 
 static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     PF_ParamDef def;
+    PF_ArbitraryH osdTextDefault=nullptr;
+    const PF_Err osdTextDefaultErr=VHS90CreateOsdTextDefault(in_data,&osdTextDefault);
+    if(osdTextDefaultErr!=PF_Err_NONE) return osdTextDefaultErr;
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,500,0,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
     AEFX_CLR_STRUCT(def); def.flags=0; PF_ADD_TOPIC("VHS Style & Camera Profiles",ID_VHS_STYLE_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",20,1,kVhsStyleChoices,ID_VHS_STYLE);
@@ -2096,6 +2099,7 @@ static void RemoveLastOsdCodepoint(std::string& text) {
 }
 static PF_Err HandleEvent(PF_InData* in_data,PF_ParamDef* params[],PF_EventExtra* extra) {
     if(!in_data||!extra) return PF_Err_NONE;
+    extra->evt_out_flags=PF_EO_NONE;
     PF_ContextPtr context=(extra->contextH?*extra->contextH:nullptr);
     if(extra->e_type==PF_Event_NEW_CONTEXT) {
         if(context) context->plugin_state[0]=-1;
@@ -2157,6 +2161,9 @@ static PF_Err HandleEvent(PF_InData* in_data,PF_ParamDef* params[],PF_EventExtra
             case PF_ControlCode_Backspace:
                 if(!text.empty()){RemoveLastOsdCodepoint(text);changed=true;}
                 break;
+            case PF_ControlCode_Delete:
+                if(!text.empty()){text.clear();changed=true;}
+                break;
             case PF_ControlCode_Return:
             case PF_ControlCode_Enter:
                 if(text.size()+1<vhs90::kOsdTextMaxUtf8Bytes){text.push_back('\n');changed=true;}
@@ -2168,10 +2175,11 @@ static PF_Err HandleEvent(PF_InData* in_data,PF_ParamDef* params[],PF_EventExtra
             default: break;
         }
     }
+    extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
     if(changed) {
         err=VHS90WriteOsdText(in_data,&params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,text);
         if(err!=PF_Err_NONE) return err;
-        extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_ALWAYS_UPDATE|PF_EO_UPDATE_NOW;
+        extra->evt_out_flags=(extra->evt_out_flags&~PF_EO_NEVER_UPDATE)|PF_EO_HANDLED_EVENT|PF_EO_ALWAYS_UPDATE|PF_EO_UPDATE_NOW;
     }
     return PF_Err_NONE;
 }
