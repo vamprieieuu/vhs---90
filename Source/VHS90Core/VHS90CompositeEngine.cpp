@@ -36,7 +36,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
        src.rowStrideFloats<src.width*4||dst.rowStrideFloats<dst.width*4||
        src.rgba==dst.rgba) return false;
     if(!std::isfinite(p.strength)||!std::isfinite(p.compositeSignalStrength)) return false;
-    const float strength=std::max(0.0f,std::min(1.0f,p.strength));
+    const float strength=std::max(0.0f,std::min(5.0f,p.strength));
     const float compositeStrength=std::max(0.0f,std::min(1.0f,p.compositeSignalStrength));
     if(strength<=0.0f) {
         for(int y=0;y<src.height;++y)
