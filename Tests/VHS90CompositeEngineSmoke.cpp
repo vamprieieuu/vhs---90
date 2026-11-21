@@ -163,6 +163,30 @@ int main() {
     CompositeParams post=p;post.compositeSignalStrength=0.0f;post.inputBandwidthEnabled=false;post.outputBandwidthEnabled=false;
     post.chromaSubsampleEnabled=true;post.chromaSubsample.amount=.8f;
     assert(processCompositeRoundTrip(si,postOnlyView,post));assert(postOnly!=src);
+
+    // Chroma subsampling must reduce high-frequency I/Q while preserving luma.
+    std::vector<float> chromaPattern(src.size()),subsampled(src.size());
+    const RGB chromaA=yiqToRgb({.45f,.25f,.15f}),chromaB=yiqToRgb({.45f,-.25f,-.15f});
+    for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){const size_t k=(size_t(yy)*w+xx)*4;const RGB q=(xx&1)?chromaB:chromaA;chromaPattern[k]=q.r;chromaPattern[k+1]=q.g;chromaPattern[k+2]=q.b;chromaPattern[k+3]=1.0f;}
+    ConstImageView chromaPatternView{chromaPattern.data(),w,h,w*4};ImageView subsampledView{subsampled.data(),w,h,w*4};
+    ChromaSubsampleParams cs;cs.amount=1.0f;cs.horizontalFactor=2;cs.verticalFactor=1;cs.blurRadius=0.0f;
+    assert(processChromaSubsample(chromaPatternView,subsampledView,cs));
+    double chromaBefore=0.0,chromaAfter=0.0,lumaError=0.0;
+    for(size_t k=0;k<chromaPattern.size();k+=4){const YIQ before=rgbToYiq({chromaPattern[k],chromaPattern[k+1],chromaPattern[k+2]});const YIQ after=rgbToYiq({subsampled[k],subsampled[k+1],subsampled[k+2]});chromaBefore+=std::sqrt(before.i*before.i+before.q*before.q);chromaAfter+=std::sqrt(after.i*after.i+after.q*after.q);lumaError+=std::fabs(after.y-before.y);}
+    assert(chromaAfter<chromaBefore*.25&&lumaError/double(w*h)<.001);
+
+    // Vertical chroma blend uses the previous same-field line (y-2), not luma.
+    std::vector<float> fieldPattern(src.size()),verticalChroma(src.size());
+    for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){const size_t k=(size_t(yy)*w+xx)*4;const RGB q=((yy/2)&1)?chromaB:chromaA;fieldPattern[k]=q.r;fieldPattern[k+1]=q.g;fieldPattern[k+2]=q.b;fieldPattern[k+3]=1.0f;}
+    ConstImageView fieldPatternView{fieldPattern.data(),w,h,w*4};ImageView verticalChromaView{verticalChroma.data(),w,h,w*4};
+    VerticalChromaBlendParams vcb;vcb.amount=1.0f;
+    assert(processVerticalChromaBlend(fieldPatternView,verticalChromaView,vcb));
+    const size_t testPixel=(size_t(2)*w+10)*4;
+    const YIQ verticalBefore=rgbToYiq({fieldPattern[testPixel],fieldPattern[testPixel+1],fieldPattern[testPixel+2]});
+    const YIQ verticalAfter=rgbToYiq({verticalChroma[testPixel],verticalChroma[testPixel+1],verticalChroma[testPixel+2]});
+    assert(std::fabs(verticalAfter.y-verticalBefore.y)<.001f);
+    assert(std::sqrt(verticalAfter.i*verticalAfter.i+verticalAfter.q*verticalAfter.q)<
+           std::sqrt(verticalBefore.i*verticalBefore.i+verticalBefore.q*verticalBefore.q)*.7f);
     post=p;post.compositeSignalStrength=0.0f;post.inputBandwidthEnabled=false;post.outputBandwidthEnabled=false;
     post.analogNoiseEnabled=true;post.analogNoise.lumaAmount=.5f;post.analogNoise.chromaAmount=.4f;
     assert(processCompositeRoundTrip(si,noiseOnlyView,post));assert(noiseOnly!=src);
