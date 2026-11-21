@@ -1,6 +1,6 @@
 # VHS-90 — Project Status
 
-Updated: 2026-11-20
+Updated: 2026-11-21
 
 Latest verified source-pipeline fix: `eb8969184c2d80638cfcb1165dd1984ca02015c2` — moved Image Grade after decoded-frame creation so the composite pipeline no longer references `decodedView` before initialization.
 
@@ -8,8 +8,8 @@ Latest verified source-pipeline fix: `eb8969184c2d80638cfcb1165dd1984ca02015c2` 
 
 - Plugin name: VHS-90.
 - The repository contains scoped audits of the supplied source archive and an expanding set of host-independent C++ processing modules. The 15 `github repos/` sources are being treated as a separate audit/migration queue. The first three folders (Analog-NTSC, BarashNTSC, ComfyUI RetroTape) now have complete file-by-file audits and portable algorithm migrations at source level; the remaining 12 folders are still in progress.
-- An initial native AE host adapter now exists in `Source/VHS90Effect.cpp`, with PiPL identity/flags, an optional Windows/MSVC CMake target, a PiPL generation script and `build.ps1`.
-- The host adapter has not yet been compiled with MSVC against a local AE SDK or loaded in After Effects. There is no verified AEX artifact and no claim of AE load/render success.
+- The native AE host adapter has now been compiled with Windows/MSVC 2022 against the checked-in AE SDK and PiPL tooling. The Windows Build workflow verifies the single root-level `VHS-90.aex` and publishes it as a raw release asset.
+- Latest verified AEX: commit `27a7d36963d3c3c7602b2ef833ea5e5c4de23f14`, 867,840 bytes. This proves compilation and packaging only; After Effects 23.2.1 load, render, MFR and visual acceptance still require an in-host test.
 
 ## Work completed in this pass
 
@@ -293,3 +293,15 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Rechecked the supplied font manifest and actual embedded license name records. `Rooyin_Free_Bold.ttf` and `Sponge_Arabic_Regular.otf` are the only supplied fonts currently cleared by the manifest for bundling under OFL terms, with complete files/notices retained. The repository currently contains only the manifest, not those font binaries or license bundle. Other fonts remain permission-restricted or unverified and must not be redistributed without permission.
 - Added `docs/source-audits/62-osd-directwrite-arabic-vhs-tape-implementation-spec.md`. It defines a Windows DirectWrite renderer isolated from the portable core, UTF-8/bidi/Arabic shaping, localized months and digit systems, arbitrary user text, font enumeration/fallback, VHS Tape states/positions/date/counter controls, and regression tests.
 - No OSD rendering code or AE UI parameters were changed in this checkpoint. Full OSD remains an open pre-AEX requirement.
+
+
+## Tracking Noise and Head Switching refinement — 2026-11-21
+
+- Added a continuously advected VHS-main Tracking Noise field: Gaussian-distributed luma disturbance, four-line-correlated horizontal sampling jitter, and controllable chroma attenuation. The random texture is spatially advected with composition time rather than regenerated as unrelated frame noise.
+- Retained the direct VHS6RIFT moving-band hash path and NTSC-R row-snow/FBM path, with editable region position, width, height, direction and motion. The main Tracking Noise defaults remain animated (12% vertical region motion plus time-advected noise).
+- Expanded the Tracking Noise preset selector to 19 choices: Custom, six native/general recipes, VHS6RIFT, NTSC-R, VHS-main, and source-inspired mappings for VHSPro, Crates, VHSCraft, VHSTape, Universal VHS and NTSCRT/VHS-Phys families. Exact native source code is used only where source was available; binary/UI-derived families are reconstructed and are not claimed as byte-for-byte source ports.
+- Expanded Head Switching from two source profiles to eight: Custom, VHS6RIFT, NTSC-R, VHSPro, Crates, VHSCraft, Universe Bad and Universe Very Bad. All share the editable region geometry and position/height controls; additional profiles are source-inspired reconstructions where original source was unavailable.
+- Added regression coverage for eight distinct Tracking Noise profiles, temporal advection of VHS-main noise, and eight deterministic Head Switching profiles.
+- Latest Windows Build run `44914282254` passed SDK/font checks, AE parameter contract validation, MSVC build and tests, single-file AEX verification and raw Release publishing. Output: `build/VHS-90.aex`, 867,840 bytes. Release: https://github.com/vamprieieuu/vhs---90/releases/tag/vhs90-aex-27a7d36963d3
+- Latest Linux Core Tests run `44914282265` passed all 36/36 smoke tests.
+- **Still open from the user's review:** separate the combined Grain/Tracking/Tear UI into smaller independently named sections without breaking AE parameter compatibility; full visual calibration against every VHS camera clip and VHS Damage Lab frame; exact binary-derived preset matching; the requested complete UI pruning/reordering; remaining Signal, Chroma Subsample, Vertical Chroma Delay, RF Drift, Mains Hum, AM Nonlinearity, AGC Pump, Impulse Noise, Tape Dropouts, OSD and Tape Material visual/functional acceptance. A successful AEX build is not proof those looks are visually correct.
