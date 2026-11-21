@@ -8,6 +8,10 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  AnalogGlowParams p;assert(processAnalogGlow(si,zi,p));assert(z==s);p.amount=.9f;
  assert(processAnalogGlow(si,ai,p));assert(processAnalogGlow(si,bi,p));assert(a==b&&a!=s);
  for(size_t i=3;i<a.size();i+=4)assert(a[i]==1.0f);
+ std::vector<float>mid(s.size()),midOut(s.size());
+ for(size_t i=0;i<mid.size();i+=4){mid[i]=.45f;mid[i+1]=.45f;mid[i+2]=.45f;mid[i+3]=1.0f;}
+ ConstImageView mi{mid.data(),w,h,w*4};ImageView mo{midOut.data(),w,h,w*4};
+ assert(processAnalogGlow(mi,mo,p));assert(midOut!=mid);
  std::vector<float>semi=s,out(s.size());for(size_t i=0;i<semi.size();i+=4){semi[i]*=.4f;semi[i+1]*=.4f;semi[i+2]*=.4f;semi[i+3]=.4f;}
  ConstImageView pi{semi.data(),w,h,w*4};ImageView oi{out.data(),w,h,w*4};p.premultipliedAlpha=true;assert(processAnalogGlow(pi,oi,p));
  for(size_t i=3;i<out.size();i+=4)assert(std::fabs(out[i]-.4f)<1e-6f);
