@@ -493,8 +493,10 @@ static PF_Err GlobalSetup(PF_InData* in_data,PF_OutData* out_data) {
     (void)in_data;
     out_data->my_version=PF_VERSION(1,0,0,PF_Stage_DEVELOP,1);
     out_data->out_flags=PF_OutFlag_DEEP_COLOR_AWARE|PF_OutFlag_CUSTOM_UI;
-    out_data->out_flags2=PF_OutFlag2_SUPPORTS_SMART_RENDER|
-        PF_OutFlag2_FLOAT_COLOR_AWARE|PF_OutFlag2_SUPPORTS_THREADED_RENDERING;
+    // Use the proven VHS6RIFT-style PF_Cmd_RENDER path. SmartFX was causing
+    // black output on host re-renders; do not advertise Smart Render until its
+    // complete host integration has dedicated AE runtime coverage.
+    out_data->out_flags2=PF_OutFlag2_SUPPORTS_THREADED_RENDERING;
     return PF_Err_NONE;
 }
 
@@ -503,22 +505,22 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     PF_ParamDef def;
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,28,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sync Collapse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Color System",2,1,kColorSystemChoices,ID_PAL_MODE);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Signal Model",2,1,kSignalModelChoices,ID_SIGNAL_MODEL);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tape Speed",3,1,kTapeSpeedChoices,ID_TAPE_SPEED);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Detail",6,100,6,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DETAIL);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Detail",6,100,6,100,84,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DETAIL);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Adjacent Track Crosstalk",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_READ);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Track Misalignment",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_MISALIGNMENT);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",0,20,0,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",0,20,0,20,1.5f,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Red Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_RED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Blue Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_BLUE);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Subsample / Bleed",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_SUBSAMPLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Subsample / Bleed",0,100,0,100,16,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_SUBSAMPLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Chroma Delay",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_CHROMA);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Luma Blur",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_LUMA);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_NOISE);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_NOISE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Noise",0,100,0,100,6,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_NOISE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Noise",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Noise Hue Bias",-180,180,-180,180,0,1,PF_ValueDisplayFlag_NONE,0,ID_NOISE_HUE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Drift",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_RF_DRIFT);
@@ -570,7 +572,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("VHS Edge Wave Frequency",0.005f,0.2f,0.005f,0.2f,0.05f,3,PF_ValueDisplayFlag_NONE,0,ID_EDGE_WAVE_FREQUENCY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("VHS Edge Wave Speed",0,20,0,20,4,2,PF_ValueDisplayFlag_NONE,0,ID_EDGE_WAVE_SPEED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("VHS Edge Wave Detail",1,5,1,5,2,0,PF_ValueDisplayFlag_NONE,0,ID_EDGE_WAVE_DETAIL);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Scanlines",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SCANLINES);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Scanlines",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_SCANLINES);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SIGNAL_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Static",ID_STATIC_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Static Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_STATIC_AMOUNT);

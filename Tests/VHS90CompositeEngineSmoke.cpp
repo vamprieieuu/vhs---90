@@ -262,5 +262,45 @@ int main() {
         assert(std::fabs(grayOut[i]-grayOut[i+1])<0.003f);
         assert(std::fabs(grayOut[i+1]-grayOut[i+2])<0.003f);
     }
+
+    // Production-adapter composite settings: the actual default signal path
+    // must retain visible source detail and never collapse to an all-black frame.
+    constexpr int pw=128, ph=32;
+    std::vector<float> productionSource(std::size_t(pw)*ph*4), productionNtsc(productionSource.size()), productionPal(productionSource.size());
+    for(int y=0;y<ph;++y) for(int x=0;x<pw;++x) {
+        const std::size_t k=(std::size_t(y)*pw+x)*4;
+        productionSource[k]=0.12f+0.72f*float(x)/float(pw-1);
+        productionSource[k+1]=0.08f+0.65f*float(y)/float(ph-1);
+        productionSource[k+2]=0.78f-0.55f*float(x)/float(pw-1);
+        productionSource[k+3]=1.0f;
+    }
+    ConstImageView productionIn{productionSource.data(),pw,ph,pw*4};
+    ImageView productionNtscView{productionNtsc.data(),pw,ph,pw*4};
+    ImageView productionPalView{productionPal.data(),pw,ph,pw*4};
+    CompositeParams production;
+    production.strength=1.0f;
+    production.compositeSignalStrength=0.28f;
+    production.inputBandwidthEnabled=true;
+    production.outputBandwidthEnabled=true;
+    production.inputBandwidth.iCutoffHz=320000.0f;
+    production.inputBandwidth.qCutoffHz=320000.0f;
+    production.inputBandwidth.lumaCutoffHz=2400000.0f;
+    production.inputBandwidth.iDelaySamples=9;
+    production.inputBandwidth.qDelaySamples=9;
+    production.outputBandwidth=production.inputBandwidth;
+    assert(processCompositeRoundTrip(productionIn,productionNtscView,production));
+    production.palMode=true;
+    assert(processCompositeRoundTrip(productionIn,productionPalView,production));
+    assert(productionNtsc!=productionSource);
+    assert(productionPal!=productionSource);
+    assert(productionPal!=productionNtsc);
+    for(std::size_t k=0;k<productionNtsc.size();k+=4) {
+        assert(std::isfinite(productionNtsc[k]));
+        assert(std::isfinite(productionNtsc[k+1]));
+        assert(std::isfinite(productionNtsc[k+2]));
+        assert(productionNtsc[k]+productionNtsc[k+1]+productionNtsc[k+2]>0.01f);
+        assert(std::fabs(productionNtsc[k+3]-1.0f)<1.0e-6f);
+    }
+
     return 0;
 }

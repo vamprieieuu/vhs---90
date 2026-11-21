@@ -98,30 +98,24 @@ if not flags or (int(flags.group(1), 16) & (1 << 15)) == 0:
     fail("PiPL AE_Effect_Global_OutFlags must include PF_OutFlag_CUSTOM_UI (0x00008000).")
 
 
-# SmartFX rectangle contract: output bounds must be sourced from the layer
-# checkout, not copied from an arbitrary output request ROI.
-pre_render_match = re.search(r"static\s+PF_Err\s+SmartPreRender\s*\([^)]*\)\s*\{", SOURCE)
-if not pre_render_match:
-    fail("SmartPreRender function was not found.")
-start = SOURCE.find("{", pre_render_match.start())
-depth = 0
-end = None
-for pos in range(start, len(SOURCE)):
-    if SOURCE[pos] == "{":
-        depth += 1
-    elif SOURCE[pos] == "}":
-        depth -= 1
-        if depth == 0:
-            end = pos + 1
-            break
-pre_render_body = SOURCE[start:end] if end else ""
-if "extra->output->result_rect=result.result_rect" not in pre_render_body:
-    fail("SmartPreRender must publish the checked-out input result_rect.")
-if "extra->output->max_result_rect=result.max_result_rect" not in pre_render_body:
-    fail("SmartPreRender must publish the checked-out input max_result_rect.")
-if "extra->output->result_rect=extra->input->output_request.rect" in pre_render_body:
-    fail("SmartPreRender must not report the raw requested ROI as result_rect.")
-if "unionRect(extra->output->max_result_rect,extra->output->result_rect)" not in pre_render_body:
-    fail("SmartPreRender must guarantee max_result_rect encloses result_rect.")
+# Rendering contract: keep the host on the VHS6RIFT-proven legacy render path.
+global_setup = re.search(r"static\\s+PF_Err\\s+GlobalSetup[\\s\\S]*?\\n\\}", SOURCE)
+if not global_setup:
+    fail("GlobalSetup function was not found.")
+global_body = global_setup.group(0)
+if "PF_OutFlag2_SUPPORTS_SMART_RENDER" in global_body or "PF_OutFlag2_FLOAT_COLOR_AWARE" in global_body:
+    fail("Do not advertise SmartFX/float-color flags until SmartRender has AE runtime coverage.")
+if "out_data->out_flags2=PF_OutFlag2_SUPPORTS_THREADED_RENDERING" not in global_body:
+    fail("Legacy render mode must retain threaded-rendering support.")
+flags2 = re.search(r"AE_Effect_Global_OutFlags_2\\s*\\{\\s*(0x[0-9A-Fa-f]+)\\s*\\}", PIPL)
+if not flags2:
+    fail("PiPL Global_OutFlags_2 was not found.")
+pipl_flags2 = int(flags2.group(1), 16)
+if (pipl_flags2 & (1 << 10)) or (pipl_flags2 & (1 << 12)):
+    fail("PiPL must not advertise Smart Render or float-color-aware without SmartFX.")
+if (pipl_flags2 & (1 << 27)) == 0:
+    fail("PiPL must retain threaded-rendering support.")
+if not re.search(r"case\\s+PF_Cmd_RENDER\\s*:\\s*err=LegacyRender", SOURCE):
+    fail("EffectMain must route PF_Cmd_RENDER through LegacyRender.")
 
-print(f"AE host contract OK: {len(actual_params)} registered parameters + implicit input, exact enum order, PARAM_COUNT, GlobalSetup/PiPL CUSTOM_UI flags.")
+print(f"AE host contract OK: {len(actual_params)} registered parameters + implicit input, exact enum order, PARAM_COUNT, CUSTOM_UI flags, and VHS6RIFT-compatible legacy render flags.")

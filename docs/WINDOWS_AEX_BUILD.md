@@ -47,3 +47,7 @@ A successful native build and CPU smoke suite still do not prove the effect load
 ## Raw AEX delivery
 
 The Build workflow publishes only `VHS-90.aex` as a raw GitHub Release asset. It intentionally does not use `actions/upload-artifact`, because GitHub Actions artifacts are downloaded as ZIP archives even when the uploaded payload is a single AEX. The build workspace contains the AEX at `build/VHS-90.aex`; the direct Release download is the user-facing deliverable.
+
+## Rendering integration
+
+The current host integration deliberately uses `PF_Cmd_RENDER`, following the checked-in VHS6RIFT reference implementation. SmartFX was disabled because the previous Smart Render adapter passed CI but produced black frames in the host. The CPU composite regression test now exercises the same NTSC/PAL composite-plus-bandwidth stage used by the effect defaults; this is still not a substitute for the final AE GUI render check.

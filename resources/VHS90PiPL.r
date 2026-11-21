@@ -20,7 +20,7 @@ resource 'PiPL' (16000) {
         AE_Effect_Version { 0x00080001 },
         AE_Effect_Info_Flags { 0 },
         AE_Effect_Global_OutFlags { 0x02008000 },
-        AE_Effect_Global_OutFlags_2 { 0x08001400 },
+        AE_Effect_Global_OutFlags_2 { 0x08000000 },
         AE_Effect_Match_Name { "com.vhs90.effect" },
         AE_Reserved_Info { 0 },
         AE_Effect_Support_URL { "https://github.com/vamprieieuu/vhs---90" }
