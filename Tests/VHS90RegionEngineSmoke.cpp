@@ -160,7 +160,7 @@ int main() {
     std::vector<float> profileSource(src.size(),0.0f);
     for(int py=0;py<h;++py) for(int px=0;px<w;++px) { const size_t pi=(py*w+px)*4; profileSource[pi]=float(px)/float(w-1); profileSource[pi+1]=float(py)/float(h-1); profileSource[pi+2]=1.0f-float(px)/float(w-1); profileSource[pi+3]=1.0f; }
     ConstImageView profileInput{profileSource.data(),w,h,w*4};
-    std::vector<float> profileOutputs[7];
+    std::vector<float> profileOutputs[8];
     for(int profile=0;profile<8;++profile) {
         profileOutputs[profile].resize(src.size(),0.0f);
         DamageRegion variant=top;
@@ -176,7 +176,7 @@ int main() {
         std::vector<float> repeat(src.size(),0.0f); ImageView rv{repeat.data(),w,h,w*4};
         VHS90_CHECK_MSG(processDamageRegions(profileInput,rv,vp)); VHS90_CHECK_MSG(repeat==profileOutputs[profile]);
     }
-    for(int aidx=0;aidx<7;++aidx) for(int bidx=aidx+1;bidx<7;++bidx)
+    for(int aidx=0;aidx<8;++aidx) for(int bidx=aidx+1;bidx<8;++bidx)
         VHS90_CHECK_MSG(profileOutputs[aidx]!=profileOutputs[bidx]);
 
     // NTSC-R snow intensity and anisotropy are independent controls.
