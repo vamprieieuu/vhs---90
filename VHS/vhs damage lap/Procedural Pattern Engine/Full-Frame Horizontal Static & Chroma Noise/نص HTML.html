@@ -1,0 +1,158 @@
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+
+<h1><span class="s1"><b>VHSart — Full-Frame Horizontal Static &amp; Chroma Noise</b></span></h1>
+
+<h2><span class="s1"><b>Objective</b></span></h2>
+
+<p class="p3">Implement a dedicated VHSart preset that accurately reconstructs the visual appearance and temporal behavior of the supplied reference video, </span><code>video_1.mov</code><span class="s2"> (~1.014 seconds).</p>
+
+<p class="p3">The effect must reproduce dense, full-frame analog-style horizontal static with subtle-to-moderate chromatic interference. The entire frame must be covered by continuously changing, short, horizontally compressed noise segments, resembling a degraded RF/video signal or a television with no clear reception.</p>
+
+<p class="p3">This must be a fully procedural effect rendered in real time by the native C++ After Effects plugin. Do not use pre-rendered images, video clips, GIFs, texture overlays, or externally generated noise assets.</p>
+
+<h2><span class="s1"><b>1. Inspect Existing VHSart Engines First</b></span></h2>
+
+<p class="p4">Before implementing anything:</p>
+
+<ul><li><span class="s1">Thoroughly inspect the existing VHSart project structure and identify all current noise, static, signal interference, chroma, grain, and compositing engines.</span></li><li><span class="s1">Determine whether the existing engines can reproduce this reference through parameter configuration or small extensions.</span></li><li><span class="s1">Prefer a dedicated preset using existing engines.</span></li><li><span class="s1">Do not create a large redundant engine if the current architecture already supports the required behavior.</span></li><li><span class="s1">If horizontal segment-length control is missing, extend the most appropriate existing noise engine rather than duplicating its functionality.</span></li><li><span class="s1">Preserve all existing effects, presets, controls, and rendering behavior.</span></li></ul>
+
+<h2><span class="s1"><b>2. Primary Visual Component — Full-Frame Horizontal Static</b></span></h2>
+
+<p class="p4">Reconstruct the dominant visual component:</p>
+
+<ul><li><span class="s1">Cover 100% of the frame, from top to bottom and left to right.</span></li><li><span class="s1">Generate thousands of tiny, short, irregular horizontal noise segments.</span></li><li><span class="s1">Keep the segments vertically thin, typically around 1–2 pixels at the reference resolution, with appropriate scaling for other resolutions.</span></li><li><span class="s1">Make the segments horizontally compressed and variable in length.</span></li><li><span class="s1">Avoid long, continuous scanlines, large blocks, circular grain, or ordinary isotropic pixel noise.</span></li><li><span class="s1">Maintain high and relatively uniform noise density across the entire image.</span></li><li><span class="s1">Mix grayscale noise (white, light gray, dark gray, black) with scattered low-to-medium saturation colors.</span></li><li><span class="s1">Use subtle red, green, blue, cyan, and pale magenta/pink chromatic details.</span></li><li><span class="s1">Avoid large coherent color regions or strong RGB separation.</span></li></ul>
+
+<p class="p3">The result must resemble a dense, unstable analog signal rather than a conventional digital noise filter.</p>
+
+<h2><span class="s1"><b>3. Horizontal Segment Generation</b></span></h2>
+
+<p class="p3">Use a fast deterministic procedural hash or equivalent noise-generation method.</p>
+
+<p class="p4">Generate segment properties from spatial and temporal coordinates, including:</p>
+
+<ul><li><span class="s1">Horizontal segment position.</span></li><li><span class="s1">Segment length.</span></li><li><span class="s1">Segment brightness.</span></li><li><span class="s1">Grayscale or chromatic classification.</span></li><li><span class="s1">Chroma intensity.</span></li><li><span class="s1">Temporal seed.</span></li></ul>
+
+<p class="p3">Vary segment lengths and brightness locally while preserving the overall horizontal orientation.</p>
+
+<p class="p3">Provide an adjustable horizontal segment-length parameter. It must change the actual geometry of generated noise elements, not merely scale the entire image or increase blur.</p>
+
+<p class="p3">Avoid introducing a regular grid or repetitive visible pattern.</p>
+
+<h2><span class="s1"><b>4. Temporal Behavior</b></span></h2>
+
+<p class="p3">The reference shows continuous per-frame changes without a clearly established periodic cycle.</p>
+
+<p class="p4">Implement:</p>
+
+<ul><li><span class="s1">Continuously evolving static patterns between frames.</span></li><li><span class="s1">Stable average density and overall brightness.</span></li><li><span class="s1">Randomized local segment positions and properties.</span></li><li><span class="s1">Subtle frame-to-frame flicker.</span></li><li><span class="s1">No large periodic pulses or artificial event transitions.</span></li></ul>
+
+<p class="p3">Use a deterministic temporal seed derived from the user seed and the current frame/time.</p>
+
+<p class="p4">Provide:</p>
+
+<ul><li><span class="s1">Animate With Time: On/Off.</span></li><li><span class="s1">Animation Speed.</span></li><li><span class="s1">Random Seed.</span></li></ul>
+
+<p class="p3">When animation is disabled, the noise pattern must remain frozen and repeatable.</p>
+
+<p class="p3">The same seed and frame/time must always produce the same result, ensuring deterministic rendering, reproducible previews, and reliable After Effects caching.</p>
+
+<h2><span class="s1"><b>5. Secondary Component — Near-Right Vertical Edge Line</b></span></h2>
+
+<p class="p3">Reproduce the extremely thin vertical line visible close to the right edge of the reference.</p>
+
+<p class="p4">Requirements:</p>
+
+<ul><li><span class="s1">Position it near the extreme right edge.</span></li><li><span class="s1">Keep it extremely narrow.</span></li><li><span class="s1">Extend it vertically across most or all of the frame.</span></li><li><span class="s1">Allow subtle light/dark interruptions and interactions with horizontal noise segments.</span></li><li><span class="s1">Keep its appearance restrained and integrated into the static.</span></li></ul>
+
+<p class="p3">Provide an independent enable/disable control and, if appropriate, a subtle intensity control.</p>
+
+<p class="p3">Do not turn this detail into a thick border or a prominent vertical distortion.</p>
+
+<h2><span class="s1"><b>6. Chroma and Luma Architecture</b></span></h2>
+
+<p class="p3">The effect combines grayscale RF-like static with scattered chromatic interference.</p>
+
+<p class="p4">Keep these properties independently controllable where the existing architecture permits:</p>
+
+<ul><li><span class="s1">Static Intensity.</span></li><li><span class="s1">Chroma Saturation.</span></li><li><span class="s1">Luma Variation.</span></li><li><span class="s1">Horizontal Segment Length.</span></li><li><span class="s1">Noise Density.</span></li></ul>
+
+<p class="p3">The grayscale component should remain visually dominant.</p>
+
+<p class="p3">Do not introduce broad chroma smears, strong RGB channel displacement, large color bands, vertical rolling, geometric warping, or unrelated VHS damage.</p>
+
+<h2><span class="s1"><b>7. Input and Compositing Modes</b></span></h2>
+
+<p class="p3">Support two practical operating behaviors:</p>
+
+<p class="p5"><b>Full Static / Generated Signal</b></p>
+
+<ul><li><span class="s1">Generate the static as the dominant output.</span></li><li><span class="s1">Allow it to cover the original image almost completely.</span></li><li><span class="s1">Preserve the reference’s consistent full-frame appearance.</span></li></ul>
+
+<p class="p5"><b>Blend With Input</b></p>
+
+<ul><li><span class="s1">Composite the generated static over the original footage.</span></li><li><span class="s1">Allow the user to adjust the contribution of the original image.</span></li><li><span class="s1">At maximum static coverage, the image should be almost entirely obscured.</span></li><li><span class="s1">At lower static coverage, the underlying footage should become progressively visible.</span></li></ul>
+
+<p class="p3">Do not confuse static intensity with input blend. They must control different aspects of the result.</p>
+
+<h2><span class="s1"><b>8. Proposed Initial Preset Values</b></span></h2>
+
+<p class="p3">Create the preset:</p>
+
+<p class="p6"><b>VHSart — Full-Frame Horizontal Static &amp; Chroma Noise</b></p>
+
+<p class="p4">Use the following as initial tuning estimates, not hardcoded limits:</p>
+
+<ul><li><span class="s1">Static Intensity: 90%.</span></li><li><span class="s1">Horizontal Segment Length: 45%.</span></li><li><span class="s1">Chroma Saturation: 35%.</span></li><li><span class="s1">Input Blend: 95% static dominance in Generated Signal mode.</span></li><li><span class="s1">Animate With Time: On.</span></li><li><span class="s1">Animation Speed: Natural per-frame evolution.</span></li><li><span class="s1">Random Seed: Reproducible user-controlled value.</span></li><li><span class="s1">Near-Right Vertical Edge Line: On, subtle intensity.</span></li></ul>
+
+<p class="p3">The initial preset should prioritize matching the reference rather than maximizing every parameter.</p>
+
+<h2><span class="s1"><b>9. User Interface</b></span></h2>
+
+<p class="p4">Expose clear, functional controls:</p>
+
+<ol start="1"><li><span class="s1">Static Intensity.</span></li><li><span class="s1">Horizontal Segment Length.</span></li><li><span class="s1">Noise Density, if not already represented accurately by the existing engine.</span></li><li><span class="s1">Chroma Saturation.</span></li><li><span class="s1">Luma Variation, if supported by the existing architecture.</span></li><li><span class="s1">Input Blend.</span></li><li><span class="s1">Animate With Time.</span></li><li><span class="s1">Animation Speed.</span></li><li><span class="s1">Random Seed.</span></li><li><span class="s1">Near-Right Edge Line.</span></li><li><span class="s1">Edge Line Intensity.</span></li></ol>
+
+<p class="p3">Do not add decorative controls that do not affect rendering. Reuse existing controls when their behavior already matches the required function.</p>
+
+<h2><span class="s1"><b>10. Native After Effects Requirements</b></span></h2>
+
+<p class="p3">Maintain compatibility with the project’s configured After Effects target and native C++ SDK architecture.</p>
+
+<p class="p4">Ensure:</p>
+
+<ul><li><span class="s1">Correct alpha preservation.</span></li><li><span class="s1">Correct premultiplied-alpha handling.</span></li><li><span class="s1">Safe processing of transparent pixels.</span></li><li><span class="s1">Multi-Frame Rendering compatibility.</span></li><li><span class="s1">Thread-safe rendering.</span></li><li><span class="s1">Deterministic output for identical inputs and render times.</span></li><li><span class="s1">Resolution-independent parameter scaling.</span></li><li><span class="s1">No unnecessary full-frame memory allocations.</span></li><li><span class="s1">No race conditions or shared mutable random-number state.</span></li><li><span class="s1">Correct behavior during timeline scrubbing, preview, and final rendering.</span></li></ul>
+
+<h2><span class="s1"><b>11. Reference-Matching Tests</b></span></h2>
+
+<p class="p3">Use the actual supplied </span><code>video_1.mov</code><span class="s2"> as the visual reference.</p>
+
+<p class="p4">Compare the generated result at matching resolution and synchronized timestamps, including approximately:</p>
+
+<ul><li><span class="s1">00:00.000</span></li><li><span class="s1">00:00.250</span></li><li><span class="s1">00:00.500</span></li><li><span class="s1">00:00.750</span></li></ul>
+
+<p class="p3">Inspect both at normal viewing size and at 100–200% magnification.</p>
+
+<p class="p4">Verify:</p>
+
+<ul><li><span class="s1">Full-frame coverage with no unintended empty areas.</span></li><li><span class="s1">Dense, short horizontal segments rather than ordinary pixel noise.</span></li><li><span class="s1">Grayscale dominance with scattered subtle chromatic details.</span></li><li><span class="s1">Consistent overall brightness and density between frames.</span></li><li><span class="s1">Continuous per-frame pattern evolution.</span></li><li><span class="s1">No excessive color saturation or large chromatic blocks.</span></li><li><span class="s1">No broad smearing or unrelated geometric distortions.</span></li><li><span class="s1">The very thin vertical detail near the right edge.</span></li><li><span class="s1">Correct frozen behavior when Animate With Time is disabled.</span></li></ul>
+
+<p class="p3">Do not claim visual accuracy until the actual native plugin output has been rendered and compared against the reference.</p>
+
+<h2><span class="s1"><b>12. Final Integration</b></span></h2>
+
+<p class="p3">Integrate this as a dedicated VHSart preset using the most suitable existing engines.</p>
+
+<p class="p3">Do not merge its visual identity with Tracking Damage, Snow, Sync Collapse, Split-Band Chromatic Collapse, or other distinct effects.</p>
+
+<p class="p3">The final result must preserve the reference’s defining identity:</p>
+
+<p class="p6"><b>Dense full-frame horizontal static, tiny irregular line segments, restrained scattered chroma noise, stable overall intensity, continuous per-frame flicker, and a very fine right-edge vertical line.</b></p>
+
+<p class="p7">Deliver the completed implementation within the existing VHSart project without breaking other effects or presets.</p>
+
+</body>
+</html>

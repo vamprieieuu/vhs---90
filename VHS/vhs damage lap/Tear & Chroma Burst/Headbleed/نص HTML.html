@@ -1,0 +1,80 @@
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+
+<h1><span class="s1"><b>VHSart — IMPLEMENT REFERENCE EFFECT: LOCALIZED TEAR &amp; CHROMA BURST</b></span></h1>
+
+<p class="p3">Implement a new dedicated procedural effect inside VHSart based on the supplied visual reference.</p>
+
+<p class="p3"><b>Main objective:</b></span><span class="s2"> Recreate the distinctive combination of a severe horizontal VHS tracking tear and localized, highly saturated chromatic bursts. Do not reduce this effect to generic VHS noise, scanlines, or simple horizontal displacement.</p>
+
+<h2><span class="s1"><b>1. Required Custom Engine</b></span></h2>
+
+<p class="p3">Create a dedicated engine named </span><code>Localized Tear &amp; Chroma Burst</code><span class="s2">.</p>
+
+<p class="p3">It must contain three coordinated processing components:</p>
+
+<p class="p4"><b>A. Central Horizontal Tear</b></p>
+
+<ul><li><span class="s1">Generate a wide, irregular horizontal distortion band across the image.</span></li><li><span class="s1">Apply independently varying horizontal displacements to scanlines or groups of scanlines.</span></li><li><span class="s1">Introduce broken dark and bright lines, partial Luma loss, intermittent signal interruptions, and short horizontal image fragments.</span></li><li><span class="s1">Concentrate the strongest distortion inside the band while preserving the surrounding image.</span></li><li><span class="s1">Allow control over band position, height, irregularity, and distortion strength.</span></li></ul>
+
+<p class="p4"><b>B. Localized Chroma Bursts</b></p>
+
+<ul><li><span class="s1">Recreate the reference’s intense localized color artifacts: purple/magenta smearing and green/yellow/orange/red spectral color bursts.</span></li><li><span class="s1">Generate irregular chromatic smears, directional color spreading, and localized saturation amplification.</span></li><li><span class="s1">Support independently adjustable positions, regions, directions, spread, and intensity.</span></li><li><span class="s1">Do not apply uniform Color Bleed across the entire image.</span></li><li><span class="s1">The reference’s visible color locations are starting examples, not mandatory fixed positions for every composition.</span></li></ul>
+
+<p class="p4"><b>C. Global Analog Base</b></p>
+
+<ul><li><span class="s1">Apply subtle image softness and low-resolution signal degradation.</span></li><li><span class="s1">Add restrained procedural grain and noise across the frame.</span></li><li><span class="s1">Increase noise and interference inside the tear band.</span></li><li><span class="s1">Preserve the reference’s relatively clean areas outside the main distortion.</span></li></ul>
+
+<h2><span class="s1"><b>2. Required Controls</b></span></h2>
+
+<p class="p5">Provide these adjustable parameters:</p>
+
+<ul><li><span class="s1">Tear Band Position (Y)</span></li><li><span class="s1">Tear Band Height</span></li><li><span class="s1">Horizontal Tear Amount</span></li><li><span class="s1">Tear Irregularity</span></li><li><span class="s1">Luma Glitch Amount</span></li><li><span class="s1">Chroma Burst Amount</span></li><li><span class="s1">Chroma Smear Spread</span></li><li><span class="s1">Chroma Saturation</span></li><li><span class="s1">Left / Right Burst Position</span></li><li><span class="s1">Base Softness</span></li><li><span class="s1">Global Noise Amount</span></li><li><span class="s1">Random Seed</span></li></ul>
+
+<p class="p5">Use the reference analysis as the starting point for default values:</p>
+
+<ul><li><span class="s1">Band position: approximately 45–52% of frame height.</span></li><li><span class="s1">Band height: approximately 16–22% of frame height.</span></li><li><span class="s1">Tear intensity: approximately 65–85%.</span></li><li><span class="s1">Chroma intensity: approximately 55–80%.</span></li><li><span class="s1">Base softness: approximately 35–55%.</span></li></ul>
+
+<p class="p3">These are initial estimates, not verified original plugin values.</p>
+
+<h2><span class="s1"><b>3. Animation &amp; Randomness</b></span></h2>
+
+<p class="p5">The effect must support deterministic procedural animation.</p>
+
+<ul><li><span class="s1">Individual scanline distortions and noise details should vary naturally.</span></li><li><span class="s1">Support temporal variation without uncontrolled frame-to-frame flicker.</span></li><li><span class="s1">Keep the same Seed and frame time reproducible.</span></li><li><span class="s1">Allow animation through After Effects keyframes and timeline rendering.</span></li><li><span class="s1">Do not assume that the original reference has a moving tear band; its temporal behavior has not been verified.</span></li></ul>
+
+<h2><span class="s1"><b>4. VHSart Integration</b></span></h2>
+
+<p class="p3">First inspect the existing VHSart architecture and available engines.</p>
+
+<p class="p3">Reuse existing Noise, Color, and Softness processing where appropriate. Build the custom Tear &amp; Chroma engine only for functionality that existing engines cannot reproduce accurately.</p>
+
+<p class="p3">Add a dedicated preset:</p>
+
+<p class="p6"><code>Mid-Band Sync Tear &amp; Chroma Smear</code></p>
+
+<p class="p3">The preset must initialize the effect with reference-based settings while allowing every control to remain editable.</p>
+
+<p class="p3">Place it within the appropriate VHS DAMAGE LAB / preset organization without duplicating existing engines or breaking other presets.</p>
+
+<h2><span class="s1"><b>5. Technical Requirements</b></span></h2>
+
+<ul><li><span class="s1">Native C++ using the existing Adobe After Effects SDK architecture.</span></li><li><span class="s1">Procedural generation only: no reference images, GIFs, videos, or pre-rendered overlays.</span></li><li><span class="s1">Correct RGB/Chroma processing and image sampling.</span></li><li><span class="s1">Preserve Alpha and handle premultiplied pixels correctly.</span></li><li><span class="s1">Support different frame dimensions and resolutions.</span></li><li><span class="s1">Ensure deterministic rendering, thread safety, and Multi-Frame Rendering compatibility.</span></li><li><span class="s1">Preserve existing plugin build architecture and functionality.</span></li></ul>
+
+<h2><span class="s1"><b>6. Verification</b></span></h2>
+
+<p class="p3">Compare the implementation against the supplied reference at matching dimensions.</p>
+
+<p class="p5">Prioritize:</p>
+
+<ol start="1"><li><span class="s1">The shape, density, and intensity of the central horizontal tear.</span></li><li><span class="s1">The localized purple and spectral color bursts.</span></li><li><span class="s1">The contrast between damaged and relatively clean image regions.</span></li><li><span class="s1">The analog softness and noise distribution.</span></li></ol>
+
+<p class="p3">Do not mark the effect complete based on parameter creation alone. It must actually render the intended visual result.</p>
+
+<p class="p7"><b>Important:</b></span><span class="s2"> Implement the actual processing engine and its integration, not merely a UI mockup or a preset containing generic existing effects.</p>
+
+</body>
+</html>

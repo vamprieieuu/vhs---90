@@ -1,0 +1,186 @@
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+
+<h1><span class="s1"><b>VHSart — Dark-Field Horizontal Static &amp; Top Strip</b></span></h1>
+
+<h2><span class="s1"><b>Native C++ After Effects Plugin — Implementation Prompt</b></span></h2>
+
+<p class="p3">Implement a dedicated VHSart preset named </span><span class="s1"><b>Dark-Field Horizontal Static &amp; Top Strip</b></span><span class="s2">, based on the supplied reference video </span><code>video_1.mov</code><span class="s2"> (approximately 1.003 seconds).</p>
+
+<p class="p3">The effect consists of a dark or black field covered with small, horizontally elongated white and light-gray noise fragments, short horizontal streaks, and fine luminous speckles. A narrow, denser static region is concentrated near the top edge.</p>
+
+<p class="p3">Its defining characteristic is the temporal variation in overall noise density: the static becomes noticeably denser and brighter in certain frames, then returns to a lighter distribution.</p>
+
+<p class="p4">This is primarily a </span><span class="s1"><b>Dark-Field Horizontal Luma Static</b></span><span class="s2"> effect, not a colored VHS distortion effect.</p>
+
+<hr>
+
+<h2><span class="s1"><b>1. Inspect Existing VHSart Engines Before Implementation</b></span></h2>
+
+<p class="p5">Inspect the complete project and identify existing implementations for:</p>
+
+<ul><li><span class="s1">Static and signal noise.</span></li><li><span class="s1">Horizontal noise segments and streaks.</span></li><li><span class="s1">Dropout generation.</span></li><li><span class="s1">Luma and monochrome noise.</span></li><li><span class="s1">Noise distribution and density controls.</span></li><li><span class="s1">Temporal variation and random seed generation.</span></li><li><span class="s1">Generated signal and compositing modes.</span></li></ul>
+
+<p class="p3">Reuse existing engines wherever possible.</p>
+
+<p class="p3">Do not create a duplicate static or noise engine if an existing implementation can be extended to reproduce the reference.</p>
+
+<p class="p3">The preferred architecture is a dedicated preset configuration using existing VHSart engines, with a small extension for the top-weighted density distribution and temporal density pulse if these features are not already supported.</p>
+
+<p class="p3">Do not modify unrelated presets or break existing functionality.</p>
+
+<h2><span class="s1"><b>2. Dark-Field Horizontal Luma Static</b></span></h2>
+
+<p class="p3">Reconstruct the main visual component as a dark-field noise system.</p>
+
+<p class="p5">Required appearance:</p>
+
+<ul><li><span class="s1">Predominantly black or very dark background.</span></li><li><span class="s1">Small white and light-gray luminous fragments.</span></li><li><span class="s1">Short horizontal lines and horizontally elongated speckles.</span></li><li><span class="s1">Irregular spacing and distribution.</span></li><li><span class="s1">Medium-to-high overall density, varying over time.</span></li><li><span class="s1">Fine-to-medium detail, avoiding oversized pixels and large blocks.</span></li><li><span class="s1">Predominantly monochromatic output.</span></li><li><span class="s1">Very subtle blue or purple contamination may be allowed, but strong chromatic noise must not dominate.</span></li></ul>
+
+<p class="p3">The noise should appear as irregular analog signal fragments rather than ordinary circular digital particles.</p>
+
+<h3><span class="s1"><b>Spatial behavior</b></span></h3>
+
+<p class="p3">Distribute noise across the entire frame, but apply a stronger density bias near the upper edge.</p>
+
+<p class="p3">The upper region must remain visibly denser than the rest of the image, including during lower-density frames.</p>
+
+<p class="p3">Do not create a large, sharply separated tracking band. The upper concentration should feel like a naturally denser static region.</p>
+
+<h2><span class="s1"><b>3. Top Dense Strip System</b></span></h2>
+
+<p class="p3">Implement a spatial density modifier for the upper portion of the frame.</p>
+
+<p class="p5">Requirements:</p>
+
+<ul><li><span class="s1">Concentrate additional horizontal fragments near the top edge.</span></li><li><span class="s1">Make the upper strip relatively narrow.</span></li><li><span class="s1">Allow its height and density boost to be adjusted independently.</span></li><li><span class="s1">Blend its density smoothly into the rest of the frame.</span></li><li><span class="s1">Preserve the underlying full-frame noise distribution.</span></li></ul>
+
+<p class="p5">Expose:</p>
+
+<ul><li><span class="s1">Top Strip Enable.</span></li><li><span class="s1">Top Strip Height.</span></li><li><span class="s1">Top Strip Density Boost.</span></li><li><span class="s1">Top Strip Brightness.</span></li><li><span class="s1">Top Strip Transition / Falloff.</span></li></ul>
+
+<p class="p3">This system should modify the distribution of the existing static generator rather than create a completely separate noise engine.</p>
+
+<h2><span class="s1"><b>4. Temporal Density Pulse</b></span></h2>
+
+<p class="p3">The reference exhibits changing noise density across frames.</p>
+
+<p class="p3">The density is lighter around 00:00.000, reaches a stronger peak around 00:00.250, remains variable around 00:00.500, and becomes lighter again around 00:00.750.</p>
+
+<p class="p3">Treat these timestamps as visual observations, not hardcoded timing requirements.</p>
+
+<p class="p5">Implement a temporal density modulation system that can produce:</p>
+
+<ul><li><span class="s1">Low-density frames.</span></li><li><span class="s1">Medium-density frames.</span></li><li><span class="s1">High-density peaks.</span></li><li><span class="s1">Irregular transitions between density levels.</span></li><li><span class="s1">Frame-to-frame variation in fragment positions, lengths, and brightness.</span></li></ul>
+
+<p class="p3">The density pulse should affect the entire static distribution while preserving the upper-strip density bias.</p>
+
+<p class="p5">Support:</p>
+
+<ul><li><span class="s1">Automatic procedural variation.</span></li><li><span class="s1">Manual keyframe control where practical.</span></li><li><span class="s1">Frozen/static mode.</span></li><li><span class="s1">Adjustable pulse intensity.</span></li><li><span class="s1">Adjustable animation speed.</span></li><li><span class="s1">Adjustable temporal randomness.</span></li></ul>
+
+<p class="p3">Do not force a perfectly periodic pulse. The reference does not establish a reliable repeating cycle.</p>
+
+<h2><span class="s1"><b>5. Horizontal Fragment Generation</b></span></h2>
+
+<p class="p3">Use the existing horizontal segment or dropout generation system if available.</p>
+
+<p class="p5">The generated elements should include:</p>
+
+<ul><li><span class="s1">Fine horizontal speckles.</span></li><li><span class="s1">Short horizontal fragments.</span></li><li><span class="s1">Slightly elongated luminous particles.</span></li><li><span class="s1">Irregular short streaks.</span></li><li><span class="s1">Variable brightness.</span></li><li><span class="s1">Variable segment lengths.</span></li></ul>
+
+<p class="p3">Use deterministic hash-based procedural generation, with spatial inputs such as segment coordinates, row coordinates, and the effective temporal seed.</p>
+
+<p class="p3">Avoid generating uniform horizontal scanlines across the entire frame.</p>
+
+<p class="p3">The objective is a dense but irregular field of short horizontal signal fragments.</p>
+
+<h2><span class="s1"><b>6. Monochrome Luma Architecture</b></span></h2>
+
+<p class="p3">Keep the main effect monochromatic.</p>
+
+<p class="p3">The generated static should primarily use equal or nearly equal RGB channel values to create white and gray luminous noise.</p>
+
+<p class="p5">Provide independent control over:</p>
+
+<ul><li><span class="s1">Luma Intensity.</span></li><li><span class="s1">Luma Contrast.</span></li><li><span class="s1">Fragment Brightness.</span></li><li><span class="s1">Brightness Variation.</span></li><li><span class="s1">Optional Subtle Chroma Amount.</span></li></ul>
+
+<p class="p3">The subtle chroma option must remain restrained and must not transform the preset into a saturated RGB static effect.</p>
+
+<h2><span class="s1"><b>7. Parameters and UI</b></span></h2>
+
+<p class="p3">Expose the following controls using the existing VHSart interface conventions.</p>
+
+<p class="p6"><b>Main Static</b></p>
+
+<ul><li><span class="s1">Static Density.</span></li><li><span class="s1">Static Intensity.</span></li><li><span class="s1">Horizontal Stretch.</span></li><li><span class="s1">Segment Length.</span></li><li><span class="s1">Fragment Size.</span></li><li><span class="s1">Luma Brightness.</span></li><li><span class="s1">Luma Contrast.</span></li></ul>
+
+<p class="p6"><b>Top Strip</b></p>
+
+<ul><li><span class="s1">Top Strip Enable.</span></li><li><span class="s1">Top Strip Height.</span></li><li><span class="s1">Top Strip Density Boost.</span></li><li><span class="s1">Top Strip Brightness.</span></li><li><span class="s1">Top Strip Falloff.</span></li></ul>
+
+<p class="p6"><b>Temporal Behavior</b></p>
+
+<ul><li><span class="s1">Frame Pulse Variation.</span></li><li><span class="s1">Animation Speed.</span></li><li><span class="s1">Temporal Randomness.</span></li><li><span class="s1">Animate With Time.</span></li><li><span class="s1">Frozen Pattern.</span></li></ul>
+
+<p class="p6"><b>Color</b></p>
+
+<ul><li><span class="s1">Monochrome.</span></li><li><span class="s1">Subtle Chroma Amount.</span></li></ul>
+
+<p class="p6"><b>Generation</b></p>
+
+<ul><li><span class="s1">Random Seed.</span></li><li><span class="s1">Generated Signal.</span></li><li><span class="s1">Input Blend.</span></li></ul>
+
+<p class="p3">Controls must have meaningful effects on rendering. Avoid decorative or nonfunctional sliders.</p>
+
+<p class="p3">Disabling the top strip must preserve its previous settings.</p>
+
+<h2><span class="s1"><b>8. Input and Compositing Modes</b></span></h2>
+
+<p class="p5">Support the existing VHSart output and compositing architecture:</p>
+
+<ul><li><span class="s1">Generated Dark-Field Signal.</span></li><li><span class="s1">Apply Over Original.</span></li><li><span class="s1">Screen.</span></li><li><span class="s1">Add.</span></li><li><span class="s1">Input Blend.</span></li></ul>
+
+<p class="p3">The generated dark-field mode must be capable of producing the reference independently, without requiring an underlying image.</p>
+
+<p class="p3">When applying the effect over footage, make the interaction between the original image and generated luminous noise predictable.</p>
+
+<p class="p3">Preserve alpha correctly and handle premultiplied alpha consistently.</p>
+
+<p class="p3">Do not unintentionally turn transparent pixels into opaque black pixels.</p>
+
+<h2><span class="s1"><b>9. Deterministic Temporal Rendering</b></span></h2>
+
+<p class="p5">Use deterministic procedural generation.</p>
+
+<ul><li><span class="s1">Derive the effective seed from the user seed and composition frame/time when animation is enabled.</span></li><li><span class="s1">Preserve a stable pattern when animation is disabled.</span></li><li><span class="s1">Ensure the same frame, seed, and parameter values produce the same output.</span></li><li><span class="s1">Do not depend on previous-frame memory or render order.</span></li><li><span class="s1">Ensure consistent results during timeline scrubbing and repeated renders.</span></li></ul>
+
+<p class="p3">Maintain thread safety and After Effects multi-frame rendering compatibility.</p>
+
+<h2><span class="s1"><b>10. Reference Matching and Visual Testing</b></span></h2>
+
+<p class="p3">Render the preset inside After Effects and compare it directly with the supplied reference.</p>
+
+<p class="p5">Evaluate:</p>
+
+<ol start="1"><li><span class="s1">The dark background and overall contrast.</span></li><li><span class="s1">The small horizontal shape of the luminous fragments.</span></li><li><span class="s1">The irregular distribution of white and gray noise.</span></li><li><span class="s1">The higher density near the upper edge.</span></li><li><span class="s1">The difference between low-density and high-density frames.</span></li><li><span class="s1">The temporal variation in fragment positions and brightness.</span></li><li><span class="s1">The absence of excessive color, geometric distortion, and oversized particles.</span></li></ol>
+
+<p class="p3">Inspect the output at 100%–200% magnification to verify that the generated fragments are horizontally elongated rather than ordinary round particles.</p>
+
+<p class="p3">Compare multiple corresponding frames, not only a single still image.</p>
+
+<p class="p3">Do not claim visual accuracy based solely on successful compilation.</p>
+
+<h2><span class="s1"><b>11. Acceptance Criteria</b></span></h2>
+
+<p class="p5">The preset is complete only when:</p>
+
+<ul><li><span class="s1">The background remains predominantly dark.</span></li><li><span class="s1">White and light-gray horizontal fragments cover the frame irregularly.</span></li><li><span class="s1">The upper region has a clearly higher static density.</span></li><li><span class="s1">Overall density changes over time with visible peaks and quieter frames.</span></li><li><span class="s1">Fragment positions, lengths, and brightness vary deterministically between frames.</span></li><li><span class="s1">The effect remains predominantly monochromatic.</span></li><li><span class="s1">No unnecessary geometric distortion or saturated chroma artifacts are introduced.</span></li><li><span class="s1">Generated Signal and input compositing modes work correctly.</span></li><li><span class="s1">Alpha, premultiplication, thread safety, and multi-frame rendering are handled correctly.</span></li><li><span class="s1">Existing VHSart presets continue to work.</span></li><li><span class="s1">The final rendered result has been visually compared against </span><code>video_1.mov</code><span class="s1"> inside After Effects.</span></li></ul>
+
+<p class="p4"><b>Implementation priority:</b></span><span class="s2"> Reuse the existing VHSart static/dropout infrastructure. Extend its spatial density distribution and temporal modulation rather than creating an entirely new noise engine. The upper density bias and frame-to-frame density pulse are the two defining features that must distinguish this preset.</p>
+
+</body>
+</html>

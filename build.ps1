@@ -7,21 +7,52 @@ param(
 
 $ErrorActionPreference = "Stop"
 $repoRoot = $PSScriptRoot
+$checkedInVhsRoot = Join-Path $repoRoot "VHS"
+$checkedInSdk = Join-Path $checkedInVhsRoot "open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK"
+$checkedInFonts = Join-Path $checkedInVhsRoot "fonts"
+$fontDirectory = Join-Path $repoRoot "Resources/Fonts"
+New-Item -ItemType Directory -Force -Path $fontDirectory | Out-Null
+
+# Prefer the VHS6RIFT SDK and original fonts already checked into this repository.
+# This removes the need to expose a private ChatGPT Library archive to GitHub Actions.
+if (([string]::IsNullOrWhiteSpace($AeSdkRoot) -or -not (Test-Path (Join-Path $AeSdkRoot "Headers/AE_Effect.h"))) -and
+    (Test-Path (Join-Path $checkedInSdk "Headers/AE_Effect.h"))) {
+    $AeSdkRoot = $checkedInSdk
+    Write-Host "Using checked-in VHS6RIFT SDK: $AeSdkRoot"
+}
+
+$fontEntries = @{
+    "Rooyin_Free_Bold.ttf" = "Rooyin_Free_Bold.ttf"
+    "Sponge_Arabic_Regular.otf" = "Sponge_Arabic_Regular.otf"
+}
+foreach ($fontName in $fontEntries.Keys) {
+    $source = Join-Path $checkedInFonts $fontName
+    $destination = Join-Path $fontDirectory $fontName
+    if ((Test-Path $source) -and -not (Test-Path $destination)) {
+        Copy-Item -LiteralPath $source -Destination $destination
+        Write-Host "Copied bundled font from repository: $fontName"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($VhsArchivePath)) {
     $candidateArchive = Join-Path $repoRoot "vhs.zip"
     if (Test-Path $candidateArchive) { $VhsArchivePath = $candidateArchive }
 }
 
-# The user-supplied vhs.zip is the canonical source for both the VHS6RIFT
-# After Effects SDK and the two redistribution-cleared Arabic font files.
-if (-not [string]::IsNullOrWhiteSpace($VhsArchivePath)) {
+# Optional compatibility fallback: extract SDK/fonts from the original archive
+# only when the checked-in repository assets are not available.
+$hasCheckedInFonts = (Test-Path (Join-Path $fontDirectory "Rooyin_Free_Bold.ttf")) -and
+                     (Test-Path (Join-Path $fontDirectory "Sponge_Arabic_Regular.otf"))
+$hasCheckedInSdk = Test-Path (Join-Path $AeSdkRoot "Headers/AE_Effect.h")
+if (-not [string]::IsNullOrWhiteSpace($VhsArchivePath) -and
+    (-not $hasCheckedInSdk -or -not $hasCheckedInFonts)) {
     if (-not (Test-Path $VhsArchivePath)) { throw "VHS archive not found: $VhsArchivePath" }
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $VhsArchivePath).Path)
     try {
-        $sdkPrefix = "vhs/open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK/"
-        $sdkTarget = Join-Path (Join-Path $repoRoot $BuildDir) "_sdk/AfterEffectsSDK"
-        if ([string]::IsNullOrWhiteSpace($AeSdkRoot) -or -not (Test-Path (Join-Path $AeSdkRoot "Headers/AE_Effect.h"))) {
+        if (-not $hasCheckedInSdk) {
+            $sdkPrefix = "vhs/open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK/"
+            $sdkTarget = Join-Path (Join-Path $repoRoot $BuildDir) "_sdk/AfterEffectsSDK"
             foreach ($entry in $archive.Entries) {
                 if (-not $entry.FullName.StartsWith($sdkPrefix, [StringComparison]::Ordinal)) { continue }
                 $relative = $entry.FullName.Substring($sdkPrefix.Length).Replace('/', [IO.Path]::DirectorySeparatorChar)
@@ -40,19 +71,17 @@ if (-not [string]::IsNullOrWhiteSpace($VhsArchivePath)) {
                 }
             }
             $AeSdkRoot = $sdkTarget
-            Write-Host "Extracted the SDK from VHS6RIFT: $AeSdkRoot"
         }
-
-        $fontDirectory = Join-Path $repoRoot "Resources/Fonts"
-        New-Item -ItemType Directory -Force -Path $fontDirectory | Out-Null
-        $fontEntries = @{
-            "vhs/fonts/Rooyin_Free_Bold.ttf" = "Rooyin_Free_Bold.ttf"
-            "vhs/fonts/Sponge_Arabic_Regular.otf" = "Sponge_Arabic_Regular.otf"
-        }
-        foreach ($entry in $archive.Entries) {
-            if ($fontEntries.ContainsKey($entry.FullName)) {
-                $destination = Join-Path $fontDirectory $fontEntries[$entry.FullName]
-                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $destination, $true)
+        if (-not $hasCheckedInFonts) {
+            $archiveFontEntries = @{
+                "vhs/fonts/Rooyin_Free_Bold.ttf" = "Rooyin_Free_Bold.ttf"
+                "vhs/fonts/Sponge_Arabic_Regular.otf" = "Sponge_Arabic_Regular.otf"
+            }
+            foreach ($entry in $archive.Entries) {
+                if ($archiveFontEntries.ContainsKey($entry.FullName)) {
+                    $destination = Join-Path $fontDirectory $archiveFontEntries[$entry.FullName]
+                    [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $destination, $true)
+                }
             }
         }
     } finally {
@@ -61,12 +90,12 @@ if (-not [string]::IsNullOrWhiteSpace($VhsArchivePath)) {
 }
 
 $fontFiles = @(
-    (Join-Path $repoRoot "Resources/Fonts/Rooyin_Free_Bold.ttf"),
-    (Join-Path $repoRoot "Resources/Fonts/Sponge_Arabic_Regular.otf")
+    (Join-Path $fontDirectory "Rooyin_Free_Bold.ttf"),
+    (Join-Path $fontDirectory "Sponge_Arabic_Regular.otf")
 )
 $missingFonts = @($fontFiles | Where-Object { -not (Test-Path $_) })
 if ($missingFonts.Count -gt 0) {
-    throw "Bundled OFL font files are missing. Supply the original vhs.zip using -VhsArchivePath or place both licensed font files in Resources/Fonts. Missing: $($missingFonts -join ', ')"
+    throw "Bundled OFL font files are missing. Commit the original licensed files under VHS/fonts or supply vhs.zip. Missing: $($missingFonts -join ', ')"
 }
 
 $expectedFontHashes = @{
@@ -77,14 +106,14 @@ foreach ($font in $fontFiles) {
     $name = Split-Path $font -Leaf
     $actualHash = (Get-FileHash -Algorithm SHA256 $font).Hash.ToLowerInvariant()
     if ($actualHash -ne $expectedFontHashes[$name]) {
-        throw "Font checksum mismatch for $name. Use the unmodified original font from vhs.zip."
+        throw "Font checksum mismatch for $name. Use the unmodified original licensed font."
     }
 }
 
 $FindSdkScript = Join-Path $PSScriptRoot "tools/find_ae_sdk.ps1"
 $SdkInfo = & $FindSdkScript -CandidatePath $AeSdkRoot -Quiet
 if (-not $SdkInfo -or -not $SdkInfo.IsValid) {
-    throw "Adobe After Effects SDK discovery failed. Supply the VHS6RIFT SDK root or the original vhs.zip. Run tools/find_ae_sdk.ps1 for diagnostics."
+    throw "Adobe After Effects SDK discovery failed. Checked VHS6RIFT in-repository SDK and optional archive. Run tools/find_ae_sdk.ps1 for diagnostics."
 }
 $resolvedSdk = $SdkInfo.SdkRoot
 Write-Host "AE SDK: $resolvedSdk"

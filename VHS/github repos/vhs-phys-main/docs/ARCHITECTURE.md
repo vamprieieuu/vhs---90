@@ -1,0 +1,249 @@
+# Architecture
+
+## Timing grid
+
+Everything lives on a line-locked grid so that line, field and carrier phases
+are exact integers. The figures below are those of the 525-line engine; the 625-line
+engine uses the same 2730 and 910 samples per line at its own line rate (see
+"Two engines, one source").
+
+| Domain | Rate | Samples per line | Used for |
+|---|---|---|---|
+| RF | 12 x fsc = 42.95 MS/s | 2730 | FM, tape, head, deck RF, discriminator |
+| Baseband | 4 x fsc = 14.32 MS/s | 910 | video luma/chroma, display decode |
+
+A field is 262.5 lines = 716 625 RF samples, a frame 1 433 250. Field `n` is
+exactly one helical track; its playback head takes over 6.5 lines before the
+field's vertical sync (`consts::switch_time`). Global sample indices (i64) are
+the time axis for everything, so any process that is a function of global time
+(timebase error, tape position) is reproducible and order independent.
+
+## Two engines, one source
+
+The raster (525 or 625 lines, the levels, the vertical interval, the colour-under carrier,
+the track geometry) is a set of compile-time constants, so the model is written once and
+compiled twice instead of carrying the standard around at run time. `consts.rs` holds the 525-line
+set and `consts_pal.rs` the 625-line one; they define the same names with the same types.
+`ntsc.rs` and `pal.rs` each declare every engine module from the same source files
+(`engine!` in `lib.rs`, `#[path]` per module) against their own constants, giving
+`vhsphys_core::ntsc::{consts, video, record, pipeline, ...}` and `vhsphys_core::pal::{...}`.
+The crate root re-exports the `ntsc` engine, so `vhsphys_core::pipeline::Session` is the 525-line
+`Session` and every existing path is unchanged. The 625-line engine costs nothing at run time: the
+525-line path does not know it exists.
+
+Each RF sample rate (`8x`, `12x`, `16x`) is compiled as its own engine in the same way: `ntsc` and
+`pal` at the default `12x`, plus `ntsc_rf8`, `pal_rf8`, `ntsc_rf16` and `pal_rf16`. Counts of RF
+samples that stand for a time span were set at `12x` and scale with the rate (`consts::rf_samples`,
+`consts::RF_SCALE`). A config names the rate it was written for and an engine refuses another; racks
+of `[[generation]]` tables run at `12x` only for now.
+
+Inside an engine file, another engine module is `super::x` (so each engine sees its own
+constants); a shared module is `crate::x`.
+
+Shared, compiled once and common to both engines (nothing in them depends on the raster):
+
+* `standard`: the television standards (`TvStandard`) and the PAL delay-line decoding rules
+* `tube`: the camera pickup tubes: the target materials, their lag and trap constants, and the physics of one target element (charge, beam landing, retention)
+* `spectral`: the camera's taking spectra: scene primaries, prism, infrared filter, material responses and the colour matrix
+* `geometry`: the camera's optics and scan geometry: deflection, registration, shading, veiling glare, halation and corner focus
+* `frame`: the RGB `Frame` (`video` re-exports it), so a frame made by one engine is a frame of the other
+* `dsp`: filters and resamplers
+* `rng`: the seeded random numbers
+* `automation`: the schedule of time-varying parameters (`--automate`)
+* `interference_params`: the outside world as parameters
+
+Above the engines, naming both and holding no raster constant of their own:
+
+* `signal`: the contract of a signal between decks: raster, form, exact programme time (`Rational`), tagged `SignalChunk`s
+* `aperture`: four-field interpolation apertures synthesised from the fixed response points of BBC RD 1984/20
+* `convert`: the standards converter between the two rasters, on signal samples
+* `rack`: decks of either engine in series with explicit links, validation and config (`docs/BOUNCE.md`)
+
+Everything else in the table below is an engine module and exists once per engine. Unit tests
+inside engine files that assert 525-line figures return early in the other engine.
+
+## Modules (`crates/vhsphys-core/src`)
+
+| Module | Responsibility |
+|---|---|
+| `consts` | timing and format constants with their sources (`consts_pal` for the 625-line engine) |
+| `frame` | the RGB frame, shared by both engines |
+| `standard` | television standards and PAL delay-line decoding (shared) |
+| `tube` | camera pickup tube materials and target-element physics (shared) |
+| `spectral` | spectral taking and the colour matrix of the camera (shared) |
+| `geometry` | camera optics and scan geometry (shared) |
+| `automation` | time-varying parameter schedules, including the camera's iris (shared) |
+| `dsp` | biquads, Butterworth, first-order emphasis sections, Kaiser FIR, cubic resampling |
+| `rng` | seeded, order-independent random numbers (hash of seed/stream/index) |
+| `camera` | the camera ahead of the recorder: the scanned target stage (sub-row grid, read times, ACT, dynamic beam control, beam bending), from input pictures to the line signal in nA |
+| `camera_processing` | the camera's head amplifier (noise and band) and processing amplifier (clamp, gain, knee, gamma, aperture, clip) |
+| `stripe` | the single-tube camera: optical low-pass, colour stripe filter and the frequency-separation decoder |
+| `video` | the raster of the engine's standard including vsync structure; RGB <-> YUV; encode/decode helpers |
+| `record` | record deck chain (with the PAL V switch) and the saturating tape relay; produces `Transition`s |
+| `emphasis` | the LP/EP sub-preemphasis (a level-dependent high-frequency boost, table 4 of ST 32) and its exact inverse on playback |
+| `tape` | defect map in tape coordinates, spacing roughness, creases, edge profile |
+| `tracking` | lateral head position and the weights of the tracks under the head |
+| `mech` | timebase error: drift, drum, tape-path resonance, stick-slip, per-line, flagging |
+| `head` | Lorentzian pulse rendering, azimuth smoothing, head amplifier noise, resonance |
+| `electronics` | playback chain: equaliser, AGC, dropout compensator, discriminator, de-emphasis |
+| `decode` | sync separator, AFC, clamp, colour demodulation, the deck's comb (1H, 2H at 625 lines), the television's colour decoding (NTSC, or PAL with or without the delay line) |
+| `condition` | ageing laws: years/temperature/humidity -> component values -> parameters |
+| `config` | TOML merging, `--set` overrides, refusing what the engine cannot play (another standard, EP at 625 lines) |
+| `pipeline` | streaming session, calibration, per-field scheduling and caching |
+| `format` | tape speed geometry: SP/LP/EP track pitch, angle, advance |
+| `composite` | Y/C sum and separation, notch and combs |
+| `audio` | the linear audio path (`audio.rs`): transport delay, loss, hiss, hum, dropouts |
+| `interference_params` | the outside world as parameters: phone, radio, mains, magnets, couplings (`[est]`) |
+| `interference` | fields of the outside sources and what each adds at its circuit node, as functions of absolute time |
+| `crt` | the picture tube: Lorentz force on the beam integrated along its path, landing shift, brightness, stripe purity |
+
+## Data flow per field
+
+```
+Session::process(batch)
+  1 record_track(n)      parallel over tracks   video window -> Vec<Transition>   (+-2 neighbours kept)
+  2 render_rf(n)         parallel over tracks   own track + overlapped neighbours -> RF buffer
+                          controls (stride 16): timebase warp, extra spacing, oxide scale, lateral weights
+  3 segment(n)           parallel over fields   splice heads n-1|n|n+1 at the switch points,
+                          run the deck electronics (state warmed up on 2 lines either side)
+  4 decode_frame(k)      parallel over frames   sync/AFC/colour decode of fields 2k, 2k+1
+```
+
+Ahead of all this, a session with a camera tube on hands each pushed frame to `CameraTube::encode_baseband` in place of
+`video::encode_frame` (`push_fields` goes to `encode_fields`). The camera lets the held input pictures charge the target of
+each channel, reads the target row by row at every element's own time (`read_time_s`), passes the line signal in nA through the
+head amplifier and the processing amplifier and encodes the clipped, gamma-corrected signals straight to baseband Y/C; the
+chain after it is unchanged. The stage is built only when a tube is selected, so with `tube = "off"` nothing of it runs and the
+golden renders do not change. It keeps the charge of every target element from frame to frame, which starts at dark equilibrium
+with the session, so an excerpt that starts part-way into a clip needs a few frames of pre-roll to match a render of the whole
+clip (`docs/CAMERA.md`). In a `Chain` only the first generation is fed through the camera, and the iris automation track counts that
+generation's frames (`docs/BOUNCE.md`).
+
+The luma passes these stages in order (the LP/EP pair only when `RecordParams.sub_emphasis` and
+`DeckParams.sub_deemphasis` are set, which `Condition::to_params` does at LP and EP):
+
+```
+record     luma low-pass (baseband) -> x3 to RF -> sub-preemphasis (LP/EP) -> main emphasis -> white/dark clip -> FM
+playback   discriminator -> main de-emphasis -> sub-deemphasis (LP/EP) -> coupling capacitor -> x1/3 to baseband
+           -> video low-pass -> aperture corrector -> supply disturbances
+```
+
+The two emphasis pairs nest: the playback undoes the record stages in the reverse order, so the sub-deemphasis
+sees what the sub-preemphasis produced (less what the clip and the FM path's bandwidth took) plus the tape's noise.
+
+The outside world enters at the circuit nodes where it physically arrives (all functions of the global sample index,
+so a split buffer or a render from any start gives the same result; with every source off nothing is called):
+
+```
+render_rf    tape signal x head_signal_gain (magnet at the drum)   -> head_front_end (noise)
+             + rf_pickup_add (radio carrier in the head leads, dimmer burst)
+decode       after the clamp: (y - clamp) (1 + video_gain) + video_add_ire (ground loop, rectified phone and AM, dimmer ring)
+             crt::scan_to_frame: continuous baseband -> CRT electron beam & phosphor aperture grille -> write Frame to video (LAST step)
+audio        pre-equaliser: audio_add pre_eq (rectified phone and AM, stray-field induction), tape gain (magnet)
+             post-equaliser: audio_add post_eq (ground loop, dimmer click)
+```
+
+**Hard rule (Simulating, not Emulating):** All signal processing is performed in terms of physics on the continuous signal as it is created (`camera::encode_baseband` / `video::encode_frame`), recorded, read back, run through the deck electronics, and passed through the CRT electron beam (`crt::scan_to_frame`). The **last** step at all times is writing the `Frame` (`u8` RGB buffer) to video. No effect may ever post-process or mutate a `Frame` in pixel space after it has been written to video.
+
+Calibration aligns the deck with every source off (on the bench), so a source is seen by the AGC and the slicers as it
+would be in use, not absorbed into the alignment.
+
+Frame `k` needs fields `2k..2k+2` (the last visible lines of a field are read by
+the next head) and therefore video frames `k-2 .. k+2`: the output lags the input
+by three frames. Intermediate results are cached per field and evicted as the
+window moves, so memory is bounded (a few tens of MB) for any clip length.
+`Chain` runs one `Session` per generation, and the decode may be followed by
+`composite::roundtrip`.
+
+`rack::Rack` is the same for decks that need not share an engine. Each generation is a
+`Session` of its own engine; what passes between them is a `SignalChunk` (the three baseband
+planes tagged with raster, form, frame index and programme time), through a link that was
+validated when the rack was built. The two baseband grids have 910 samples per line at
+different rates, so nothing is mapped by sample index: a change of raster goes through
+`convert::StandardsConverter`, which places every output line and field by exact rational
+time and picture position. With one engine and direct links a `Rack` gives the frames of a
+`Chain`.
+
+## Key numerical decisions
+
+* **Sub-sample transition times.** The record relay interpolates the exact
+  crossing of the head current with the coercive threshold. Quantising reversal
+  times to the 23 ns grid would add ~0.16 rad of phase noise at 3.9 MHz (CNR
+  limited to ~15 dB). Readback pulses are evaluated at fractional positions.
+  The reversals are placed on the cubic through four samples of the record current.
+* **Exact limiter + discriminator.** Clipping a sampled waveform has the same
+  quantisation problem and aliases the limiter harmonics (3.9 MHz x 11 ~ fs).
+  `electronics::discriminate` treats the limiter as a comparator with
+  interpolated switching times and integrates the product of the limited wave
+  with its delayed copy exactly (4x oversampled area integration, triangle
+  anti-alias). For an ideal square wave the DC output is `1 - 4 f tau`.
+* **Lorentzian pulses.** One reversal reads back as a unit-area Lorentzian with
+  half-width `h = sqrt((g/2)^2 + (d+a)(d+a+delta))`; spectrum `exp(-k h)`. Spacing
+  changes add to `h`, so time-varying spacing is exact per pulse and Wallace's
+  law is a consequence, not an input. The pulse centre is placed exactly and its window tapers smoothly.
+* **The tube works in seconds.** The target's constants are in nA, nF and seconds and every element is read at its own
+  time (`read_time_s`), so one set of constants serves both rasters and the lag is checked at the same elapsed times at 50
+  and 60 Hz. One scan of an element is solved in closed form (`exp(-q'/K) = exp(-q/K) + (I_b - r1)/K`), and the held
+  charge of lead oxide and the Saticon is advanced in half-volt midpoint steps, checked against a converged 1/16 ms
+  reference (`docs/CAMERA.md`, "Retention").
+* **Stateless processes.** Timebase error, tape defects and tracking are pure
+  functions of (seed, global time or track index). Parallel scheduling cannot
+  change a result.
+* **Alignment by calibration.** `pipeline::calibrate` plays a clean black frame
+  through the nominal deck and measures the RF level (sets the playback gain),
+  the demodulated burst size (ACC reference) and the chroma path delay (the
+  deck's luma delay line); worn parts then deviate from an aligned deck, as in
+  life.
+* **Recursive filters model circuits, on signals only.** All IIR filters are biquads in transposed
+  direct form II, 64-bit, designed by the bilinear transform with prewarping (`dsp::Biquad`,
+  `dsp::butter_lp`). Each stands for a network of the deck: the main emphasis and de-emphasis
+  (1.3 us, ratio 5) and the LP/EP and HQ sub-emphasis with its level-dependent limiter and exact
+  inverse on playback; the head resonance as a peaking section (`head::head_front_end`);
+  Butterworth low-passes for record luma and chroma, the demodulator output and the chroma after
+  demodulation; the coupling capacitor as a one-pole high-pass (15 Hz), which gives line tilt and
+  sag. The deck's colour-under is low-passed at the RF rate before it is taken down to the baseband grid. None is applied to a frame.
+
+## Geometry (tape.rs, tracking.rs)
+
+Tape coordinates `(u, v)` in micrometres; track `n` starts at
+`u_n = position + n * 556.4 um` and runs at 5.97 deg, 96.8 mm long. Lateral
+position maps linearly to picture line. Adjacent tracks are offset by exactly
+1.5 H along the track (tape advance per field = 1.5 H of head travel), so they
+are line aligned after the 0.5 H interlace offset; neighbour tracks are
+rendered with a shift of `-+1.5 H`. The head covers `width / pitch` of one or two
+tracks depending on the lateral offset; the opposite-azimuth track is read
+through the 12-degree sinc filter (~ -28 dB at 4 MHz, ~ -14 dB at 629 kHz).
+LP and EP change the pitch and the advance (see docs/TAPE_SPEEDS.md).
+
+## Graphical interface
+
+The desktop front end lives in `python/vhsgui`:
+* `model.py`: shared types, constants, and the condition field table.
+* `backend.py`: non-Qt operations including tool discovery, probing, config text generation, command lines, and background jobs.
+* `app.py`: the main application window and preview player.
+* `__main__.py`: CLI entry point and screenshot support.
+* `schematic/`: the phosphor schematic, a QPainter view drawn from data (`layout.json` and `glyphs.json` per page: the circuit, the
+  camera in `schematic/camera/`, and the outside world in `schematic/outside/`). The format is in `docs/design/FORMAT.md`; the window
+  mirrors every editor of a page and the panels through one path, so the views cannot disagree.
+
+To preview an excerpt, the backend runs the CLI with `--start` beginning a few frames early (`LEAD_FRAMES` = 3). The first frames of a fresh render lack the neighbouring frames the model looks at, so they are dropped. Because the tape is a function of the absolute frame index, the remaining frames match a render of the whole file (about 38-41 dB PSNR against it, codec noise only; a one-frame offset gives about 17 dB).
+
+## Extending
+
+* A new degradation: add parameters to the relevant `*Params`, apply them where
+  the physical effect enters (usually a `Controls` array in `render_rf`, or a
+  stage in `electronics::process_segment`), and map a `Condition` field to them
+  in `condition.rs`. Serde derives expose them to TOML automatically.
+* A camera target material: add a `TubeKind` in `tube.rs` with its channel constants (`channels_at`: transfer
+  exponent, peak current, target voltage, dark current law, capacitance, traps, held charge, burn), its spectral
+  responses in `spectral.rs` (`materials`) and its optics in `geometry.rs`, then the command line value, the window's
+  tube list and the checks. `docs/CAMERA.md` gives the constants of every kind and how each was fitted.
+* PAL: the `pal` engine records and plays 625-line PAL (`PAL.md`). Standard-specific behaviour is
+  chosen by `consts::STANDARD` or follows from a constant: the burst angle (`video`), the V switch
+  and the eighth-of-a-turn carrier rotation (`record::v_switched`, `record::line_rotation`), the
+  deck's burst reference and 2H comb and the television (`decode`), the slow-speed rules
+  (`ST32_SLOW_SPEED_RULES`), EP (`HAS_EP`) and the mains (`MAINS_HZ_DEFAULT`). PAL-60 is the
+  `ntsc` engine with a PAL television (`decode`, `record::pal60_switched`). Composite video is
+  modelled for all three standards (`composite`).
+* S-VHS: FM 5.4-7.0 MHz, 1.6 MHz deviation, extra sub-emphasis, a higher RF
+  sample rate.

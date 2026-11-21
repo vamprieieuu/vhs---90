@@ -1,0 +1,14 @@
+# Lofi FX VHS — Faded VHS look (placeholder identity LUT)
+# Replace with hand-tuned cube for production use.
+TITLE "VHS Faded Tape"
+LUT_3D_SIZE 2
+DOMAIN_MIN 0.0 0.0 0.0
+DOMAIN_MAX 1.0 1.0 1.0
+0.0 0.0 0.0
+1.0 0.0 0.0
+0.0 1.0 0.0
+1.0 1.0 0.0
+0.0 0.0 1.0
+1.0 0.0 1.0
+0.0 1.0 1.0
+1.0 1.0 1.0

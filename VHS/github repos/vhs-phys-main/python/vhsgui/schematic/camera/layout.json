@@ -1,0 +1,635 @@
+{
+ "version": 1,
+ "canvas": {
+  "w": 1180,
+  "h": 620
+ },
+ "theme": {
+  "bg": "#010804",
+  "faint": "#0e4a22",
+  "dim": "#1c9a45",
+  "phosphor": "#39ff6e",
+  "hot": "#d8ffe3",
+  "warn": "#ffb347",
+  "line": {
+   "hair": 1.0,
+   "thin": 1.6,
+   "bold": 2.6
+  },
+  "glow": [
+   {
+    "w": 9,
+    "a": 0.05
+   },
+   {
+    "w": 5,
+    "a": 0.13
+   },
+   {
+    "w": 2.6,
+    "a": 0.32
+   }
+  ],
+  "scanline": {
+   "period": 3,
+   "alpha": 0.16
+  },
+  "vignette": 0.35,
+  "font": {
+   "family": [
+    "JetBrains Mono",
+    "DejaVu Sans Mono",
+    "monospace"
+   ],
+   "size": 12,
+   "tracking": 0.6
+  }
+ },
+ "title": {
+  "text": "VHS-PHYS // THE CAMERA",
+  "x": 20,
+  "y": 24,
+  "size": 14
+ },
+ "blocks": [
+  {
+   "id": "lens",
+   "title": "LENS AND IRIS",
+   "x": 20,
+   "y": 40,
+   "w": 270,
+   "h": 214,
+   "frame": "box",
+   "caption": "EXPOSES THE TARGETS IN STOPS"
+  },
+  {
+   "id": "split",
+   "title": "COLOUR SPLIT",
+   "x": 20,
+   "y": 270,
+   "w": 270,
+   "h": 250,
+   "frame": "box",
+   "caption": "SPLITS THE LIGHT INTO COLOURS"
+  },
+  {
+   "id": "tubes",
+   "title": "PICKUP TUBES",
+   "x": 310,
+   "y": 40,
+   "w": 270,
+   "h": 346,
+   "frame": "box",
+   "caption": "STORE CHARGE, LAG AND SMEAR"
+  },
+  {
+   "id": "head_amp",
+   "title": "HEAD AMPLIFIER",
+   "x": 310,
+   "y": 402,
+   "w": 270,
+   "h": 188,
+   "frame": "box",
+   "caption": "LIFTS NANOAMPS TO VOLTS"
+  },
+  {
+   "id": "processing",
+   "title": "PROCESSING AMP",
+   "x": 600,
+   "y": 40,
+   "w": 270,
+   "h": 346,
+   "frame": "box",
+   "caption": "CLAMPS, MATRIXES, KNEES, CORRECTS"
+  },
+  {
+   "id": "encoder",
+   "title": "ENCODER",
+   "x": 600,
+   "y": 402,
+   "w": 270,
+   "h": 188,
+   "frame": "box",
+   "caption": "ADDS COLOUR BURST AND SYNC"
+  },
+  {
+   "id": "tv",
+   "title": "TV",
+   "x": 890,
+   "y": 40,
+   "w": 270,
+   "h": 360,
+   "frame": "box",
+   "caption": ""
+  }
+ ],
+ "instances": [
+  {
+   "glyph": "lens_iris",
+   "x": 28,
+   "y": 70,
+   "scale": 1.0,
+   "block": "lens"
+  },
+  {
+   "glyph": "prism",
+   "x": 28,
+   "y": 300,
+   "scale": 1.0,
+   "block": "split",
+   "when": {
+    "camera_layout": [
+     "three-tube"
+    ]
+   }
+  },
+  {
+   "glyph": "stripe_filter",
+   "x": 28,
+   "y": 300,
+   "scale": 1.0,
+   "block": "split",
+   "when": {
+    "camera_layout": [
+     "stripe"
+    ]
+   }
+  },
+  {
+   "glyph": "tubes_three",
+   "x": 318,
+   "y": 70,
+   "scale": 1.0,
+   "block": "tubes",
+   "when": {
+    "camera_layout": [
+     "three-tube"
+    ]
+   }
+  },
+  {
+   "glyph": "tube_one",
+   "x": 318,
+   "y": 70,
+   "scale": 1.0,
+   "block": "tubes",
+   "when": {
+    "camera_layout": [
+     "stripe"
+    ]
+   }
+  },
+  {
+   "glyph": "head_amp",
+   "x": 318,
+   "y": 432,
+   "scale": 1.0,
+   "block": "head_amp"
+  },
+  {
+   "glyph": "proc_amp",
+   "x": 608,
+   "y": 70,
+   "scale": 1.0,
+   "block": "processing"
+  },
+  {
+   "glyph": "encoder",
+   "x": 608,
+   "y": 432,
+   "scale": 1.0,
+   "block": "encoder"
+  },
+  {
+   "glyph": "tv",
+   "x": 898,
+   "y": 48,
+   "scale": 1.0,
+   "block": "tv"
+  }
+ ],
+ "wires": [
+  {
+   "id": "w_light",
+   "kind": "video",
+   "points": [
+    [
+     127,
+     254
+    ],
+    [
+     127,
+     270
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_targets",
+   "kind": "video",
+   "points": [
+    [
+     290,
+     352
+    ],
+    [
+     300,
+     352
+    ],
+    [
+     300,
+     114
+    ],
+    [
+     310,
+     114
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_signal",
+   "kind": "video",
+   "points": [
+    [
+     348,
+     386
+    ],
+    [
+     348,
+     402
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_head",
+   "kind": "video",
+   "points": [
+    [
+     580,
+     462
+    ],
+    [
+     590,
+     462
+    ],
+    [
+     590,
+     100
+    ],
+    [
+     600,
+     100
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_proc",
+   "kind": "video",
+   "points": [
+    [
+     858,
+     386
+    ],
+    [
+     858,
+     402
+    ]
+   ],
+   "label": "",
+   "label_at": [
+    0,
+    0
+   ],
+   "arrow": true
+  },
+  {
+   "id": "w_out",
+   "kind": "video",
+   "points": [
+    [
+     870,
+     458
+    ],
+    [
+     880,
+     458
+    ],
+    [
+     880,
+     424
+    ],
+    [
+     1025,
+     424
+    ],
+    [
+     1025,
+     400
+    ]
+   ],
+   "label": "VIDEO",
+   "label_at": [
+    930,
+    418
+   ],
+   "arrow": true
+  }
+ ],
+ "labels": [
+  {
+   "text": "THREE TUBES BEHIND A PRISM",
+   "x": 1160,
+   "y": 24,
+   "size": 11,
+   "align": "r",
+   "b": "dim",
+   "when": {
+    "camera_layout": [
+     "three-tube"
+    ]
+   }
+  },
+  {
+   "text": "ONE TUBE BEHIND A STRIPE FILTER",
+   "x": 1160,
+   "y": 24,
+   "size": 11,
+   "align": "r",
+   "b": "dim",
+   "when": {
+    "camera_layout": [
+     "stripe"
+    ]
+   }
+  },
+  {
+   "text": "CLICK SCREEN TO ENLARGE",
+   "x": 890,
+   "y": 450,
+   "size": 11,
+   "align": "l",
+   "b": "dim"
+  },
+  {
+   "text": "1 STOP = 2X LIGHT ON TARGET",
+   "x": 890,
+   "y": 470,
+   "size": 11,
+   "align": "l",
+   "b": "dim"
+  },
+  {
+   "text": "DARK CURRENT DOUBLES WITH HEAT",
+   "x": 890,
+   "y": 490,
+   "size": 11,
+   "align": "l",
+   "b": "dim"
+  },
+  {
+   "text": "PRISM: ONE TUBE PER COLOUR",
+   "x": 890,
+   "y": 510,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "camera_layout": [
+     "three-tube"
+    ]
+   }
+  },
+  {
+   "text": "STRIPES CODE COLOUR AT 3.58 MHZ",
+   "x": 890,
+   "y": 510,
+   "size": 11,
+   "align": "l",
+   "b": "dim",
+   "when": {
+    "camera_layout": [
+     "stripe"
+    ]
+   }
+  },
+  {
+   "text": "THE BEAM READS EACH LINE'S CHARGE",
+   "x": 890,
+   "y": 530,
+   "size": 11,
+   "align": "l",
+   "b": "dim"
+  }
+ ],
+ "hint": {
+  "x": 20,
+  "y": 606,
+  "w": 1140,
+  "size": 12,
+  "default": "HOVER A LINE. DRAG TO SET. WHEEL TO STEP. DOUBLE CLICK TO RESET."
+ },
+ "controls": [
+  {
+   "id": "iris_stops",
+   "block": "lens",
+   "label": "IRIS",
+   "x": 26,
+   "y": 178,
+   "w": 258,
+   "kind": "slider",
+   "unit": "stops",
+   "min": -2.0,
+   "max": 6.0,
+   "step": 0.5,
+   "decimals": 1
+  },
+  {
+   "id": "camera_idle_s",
+   "block": "lens",
+   "label": "LENS CAP",
+   "x": 26,
+   "y": 200,
+   "w": 258,
+   "kind": "slider",
+   "unit": "s",
+   "min": 0.0,
+   "max": 1800.0,
+   "step": 10.0,
+   "decimals": 0
+  },
+  {
+   "id": "camera_layout",
+   "block": "split",
+   "label": "LAYOUT",
+   "x": 26,
+   "y": 444,
+   "w": 258,
+   "kind": "choice",
+   "choices": [
+    "three-tube",
+    "stripe"
+   ]
+  },
+  {
+   "id": "camera_spectral",
+   "block": "split",
+   "label": "SPECTRAL COLOUR",
+   "x": 26,
+   "y": 466,
+   "w": 258,
+   "kind": "toggle"
+  },
+  {
+   "id": "camera_tube",
+   "block": "tubes",
+   "label": "TUBE",
+   "x": 316,
+   "y": 178,
+   "w": 258,
+   "kind": "choice",
+   "choices": [
+    "off",
+    "plumbicon",
+    "plumbicon-bias",
+    "plumbicon-act",
+    "plumbicon-dbc",
+    "vidicon",
+    "newvicon",
+    "saticon",
+    "chalnicon"
+   ]
+  },
+  {
+   "id": "camera_temperature_c",
+   "block": "tubes",
+   "label": "TUBE TEMP",
+   "x": 316,
+   "y": 200,
+   "w": 258,
+   "kind": "slider",
+   "unit": "°C",
+   "min": 0.0,
+   "max": 60.0,
+   "step": 1.0,
+   "decimals": 0
+  },
+  {
+   "id": "camera_geometry",
+   "block": "tubes",
+   "label": "SCAN GEOMETRY",
+   "x": 316,
+   "y": 222,
+   "w": 258,
+   "kind": "toggle"
+  },
+  {
+   "id": "camera_beam_ratio",
+   "block": "tubes",
+   "label": "BEAM",
+   "x": 316,
+   "y": 244,
+   "w": 258,
+   "kind": "slider",
+   "unit": "x white",
+   "min": 0.5,
+   "max": 4.0,
+   "step": 0.1,
+   "decimals": 1
+  },
+  {
+   "id": "camera_blooming",
+   "block": "tubes",
+   "label": "BLOOMING",
+   "x": 316,
+   "y": 266,
+   "w": 258,
+   "kind": "slider",
+   "unit": "",
+   "min": 0.0,
+   "max": 3.0,
+   "step": 0.1,
+   "decimals": 1
+  },
+  {
+   "id": "camera_cold_start",
+   "block": "tubes",
+   "label": "COLD START",
+   "x": 316,
+   "y": 288,
+   "w": 258,
+   "kind": "toggle"
+  },
+  {
+   "id": "camera_cold_start_c",
+   "block": "tubes",
+   "label": "START TEMP",
+   "x": 316,
+   "y": 310,
+   "w": 258,
+   "kind": "slider",
+   "unit": "°C",
+   "min": -20.0,
+   "max": 60.0,
+   "step": 1.0,
+   "decimals": 0
+  },
+  {
+   "id": "camera_beam_off_s",
+   "block": "tubes",
+   "label": "BEAM OFF",
+   "x": 316,
+   "y": 332,
+   "w": 258,
+   "kind": "slider",
+   "unit": "s",
+   "min": 0.0,
+   "max": 60.0,
+   "step": 0.5,
+   "decimals": 1
+  },
+  {
+   "id": "camera_processing",
+   "block": "processing",
+   "label": "ELECTRONICS",
+   "x": 606,
+   "y": 178,
+   "w": 258,
+   "kind": "choice",
+   "choices": [
+    "studio",
+    "consumer"
+   ]
+  }
+ ],
+ "animation": {
+  "pulse_speed": 90,
+  "pulse_spacing": 70,
+  "reel_rpm": 12,
+  "flicker": 0.03,
+  "boot_ms": 1800,
+  "refresh_flash_ms": 250
+ }
+}

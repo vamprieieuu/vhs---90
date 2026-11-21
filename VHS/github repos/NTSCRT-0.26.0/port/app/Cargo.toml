@@ -1,0 +1,23 @@
+[package]
+name = "ntscrt"
+version = "0.1.0"
+edition = "2021"
+description = "NTSCRT for Windows"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "ntscrt"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+ntscrt-media = { path = "../media" }
+image.workspace = true
+ntscrt-engine = { path = "../engine" }
+eframe = { version = "0.37", default-features = false, features = ["default_fonts", "wgpu", "accesskit"] }
+rfd = "0.18"
+gif = "0.13"
+# The update check: GitHub over HTTPS with the system's TLS (SChannel on Windows).
+ureq = { version = "2", default-features = false, features = ["native-tls"] }
+native-tls = "0.2"

@@ -1,21 +1,28 @@
 # Windows AEX build and delivery
 
-## Canonical inputs
+## Canonical checked-in inputs
 
-Use the original user-supplied `vhs.zip`. The build script extracts:
+The repository includes the original VHS6RIFT build foundation and font source files:
 
-- `vhs/open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK/`
-- `vhs/fonts/Rooyin_Free_Bold.ttf`
-- `vhs/fonts/Sponge_Arabic_Regular.otf`
+- SDK: `VHS/open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK/`
+- PiPL compiler: SDK `Resources/PiPLtool.exe`
+- Font source: `VHS/fonts/`
 
-The build script verifies both font files against their audited SHA-256 hashes and preserves the complete files.
+The build copies only the two fonts cleared for full-file redistribution by the audited font manifest:
+
+- `Rooyin_Free_Bold.ttf`
+- `Sponge_Arabic_Regular.otf`
+
+It verifies both files against their audited SHA-256 hashes before compiling them as RCDATA resources into the AEX. Other supplied fonts remain excluded because their license or embedding permission is absent, restrictive, or unverified.
+
+An original `vhs.zip` is no longer required for the normal GitHub-hosted build. The optional workflow URL input remains only as a fallback for a checkout missing the checked-in source assets.
 
 ## Local Windows build
 
 Run from the repository root in PowerShell on Windows with Visual Studio 2022 C++ tools installed:
 
 ```powershell
-.\build.ps1 -VhsArchivePath "D:\path\to\vhs.zip" -BuildDir build -Configuration Release
+.\build.ps1 -BuildDir build -Configuration Release
 ```
 
 The only plugin deliverable is written directly to:
@@ -24,17 +31,13 @@ The only plugin deliverable is written directly to:
 build\VHS-90.aex
 ```
 
-There is no `dist\`, `Release\`, or nested artifact folder. The script stops on SDK, PiPL, compile, test, or missing-output errors.
+There is no `dist\`, `Release\`, or nested artifact folder. The script stops on SDK, PiPL, checksum, compile, test, or missing-output errors.
 
 ## GitHub-hosted build
 
-Open Actions → **VHS-90 Windows AEX Build** → Run workflow. Supply a downloadable URL for the original archive if `vhs.zip` is not already in the checkout. The hosted Windows 2022 runner uses the VHS6RIFT SDK extracted by `build.ps1`.
+Open Actions → **VHS-90 Windows AEX Build** → Run workflow. Leave the optional archive URL blank when the checked-in `VHS/` directory is present.
 
-After a successful build and CTest run, the workflow:
-- uploads an Actions artifact containing only `VHS-90.aex`;
-- creates a GitHub Release with the raw `.aex` file as a direct download.
-
-The private ChatGPT Library file is not automatically available to GitHub-hosted runners. Do not publish the Adobe SDK archive publicly merely to make CI pass; use an authorized private/signed download source or perform the local Windows build.
+After a successful native build and CTest run, the workflow uploads an Actions artifact containing only `VHS-90.aex` and creates a GitHub Release with the raw `.aex` file as a direct download.
 
 ## Release gates
 

@@ -1,0 +1,404 @@
+//! Playback head: turns the magnetisation reversals on tape into the voltage
+//! at the video head terminals.
+//!
+//! By reciprocity the readback of a reversal is a pulse of unit area whose
+//! half-width is `h = sqrt((g/2)^2 + (d+a)(d+a+delta))` (see
+//! `docs/RESEARCH.md` 3.2). Its spectrum is `exp(-k h)`, i.e. Wallace's spacing
+//! law with an effective spacing `h`, and Lorentzian widths add, so a change of
+//! head-to-tape spacing simply adds to `h`. The playback signal is the sum of
+//! these alternating-sign pulses, each placed at its (time-warped) position,
+//! with its own local spacing and magnetisation scale.
+
+use serde::{Deserialize, Serialize};
+use super::consts::*;
+use crate::dsp::*;
+use super::record::Transition;
+use crate::rng::Rng;
+use std::f32::consts::PI as PI32;
+
+/// Controls (timebase, spacing, magnetisation, lateral weight) are stored every
+/// `STRIDE` RF samples and linearly interpolated.
+pub const STRIDE: usize = 16;
+
+/// Outer fraction of the pulse window half-width `r` tapered smoothly to zero at each edge
+/// (the outer quarter of the window), so a pulse's area and centre do not depend on where it
+/// lands between two samples.
+const TAPER: f32 = 0.25;
+
+#[derive(Clone)]
+pub struct Controls {
+    /// Timebase displacement of the tape signal, RF samples (positive = later).
+    pub warp: Vec<f32>,
+    /// Extra head-to-tape spacing in micrometres.
+    pub dd: Vec<f32>,
+    /// Magnetisation scale (1 = intact oxide, 0 = void).
+    pub mag: Vec<f32>,
+}
+
+impl Controls {
+    pub fn new(n_rf: usize) -> Self {
+        let n = n_rf / STRIDE + 3;
+        Self { warp: vec![0.0; n], dd: vec![0.0; n], mag: vec![1.0; n] }
+    }
+
+    #[inline(always)]
+    pub fn at(v: &[f32], t: f64) -> f32 {
+        let x = (t / STRIDE as f64).max(0.0);
+        let i = (x as usize).min(v.len() - 2);
+        let f = (x - i as f64) as f32;
+        v[i] + (v[i + 1] - v[i]) * f
+    }
+}
+
+/// Render the pulses of `tr` into `out` (window of `out.len()` RF samples).
+///
+/// * `shift`: time offset added to every transition before rendering (used to
+///   align neighbouring tracks and to centre the azimuth smoothing).
+/// * `lateral`: optional per-stride weight of this track under the head.
+/// * `h0`: nominal pulse half-width in RF samples.
+pub fn render_pulses(
+    tr: &[Transition],
+    shift: f64,
+    ctl: &Controls,
+    lateral: Option<&[f32]>,
+    h0: f64,
+    out: &mut [f32],
+) {
+    let n = out.len() as i64;
+    let skip = rf_samples(60) as f64;
+    let (r_min, r_max) = (rf_samples(16) as i64, rf_samples(56) as i64);
+    debug_assert!(out.len() <= i32::MAX as usize);
+    for t in tr {
+        let tt = t.t + shift;
+        if tt < -skip || tt > n as f64 + skip {
+            continue;
+        }
+        let mag = Controls::at(&ctl.mag, tt);
+        let w = lateral.map_or(1.0, |l| Controls::at(l, tt));
+        let amp = 2.0 * t.s as f32 * mag * w;
+        if amp == 0.0 {
+            continue;
+        }
+        let tc = tt + Controls::at(&ctl.warp, tt) as f64;
+        let h = (h0 + Controls::at(&ctl.dd, tt) as f64 / UM_PER_SAMPLE) as f32;
+        let r = ((8.0 * h) as i64).clamp(r_min, r_max);
+        // The pulse centre as a whole sample and a fraction, so the distance of each sample from it is
+        // exact however far along the track the pulse lies.
+        let tc_whole = tc.floor();
+        let tc_frac = (tc - tc_whole) as f32;
+        let tc_i = tc_whole as i64;
+        let i0 = tc_i - r;
+        let c = amp * h / PI32;
+        let h2 = h * h;
+        let lo = i0.max(0);
+        let hi = (i0 + 2 * r).min(n - 1);
+        if lo <= hi {
+            let r_f = r as f32;
+            let inv_taper = 1.0 / (TAPER * r_f);
+            let first = (lo - tc_i) as i32;
+            for (j, sample) in out[lo as usize..=hi as usize].iter_mut().enumerate() {
+                let x = (first + j as i32) as f32 - tc_frac;
+                // weight 1 inside (1 - TAPER) r, falling smoothly to 0 at r: u clamps to 1 inside
+                let u = ((r_f - x.abs()) * inv_taper).clamp(0.0, 1.0);
+                *sample += c / (h2 + x * x) * (u * u * (3.0 - 2.0 * u));
+            }
+        }
+    }
+}
+
+/// Head front-end parameters (one per head).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct HeadParams {
+    /// Nominal pulse half-width, micrometres (gap, transition width, recorded
+    /// depth and nominal spacing combined).
+    pub h0_um: f64,
+    /// Output gain (head wear / efficiency), 1 = nominal.
+    pub gain: f64,
+    /// Carrier-to-noise ratio in 6 MHz at nominal spacing, dB.
+    pub cnr_db: f64,
+    /// Head resonance (head + rotary transformer + Q network): frequency, Q,
+    /// peak gain in dB.
+    pub q_freq_hz: f64,
+    pub q_q: f64,
+    pub q_gain_db: f64,
+    /// Azimuth error of this head versus the track it reads, degrees.
+    pub azimuth_error_deg: f64,
+    /// Playback head width, micrometres.
+    pub width_um: f64,
+    /// Amplitude modulation noise (media noise) rms, fraction of the carrier.
+    pub media_am_noise: f64,
+    /// Constant extra head-to-tape spacing (um): worn head tips, a film of
+    /// debris on the drum, a clogged head.
+    pub extra_spacing_um: f64,
+    /// Finite head pole-face length, micrometres (nominal 60.0 um).
+    pub pole_length_um: f64,
+    /// Pole-face contour echo (head bumps): the share of the low-band tape signal (below about
+    /// 1 MHz) that the edges of the pole face pick up a pole length before and after the gap. It
+    /// acts on the tape signal, ahead of the amplifier noise and the resonance (default 0.0 = off).
+    pub contour_amp: f64,
+}
+
+/// Carrier frequency at which the head's nominal output is taken: the middle of the luma FM
+/// band, half a megahertz above the sync tip (3.9 MHz in the 525-line format, 4.3 MHz in PAL).
+pub const NOMINAL_CARRIER_HZ: f64 = F_SYNC_TIP + 0.5e6;
+
+/// Corner of the low band that the pole-face contour echo is confined to, Hz. The echo is
+/// filtered by a second-order Butterworth low-pass run forwards and backwards, which is -0.6 dB
+/// at 629 kHz and -41 dB at 3.9 MHz, so the luma carrier sees none of it.
+const CONTOUR_CORNER_HZ: f64 = 1.2e6;
+
+/// Order of each pass of the contour low-pass.
+const CONTOUR_ORDER: usize = 2;
+
+/// Samples at each end of the window over which the contour echo is faded in: the filters start
+/// from rest there, so what they give is their start-up ringing and not the signal (the ringing
+/// of the 1.2 MHz corner dies away in about 8 samples).
+const CONTOUR_FADE: usize = 128;
+
+/// Absolute track-width reference (micrometres) against which head CNR and media AM
+/// noise are normalized. 58.0 um is the 525-line SP track width. Narrower tracks (such as
+/// PAL's 49 um SP) incur the physical noise penalty.
+pub const REF_TRACK_PITCH_UM: f64 = 58.0;
+
+impl Default for HeadParams {
+    fn default() -> Self {
+        Self {
+            h0_um: 0.36,
+            gain: 1.0,
+            cnr_db: 36.0,
+            q_freq_hz: 4.8e6 * (NOMINAL_CARRIER_HZ / 3.9e6),
+            q_q: 1.1,
+            q_gain_db: 7.0,
+            azimuth_error_deg: 0.0,
+            width_um: TRACK_PITCH_UM,
+            media_am_noise: 0.02,
+            extra_spacing_um: 0.0,
+            pole_length_um: 60.0,
+            contour_amp: 0.0,
+        }
+    }
+}
+
+impl HeadParams {
+    pub fn h0_samples(&self) -> f64 {
+        self.h0_um / UM_PER_SAMPLE
+    }
+}
+
+/// Fundamental amplitude of the readback of a saturated square wave of
+/// frequency `f` (state +/-1, pulses of area 2): `(4/pi) * w * exp(-w*h)`.
+pub fn nominal_fm_amplitude(f: f64, h_samples: f64) -> f64 {
+    let w = 2.0 * std::f64::consts::PI * f / FS_RF;
+    4.0 / std::f64::consts::PI * w * (-w * h_samples).exp()
+}
+
+/// The low band of `buf` with no delay: the contour low-pass run forwards, then again over the
+/// reversed result. The first and last `CONTOUR_FADE` samples are faded in with a raised cosine,
+/// so the start-up ringing of the filters is not echoed into the window.
+fn contour_low_band(buf: &[f32]) -> Vec<f32> {
+    let mut low = buf.to_vec();
+    butter_lp(CONTOUR_ORDER, CONTOUR_CORNER_HZ, FS_RF).process(&mut low);
+    low.reverse();
+    butter_lp(CONTOUR_ORDER, CONTOUR_CORNER_HZ, FS_RF).process(&mut low);
+    low.reverse();
+    let fade = CONTOUR_FADE.min(low.len() / 2);
+    for k in 0..fade {
+        let w = 0.5 * (1.0 - (PI32 * k as f32 / fade as f32).cos());
+        let end = low.len() - 1 - k;
+        low[k] *= w;
+        low[end] *= w;
+    }
+    low
+}
+
+/// The head's electrical front end, in the order the signal meets it: the pole-face contour
+/// echo (`contour_amp`) on the tape signal, then head-amplifier noise (white, set by the
+/// nominal CNR) and media AM noise, then the head resonance. `rng` must be unique to this track.
+///
+/// The noise is media dominated: its power is proportional to the track width the head
+/// reads, the signal power to the square of it. The CNR therefore falls by
+/// `10 log10(width / 58 um)` dB for a narrower head (about 3.0 dB at LP, 4.8 dB at EP),
+/// and the media AM noise, an amplitude, scales with `sqrt(58 / width)`. The reference
+/// is the SP track pitch, for which both factors are exactly 1.
+pub fn head_front_end(buf: &mut [f32], hp: &HeadParams, rng: &mut Rng) {
+    // The edges of the pole face pick up the low band of the tape signal one pole length ahead
+    // of the gap and one behind it. That is part of reading the tape, so it comes before the
+    // amplifier adds its noise and before the resonance. The low-pass runs forwards and then
+    // backwards so that the two echoes stay symmetric about the reversal.
+    if hp.contour_amp > 0.0 {
+        let d = (hp.pole_length_um / UM_PER_SAMPLE).round() as usize;
+        if d >= 2 && d < buf.len() / 4 {
+            let low = contour_low_band(buf);
+            let half_amp = (0.5 * hp.contour_amp) as f32;
+            for i in d..buf.len() - d {
+                buf[i] += half_amp * (low[i - d] + low[i + d]);
+            }
+        }
+    }
+    let a_nom = nominal_fm_amplitude(NOMINAL_CARRIER_HZ, hp.h0_samples());
+    let cnr_db = hp.cnr_db + 10.0 * (hp.width_um / REF_TRACK_PITCH_UM).log10();
+    let media_am = hp.media_am_noise * (REF_TRACK_PITCH_UM / hp.width_um).sqrt();
+    // white noise over fs/2 whose 6 MHz share gives the requested CNR
+    let p_band = a_nom * a_nom / 2.0 / 10f64.powf(cnr_db / 10.0);
+    let sigma = (p_band * (FS_RF / 2.0) / 6.0e6).sqrt() as f32;
+    // slowly varying multiplicative (media) noise: one-pole filtered Gaussian
+    let mut am = Biquad::one_pole_lp(0.5e6, FS_RF);
+    let am_gain = (media_am * (FS_RF / 2.0 / 0.5e6).sqrt() * 0.8) as f32;
+    let mut q = Biquad::peaking(hp.q_freq_hz, hp.q_q, hp.q_gain_db, FS_RF);
+    let g = hp.gain as f32;
+    for v in buf.iter_mut() {
+        let m = 1.0 + am.tick((rng.gauss() * am_gain) as f64) as f32;
+        let x = *v * m * g + rng.gauss() * sigma;
+        *v = q.tick(x as f64) as f32;
+    }
+}
+
+/// Boxcar smoothing that models the azimuth loss `sinc(pi w tan(theta)/lambda)`
+/// of reading a track with a different azimuth: averaging over the lateral
+/// phase difference across the (overlapped) head width.
+pub fn azimuth_smooth(buf: &mut [f32], width_um: f64, theta_deg: f64) {
+    let w = (width_um * theta_deg.to_radians().tan() / UM_PER_SAMPLE).round() as usize;
+    if w >= 2 {
+        let sm = boxcar(buf, w);
+        // causal boxcar delays by (w-1)/2: re-centre by shifting back
+        let d = (w - 1) / 2;
+        for i in 0..buf.len() {
+            buf[i] = if i + d < sm.len() { sm[i + d] } else { 0.0 };
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::standard::TvStandard;
+
+    /// These tests pin the figures of the 525-line format; the other engine runs the same
+    /// file against its own constants, so they return early there.
+    const NTSC: bool = matches!(STANDARD, TvStandard::Ntsc);
+
+    fn render_pulses_reference(
+        tr: &[Transition], shift: f64, ctl: &Controls, lateral: Option<&[f32]>, h0: f64, out: &mut [f32],
+    ) {
+        let n = out.len() as i64;
+        let skip = rf_samples(60) as f64;
+        let (r_min, r_max) = (rf_samples(16) as i64, rf_samples(56) as i64);
+        for t in tr {
+            let tt = t.t + shift;
+            if tt < -skip || tt > n as f64 + skip { continue; }
+            let mag = Controls::at(&ctl.mag, tt);
+            let w = lateral.map_or(1.0, |l| Controls::at(l, tt));
+            let amp = 2.0 * t.s as f32 * mag * w;
+            if amp == 0.0 { continue; }
+            let tc = tt + Controls::at(&ctl.warp, tt) as f64;
+            let h = (h0 + Controls::at(&ctl.dd, tt) as f64 / UM_PER_SAMPLE) as f32;
+            let r = ((8.0 * h) as i64).clamp(r_min, r_max);
+            let tc_whole = tc.floor();
+            let tc_frac = (tc - tc_whole) as f32;
+            let tc_i = tc_whole as i64;
+            let i0 = tc_i - r;
+            let c = amp * h / PI32;
+            let h2 = h * h;
+            let r_f = r as f32;
+            let inv_taper = 1.0 / (TAPER * r_f);
+            let lo = i0.max(0);
+            let hi = (i0 + 2 * r).min(n - 1);
+            let mut i = lo;
+            while i <= hi {
+                let x = (i - tc_i) as i32 as f32 - tc_frac;
+                let u = ((r_f - x.abs()) * inv_taper).clamp(0.0, 1.0);
+                out[i as usize] += c / (h2 + x * x) * (u * u * (3.0 - 2.0 * u));
+                i += 1;
+            }
+        }
+    }
+
+    #[test]
+    fn pulse_render_matches_scalar_reference_bits() {
+        let n = 12_000;
+        let mut ctl = Controls::new(n);
+        let mut lateral = vec![1.0f32; ctl.mag.len()];
+        for i in 0..ctl.mag.len() {
+            ctl.mag[i] = 0.55 + (i % 11) as f32 * 0.037;
+            ctl.dd[i] = (i % 7) as f32 * 0.013;
+            ctl.warp[i] = (i % 9) as f32 * 0.21 - 0.8;
+            lateral[i] = 0.4 + (i % 5) as f32 * 0.12;
+        }
+        let tr: Vec<Transition> = (0..2000).map(|i| Transition {
+            t: if i == 0 { 0.0 } else if i == 1999 { (n - 1) as f64 } else { i as f64 * 5.7 },
+            s: if i % 2 == 0 { 1 } else { -1 },
+        }).collect();
+        let mut got = vec![0.0f32; n];
+        let mut want = vec![0.0f32; n];
+        render_pulses(&tr, 0.0, &ctl, Some(&lateral), 2.65, &mut got);
+        render_pulses_reference(&tr, 0.0, &ctl, Some(&lateral), 2.65, &mut want);
+        assert_eq!(got.iter().map(|v| v.to_bits()).collect::<Vec<_>>(), want.iter().map(|v| v.to_bits()).collect::<Vec<_>>());
+    }
+
+    /// An alternating pulse train at frequency f has fundamental amplitude
+    /// (4/pi) w exp(-w h) per the Lorentzian spectrum: this is Wallace's law.
+    fn train(f: f64, h_um: f64, dd_um: f64, n: usize) -> Vec<f32> {
+        let per = FS_RF / f / 2.0;
+        let tr: Vec<Transition> = (0..(n as f64 / per) as usize - 4)
+            .map(|k| Transition { t: 30.0 + k as f64 * per, s: if k % 2 == 0 { 1 } else { -1 } })
+            .collect();
+        let mut ctl = Controls::new(n);
+        ctl.dd.iter_mut().for_each(|v| *v = dd_um as f32);
+        let mut out = vec![0.0f32; n];
+        render_pulses(&tr, 0.0, &ctl, None, h_um / UM_PER_SAMPLE, &mut out);
+        out
+    }
+
+    fn fundamental(x: &[f32], f: f64) -> f64 {
+        let n = x.len() / 4;
+        let (mut re, mut im) = (0.0, 0.0);
+        for (i, v) in x[n..3 * n].iter().enumerate() {
+            let a = 2.0 * std::f64::consts::PI * f * (i + n) as f64 / FS_RF;
+            re += *v as f64 * a.cos();
+            im += *v as f64 * a.sin();
+        }
+        2.0 * (re * re + im * im).sqrt() / (2 * n) as f64
+    }
+
+    #[test]
+    fn pulse_train_amplitude_follows_lorentzian_spectrum() {
+        let n = 60_000;
+        for f in [1.0e6, 3.4e6, 4.4e6] {
+            let x = train(f, 0.42, 0.0, n);
+            let got = fundamental(&x, f);
+            let want = nominal_fm_amplitude(f, 0.42 / UM_PER_SAMPLE);
+            assert!((got / want - 1.0).abs() < 0.12, "f={f}: {got} vs {want}");
+        }
+    }
+
+    #[test]
+    fn extra_spacing_follows_wallace_54_6_db_per_wavelength() {
+        let n = 60_000;
+        let f = 4.0e6;
+        let lambda_um = HEAD_SPEED / f * 1e6;
+        let a0 = fundamental(&train(f, 0.42, 0.0, n), f);
+        let dd = 0.3;
+        let a1 = fundamental(&train(f, 0.42, dd, n), f);
+        let loss_db = 20.0 * (a0 / a1).log10();
+        let want = 54.575 * dd / lambda_um;
+        assert!((loss_db - want).abs() < 0.8, "{loss_db} dB vs Wallace {want} dB");
+    }
+
+    #[test]
+    fn azimuth_boxcar_matches_sinc_law() {
+        if !NTSC {
+            return;
+        }
+        // 12 deg across a 58 um head: loss at 4 MHz about -28 dB (envelope), at 629 kHz ~ -14 dB
+        let n = 40_000;
+        for (f, want_db, tol) in [(0.629e6, -13.8, 2.5), (4.0e6, -28.0, 6.0)] {
+            let mut x: Vec<f32> = (0..n).map(|i| (2.0 * std::f64::consts::PI * f * i as f64 / FS_RF).sin() as f32).collect();
+            let a0 = fundamental(&x, f);
+            azimuth_smooth(&mut x, 58.0, 12.0);
+            let a1 = fundamental(&x, f);
+            let db = 20.0 * (a1 / a0).log10();
+            assert!((db - want_db).abs() < tol, "f={f}: {db} dB vs {want_db}");
+        }
+    }
+}

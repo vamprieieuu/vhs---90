@@ -1,0 +1,137 @@
+# Windows port: build everything in port/ on Windows, and check every CRT shader, with
+# and without the NTSC stage, against the Mac app's reference renders.
+# GitHub's Windows runners have no GPU; wgpu uses D3D12 on WARP (software).
+name: Windows port
+
+on:
+  push:
+    branches: ["**"]
+    paths: ["port/**", "Vendor/**", "presets/**", ".github/workflows/windows-port.yml"]
+    # A release tag always builds (path filters don't apply to tags): that
+    # build is the release's Windows download, stamped with its version.
+    tags: ["v*"]
+  pull_request:
+    paths: ["port/**", "Vendor/**", "presets/**", ".github/workflows/windows-port.yml"]
+  workflow_dispatch:
+
+jobs:
+  spike:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # The tags, for the version below.
+          fetch-depth: 0
+      - name: Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+      - name: librashader (pinned and patched)
+        shell: bash
+        run: port/fetch-librashader.sh
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            port/target
+          key: windows-port-${{ hashFiles('port/Cargo.lock', 'port/librashader-wgpu-push-constants.patch') }}
+      - name: Version (from the release tag, as the Mac's wrap-app.sh)
+        shell: bash
+        run: |
+          v=$(git describe --tags --match 'v[0-9]*' --always | sed 's/^v//')
+          echo "NTSCRT_VERSION=$v" >> "$GITHUB_ENV"
+          echo "version $v"
+      - name: Build (engine, spike, app)
+        working-directory: port
+        run: cargo build --release
+      - name: Tests (Mac parity of defaults, panel rules)
+        working-directory: port
+        run: cargo test --release
+      - name: Update check against GitHub (Windows TLS)
+        shell: bash
+        # GitHub's unauthenticated API allows 60 requests an hour per address,
+        # and runners share addresses: a refusal here isn't the app's fault.
+        continue-on-error: true
+        env:
+          NTSCRT_UPDATE_VERSION: "0.0.1"
+        run: |
+          port/target/release/ntscrt.exe --check-update > update-check.txt 2>&1 || true
+          cat update-check.txt
+          grep -q "Newer" update-check.txt
+      - name: Compare with the Mac references
+        shell: bash
+        env:
+          SPIKE_BACKEND: dx12
+          COMPARE_BORDER: "8"
+          # WARP renders slightly differently from a GPU (worst seen: 0.92).
+          COMPARE_MAX_MEAN: "1.0"
+        run: |
+          bin=port/target/release
+          mkdir -p out
+          fail=0
+          for sh in crt-aperture crt-easymode crtglow_gauss crtglow_lanczos crt-hyllian crt-royale crtsim; do
+            for mode in plain ntsc; do
+              extra=(); [ $mode = ntsc ] && extra=(--ntsc default)
+              $bin/ntscrt-spike TestAssets/testpattern.png Vendor/slang-shaders/crt/$sh.slangp out/$sh-$mode.png 1280 960 320 240 area "${extra[@]}" > out/$sh-$mode.log 2>&1 \
+                || { echo "::error::$sh-$mode failed to render"; tail -5 out/$sh-$mode.log; fail=1; continue; }
+              printf '%-22s ' "$sh-$mode"
+              $bin/compare port/spike/ref-mac/$sh-$mode.png out/$sh-$mode.png out/$sh-$mode-diff.png \
+                || { echo "::error::$sh-$mode differs from the Mac reference"; fail=1; }
+            done
+          done
+          # Bundled presets the Windows version shows completely (port/scripts/make-look-refs.py).
+          for ref in port/spike/ref-mac/looks/*.png; do
+            n=$(basename "$ref" .png)
+            $bin/ntscrt-spike TestAssets/testpattern.png - "out/look-$n.png" 1280 960 --look "presets/$n.json" > "out/look-$n.log" 2>&1 \
+              || { echo "::error::look $n failed to render"; tail -5 "out/look-$n.log"; fail=1; continue; }
+            printf '%-22s ' "look: $n"
+            $bin/compare "$ref" "out/look-$n.png" || { echo "::error::look $n differs from the Mac reference"; fail=1; }
+          done
+          # The Glitch stage against the Mac's (port/scripts/make-glitch-refs.sh).
+          for ref in port/spike/ref-mac/glitch/*.png; do
+            n=$(basename "$ref" .png); [ "$n" = in ] && continue
+            # (checked out with Windows line endings: drop the CR)
+            read -r time knobs < <(tr -d '\r' < "port/spike/ref-mac/glitch/$n.args")
+            $bin/glitch-render port/spike/ref-mac/glitch/in.png "$time" "out/glitch-$n.png" $knobs > "out/glitch-$n.log" 2>&1 \
+              || { echo "::error::glitch $n failed to render"; tail -5 "out/glitch-$n.log"; fail=1; continue; }
+            printf '%-22s ' "glitch: $n"
+            COMPARE_BORDER=0 $bin/compare "$ref" "out/glitch-$n.png" || { echo "::error::glitch $n differs from the Mac reference"; fail=1; }
+          done
+          grep -h adapter out/crt-aperture-plain.log
+          exit $fail
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-spike-output
+          path: out/
+      - name: Package
+        shell: bash
+        run: |
+          d=package/NTSCRT
+          mkdir -p "$d/shaders/blurs/shaders" "$d/presets" "$d/licenses"
+          cp port/target/release/ntscrt.exe "$d/"
+          # The shaders the seven CRT presets use: crt/ and include/ (as the
+          # Mac bundles), plus blurs/shaders/royale, which crt-royale needs.
+          cp -R Vendor/slang-shaders/crt Vendor/slang-shaders/include "$d/shaders/"
+          cp -R Vendor/slang-shaders/blurs/shaders/royale "$d/shaders/blurs/shaders/"
+          cp presets/*.json "$d/presets/"
+          mkdir -p "$d/presets/Screen Loop"
+          cp "presets/Screen Loop/"*.json "$d/presets/Screen Loop/"
+          cp LICENSE THIRD_PARTY_NOTICES.md "$d/"
+          cp licenses/* port/licenses/rust-crates-windows.txt "$d/licenses/"
+          cp port/package-readme.txt "$d/README.txt"
+      - name: Check the package loads every CRT shader
+        shell: bash
+        env:
+          SPIKE_BACKEND: dx12
+        run: |
+          fail=0
+          for sh in crt-aperture crt-easymode crtglow_gauss crtglow_lanczos crt-hyllian crt-royale crtsim; do
+            port/target/release/ntscrt-spike TestAssets/testpattern.png "package/NTSCRT/shaders/crt/$sh.slangp" "out/pkg-$sh.png" 640 480 > "out/pkg-$sh.log" 2>&1 \
+              && echo "ok: $sh" || { echo "::error::$sh doesn't load from the package"; tail -3 "out/pkg-$sh.log"; fail=1; }
+          done
+          exit $fail
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NTSCRT-windows-x64
+          path: package/

@@ -1,0 +1,408 @@
+VHSart — SPLIT-BAND CHROMATIC COLLAPSE
+
+Dedicated Procedural Engine — VHS DAMAGE LAB
+
+1. Objective
+
+Implement a dedicated native C++ procedural effect engine inside VHSart’s VHS DAMAGE LAB, based on the supplied reference video video_1.mp4.
+
+Create a new preset named:
+
+Split-Band Chromatic Collapse
+
+This effect must reconstruct the reference’s distinctive dual-zone visual structure:
+
+* Upper Zone: Dense, rapidly changing, multicolored horizontal static, fragmented chroma noise, short horizontal color streaks, and irregular scanline interruptions.
+* Lower Zone: Dense vertical RGB color streaks and adjacent multicolored columns, interrupted by thin horizontal brightness dropouts and flickering signal breaks.
+* Shared Artifacts: Intermittent horizontal cuts, irregular brightness fluctuations, saturated color separation, and unstable frame-to-frame patterns.
+
+The result must reproduce the actual visual structure and behavior, not merely apply generic VHS noise, RGB splitting, or colored scanlines.
+
+2. Mandatory Project Inspection
+
+Before implementation:
+
+1. Inspect the entire existing VHSart project structure.
+2. Locate VHS DAMAGE LAB and all existing noise, static, chroma, tracking, scanline, distortion, and procedural pattern engines.
+3. Identify reusable algorithms and rendering infrastructure.
+4. Reuse or extend existing components wherever technically appropriate.
+5. Avoid duplicate engines, redundant controls, and conflicting processing stages.
+6. Preserve all existing effects, presets, UI functionality, and project architecture.
+7. Inspect the actual reference video and compare representative frames rather than relying exclusively on the written description.
+
+Implement this as a dedicated engine, not merely a collection of unrelated existing presets.
+
+3. Core Engine Architecture
+
+Create:
+
+Split-Band Chromatic Collapse Engine
+
+The engine must contain three independently controllable procedural components.
+
+A. Upper Colored Static Zone
+
+Reconstruct the upper approximately 40% of the reference frame.
+
+Visual characteristics:
+
+* Dense multicolored horizontal interference.
+* Small rectangular and fragmented noise cells.
+* Short horizontal streaks with irregular lengths.
+* Strong RGB separation and chromatic fragmentation.
+* Randomly changing red, green, blue, cyan, magenta, and other saturated color fragments.
+* Irregular dark and bright interruptions.
+* Fine horizontal scanline-like structures.
+* High-frequency, rapidly changing visual activity.
+
+Implementation requirements:
+
+* Generate noise procedurally using deterministic coordinate-based hashing or a suitable PRNG.
+* Use horizontally elongated cells rather than ordinary square pixel noise.
+* Support independently adjustable horizontal and vertical cell dimensions.
+* Introduce row-dependent offsets and fragmented horizontal segments.
+* Allow color channels to have partially independent distributions.
+* Support density variation, brightness variation, and temporal evolution.
+* Avoid uniform RGB television static.
+
+B. Lower Vertical Color-Streak Zone
+
+Reconstruct the lower approximately 60% of the reference frame.
+
+This is a primary visual component and must receive particular attention.
+
+Visual characteristics:
+
+* Numerous adjacent vertical color columns.
+* Narrow, medium-width, and occasionally wider vertical streaks.
+* Highly saturated red, green, blue, purple, magenta, and mixed RGB colors.
+* Irregular boundaries between neighboring columns.
+* Mostly vertical continuity across the lower region.
+* Local horizontal interruptions, brightness cuts, and flickering segments.
+* Changing column positions, widths, and colors between frames.
+
+Implementation requirements:
+
+* Divide the horizontal image axis into variable-width procedural segments.
+* Generate column boundaries using deterministic hashes and controlled distributions.
+* Allow neighboring columns to have different color values.
+* Support controlled variation in column width, density, saturation, and brightness.
+* Introduce subtle vertical color modulation without destroying the vertical streak structure.
+* Add optional horizontal fragmentation within individual columns.
+* Avoid turning the result into a simple vertical gradient or regular color-bar generator.
+
+The columns must have a convincing irregular analog-interference appearance.
+
+C. Horizontal Dropout & Flicker System
+
+Create a shared secondary component operating across both zones.
+
+Visual characteristics:
+
+* Thin horizontal bright and dark interruptions.
+* Short broken horizontal streaks.
+* Irregular brightness flashes.
+* Small signal-like discontinuities.
+* Greater visibility in the lower vertical-streak region.
+* Occasional interruptions extending across multiple columns.
+
+Implementation requirements:
+
+* Generate horizontal events with variable length, thickness, brightness, and opacity.
+* Support independently controlled light and dark dropouts.
+* Allow events to affect luminance only or luminance and chroma together.
+* Support irregular temporal appearance and disappearance.
+* Avoid uniform full-frame scanlines.
+
+4. Split-Band Spatial System
+
+Create a proper spatial separation system.
+
+The horizontal division must be adjustable through:
+
+Split Position
+
+Default: approximately 40% of frame height.
+
+Range: 0–100%.
+
+The upper and lower regions must be calculated from normalized frame coordinates so the effect scales correctly across different resolutions and aspect ratios.
+
+Additional controls:
+
+* Split Position
+* Split Boundary Softness
+* Split Boundary Instability
+* Upper Zone Height
+* Lower Zone Height
+* Independent Zone Enable/Disable
+
+The division should remain recognizable but may exhibit subtle temporal instability when enabled.
+
+Do not hardcode the reference’s 40/60 division into the rendering algorithm.
+
+5. Procedural Pattern Generation
+
+The entire effect must be generated mathematically during rendering.
+
+Do not use:
+
+* Pre-rendered images.
+* Video overlays.
+* GIF animations.
+* Imported static noise textures.
+* Baked frames.
+* Pre-generated visual effect assets.
+
+Build the patterns from procedural functions, coordinate-based noise, hashes, controlled random distributions, color-channel calculations, and temporal modulation.
+
+The generator must support:
+
+* Reproducible random patterns using a user-controlled Seed.
+* Optional temporal variation.
+* Independent random streams for the upper zone, lower zone, and horizontal dropouts.
+* Resolution-independent behavior.
+* Stable rendering when temporal animation is disabled.
+* Deterministic results for the same frame, time, and Seed.
+
+Avoid unnecessary per-pixel expensive calculations where scanline, segment, or block-level generation can achieve the same visual quality.
+
+6. Input and Compositing Modes
+
+The reference appears dominated by the generated interference itself, but the engine must also be practical when applied to ordinary footage.
+
+Provide:
+
+Effect Mode
+
+* Full Generated Signal
+* Apply Over Original
+* Blend Generated Signal With Original
+
+Blend Amount
+
+Controls the contribution of the generated effect.
+
+Original Image Contribution
+
+Controls how much of the original footage remains visible.
+
+Color Source
+
+* Procedural Colors
+* Input-Driven Colors
+* Mixed
+
+In Full Generated Signal mode, the engine must be capable of producing the complete reference-like appearance without requiring recognizable source footage.
+
+In compositing modes, it must preserve the original image structure where appropriate instead of blindly replacing the entire frame.
+
+7. UI Parameters
+
+Organize the controls into clear groups.
+
+A. General
+
+* Enable Effect
+* Effect Intensity
+* Effect Mode
+* Blend Amount
+* Random Seed
+* Animate With Time
+* Animation Speed
+
+B. Split-Band Structure
+
+* Split Position
+* Split Boundary Softness
+* Boundary Instability
+* Upper Zone Enable
+* Lower Zone Enable
+
+C. Upper Colored Static
+
+* Upper Noise Intensity
+* Upper Noise Density
+* Horizontal Cell Width
+* Vertical Cell Height
+* Horizontal Fragment Length
+* Color Variation
+* RGB Separation
+* Brightness Variation
+* Upper Flicker
+
+D. Lower Vertical Streaks
+
+* Vertical Streak Intensity
+* Streak Density
+* Minimum Streak Width
+* Maximum Streak Width
+* Width Variation
+* Color Saturation
+* Color Gain
+* Vertical Continuity
+* Column Fragmentation
+* Lower Zone Flicker
+
+E. Horizontal Dropouts
+
+* Dropout Intensity
+* Dropout Density
+* Streak Length
+* Line Thickness
+* Bright Dropouts
+* Dark Dropouts
+* Luminance Distortion
+* Chroma Distortion
+* Temporal Frequency
+
+F. Color Architecture
+
+* RGB Channel Independence
+* Red Contribution
+* Green Contribution
+* Blue Contribution
+* Magenta / Purple Variation
+* Color Contrast
+* Color Saturation
+
+Avoid unnecessary duplicate parameters. Each control must produce a meaningful and independently observable result.
+
+8. Temporal Behavior
+
+The supplied reference demonstrates abrupt changes between consecutive frames.
+
+Reconstruct this behavior using independently evolving procedural patterns.
+
+Requirements:
+
+* Upper noise must change irregularly over time.
+* Lower vertical columns must change their positions, widths, and color arrangements.
+* Horizontal dropouts must appear and disappear independently.
+* Brightness flicker must not be synchronized unnecessarily across the entire frame.
+* Support different temporal speeds for each component.
+* Support a static mode with a fixed Seed.
+* Support deterministic frame-based animation.
+
+Do not simply animate the entire image with one global random Seed. That would cause every component to change together and produce an artificial result.
+
+Use independent temporal streams while maintaining reproducibility.
+
+9. Visual Matching Requirements
+
+Use the supplied video_1.mp4 as the primary visual target.
+
+Prioritize these characteristics in order:
+
+1. Clear horizontal separation between the two visual zones.
+2. Dense multicolored horizontal interference in the upper region.
+3. Distinct vertical multicolored streaks in the lower region.
+4. Irregular horizontal interruptions crossing the lower columns.
+5. Strong saturated RGB color separation.
+6. Independent temporal changes in the two regions.
+7. Irregular brightness flashes and dark interruptions.
+
+The lower vertical streaks must not become ordinary vertical gradients.
+
+The upper static must not become ordinary monochromatic noise.
+
+The horizontal dropouts must not become continuous decorative scanlines.
+
+The combined result must retain the reference’s unusual dual-zone identity.
+
+10. VHSart Integration
+
+Integrate the engine into:
+
+VHS DAMAGE LAB → Dedicated Engine → Split-Band Chromatic Collapse
+
+Create the dedicated preset:
+
+Split-Band Chromatic Collapse
+
+The preset must load an initial configuration close to the supplied reference:
+
+* Split Position: 40%
+* Upper Noise Intensity: High
+* Upper Noise Density: Very High
+* Lower Vertical Streak Intensity: Very High
+* Vertical Streak Density: High
+* Color Saturation: High
+* Horizontal Dropout Intensity: Medium
+* Temporal Animation: Enabled
+* Independent Temporal Variation: Enabled
+
+These are starting values, not hardcoded restrictions.
+
+All controls must remain adjustable.
+
+Do not make the engine dependent on another preset being enabled.
+
+11. Native After Effects Requirements
+
+This must remain a genuine native C++ After Effects effect.
+
+Requirements:
+
+* Compatible with the project’s actual target After Effects SDK and build configuration.
+* Correct PiPL and effect version consistency.
+* Correct parameter registration and UI synchronization.
+* Correct 8-bit, 16-bit, and 32-bit processing wherever supported by the existing project.
+* Correct Alpha handling.
+* Correct premultiplied-alpha compositing.
+* Multi-Frame Rendering compatibility.
+* Thread-safe rendering.
+* No shared mutable global rendering state.
+* Deterministic frame evaluation.
+* Safe memory management.
+* Efficient CPU-first implementation.
+
+Do not introduce GPU-only dependencies or require external runtime installations.
+
+12. Testing and Verification
+
+Test the engine against the reference at matching frame dimensions and representative timestamps.
+
+Test at minimum:
+
+* Static Seed mode.
+* Animated mode.
+* Upper Zone only.
+* Lower Zone only.
+* Both zones enabled.
+* Dropouts enabled and disabled.
+* Full Generated Signal mode.
+* Apply Over Original mode.
+* Different Split Positions.
+* Different frame resolutions.
+* Transparent input.
+* Different Alpha values.
+* MFR rendering.
+
+Inspect the actual rendered output, not just successful compilation.
+
+Verify that:
+
+* The upper and lower structures remain visually distinct.
+* The lower columns remain vertically dominant.
+* The upper region remains horizontally fragmented.
+* Temporal changes do not become synchronized or repetitive.
+* Alpha and compositing remain correct.
+* No existing VHSart engine or preset has been broken.
+
+Do not claim visual matching is complete without comparing actual rendered frames against the supplied reference.
+
+13. Final Deliverables
+
+Deliver:
+
+1. Complete Split-Band Chromatic Collapse engine source.
+2. Dedicated preset and its default parameter configuration.
+3. Fully integrated VHS DAMAGE LAB UI.
+4. Any required project/build configuration changes.
+5. Testing results and known limitations.
+6. A final test-ready native After Effects build when the project’s SDK/build environment permits it.
+
+Preserve the existing project structure and all unrelated effects.
+
+Final Objective: Reconstruct the reference as a distinctive, fully procedural dual-zone chromatic signal-collapse effect, with independently generated upper horizontal colored static, lower vertical color streaks, and irregular horizontal dropout/flicker behavior.

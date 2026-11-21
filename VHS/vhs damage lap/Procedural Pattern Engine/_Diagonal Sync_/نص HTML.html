@@ -1,0 +1,316 @@
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+
+<h1><span class="s1"><b>VHSart — DIAGONAL SYNC COLLAPSE</b></span></h1>
+
+<h2><span class="s1"><b>Hybrid Procedural Engine — VHS DAMAGE LAB</b></span></h2>
+
+<h3><span class="s1"><b>1. Objective</b></span></h3>
+
+<p class="p3">Implement a dedicated hybrid procedural effect preset named:</p>
+
+<p class="p4"><b>Diagonal Sync Collapse</b></p>
+
+<p class="p3">Use the supplied </span><code>video_1.mp4</code><span class="s2"> as the primary visual reference.</p>
+
+<p class="p5">Reconstruct its distinctive combination of:</p>
+
+<ol start="1"><li><span class="s1">A sudden full-frame diagonal signal-collapse event.</span></li><li><span class="s1">Strong diagonal shear and fragmented multicolored signal bands.</span></li><li><span class="s1">Horizontal chroma smearing around high-contrast image details.</span></li><li><span class="s1">Intermittent transitions between neutral gray and saturated blue signal states.</span></li><li><span class="s1">Subtle analog softness, grain, scanline interruptions, and signal instability.</span></li></ol>
+
+<p class="p3">This is not a conventional VHS filter. Its identity comes from the sudden diagonal synchronization failure, followed by a relatively stable blue/gray signal state with persistent chromatic distortion.</p>
+
+<p class="p3">The engine must work on ordinary footage while also supporting a generated-signal mode that can reproduce the reference’s visual appearance independently of source footage.</p>
+
+<h3><span class="s1"><b>2. Mandatory Project Inspection</b></span></h3>
+
+<p class="p5">Before implementation:</p>
+
+<ul><li><span class="s1">Inspect the complete VHSart project structure.</span></li><li><span class="s1">Locate VHS DAMAGE LAB and its existing processing engines.</span></li><li><span class="s1">Inspect existing diagonal distortion, image displacement, chroma separation, horizontal smear, blue/gray color processing, grain, static, scanline, and dropout implementations.</span></li><li><span class="s1">Reuse existing engines wherever possible.</span></li><li><span class="s1">Extend existing functionality instead of creating duplicate algorithms.</span></li><li><span class="s1">Build only the missing specialized functionality.</span></li><li><span class="s1">Preserve existing presets, controls, rendering behavior, and project architecture.</span></li></ul>
+
+<p class="p3">The recommended architecture is hybrid:</p>
+
+<p class="p3"><b>Existing VHSart engines:</b></span><span class="s2"> softness, analog grain, horizontal chroma smear, scanline/dropout processing, and general color processing.</p>
+
+<p class="p3"><b>New dedicated engine:</b></span><span class="s2"> Diagonal Shear &amp; Synchronization Collapse, including the event trigger, diagonal band fragmentation, and event-specific chromatic disruption.</p>
+
+<p class="p3">Do not create separate redundant engines for features already supported by the project.</p>
+
+<h3><span class="s1"><b>3. Primary Engine — Diagonal Shear &amp; Sync Collapse</b></span></h3>
+
+<p class="p3">Implement a specialized procedural engine responsible for the sudden diagonal signal failure.</p>
+
+<h4><span class="s1"><b>A. Diagonal Shear Geometry</b></span></h4>
+
+<p class="p3">Reconstruct the reference’s diagonal bands and fragmented image geometry.</p>
+
+<p class="p5">Visual characteristics:</p>
+
+<ul><li><span class="s1">Strong diagonal cuts across the frame.</span></li><li><span class="s1">Multiple slanted bands with irregular boundaries.</span></li><li><span class="s1">Abrupt horizontal and diagonal discontinuities.</span></li><li><span class="s1">Variable displacement between neighboring bands.</span></li><li><span class="s1">Alternating regions of displaced image information.</span></li><li><span class="s1">Irregular band widths and spacing.</span></li><li><span class="s1">Stronger geometric disruption during the collapse event.</span></li></ul>
+
+<p class="p5">Implementation requirements:</p>
+
+<ul><li><span class="s1">Use coordinate transformation and inverse sampling.</span></li><li><span class="s1">Support adjustable diagonal angle and displacement.</span></li><li><span class="s1">Divide the image into diagonal regions using transformed coordinates.</span></li><li><span class="s1">Apply independent displacement to individual regions.</span></li><li><span class="s1">Introduce controlled irregularity into band boundaries.</span></li><li><span class="s1">Support multiple simultaneous diagonal bands.</span></li><li><span class="s1">Allow individual bands to have different displacement magnitudes and directions.</span></li><li><span class="s1">Add optional horizontal interruptions within diagonal bands.</span></li><li><span class="s1">Support channel-specific displacement during the event.</span></li></ul>
+
+<p class="p3">Use normalized coordinates so the effect remains consistent across different frame dimensions and aspect ratios.</p>
+
+<p class="p3">A possible starting coordinate transformation is:</p>
+
+<p class="p4"><code>u = x * cos(theta) + y * sin(theta)</code></p>
+
+<p class="p3">Use the transformed coordinate to identify diagonal bands and their boundaries.</p>
+
+<p class="p3">The implementation must use appropriate inverse mapping and sampling to avoid unintended holes or unstable pixel access.</p>
+
+<h4><span class="s1"><b>B. Chromatic Collapse</b></span></h4>
+
+<p class="p3">The diagonal event must produce a distinctive chromatic breakdown.</p>
+
+<p class="p5">Visual characteristics:</p>
+
+<ul><li><span class="s1">Highly saturated green, purple, magenta, blue, yellow, and red regions.</span></li><li><span class="s1">Strong color separation between adjacent diagonal bands.</span></li><li><span class="s1">Irregular RGB channel displacement.</span></li><li><span class="s1">Local chroma fragmentation.</span></li><li><span class="s1">Horizontal color streaks within displaced regions.</span></li><li><span class="s1">Abrupt transitions between saturated colors and dark/light interruptions.</span></li></ul>
+
+<p class="p5">Implementation requirements:</p>
+
+<ul><li><span class="s1">Support independent R, G, and B displacement.</span></li><li><span class="s1">Support different displacement directions per channel.</span></li><li><span class="s1">Introduce band-dependent color variation.</span></li><li><span class="s1">Control chroma intensity independently from geometric displacement.</span></li><li><span class="s1">Support saturated color bursts during the collapse event.</span></li><li><span class="s1">Allow color fragmentation without necessarily displacing the entire image geometry.</span></li><li><span class="s1">Avoid turning the result into a simple RGB split effect.</span></li></ul>
+
+<h3><span class="s1"><b>4. Event Trigger &amp; Temporal State System</b></span></h3>
+
+<p class="p3">This is one of the most important parts of the reconstruction.</p>
+
+<p class="p3">The reference does not show continuous maximum-intensity diagonal distortion. It shows a sudden, short-lived collapse followed by a comparatively stable signal state.</p>
+
+<p class="p3">Build a proper event system with independently adjustable timing and duration.</p>
+
+<p class="p5">Required controls:</p>
+
+<ul><li><span class="s1">Collapse Enable</span></li><li><span class="s1">Collapse Trigger</span></li><li><span class="s1">Collapse Intensity</span></li><li><span class="s1">Collapse Duration</span></li><li><span class="s1">Collapse Frequency</span></li><li><span class="s1">Collapse Probability</span></li><li><span class="s1">Event Randomness</span></li><li><span class="s1">Event Recovery</span></li><li><span class="s1">Random Seed</span></li></ul>
+
+<p class="p3">Support three trigger modes:</p>
+
+<p class="p6"><b>Manual / Keyframed</b></p>
+
+<ul><li><span class="s1">The user controls the event through keyframes or the trigger parameter.</span></li><li><span class="s1">The event can be positioned precisely on the After Effects timeline.</span></li></ul>
+
+<p class="p6"><b>Automatic / Procedural</b></p>
+
+<ul><li><span class="s1">Events occur according to adjustable timing and probability.</span></li><li><span class="s1">Each event has a controllable intensity and duration.</span></li></ul>
+
+<p class="p6"><b>Seeded / Deterministic</b></p>
+
+<ul><li><span class="s1">Event timing and appearance are generated reproducibly from the Seed and frame time.</span></li></ul>
+
+<p class="p5">Important temporal requirements:</p>
+
+<ul><li><span class="s1">Support sudden onset.</span></li><li><span class="s1">Support a short peak-intensity phase.</span></li><li><span class="s1">Support optional partial recovery.</span></li><li><span class="s1">Allow abrupt termination when appropriate.</span></li><li><span class="s1">Avoid unnecessary smooth fades if the reference calls for an abrupt signal failure.</span></li><li><span class="s1">Do not change the entire effect randomly on every rendered frame.</span></li><li><span class="s1">The same Seed, frame, and settings must always produce the same output.</span></li></ul>
+
+<p class="p3">Do not hardcode the event to 00:00.250. That timestamp describes the supplied reference, not a universal operating rule.</p>
+
+<h3><span class="s1"><b>5. Blue / Gray Signal State Engine</b></span></h3>
+
+<p class="p3">After the diagonal collapse, the reference transitions between neutral gray and saturated blue/indigo states.</p>
+
+<p class="p3">Reconstruct this behavior as a separate color-state component.</p>
+
+<p class="p5">Required visual characteristics:</p>
+
+<ul><li><span class="s1">Neutral gray signal state.</span></li><li><span class="s1">Saturated blue/indigo signal state.</span></li><li><span class="s1">Cyan-blue chromatic variation.</span></li><li><span class="s1">Intermittent transitions between the two states.</span></li><li><span class="s1">Subtle luminance and contrast variation.</span></li><li><span class="s1">Horizontal chroma smearing around high-contrast features.</span></li></ul>
+
+<p class="p5">Required controls:</p>
+
+<ul><li><span class="s1">Signal Color State</span></li><li><span class="s1">Blue Cast Amount</span></li><li><span class="s1">Blue Saturation</span></li><li><span class="s1">Blue Channel Gain</span></li><li><span class="s1">Gray State Amount</span></li><li><span class="s1">State Transition Speed</span></li><li><span class="s1">State Transition Randomness</span></li><li><span class="s1">Color Instability</span></li><li><span class="s1">State Random Seed</span></li></ul>
+
+<p class="p5">Provide the following modes:</p>
+
+<ul><li><span class="s1">Original Colors</span></li><li><span class="s1">Neutral Gray</span></li><li><span class="s1">Blue Signal</span></li><li><span class="s1">Gray / Blue Intermittent</span></li><li><span class="s1">Procedural Color State</span></li></ul>
+
+<p class="p3">The Blue / Gray Intermittent mode must support abrupt or irregular transitions rather than forcing a continuous blue gradient.</p>
+
+<p class="p3">The color-state engine must not require the diagonal collapse to remain active.</p>
+
+<h3><span class="s1"><b>6. Horizontal Chroma Smear</b></span></h3>
+
+<p class="p3">Reuse the existing VHSart chroma-smear engine if it already supports the required behavior.</p>
+
+<p class="p3">Otherwise, extend it with the missing functionality.</p>
+
+<p class="p5">Reconstruct:</p>
+
+<ul><li><span class="s1">Horizontal color spreading around text and high-contrast edges.</span></li><li><span class="s1">Independent chroma displacement.</span></li><li><span class="s1">Short and medium horizontal color streaks.</span></li><li><span class="s1">Subtle RGB separation.</span></li><li><span class="s1">Localized chromatic bleeding.</span></li><li><span class="s1">Greater chroma disruption during diagonal collapse.</span></li><li><span class="s1">Lower chroma intensity during stable blue/gray states.</span></li></ul>
+
+<p class="p5">Required controls:</p>
+
+<ul><li><span class="s1">Horizontal Chroma Smear</span></li><li><span class="s1">Smear Length</span></li><li><span class="s1">Smear Intensity</span></li><li><span class="s1">RGB Separation</span></li><li><span class="s1">Chroma Offset</span></li><li><span class="s1">Chroma Softness</span></li><li><span class="s1">Edge Sensitivity</span></li><li><span class="s1">Event Chroma Boost</span></li></ul>
+
+<p class="p3">The smear must operate on image information and must not become an arbitrary full-frame colored blur.</p>
+
+<h3><span class="s1"><b>7. Analog Base &amp; Supporting Artifacts</b></span></h3>
+
+<p class="p3">Use existing VHSart processing engines for the supporting analog appearance.</p>
+
+<p class="p3">Required components:</p>
+
+<p class="p6"><b>Soft Low-Resolution Base</b></p>
+
+<ul><li><span class="s1">Adjustable softness.</span></li><li><span class="s1">Optional resolution degradation.</span></li><li><span class="s1">Controlled high-frequency detail reduction.</span></li></ul>
+
+<p class="p6"><b>Analog Grain</b></p>
+
+<ul><li><span class="s1">Fine luminance grain.</span></li><li><span class="s1">Optional chroma grain.</span></li><li><span class="s1">Adjustable intensity and temporal variation.</span></li></ul>
+
+<p class="p6"><b>Horizontal Scan / Dropout Lines</b></p>
+
+<ul><li><span class="s1">Thin irregular horizontal interruptions.</span></li><li><span class="s1">Short bright and dark streaks.</span></li><li><span class="s1">Occasional signal discontinuities.</span></li><li><span class="s1">Independent density and intensity.</span></li></ul>
+
+<p class="p3">These components should remain subtle during stable states and may become stronger during the diagonal collapse.</p>
+
+<p class="p3">Do not introduce heavy tracking damage, excessive snow, or unrelated VHS artifacts that are not visible in the reference.</p>
+
+<h3><span class="s1"><b>8. Processing Architecture</b></span></h3>
+
+<p class="p5">Use the following logical processing order:</p>
+
+<ol start="1"><li><span class="s1">Input validation and source-format handling.</span></li><li><span class="s1">Optional softness and low-resolution processing.</span></li><li><span class="s1">Analog grain and supporting signal texture.</span></li><li><span class="s1">Temporal event-state evaluation.</span></li><li><span class="s1">Diagonal shear and band segmentation.</span></li><li><span class="s1">Event-dependent RGB and chroma disruption.</span></li><li><span class="s1">Horizontal chroma smear.</span></li><li><span class="s1">Blue/gray signal-state color processing.</span></li><li><span class="s1">Horizontal dropout and scanline interruptions.</span></li><li><span class="s1">Final compositing and Alpha handling.</span></li></ol>
+
+<p class="p3">The implementation may optimize or combine stages where mathematically appropriate, but it must preserve the intended visual dependencies and processing order.</p>
+
+<h3><span class="s1"><b>9. Compositing Modes</b></span></h3>
+
+<p class="p3">Provide:</p>
+
+<p class="p6"><b>Effect Mode</b></p>
+
+<ul><li><span class="s1">Apply to Original Footage</span></li><li><span class="s1">Generated Signal</span></li><li><span class="s1">Hybrid Signal Reconstruction</span></li></ul>
+
+<p class="p4"><b>Blend Amount</b></p>
+
+<p class="p3">Controls the contribution of the processed result.</p>
+
+<p class="p4"><b>Original Image Contribution</b></p>
+
+<p class="p3">Controls how much original image information remains visible.</p>
+
+<p class="p3">In Generated Signal mode, the engine must be able to create a complete signal-like visual output without relying on recognizable source footage.</p>
+
+<p class="p3">In Apply to Original Footage mode, geometric displacement must operate on the actual input image.</p>
+
+<p class="p3">Do not generate the reference’s text (</span><code>A. TRACKING</code><span class="s2">, </span><code>SP</code><span class="s2">, or </span><code>CIRCULAR MOTION</code><span class="s2">) as fixed graphic elements. These are reference-image content, not part of the effect engine.</p>
+
+<h3><span class="s1"><b>10. User Interface Structure</b></span></h3>
+
+<p class="p3">Organize the preset controls into the following groups.</p>
+
+<p class="p6"><b>A. General</b></p>
+
+<ul><li><span class="s1">Enable Effect</span></li><li><span class="s1">Effect Intensity</span></li><li><span class="s1">Effect Mode</span></li><li><span class="s1">Blend Amount</span></li><li><span class="s1">Original Image Contribution</span></li><li><span class="s1">Random Seed</span></li></ul>
+
+<p class="p6"><b>B. Diagonal Collapse</b></p>
+
+<ul><li><span class="s1">Collapse Enable</span></li><li><span class="s1">Collapse Trigger</span></li><li><span class="s1">Collapse Intensity</span></li><li><span class="s1">Diagonal Angle</span></li><li><span class="s1">Diagonal Displacement</span></li><li><span class="s1">Band Width</span></li><li><span class="s1">Band Count</span></li><li><span class="s1">Band Irregularity</span></li><li><span class="s1">Band Fragmentation</span></li><li><span class="s1">Channel Displacement</span></li><li><span class="s1">Collapse Duration</span></li><li><span class="s1">Event Frequency</span></li></ul>
+
+<p class="p6"><b>C. Chromatic Breakdown</b></p>
+
+<ul><li><span class="s1">Chroma Collapse Intensity</span></li><li><span class="s1">RGB Separation</span></li><li><span class="s1">Red Displacement</span></li><li><span class="s1">Green Displacement</span></li><li><span class="s1">Blue Displacement</span></li><li><span class="s1">Color Saturation</span></li><li><span class="s1">Color Gain</span></li><li><span class="s1">Color Fragmentation</span></li></ul>
+
+<p class="p6"><b>D. Signal Color State</b></p>
+
+<ul><li><span class="s1">Signal Color State</span></li><li><span class="s1">Blue Cast Amount</span></li><li><span class="s1">Blue Saturation</span></li><li><span class="s1">Blue Channel Gain</span></li><li><span class="s1">Gray State Amount</span></li><li><span class="s1">State Transition Speed</span></li><li><span class="s1">State Randomness</span></li></ul>
+
+<p class="p6"><b>E. Horizontal Chroma Smear</b></p>
+
+<ul><li><span class="s1">Smear Intensity</span></li><li><span class="s1">Smear Length</span></li><li><span class="s1">Chroma Offset</span></li><li><span class="s1">RGB Separation</span></li><li><span class="s1">Edge Sensitivity</span></li><li><span class="s1">Event Chroma Boost</span></li></ul>
+
+<p class="p6"><b>F. Analog Base</b></p>
+
+<ul><li><span class="s1">Softness</span></li><li><span class="s1">Resolution Degradation</span></li><li><span class="s1">Analog Grain</span></li><li><span class="s1">Chroma Grain</span></li><li><span class="s1">Scanline Intensity</span></li><li><span class="s1">Horizontal Dropout Amount</span></li><li><span class="s1">Bright / Dark Interruption Balance</span></li></ul>
+
+<p class="p6"><b>G. Temporal Behavior</b></p>
+
+<ul><li><span class="s1">Animation Enable</span></li><li><span class="s1">Animation Speed</span></li><li><span class="s1">Automatic Event Trigger</span></li><li><span class="s1">Event Probability</span></li><li><span class="s1">Event Duration</span></li><li><span class="s1">Event Recovery</span></li><li><span class="s1">Random Seed</span></li></ul>
+
+<p class="p3">Avoid duplicate parameters across groups. If two features use the same underlying parameter, expose a single authoritative control unless independent behavior is technically justified.</p>
+
+<p class="p3">All controls must be functional and visibly affect the rendered output.</p>
+
+<h3><span class="s1"><b>11. Dedicated Preset Defaults</b></span></h3>
+
+<p class="p3">Create:</p>
+
+<p class="p4"><b>VHSart — Diagonal Sync Collapse</b></p>
+
+<p class="p5">Use the following approximate initial configuration:</p>
+
+<ul><li><span class="s1">Diagonal Collapse: Enabled</span></li><li><span class="s1">Diagonal Skew Amount: 50–85%</span></li><li><span class="s1">Diagonal Angle: 20–45 degrees</span></li><li><span class="s1">Band Fragmentation: High</span></li><li><span class="s1">RGB Separation: High during collapse</span></li><li><span class="s1">Chromatic Saturation: High during collapse</span></li><li><span class="s1">Horizontal Chroma Smear: 40–65%</span></li><li><span class="s1">Blue Cast: 45–75% in blue state</span></li><li><span class="s1">Analog Softness: 25–50%</span></li><li><span class="s1">Analog Grain: Low to Medium</span></li><li><span class="s1">Horizontal Dropouts: Low to Medium</span></li><li><span class="s1">Temporal Events: Enabled</span></li><li><span class="s1">Automatic Event Trigger: Optional</span></li></ul>
+
+<p class="p3">These values are starting points for visual matching, not fixed limits.</p>
+
+<p class="p3">The preset must reproduce both the sudden high-intensity diagonal collapse and the quieter blue/gray states that follow it.</p>
+
+<h3><span class="s1"><b>12. Reference-Matching Procedure</b></span></h3>
+
+<p class="p3">Use the actual supplied video and compare the following temporal states:</p>
+
+<p class="p6"><b>00:00.000 — Initial Gray State</b></p>
+
+<ul><li><span class="s1">Neutral gray background.</span></li><li><span class="s1">Soft analog texture.</span></li><li><span class="s1">Mild chromatic smearing.</span></li><li><span class="s1">Relatively stable geometry.</span></li></ul>
+
+<p class="p6"><b>00:00.250 — Diagonal Collapse</b></p>
+
+<ul><li><span class="s1">Strong full-frame diagonal segmentation.</span></li><li><span class="s1">High-saturation multicolored bands.</span></li><li><span class="s1">Significant geometric displacement.</span></li><li><span class="s1">Severe chromatic fragmentation.</span></li><li><span class="s1">Horizontal interruptions within the diagonal structure.</span></li></ul>
+
+<p class="p6"><b>00:00.500 — Blue Signal State</b></p>
+
+<ul><li><span class="s1">Strong blue/indigo appearance.</span></li><li><span class="s1">Reduced geometric disruption.</span></li><li><span class="s1">Persistent horizontal chroma smearing.</span></li></ul>
+
+<p class="p6"><b>00:00.750 — Gray Transition</b></p>
+
+<ul><li><span class="s1">Neutral gray return.</span></li><li><span class="s1">Relatively stable geometry.</span></li><li><span class="s1">Subtle analog texture.</span></li></ul>
+
+<p class="p6"><b>00:01.000–00:01.750 — Blue / Gray Signal Variation</b></p>
+
+<ul><li><span class="s1">Predominantly blue signal appearance with intermittent state changes.</span></li><li><span class="s1">Persistent horizontal chroma smearing.</span></li><li><span class="s1">Subtle scanline and dropout behavior.</span></li><li><span class="s1">No continuous full-frame diagonal collapse.</span></li></ul>
+
+<p class="p3">Use these timestamps as reference observations, not hardcoded playback instructions.</p>
+
+<p class="p3">Evaluate the result at matching frame dimensions and frame rates.</p>
+
+<h3><span class="s1"><b>13. Technical Requirements</b></span></h3>
+
+<p class="p3">The effect must remain a genuine native C++ After Effects plugin.</p>
+
+<p class="p5">Requirements:</p>
+
+<ul><li><span class="s1">Follow the existing project’s AE SDK and build configuration.</span></li><li><span class="s1">Maintain consistent effect version and PiPL version information.</span></li><li><span class="s1">Preserve existing parameter registration conventions.</span></li><li><span class="s1">Support the bit depths already supported by VHSart.</span></li><li><span class="s1">Correct Alpha handling.</span></li><li><span class="s1">Correct premultiplied-alpha processing.</span></li><li><span class="s1">Multi-Frame Rendering compatibility.</span></li><li><span class="s1">Thread-safe rendering.</span></li><li><span class="s1">No shared mutable global rendering state.</span></li><li><span class="s1">Deterministic temporal evaluation.</span></li><li><span class="s1">Safe memory management.</span></li><li><span class="s1">CPU-first implementation.</span></li><li><span class="s1">No external runtime dependencies.</span></li></ul>
+
+<p class="p3">When geometric transformations are applied to transparent input, sample and process Alpha consistently with the image data. Do not introduce black fringes or incorrect premultiplied RGB values.</p>
+
+<h3><span class="s1"><b>14. Testing and Verification</b></span></h3>
+
+<p class="p5">Test all of the following:</p>
+
+<ol start="1"><li><span class="s1">Stable gray state.</span></li><li><span class="s1">Stable blue state.</span></li><li><span class="s1">Manual diagonal collapse.</span></li><li><span class="s1">Automatic diagonal collapse.</span></li><li><span class="s1">Seeded deterministic collapse.</span></li><li><span class="s1">Different diagonal angles.</span></li><li><span class="s1">Different band widths and fragmentation levels.</span></li><li><span class="s1">RGB displacement enabled and disabled.</span></li><li><span class="s1">Chroma smear enabled and disabled.</span></li><li><span class="s1">Blue/gray state transitions.</span></li><li><span class="s1">Original footage mode.</span></li><li><span class="s1">Generated signal mode.</span></li><li><span class="s1">Transparent footage.</span></li><li><span class="s1">Different resolutions and aspect ratios.</span></li><li><span class="s1">Multi-Frame Rendering.</span></li></ol>
+
+<p class="p3">Compare actual rendered frames against the reference.</p>
+
+<p class="p3">Do not consider the implementation complete merely because the plugin compiles.</p>
+
+<p class="p3">Verify the distinctive diagonal collapse, its timing behavior, the blue/gray states, and the chromatic smear independently.</p>
+
+<h3><span class="s1"><b>15. Final Deliverables</b></span></h3>
+
+<p class="p5">Deliver:</p>
+
+<ul><li><span class="s1">Dedicated Diagonal Shear &amp; Sync Collapse engine source.</span></li><li><span class="s1">Integration with reusable VHSart engines.</span></li><li><span class="s1">Complete preset configuration.</span></li><li><span class="s1">Functional parameter UI.</span></li><li><span class="s1">Required build and project configuration changes.</span></li><li><span class="s1">Actual visual test results.</span></li><li><span class="s1">Final test-ready native After Effects build when the SDK/build environment permits.</span></li></ul>
+
+<p class="p3">Preserve the existing VHSart project and all unrelated functionality.</p>
+
+<p class="p4"><b>FINAL OBJECTIVE</b></p>
+
+<p class="p3">Reconstruct the reference’s distinctive sequence: a stable analog gray signal, a sudden full-frame diagonal synchronization collapse with saturated fragmented chroma bands, followed by intermittent blue/gray signal states with horizontal chroma smearing and subtle analog artifacts.</p>
+
+<p class="p7">The result must behave as a controllable procedural signal-failure effect, not as a permanently active diagonal distortion filter.</p>
+
+</body>
+</html>

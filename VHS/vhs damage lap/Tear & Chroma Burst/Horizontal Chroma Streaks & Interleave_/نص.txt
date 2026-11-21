@@ -1,0 +1,293 @@
+VHSart — IMPLEMENT PRESET: HORIZONTAL CHROMA STREAKS & INTERLEAVE
+
+Tear & Chroma Category — Reference-Based Native C++ Reconstruction
+
+1. Objective
+
+Implement a new, fully functional VHSart preset named:
+
+Horizontal Chroma Streaks & Interleave
+
+Category: Tear & Chroma
+
+Reference image: IMG_4650.jpeg
+
+Reconstruct the distinctive analog image degradation visible in the reference, focusing on the combination of:
+
+1. Horizontal Chroma Streaks and Smearing.
+2. Fine Interleaved / Cross-Color Interference.
+3. Subtle Horizontal Signal Displacement.
+4. Soft Image Detail and Warm Yellow-Green Color Cast.
+5. Narrow Bright Vertical Strip near the Right Edge.
+
+This must be a genuine procedural image-processing effect, not a static approximation or a collection of unrelated overlays.
+
+2. Mandatory Project Inspection
+
+Before implementation:
+
+* Inspect the complete VHSart project structure.
+* Identify existing Tear & Chroma engines and presets.
+* Inspect existing Chroma Smear, RGB Displacement, Signal Noise, Grain, Scanline, and Image Softness functionality.
+* Reuse existing compatible engines wherever possible.
+* Extend existing functionality instead of creating duplicate implementations.
+* Identify whether a dedicated Chroma Streaks & Interleave engine is necessary.
+
+Do not modify unrelated Tracking Noise, Tracking Damage, Snow, or VHS 6 Rift functionality.
+
+3. Main Visual Component — Horizontal Chroma Streaks & Smears
+
+This is the primary component of the reference.
+
+Implement irregular horizontal chromatic streaks and smears distributed across different image regions.
+
+Visual characteristics:
+
+* Horizontal colored streaks with variable lengths.
+* Short and medium-length chroma smears.
+* Irregularly interrupted horizontal lines.
+* Multiple colored segments.
+* Slight horizontal displacement.
+* Different intensity and density across image rows.
+* Uneven distribution rather than perfectly uniform stripes.
+
+Color characteristics should support:
+
+* Red
+* Orange
+* Yellow
+* Green
+* Blue
+* Cyan
+* Magenta
+
+The most recognizable visual behavior is the combination of red-orange-yellow streaks and additional green-blue-cyan chromatic interference.
+
+The effect must interact with the original image rather than simply drawing random colored lines on top.
+
+Where appropriate, derive streak colors from the underlying image’s chroma information.
+
+Required controls
+
+* Chroma Smear Amount
+* Chroma Smear Length
+* Chroma Streak Density
+* Chroma Streak Length
+* Chroma Streak Thickness
+* Chroma Streak Opacity
+* Horizontal Displacement
+* Color Variation
+* Chroma Separation
+
+4. Fine Interleaved / Cross-Color Interference Engine
+
+This is the secondary but visually distinctive component.
+
+Reconstruct the fine alternating colored dot-and-line interference visible over detailed and patterned regions of the reference.
+
+It must produce a fine interleaved structure rather than generic grain or random pixel noise.
+
+Visual characteristics:
+
+* Fine alternating colored lines and dots.
+* High-frequency chromatic interference.
+* Red, green, blue, yellow, and occasional magenta variations.
+* Fine patterns interacting with image details.
+* Stronger visibility in high-frequency textures and high-contrast regions.
+* Subtle interaction between neighboring chroma signals.
+
+Investigate suitable signal-processing approaches such as:
+
+* Cross-color interference.
+* Dot-crawl-like patterns.
+* Chroma/luma frequency interaction.
+* Interleaved chroma modulation.
+* Spatially modulated alternating patterns.
+
+Do not assume these are identical phenomena. Select the implementation that best reproduces the reference.
+
+The pattern must remain visually fine and detailed. Avoid turning it into large colored checkerboards or obvious repeating grids.
+
+Required controls
+
+* Interleave Pattern Intensity
+* Interleave Scale
+* Interleave Frequency
+* Cross-Color Intensity
+* Dot-Crawl Intensity
+* Chroma/Luma Interaction
+* Detail Sensitivity
+* Pattern Variation
+* Random Seed
+
+5. Subtle Horizontal Signal Displacement
+
+Introduce controlled horizontal displacement and short interruptions.
+
+Requirements:
+
+* Small horizontal shifts.
+* Irregular line interruptions.
+* Localized RGB separation.
+* Subtle chromatic edge displacement.
+* Occasional dropout-like horizontal marks.
+
+Do not turn this preset into a large Tracking Noise or Tracking Damage effect.
+
+The original image geometry should remain mostly recognizable.
+
+6. Supporting Image Treatment
+
+The reference contains a relatively soft image base and a slight warm yellow-green appearance.
+
+These should be supporting controls, not the main effect.
+
+A. Base Softness
+
+Implement subtle detail reduction using existing VHSart softness or blur functionality where available.
+
+Control:
+
+* Base Softness
+* Fine Detail Reduction
+
+Avoid excessive blur.
+
+B. Warm / Yellow-Green Tint
+
+Implement a subtle adjustable warm color bias.
+
+Controls:
+
+* Warm Tint
+* Yellow-Green Balance
+* Tint Amount
+
+Preserve the underlying image colors and avoid applying a flat yellow filter over the entire image.
+
+7. Right-Side Vertical Bright Strip
+
+The reference contains a very narrow bright vertical strip close to the right edge.
+
+Reconstruct this as an optional supporting artifact.
+
+Controls:
+
+* Enable/Disable
+* Strip Position
+* Strip Width
+* Strip Brightness
+* Strip Opacity
+* Edge Variation
+
+The strip must remain narrow and subtle by default.
+
+Do not make it a dominant vertical distortion.
+
+8. Processing Architecture
+
+Use a hybrid implementation:
+
+* Reuse existing VHSart engines for softness, color treatment, and compatible chromatic processing.
+* Implement a dedicated Chroma Streaks & Interleave engine if existing engines cannot accurately produce the required combination.
+* Keep the right-side strip as an independently controlled supporting component.
+* Avoid duplicated functionality.
+
+Suggested processing order:
+
+1. Optional Base Softness.
+2. Optional Warm / Yellow-Green Color Treatment.
+3. Fine Interleaved / Cross-Color Pattern.
+4. Horizontal Chroma Smearing.
+5. Horizontal Chroma Streak Generation.
+6. Localized RGB/Chroma Displacement.
+7. Optional Right-Side Vertical Strip.
+8. Final Alpha and Premultiplication Handling.
+
+Adjust this order if testing demonstrates a more accurate signal-processing pipeline.
+
+9. Preset Default Appearance
+
+Create the preset with balanced medium-to-high intensity.
+
+Suggested initial ranges, subject to visual validation:
+
+Parameter	Initial Range
+Chroma Smear Amount	50–75%
+Chroma Streak Density	40–65%
+Interleave Pattern Intensity	35–60%
+Base Softness	40–60%
+Warm / Yellow-Green Tint	20–45%
+Right Vertical Strip Opacity	25–50%
+
+These are starting estimates, not verified measurements from the reference.
+
+The default preset should preserve image readability while making the chromatic streaks and interleaved interference clearly visible.
+
+10. Animation and Randomness
+
+The reference is a single still image.
+
+Do not claim that a particular temporal behavior has been verified.
+
+However, implement optional animation controls so the effect can be used on video:
+
+* Animation Speed
+* Temporal Variation
+* Random Seed
+* Animated Chroma Streaks
+* Animated Interleave Phase
+
+Use deterministic rendering when the seed and time are fixed.
+
+Do not introduce unnecessary flickering or rapid movement by default.
+
+11. Visual Validation
+
+Test the result against IMG_4650.jpeg.
+
+Evaluate:
+
+* Horizontal streak geometry.
+* Chroma smear length and distribution.
+* Red/orange/yellow and green/blue/cyan separation.
+* Fine interleaved pattern visibility.
+* Interaction with detailed image regions.
+* Subtle horizontal displacement.
+* Overall softness and color bias.
+* Narrow right-side vertical strip.
+* Preservation of the original image’s recognizable structure.
+
+Inspect the output at 100% and 200% zoom.
+
+Do not consider the preset complete merely because colored horizontal lines are visible. The fine interleaved interference is an essential part of its identity.
+
+12. Technical Requirements
+
+Implementation must be:
+
+* Native C++ using the Adobe After Effects SDK.
+* Fully procedural during rendering.
+* Compatible with Alpha and Premultiplied Alpha.
+* Multi-Frame Rendering safe.
+* Thread-safe.
+* Deterministic with fixed seed and time.
+* Compatible with the existing VHSart architecture.
+
+Do not use pre-rendered overlays, images, videos, or GIFs.
+
+Do not break existing presets or unrelated effects.
+
+13. Final Deliverable
+
+Deliver:
+
+1. A fully functional Horizontal Chroma Streaks & Interleave preset.
+2. Correct placement inside the Tear & Chroma category.
+3. All implemented adjustable parameters.
+4. Reuse of existing engines wherever appropriate.
+5. Any necessary dedicated procedural engine.
+6. Visual comparison against IMG_4650.jpeg.
+7. A successful native After Effects build.
+
+Final Priority: Reproduce the distinctive combination of horizontal multicolor chroma streaks, horizontal smearing, and fine interleaved cross-color interference. These are the defining characteristics of this preset. Supporting softness, color tint, and the right-side strip must remain secondary and independently adjustable.

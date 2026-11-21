@@ -1,0 +1,108 @@
+# ============================================================
+# Lofi FX VHS — Preset: Blank Slate
+# ============================================================
+
+name = Blank Slate
+
+# Format
+tv_standard = 0
+bandwidth_lines = 400
+bandwidth_rows = 400
+chroma_bandwidth_lines = 240
+pal_switch = 1
+
+# Composite
+composite_enable = 0
+composite_strength = 1
+dot_crawl = 0.5
+cross_color = 0.5
+composite_noise = 0
+
+# Noise
+noise_enable = 0
+luma_noise = 0.04
+chroma_noise = 0.05
+noise_tint_hue = 0
+seed_offset = 42
+
+# Interlace
+interlace_mode = 0
+interlace_amount = 0.8
+field_order = 0
+
+# Tracking
+headswitch_enable = 0
+headswitch_height = 12
+headswitch_intensity = 0.5
+tracking_enable = 0
+tracking_amount = 0.3
+tracking_speed = 4
+tracking_height = 40
+tracking_opacity = 1
+
+# Dropouts
+dropout_enable = 0
+dropout_density = 0
+dropout_length = 24
+dropout_height = 1
+dropout_opacity = 0.85
+dropout_softness = 2
+
+# Geometry
+geometry_enable = 0
+line_jitter_px = 0
+top_skew_px = 0
+top_skew_decay = 30
+edge_pincushion = 0
+
+# Channel Registration
+chroma_reg_enable = 0
+chroma_offset_r = 0
+chroma_offset_b = 0
+
+# Color Fade & CRT Trim
+age_enable = 0
+color_fade = 0
+hue_tint = 0
+black_lift = 0
+white_knee = 1
+dynamic_range_stops = 9
+
+# CRT Bloom (Mist)
+mist_enabled = 0
+mist_amount = 0.5
+mist_spread = 20
+mist_threshold = 0.6
+mist_veil = 0.1
+
+# OSD
+osd_enable = 0
+osd_date_enable = 1
+osd_time_enable = 1
+osd_rec_enable = 1
+osd_mode_enable = 0
+osd_counter_enable = 0
+osd_speed_enable = 0
+osd_date_pos = 8
+osd_time_pos = 6
+osd_rec_pos = 2
+osd_mode_pos = 0
+osd_counter_pos = 1
+osd_speed_pos = 7
+osd_glyph_set = 1
+osd_shadow = 1
+osd_scale = 1
+osd_play_mode = 0
+osd_speed_label = 0
+osd_rec_blink = 1
+osd_start_year = 1995
+osd_start_month = 7
+osd_start_day = 14
+osd_start_hour = 14
+osd_start_minute = 32
+osd_start_second = 0
+osd_date_format = 1
+
+# Color Space
+input_transform = 0
+output_transform = 0

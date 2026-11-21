@@ -1,0 +1,543 @@
+//! Display/capture side: recover the picture from the deck's baseband output
+//! the way a TV or capture card does.
+//!
+//! * horizontal sync is found per line with sub-sample accuracy and followed by
+//!   a first-order AFC flywheel (`afc_alpha`: 1 = lines locked to sync like a
+//!   time-base corrector, 0 = free running); any timing error the AFC does not
+//!   follow shows up as horizontal displacement;
+//! * the back porch is clamped (DC restoration);
+//! * colour-under is synchronously demodulated with the line-rotated carrier,
+//!   referenced to the burst (APC phase, ACC gain, colour killer) and passed
+//!   through the deck's comb that cancels adjacent-track crosstalk (1 H at 525
+//!   lines, 2 H at 625);
+//! * the television then decodes the deck's chroma against its own colour reference
+//!   (off by `tv_phase_deg`): an NTSC set takes the phasor as U + jV, a PAL set
+//!   un-switches V and, with its delay line, averages each line with the one before.
+//!   On a 525-line tape (PAL-60) the deck switches V itself, after its own colour processing;
+//! * optionally, the picture then goes through a composite cable and the TV's Y/C
+//!   separator (`composite`) before it is converted to RGB.
+
+use serde::{Deserialize, Serialize};
+use super::composite::{self, CompositeParams};
+use super::consts::*;
+use super::crt;
+use crate::dsp::*;
+use super::interference::video_line_terms;
+use crate::interference_params::InterferenceParams;
+use crate::standard::{self, ColourTv, TvStandard};
+use super::record::{line_rotation, pal60_switched, v_switched, CU_WHOLE_CYCLES_PER_LINE};
+use super::video::{write_standard_burst, Baseband, Frame};
+use std::f64::consts::PI;
+use std::sync::OnceLock;
+
+// Keep the ACC aperture inside the settled centre of each format's burst.
+pub(crate) const BURST_MEASURE_LEN: usize = if BURST_LEN < 36 { 12 } else { 20 };
+pub(crate) const BURST_MEASURE_START: usize = BURST_START + (BURST_LEN - BURST_MEASURE_LEN) / 2;
+
+/// Window a sync tip must fall in, IRE: 25 IRE either side of the 525-line sync tip, used as
+/// they stand at both rasters.
+const SYNC_TIP_MIN_IRE: f32 = -65.0;
+const SYNC_TIP_MAX_IRE: f32 = -15.0;
+/// Samples after the sync leading edge at which the back-porch clamp gate opens.
+const CLAMP_GATE_START: usize = 120;
+/// Length of the back-porch clamp gate in baseband samples.
+const CLAMP_GATE_LEN: usize = 14;
+
+// The chroma PLL `freq += k_i err; phi += freq + k_p err` has the characteristic polynomial
+// `z^2 - (2 - k_p - k_i) z + (1 - k_p)` and settles only for `0 < k_p < 2` and `0 < k_i < 4 - 2 k_p`;
+// above `k_p = 1` it rings with alternating sign from line to line. The gains from `pll_omega_n`
+// and `pll_zeta` are taken as given, so a mis-set loop makes the hue jump and ring as a badly
+// adjusted deck does. Only negative or NaN figures are taken as 0 (`f64::max` maps NaN to 0).
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct DecodeParams {
+    pub afc_alpha: f64,
+    pub clamp: bool,
+    pub comb: bool,
+    /// Per-line smoothing of the APC phase and ACC gain estimates (1 = follow
+    /// every burst measurement, small = slow loops as in a real deck).
+    pub apc_alpha: f64,
+    /// Whether chroma APC uses a closed-loop second-order PLL (false = first-order leaky integration).
+    pub chroma_pll: bool,
+    /// Natural frequency omega_n of the loop filter in line units. The loop settles up to about
+    /// 0.7 at the nominal damping; larger figures are taken as given and make the hue ring or
+    /// jump from line to line, as a mis-adjusted deck does.
+    pub pll_omega_n: f64,
+    /// Loop damping ratio zeta (nominal ~0.707). A negative figure acts as 0.
+    pub pll_zeta: f64,
+    /// Per-line smoothing of the ACC gain estimate (1 = follow every burst measurement).
+    pub acc_alpha: f64,
+    pub acc_max_gain: f64,
+    /// Colour killer: burst magnitude below this fraction of nominal mutes colour.
+    pub kill_threshold: f64,
+    /// Baseband chroma smoothing after synchronous demodulation.
+    pub chroma_lpf_hz: f64,
+    /// Nominal demodulated burst magnitude (set by deck alignment).
+    pub burst_nominal: f64,
+    /// Record-side burst boost that the ACC undoes (standard: 2x = +6 dB).
+    pub burst_boost: f64,
+    /// How much the chroma path lags the luma path, baseband samples
+    /// (measured at alignment; the deck's luma delay line cancels it).
+    pub chroma_delay: f64,
+    /// Colour decoder of the television the deck feeds.
+    pub tv: ColourTv,
+    /// PAL television: decode with the 1 H delay line (false: simple PAL, one line at a time).
+    pub delay_line: bool,
+    /// Error of the television's colour reference, degrees: an NTSC set's tint control off
+    /// centre or a drifted reference oscillator. It turns the chroma of every line alike.
+    pub tv_phase_deg: f64,
+}
+
+impl Default for DecodeParams {
+    fn default() -> Self {
+        Self {
+            afc_alpha: 0.35,
+            clamp: true,
+            comb: true,
+            apc_alpha: 0.2,
+            chroma_pll: false,
+            pll_omega_n: 0.25,
+            pll_zeta: 0.707,
+            acc_alpha: 0.1,
+            acc_max_gain: 8.0,
+            kill_threshold: 0.18,
+            chroma_lpf_hz: 0.8e6,
+            burst_nominal: 1.0,
+            burst_boost: 2.0,
+            chroma_delay: 0.0,
+            tv: STANDARD.colour_tv(),
+            delay_line: true,
+            tv_phase_deg: 0.0,
+        }
+    }
+}
+
+/// Contiguous baseband data from the deck, starting at global index `bb0`.
+pub struct StreamView<'a> {
+    pub bb0: i64,
+    pub luma: &'a [f32],
+    pub cunder: &'a [f32],
+}
+
+impl StreamView<'_> {
+    pub fn end(&self) -> i64 {
+        self.bb0 + self.luma.len() as i64
+    }
+}
+
+/// Head parity (0/1) that supplies global baseband sample `n`.
+pub fn head_parity_at(n: i64) -> usize {
+    let g = n * OS as i64 + SWITCH_LEAD_RF as i64;
+    g.div_euclid(FIELD_RF as i64).rem_euclid(2) as usize
+}
+
+/// Sub-sample position of the sync leading edge near `n0`.
+///
+/// Like a TV's sync separator this is *tip referenced*: the slice level sits
+/// half a nominal sync amplitude (20 IRE at 525 lines) above the sync tip, and a candidate is
+/// only accepted if its tip really is at sync-tip level (about `SYNC_IRE`, allowing
+/// +/-25 IRE of DC error and hum) and stays there for the sync width. That
+/// rejects the steep fall from a bright picture into the front porch, which is
+/// larger than the sync pulse itself. Candidate edges are tried strongest first.
+/// Returns `None` if no plausible pulse is found.
+pub fn find_sync(luma: &[f32], bb0: i64, n0: f64, search: i64) -> Option<f64> {
+    let c = n0.round() as i64 - bb0;
+    let lo = (c - search).max(10);
+    let hi = (c + search).min(luma.len() as i64 - 60);
+    let drop = |i: i64| luma[i as usize - 2] - luma[i as usize + 2];
+    let mut cands: Vec<(f32, i64)> = (lo..hi)
+        .filter(|&i| {
+            let d = drop(i);
+            d >= 14.0 && d >= drop(i - 1) && d >= drop(i + 1)
+        })
+        .map(|i| (drop(i), i))
+        .collect();
+    cands.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+    for (_, i) in cands.into_iter().take(6) {
+        let i = i as usize;
+        let tip = luma[i + 8..i + 24].iter().sum::<f32>() / 16.0;
+        if !(SYNC_TIP_MIN_IRE..=SYNC_TIP_MAX_IRE).contains(&tip) {
+            continue;
+        }
+        let mid = tip - 0.5 * SYNC_IRE;
+        if luma[i - 6] < mid + 5.0 {
+            continue;
+        }
+        let mut j = i - 6;
+        while j < i + 6 && !(luma[j] >= mid && luma[j + 1] < mid) {
+            j += 1;
+        }
+        if !(luma[j] >= mid && luma[j + 1] < mid) {
+            continue;
+        }
+        let low = luma[j + 1..j + 51].iter().filter(|v| **v < mid + 10.0).count();
+        if low < 44 {
+            continue;
+        }
+        let frac = ((luma[j] - mid) / (luma[j] - luma[j + 1])) as f64;
+        return Some(bb0 as f64 + j as f64 + frac);
+    }
+    None
+}
+
+/// Lines between the two lines the deck's chroma comb adds. At 525 lines the crosstalk of the
+/// neighbouring tracks turns 180 deg from one line to the next relative to the wanted signal
+/// (the two heads rotate +90 and -90 deg per line), so the 1 H comb cancels it. At 625 lines it
+/// turns only 90 deg per line (one head does not rotate) and the V switch flips every line, so
+/// the comb adds line n and line n - 2, where the crosstalk is again opposite and the switch alike.
+const COMB_LINES: usize = if matches!(STANDARD, TvStandard::Pal) { 2 } else { 1 };
+
+/// Angle of the played-back burst on global line `line`, radians: 180 deg at 525 lines; at 625
+/// lines the swinging burst, +135 deg where V is not switched and -135 deg where it is.
+fn burst_angle(line: i64) -> f64 {
+    match STANDARD {
+        TvStandard::Pal if v_switched(line) => -0.75 * PI,
+        TvStandard::Pal => 0.75 * PI,
+        _ => PI,
+    }
+}
+
+/// Whether the deck's output carries V inverted on global line `line`. A 625-line tape is
+/// recorded switched and the deck passes the switch on; a multi-standard deck playing a 525-line
+/// tape into a PAL television (PAL-60) makes the switch itself, after its colour processing.
+/// Otherwise the output is not switched.
+fn output_switched(line: i64, p: &DecodeParams) -> bool {
+    match STANDARD {
+        TvStandard::Pal => v_switched(line),
+        _ => p.tv == ColourTv::Pal && pal60_switched(line),
+    }
+}
+
+/// The television's colour decoding of one line of the deck's chroma `cur` (its phasor per
+/// pixel, V still switched on a PAL tape or on a PAL-60 deck's output); `prev` is the line before it in the same field and
+/// `switched` whether V is inverted on this line. Returns `None` where the set passes the
+/// phasor on untouched as U + jV (an NTSC set whose colour reference is exactly right).
+fn television(cur: &[[f32; 2]], prev: Option<&[[f32; 2]]>, switched: bool, p: &DecodeParams) -> Option<Vec<[f32; 2]>> {
+    if p.tv == ColourTv::Ntsc && p.tv_phase_deg == 0.0 {
+        return None;
+    }
+    // the set's reference is off by tv_phase_deg on every line alike
+    let (c, s) = (p.tv_phase_deg.to_radians().cos() as f32, p.tv_phase_deg.to_radians().sin() as f32);
+    let rot = |a: [f32; 2]| [a[0] * c - a[1] * s, a[0] * s + a[1] * c];
+    Some(match (p.tv, prev) {
+        (ColourTv::Ntsc, _) => cur.iter().map(|a| rot(*a)).collect(),
+        (ColourTv::Pal, Some(prev)) if p.delay_line => {
+            cur.iter().zip(prev.iter()).map(|(a, b)| standard::pal_delay_line(rot(*a), rot(*b), switched)).collect()
+        }
+        // simple PAL, or the first line of the field, which has no line before it to average with
+        (ColourTv::Pal, _) => cur.iter().map(|a| standard::pal_simple(rot(*a), switched)).collect(),
+    })
+}
+
+/// cos/sin of the colour-under carrier across one line at the baseband rate, by column.
+fn demod_carrier_table() -> &'static (Vec<f32>, Vec<f32>) {
+    static T: OnceLock<(Vec<f32>, Vec<f32>)> = OnceLock::new();
+    T.get_or_init(|| {
+        let mut c = Vec::with_capacity(BB_PER_LINE);
+        let mut s = Vec::with_capacity(BB_PER_LINE);
+        for col in 0..BB_PER_LINE {
+            let th = 2.0 * PI * CU_WHOLE_CYCLES_PER_LINE * col as f64 / BB_PER_LINE as f64;
+            c.push(th.cos() as f32);
+            s.push(th.sin() as f32);
+        }
+        (c, s)
+    })
+}
+
+/// Demodulate the colour-under over `[start, start+len)` (global baseband
+/// indices) into complex baseband `(re, im)`.
+pub(crate) fn demod_chroma(view: &StreamView, start: i64, len: usize, p: &DecodeParams) -> (Vec<f32>, Vec<f32>) {
+    let mut re = vec![0.0f32; len];
+    let mut im = vec![0.0f32; len];
+    let (tc, ts) = demod_carrier_table();
+    for k in 0..len {
+        let n = start + k as i64;
+        let idx = n - view.bb0;
+        if idx < 0 || idx >= view.cunder.len() as i64 {
+            continue;
+        }
+        let line = n.div_euclid(BB_PER_LINE as i64);
+        let col = n.rem_euclid(BB_PER_LINE as i64) as usize;
+        let (rc, rs) = line_rotation(head_parity_at(n), line);
+        let (c, s) = (tc[col], ts[col]);
+        // carrier phasor e^{j(th+rho)}
+        let (pc, ps) = (c * rc - s * rs, c * rs + s * rc);
+        let u = 2.0 * view.cunder[idx as usize];
+        re[k] = u * pc;
+        im[k] = -u * ps;
+    }
+    // The two fourth-order low-passes are independent, so advance them together in one pass.
+    let mut fr = butter_lp(4, p.chroma_lpf_hz, FS_BB);
+    let mut fi = butter_lp(4, p.chroma_lpf_hz, FS_BB);
+    for k in 0..len {
+        re[k] = fr.tick(re[k] as f64) as f32;
+        im[k] = fi.tick(im[k] as f64) as f32;
+    }
+    (re, im)
+}
+
+/// Decode frame `k` from the deck output to continuous `Baseband` `(y, cu, cv)` ahead of the CRT
+/// picture tube. With `composite.enabled` the decoded luma and chroma pass through a composite
+/// connection. Multi-generation VCR dubbing (`Chain`) uses this directly so intermediate decks
+/// dub the continuous electrical video signal without passing through a CRT screen or quantising
+/// to an intermediate `u8` video `Frame`.
+pub fn decode_baseband(k: i64, view: &StreamView, p: &DecodeParams, composite: &CompositeParams, itf: &InterferenceParams) -> Baseband {
+    let mut bb = decode_planes(k, view, p, itf);
+    if composite.enabled {
+        composite::roundtrip_with_tv(&mut bb, k, composite, p.tv);
+    }
+    bb
+}
+
+/// Decode frame `k` from the deck output to RGB. With `composite.enabled` the decoded
+/// luma and chroma first pass through a composite connection to the TV. `itf` is the
+/// outside world: what it adds in the TV's video stages and what it does to the picture tube.
+/// All signal processing happens in continuous analog space through the CRT beam; writing the
+/// output `Frame` to video is strictly the last step.
+pub fn decode_frame(k: i64, view: &StreamView, p: &DecodeParams, composite: &CompositeParams, itf: &InterferenceParams) -> Frame {
+    let bb = decode_baseband(k, view, p, composite, itf);
+    crt::scan_to_frame(&bb, k, itf)
+}
+
+/// What the outside world does to one luma sample after the TV's clamp: a ground loop moves
+/// the bias of the video stages (black stays, whites move) and the pulses, the hum that the
+/// clamp leaves and the rings add on top. `gain` and `add` are the pixel's terms from
+/// `video_line_terms`, which places the pixels on the deck's RF time axis (`OS` times finer).
+#[inline]
+fn outside_luma(y: f32, gain: f32, add: f32) -> f32 {
+    y * (1.0 + gain) + add
+}
+
+/// Loop-filter gains `(k_p, k_i)` from `DecodeParams`; negative or NaN figures act as 0.
+fn pll_gains(p: &DecodeParams) -> (f64, f64) {
+    let (omega_n, zeta) = (p.pll_omega_n.max(0.0), p.pll_zeta.max(0.0));
+    (2.0 * zeta * omega_n, omega_n * omega_n)
+}
+
+/// Luma and chroma of frame `k` as the deck delivers them, placed on the nominal raster
+/// (the active picture of each line, timed by the AFC); the rest of the frame is blank.
+/// `itf` adds to the luma what reaches the TV's video stages (nothing while `!itf.video_on()`).
+pub fn decode_planes(k: i64, view: &StreamView, p: &DecodeParams, itf: &InterferenceParams) -> Baseband {
+    let outside = itf.video_on();
+    let frame0 = k * FRAME_BB as i64;
+    let (cs, ce) = (frame0 + 20 * BB_PER_LINE as i64, frame0 + LINES as i64 * BB_PER_LINE as i64);
+    assert!(view.bb0 <= cs - 2000 && view.end() >= ce, "stream view does not cover frame {k}");
+    let cstart = cs - 600;
+    let clen = (ce - cs) as usize + 1200;
+    let (cre, cim) = demod_chroma(view, cstart, clen, p);
+    let cat = |n: f64, c: &[f32]| -> f32 { sample_cubic(c, n - cstart as f64) };
+
+    // the PLL's gains as configured (the same for every line); see the note at the top
+    let (pll_kp, pll_ki) = pll_gains(p);
+
+    let mut planes = Baseband::blank();
+    // the outside world's terms for the pixels of the current line, filled once per line
+    let (mut gain_line, mut add_line) = (vec![0.0f32; ACTIVE_W], vec![0.0f32; ACTIVE_W]);
+    for field in 0..2 {
+        let mut s_est = 0.0f64;
+        let (mut phi_s, mut g_s) = (0.0f64, 0.0f64);
+        let mut freq_s = 0.0f64;
+        let mut chroma_lines: Vec<Vec<[f32; 2]>> = Vec::with_capacity(FIELD_ACTIVE_LINES);
+        let mut luma_lines: Vec<Vec<f32>> = Vec::with_capacity(FIELD_ACTIVE_LINES);
+        for j in 0..FIELD_ACTIVE_LINES {
+            let line = (k * LINES as i64) + (FIELD_FIRST_LINE[field] + j) as i64;
+            let n0 = (line * BB_PER_LINE as i64) as f64;
+            let meas = find_sync(view.luma, view.bb0, if j == 0 { n0 } else { s_est + BB_PER_LINE as f64 }, 45);
+            let pred = if j == 0 { n0 } else { s_est + BB_PER_LINE as f64 };
+            s_est = match (meas, j) {
+                (Some(m), 0) => m,
+                (Some(m), _) => pred + p.afc_alpha * (m - pred),
+                (None, _) => pred,
+            };
+            let s_blank_ref = meas.unwrap_or(s_est);
+
+            // clamp on the back porch
+            let mut off = 0.0f32;
+            if p.clamp {
+                let b0 = (s_blank_ref + CLAMP_GATE_START as f64).round() as i64 - view.bb0;
+                if b0 >= 0 && (b0 + CLAMP_GATE_LEN as i64) < view.luma.len() as i64 {
+                    off = view.luma[b0 as usize..b0 as usize + CLAMP_GATE_LEN].iter().sum::<f32>()
+                        / CLAMP_GATE_LEN as f32;
+                }
+            }
+            // burst measurement (complex mean over the burst middle)
+            let (mut br, mut bi) = (0.0f64, 0.0f64);
+            let b0 = (s_blank_ref + BURST_MEASURE_START as f64 + p.chroma_delay).round() as i64;
+            for i in 0..BURST_MEASURE_LEN {
+                let idx = (b0 + i as i64 - cstart) as usize;
+                br += cre[idx.min(clen - 1)] as f64;
+                bi += cim[idx.min(clen - 1)] as f64;
+            }
+            let (br, bi) = (br / BURST_MEASURE_LEN as f64, bi / BURST_MEASURE_LEN as f64);
+            let bmag = (br * br + bi * bi).sqrt();
+            // the deck's APC compares the burst with the angle it should have on this line
+            let phi = bi.atan2(br) - burst_angle(line);
+            let wrap = |a: f64| (a + PI).rem_euclid(2.0 * PI) - PI;
+            let killed = bmag < p.kill_threshold * p.burst_nominal;
+            if j == 0 {
+                phi_s = wrap(phi);
+                freq_s = 0.0;
+                g_s = (p.burst_nominal / bmag.max(1e-9)).ln();
+            } else {
+                if p.chroma_pll {
+                    if !killed {
+                        let err = wrap(wrap(phi) - phi_s);
+                        freq_s += pll_ki * err;
+                        phi_s = wrap(phi_s + freq_s + pll_kp * err);
+                    } else {
+                        // Open-loop freewheeling during burst dropout
+                        phi_s = wrap(phi_s + freq_s);
+                    }
+                } else {
+                    phi_s += p.apc_alpha * wrap(wrap(phi) - phi_s);
+                }
+                let g = (p.burst_nominal / bmag.max(1e-9)).ln();
+                g_s += p.acc_alpha * (g - g_s);
+            }
+            let gain = g_s.exp().min(p.acc_max_gain);
+            let (cr, sr) = ((-phi_s).cos(), (-phi_s).sin());
+            // ACC brings the burst to its nominal demodulated size; that size
+            // corresponds to a recorded burst of BURST_AMP * boost, so this
+            // converts chroma back to picture IRE.
+            let scale = gain * (BURST_AMP_IRE as f64 * p.burst_boost) / p.burst_nominal.max(1e-12);
+
+            let base = s_est + ACTIVE_START as f64;
+            if outside {
+                video_line_terms(itf, base, &mut gain_line, &mut add_line);
+            }
+            let mut yl = Vec::with_capacity(ACTIVE_W);
+            let mut cl = Vec::with_capacity(ACTIVE_W);
+            for x in 0..ACTIVE_W {
+                let pos = base + x as f64;
+                let mut y = sample_cubic(view.luma, pos - view.bb0 as f64) - off;
+                if outside {
+                    y = outside_luma(y, gain_line[x], add_line[x]);
+                }
+                yl.push(y);
+                if killed {
+                    cl.push([0.0, 0.0]);
+                } else {
+                    let (r, i) = (cat(pos + p.chroma_delay, &cre) as f64, cat(pos + p.chroma_delay, &cim) as f64);
+                    // rotate by -phi, scale to the burst reference amplitude
+                    let (rr, ii) = (r * cr - i * sr, r * sr + i * cr);
+                    cl.push([(rr * scale) as f32, (ii * scale) as f32]);
+                }
+            }
+            luma_lines.push(yl);
+            chroma_lines.push(cl);
+        }
+        // the deck's comb: the crosstalk from the neighbouring tracks cancels between line n
+        // and line n - COMB_LINES, where the wanted chroma (and, at 625 lines, its V switch) is alike
+        let first_line = k * LINES as i64 + FIELD_FIRST_LINE[field] as i64;
+        let mut deck_out: Vec<Vec<[f32; 2]>> = (0..FIELD_ACTIVE_LINES)
+            .map(|j| {
+                if p.comb && j >= COMB_LINES {
+                    let (cur, old) = (&chroma_lines[j], &chroma_lines[j - COMB_LINES]);
+                    cur.iter().zip(old.iter()).map(|(a, b)| [(a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5]).collect()
+                } else {
+                    chroma_lines[j].clone()
+                }
+            })
+            .collect();
+        // PAL-60: the multi-standard deck forms its 4.43 MHz output from the NTSC chroma it has just
+        // recovered, so the V switch comes after the APC and the comb (before the comb it would
+        // cancel V instead of the crosstalk). A phase error that came off the tape is mirrored with V
+        // on the switched lines; the television's PAL decoder only averages it over two lines.
+        if STANDARD != TvStandard::Pal && p.tv == ColourTv::Pal {
+            for (j, line) in deck_out.iter_mut().enumerate() {
+                if pal60_switched(first_line + j as i64) {
+                    for c in line.iter_mut() {
+                        c[1] = -c[1];
+                    }
+                }
+            }
+        }
+        for j in 0..FIELD_ACTIVE_LINES {
+            let base = (FIELD_FIRST_LINE[field] + j) * BB_PER_LINE + ACTIVE_START;
+            let prev = if j > 0 { Some(deck_out[j - 1].as_slice()) } else { None };
+            let tv = television(&deck_out[j], prev, output_switched(first_line + j as i64, p), p);
+            for x in 0..ACTIVE_W {
+                let c = tv.as_ref().map_or(deck_out[j][x], |t| t[x]);
+                planes.y[base + x] = luma_lines[j][x];
+                planes.cu[base + x] = c[0];
+                planes.cv[base + x] = c[1];
+            }
+        }
+    }
+    write_standard_burst(&mut planes);
+    planes
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn line_with_sync(at: usize, level: f32) -> Vec<f32> {
+        let mut v = vec![level; 600];
+        for k in 0..HSYNC_W {
+            v[at + k] = level - 40.0;
+        }
+        v
+    }
+
+    /// A bright picture tail ahead of the sync (as at the end of an active line)
+    /// must not hide the pulse or move it.
+    #[test]
+    fn bright_picture_before_sync_does_not_matter() {
+        let base = find_sync(&line_with_sync(300, 0.0), 0, 300.0, 40).unwrap();
+        for lead in [60.0f32, 95.0, 120.0] {
+            let mut v = line_with_sync(300, 0.0);
+            for x in v[200..296].iter_mut() {
+                *x = lead;
+            }
+            let t = find_sync(&v, 0, 300.0, 40).unwrap();
+            assert!((t - base).abs() < 0.6, "lead {lead}: {t} vs {base}");
+        }
+    }
+
+    #[test]
+    fn sync_slicer_is_referenced_to_the_local_level() {
+        // the same pulse found at the same place whether the line sits at 0 IRE
+        // or is lifted/dropped by hum
+        let base = find_sync(&line_with_sync(300, 0.0), 0, 300.0, 40).unwrap();
+        for level in [-15.0f32, 12.0, 22.0] {
+            let t = find_sync(&line_with_sync(300, level), 0, 300.0, 40).unwrap();
+            assert!((t - base).abs() < 0.05, "level {level}: {t} vs {base}");
+        }
+        // sub-sample accuracy of the 50% point of a hard edge
+        assert!((base - 299.5).abs() < 0.6, "{base}");
+    }
+
+    #[test]
+    fn noise_without_a_pulse_is_not_sync() {
+        let v: Vec<f32> = (0..600).map(|i| ((i * 7919) % 23) as f32 - 11.0).collect();
+        assert!(find_sync(&v, 0, 300.0, 40).is_none());
+    }
+
+    #[test]
+    fn demod_carrier_table_matches_formula() {
+        let (tc, ts) = demod_carrier_table();
+        assert_eq!(tc.len(), BB_PER_LINE);
+        assert_eq!(ts.len(), BB_PER_LINE);
+        for col in 0..BB_PER_LINE {
+            let th = 2.0 * PI * CU_WHOLE_CYCLES_PER_LINE * col as f64 / BB_PER_LINE as f64;
+            assert_eq!(tc[col].to_bits(), (th.cos() as f32).to_bits(), "cos col {col}");
+            assert_eq!(ts[col].to_bits(), (th.sin() as f32).to_bits(), "sin col {col}");
+        }
+    }
+
+    #[test]
+    fn pll_gains_clamp_negative_and_nan_inputs_to_zero() {
+        let def = DecodeParams::default();
+        let (kp, ki) = pll_gains(&def);
+        assert!((kp - 0.3535).abs() < 1e-12, "default kp: {kp}");
+        assert!((ki - 0.0625).abs() < 1e-12, "default ki: {ki}");
+
+        let neg = DecodeParams { pll_omega_n: -0.25, pll_zeta: 0.707, ..def.clone() };
+        assert_eq!(pll_gains(&neg), (0.0, 0.0));
+
+        let nan = DecodeParams { pll_omega_n: f64::NAN, pll_zeta: f64::NAN, ..def };
+        assert_eq!(pll_gains(&nan), (0.0, 0.0));
+    }
+}

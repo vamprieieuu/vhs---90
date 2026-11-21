@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       vhs_archive_url:
-        description: "Optional downloadable URL for the original vhs.zip (SDK + fonts). Leave blank when vhs.zip is in the repository root."
+        description: "Optional fallback URL for vhs.zip. Normally leave blank: SDK and licensed fonts are checked into VHS/."
         required: false
         type: string
 permissions:
@@ -17,27 +17,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Obtain the original VHS6RIFT archive
+      - name: Verify checked-in VHS6RIFT SDK and font assets
         shell: pwsh
         env:
           VHS_ARCHIVE_URL: ${{ inputs.vhs_archive_url }}
         run: |
-          if (-not (Test-Path 'vhs.zip') -and -not [string]::IsNullOrWhiteSpace($env:VHS_ARCHIVE_URL)) {
-            Invoke-WebRequest -Uri $env:VHS_ARCHIVE_URL -OutFile 'vhs.zip'
+          $sdk = "VHS/open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK/Headers/AE_Effect.h"
+          $pipl = "VHS/open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK/Resources/PiPLtool.exe"
+          $rooyin = "VHS/fonts/Rooyin_Free_Bold.ttf"
+          $sponge = "VHS/fonts/Sponge_Arabic_Regular.otf"
+          if ((-not (Test-Path $sdk) -or -not (Test-Path $pipl) -or -not (Test-Path $rooyin) -or -not (Test-Path $sponge)) -and
+              -not [string]::IsNullOrWhiteSpace($env:VHS_ARCHIVE_URL)) {
+            Invoke-WebRequest -Uri $env:VHS_ARCHIVE_URL -OutFile "vhs.zip"
           }
-          if (-not (Test-Path 'vhs.zip')) {
-            throw 'The original vhs.zip is required. Add it to the workspace or supply a downloadable URL as the workflow input. build.ps1 extracts the VHS6RIFT SDK and the two OFL font files from this archive.'
+          if ((-not (Test-Path $sdk) -or -not (Test-Path $pipl) -or -not (Test-Path $rooyin) -or -not (Test-Path $sponge)) -and
+              -not (Test-Path "vhs.zip")) {
+            throw "Required SDK/PiPLtool/font inputs are missing. Expected the checked-in VHS/ directory or optional vhs.zip."
           }
-          Write-Host "VHS archive size: $((Get-Item 'vhs.zip').Length) bytes"
+          Write-Host "Checked-in SDK/font availability verified."
 
       - name: Configure, build and test
         shell: pwsh
-        run: .\\build.ps1 -VhsArchivePath "$env:GITHUB_WORKSPACE\\vhs.zip" -BuildDir build -Configuration Release
+        run: .\build.ps1 -BuildDir build -Configuration Release
 
       - name: Verify single-file output
         shell: pwsh
         run: |
-          $aex = Join-Path $env:GITHUB_WORKSPACE 'build\\VHS-90.aex'
+          $aex = Join-Path $env:GITHUB_WORKSPACE "build\VHS-90.aex"
           if (-not (Test-Path $aex)) { throw "Missing root-level AEX: $aex" }
           $item = Get-Item $aex
           if ($item.Length -lt 65536) { throw "AEX is unexpectedly small ($($item.Length) bytes)." }
@@ -53,7 +59,6 @@ jobs:
           compression-level: 0
 
       - name: Publish direct AEX download
-        if: github.event_name == 'workflow_dispatch'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
