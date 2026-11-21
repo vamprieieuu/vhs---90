@@ -97,3 +97,22 @@ The four source clips in `VHS/Vhs cams` were decoded through the dedicated `VHS 
 - The FXC6 split-screen establishes that motion smear, sharpness loss and chroma/noise texture are separate behaviors; do not collapse them into one blur/noise control.
 
 The sampled frames were not enough to infer exact numerical settings for each individual RF effect. A true per-effect fidelity pass still requires isolated AE renders at known parameter values and a side-by-side comparison to matching source time ranges.
+
+## OSD and text audit update (2026-11-21)
+
+Current source review found that the earlier OSD specification is partially implemented, but not complete:
+
+- The Windows-only DirectWrite backend is present and is used by the AE render path. The OSD is composited before the composite/tape signal stages, so its text receives the same downstream signal damage as the footage.
+- Arabic/Latin mixed strings, bidi direction, combining marks, date localization, Arabic-Indic/Persian digits, clock modes, date formats, counter formats, and the Play/Pause/Stop/FF/REW labels have platform-neutral formatting and/or Windows smoke coverage.
+- The two redistribution-cleared font files are embedded by the Windows build path; the runtime creates a private DirectWrite font collection. The font selector in AE is still a fixed 15-entry popup, even though `enumerateSystemFontFamilies()` exists in the Windows backend. Dynamic system-font enumeration is not wired to the effect UI.
+- `OSD Text Data` is registered with `PF_PUI_NO_ECW_UI`. It is checked out and parsed, but there is no visible AE text editor for entering or changing arbitrary user text. This remains a real user-facing gap; the hidden arbitrary-data parameter is storage, not an editor.
+- The selected-font result previously ignored `requestedFontFound`, allowing a missing family to fall back silently. The current source now keeps the readable DirectWrite fallback but draws a visible `FONT?` indicator when the requested family cannot be found.
+- The hardcoded font popup includes families whose supplied files are not licensed for redistribution. This is acceptable only when the family is already installed on the user's system; the plugin must not bundle those restricted files. The visible fallback indicator now helps distinguish a missing family.
+- The OSD still needs an AE-host visual pass for all deck states, corners, date/counter positions, custom text editing, text glow/ghost, Arabic shaping and actual bundled-font appearance. The Windows DirectWrite smoke test is not a substitute for checking the effect inside AE.
+
+### OSD remaining work
+
+1. Provide a genuinely editable custom-text UI for the arbitrary-data parameter; do not label the hidden `PF_PUI_NO_ECW_UI` storage field as a completed text editor.
+2. Connect the DirectWrite system-font enumeration to a usable font-selection workflow, or explicitly constrain the selector to the bundled + installed families that are actually supported.
+3. Keep a clear warning when a requested family is missing; never silently present an unrelated family as the requested font.
+4. Test all OSD states/positions in AE 23.2.1 and confirm OSD text is damaged by downstream VHS stages as intended.
