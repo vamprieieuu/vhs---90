@@ -179,6 +179,37 @@ int main() {
     for(int aidx=0;aidx<8;++aidx) for(int bidx=aidx+1;bidx<8;++bidx)
         VHS90_CHECK_MSG(profileOutputs[aidx]!=profileOutputs[bidx]);
 
+    // Source-backed head-switch presets use the same editable region geometry.
+    DamageRegion headRift=full;
+    headRift.kind=RegionKind::HeadSwitch; headRift.shape=RegionShape::HorizontalBand;
+    headRift.trackingProfile=TrackingProfile::Vhs6RiftBand;
+    headRift.centerX=0.5f; headRift.centerY=0.5f; headRift.width=1.0f; headRift.height=1.0f;
+    headRift.intensity=1.0f; headRift.maxShiftPx=18.0f; headRift.waveAmplitudePx=0.0f;
+    headRift.servoDriftPx=0.0f; headRift.tearProbability=0.0f;
+    headRift.dropoutProbability=0.0f; headRift.noiseAmount=0.0f;
+    headRift.noiseDensity=0.0f; headRift.chromaShiftPx=0.0f;
+    RegionEngineParams headRiftP; headRiftP.regions=&headRift; headRiftP.regionCount=1;
+    headRiftP.seed=0x6A6Au; headRiftP.frame=11; headRiftP.timeSeconds=0.20;
+    std::vector<float> headRiftA(src.size()),headRiftB(src.size()),headRiftRepeat(src.size());
+    ImageView headRiftAV{headRiftA.data(),w,h,w*4},headRiftBV{headRiftB.data(),w,h,w*4};
+    ImageView headRiftRepeatV{headRiftRepeat.data(),w,h,w*4};
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,headRiftAV,headRiftP));
+    headRiftP.timeSeconds=0.25;
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,headRiftBV,headRiftP));
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,headRiftRepeatV,headRiftP));
+    VHS90_CHECK_MSG(headRiftA!=headRiftB && headRiftB==headRiftRepeat);
+
+    DamageRegion headNtsc=headRift;
+    headNtsc.trackingProfile=TrackingProfile::NtscRTracking;
+    headNtsc.maxShiftPx=14.0f; headNtsc.waveAmplitudePx=6.0f;
+    headNtsc.servoSmoothnessPx=12.0f; headNtsc.noiseAmount=0.30f;
+    headNtsc.snowIntensity=0.8f; headNtsc.snowAnisotropy=0.4f;
+    RegionEngineParams headNtscP=headRiftP; headNtscP.regions=&headNtsc;
+    std::vector<float> headNtscOut(src.size());
+    ImageView headNtscView{headNtscOut.data(),w,h,w*4};
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,headNtscView,headNtscP));
+    VHS90_CHECK_MSG(headNtscOut!=headRiftB);
+
     // NTSC-R snow intensity and anisotropy are independent controls.
     DamageRegion ntscSnow = full;
     ntscSnow.kind = RegionKind::TrackingNoise;
