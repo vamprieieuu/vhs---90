@@ -85,7 +85,8 @@ bool processSyncCollapse(ConstImageView src,ImageView dst,const SyncCollapsePara
             const float* original=src.rgba+y*src.rowStrideFloats+x*4;
             float* out=dst.rgba+y*dst.rowStrideFloats+x*4;
             if(alpha<=0.0f) { out[0]=original[0]; out[1]=original[1]; out[2]=original[2]; out[3]=alpha; continue; }
-            const float lineNoise=(hash01(std::uint32_t(x/6),std::uint32_t(y),p.seed,p.frame)-0.5f)*p.noiseAmount;
+            // Sync collapse is timing/geometry failure, not a full-frame grain layer.
+            // Noise is confined to the actual tear band below.
             const float trackingPulse=trackingBand*std::sin(time*17.0f)*p.trackingLineStrength;
             const float sx=float(x)+rowShift+trackingPulse;
             // A vertical sync roll is a raster wrap, not a clamped edge smear.
@@ -93,7 +94,7 @@ bool processSyncCollapse(ConstImageView src,ImageView dst,const SyncCollapsePara
             float r=sample(src,sx,sy,0),g=sample(src,sx,sy,1),b=sample(src,sx,sy,2);
             const float sourceA=sample(src,sx,sy,3);
             const float bandDamage=glitchBand;
-            const float noise=lineNoise+bandDamage*(hash01(std::uint32_t(x/3),std::uint32_t(y),p.seed+31u,p.frame)-0.5f)*0.8f;
+            const float noise=bandDamage*(hash01(std::uint32_t(x/3),std::uint32_t(y),p.seed+31u,p.frame)-0.5f)*0.8f;
             const float lumaGain=1.0f-bandDamage*0.55f-trackingBand*p.trackingLineStrength;
             if(p.premultipliedAlpha) {
                 if(sourceA>1.0e-6f) { r/=sourceA; g/=sourceA; b/=sourceA; }
