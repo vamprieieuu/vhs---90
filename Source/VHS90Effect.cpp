@@ -149,7 +149,7 @@ struct RenderSettings {
     float hsyncNoise=0, vsyncNoise=0, burstNoise=0;
     float edgeEnhance=0, chromaEdgeEnhance=0, tapeFade=0, blackLift=0, temporalGhost=0, ringing=0, ringingPower=2, crtEqualizer=0, gradeContrast=100, gradeBrightness=0, gradeSaturation=100, chromaIGain=100, chromaQGain=100, chromaIOffset=0, chromaQOffset=0, chromaQuantization=0, vignette=0, flicker=0;
     float lumaSmear=0, bloom=0, analogGlow=0;
-    float tapeSurface=0, tapeTransport=0, geometry=0, interlace=0, verticalRoll=0, edgeWave=0, scanlines=0;
+    float tapeSurface=35, tapeTransport=0, geometry=0, interlace=0, verticalRoll=0, edgeWave=0, scanlines=0;
     float trackingAmount=22, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=12, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=12, trackingServo=12, trackingTear=4;
     A_long trackingShape=3, trackingProfile=1, particleMode=1, particleDistribution=1, trackingPresetBase=1, trackingLayerPreset[3]={3,4,5};
@@ -162,7 +162,7 @@ struct RenderSettings {
     float tearBandAmount[4]={70,60,80,55}, tearBandY[4]={75,45,90,30}, tearBandHeightExtra[4]={15,12,8,10}, tearBandShift[4]={30,-24,40,-18}, tearBandFragmentation[4]={60,70,45,65}, tearBandChroma[4]={8,-6,12,-10}, tearBandSmear[4]={8,12,5,10}, tearBandDropout[4]={20,15,25,10};
     float headAmount=0, headY=100, headHeight=4, headShift=24;
     float headCondition=0;
-    float tapeWear=100, tapeDropouts=100, tapeScratches=100, tapeCreases=100, tapeEdge=100, tapeMold=100, tapeVaseline=100, tapeSticky=100, tapeSeed=1, backTension=0;
+    float tapeWear=35, tapeDropouts=12, tapeScratches=12, tapeCreases=8, tapeEdge=18, tapeMold=0, tapeVaseline=0, tapeSticky=5, tapeSeed=1, backTension=0;
     float tapeNoise=0;
     float magnetMoment=0.0f, magnetDistance=6.0f, groundLoop=0.0f, mainsHum=0.0f, rfField=0.0f, rfPickup=0.0f;
     float pyVhsLumaCompression=1.0f, pyVhsChromaCompression=1.0f, pyVhsLumaNoise=0.0f, pyVhsChromaNoise=0.0f, pyVhsChromaWave=0.0f, pyVhsGeneration=1.0f;
@@ -670,7 +670,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Black Lift",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BLACK_LIFT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Contrast",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_CONTRAST);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Exposure",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_GRADE_BRIGHTNESS);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,500,0,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vignette",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VIGNETTE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Flicker",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FLICKER);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_VHS_FRAME_TOPIC+100);
@@ -679,15 +679,15 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Analog Glow",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_ANALOG_GLOW);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_CAMCORDER_HUD_TOPIC+100);
     AEFX_CLR_STRUCT(def); def.flags=PF_ParamFlag_START_COLLAPSED; PF_ADD_TOPIC("Tape",ID_TAPE_MATERIAL_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Wear",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_WEAR);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Dropouts",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DROPOUTS);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Scratches",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SCRATCHES);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Creases / Folds",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_CREASES);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Edge Damage",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_EDGE);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Mold",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_MOLD);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Vaseline / Binder Film",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_VASELINE);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sticky Binder / Shed",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_STICKY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Wear",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_WEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Dropouts",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_DROPOUTS);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Scratches",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SCRATCHES);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Creases / Folds",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_CREASES);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Edge Damage",0,100,0,100,18,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_EDGE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Mold",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_MOLD);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Vaseline / Binder Film",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_VASELINE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sticky Binder / Shed",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_STICKY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Cassette Seed",1,10000,1,10000,1,1,PF_ValueDisplayFlag_NONE,0,ID_TAPE_SEED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Back Tension",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_TAPE_BACK_TENSION);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Transport",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_TRANSPORT);
@@ -1551,7 +1551,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.imageGrade.saturation=s.gradeSaturation/100.0f;
                 p.imageGrade.chromaIGain=s.chromaIGain/100.0f;p.imageGrade.chromaQGain=s.chromaQGain/100.0f;
                 p.imageGrade.chromaIOffset=s.chromaIOffset/200.0f;p.imageGrade.chromaQOffset=s.chromaQOffset/200.0f;
-                p.imageGrade.chromaQuantization=s.chromaQuantization/400.0f;
+                p.imageGrade.chromaQuantization=s.chromaQuantization/1200.0f;
                 p.imageGrade.vignette=clamp01(s.vignette/100.0f);
                 p.imageGrade.flicker=clamp01(s.flicker/100.0f);
             }
