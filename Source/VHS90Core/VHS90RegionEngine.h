@@ -26,7 +26,8 @@ enum class TrackingProfile : std::uint8_t {
     TapeFlutter = 3,
     FourEdgeCrawl = 4,
     Vhs6RiftBand = 5,
-    NtscRTracking = 6
+    NtscRTracking = 6,
+    VhsMainTracking = 7
 };
 
 // All position and size values are normalized to [0,1] frame coordinates.
@@ -60,7 +61,10 @@ struct DamageRegion {
 
     float noiseAmount = 0.12f;
     float noiseDensity = 0.15f;
+    float snowIntensity = 0.25f;
     float snowAnisotropy = 0.10f;
+    float noiseDriftXCellsPerSecond = 0.0f;
+    float noiseDriftYCellsPerSecond = 0.0f;
     float dropoutProbability = 0.02f;
     float dropoutAmount = 0.25f;
     float chromaShiftPx = 1.5f;
