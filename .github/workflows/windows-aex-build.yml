@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - work/osd-directwrite-integration-map
+      - vhs90-animated-noise-refinement-2026-11-21
       - main
       - build-on-main
   pull_request:
