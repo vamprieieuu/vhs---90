@@ -289,8 +289,10 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 // requested editable region position, size and motion.
                 const float lineHash=vhs6RiftHash2D(iy,
                     static_cast<int>(t*60.0f),regionSeed+202u);
-                shiftX=std::round((lineHash-0.5f)*r.maxShiftPx*bandFactor);
-                const float snowHash=vhs6RiftHash2D(x,iy,
+                shiftX=(lineHash-0.5f)*r.maxShiftPx*bandFactor;
+                const int snowX=static_cast<int>(std::floor(x-noiseDriftX*cellW));
+                const int snowY=static_cast<int>(std::floor(float(iy)-noiseDriftY*cellH));
+                const float snowHash=vhs6RiftHash2D(snowX,snowY,
                     regionSeed+static_cast<std::uint32_t>(t*240.0f));
                 if(bandFactor>0.4f&&snowHash>0.55f) {
                     sourceSnow=0.70f;
