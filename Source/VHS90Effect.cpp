@@ -844,10 +844,6 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_ADD_HIDDEN_POPUP("Layer 2 Preset",10,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
     VHS90_ADD_HIDDEN_POPUP("Layer 3 Preset",10,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
     VHS90_ADD_HIDDEN_POPUP("Layer 4 Preset",10,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
-    VHS90_ADD_HIDDEN_FLOAT("Pattern Angle",-90,90,-90,90,24,1,PF_ValueDisplayFlag_NONE,0,ID_PATTERN_ANGLE);
-    VHS90_ADD_HIDDEN_FLOAT("Ribbon / Diagonal Width",1,50,1,50,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_PATTERN_WIDTH);
-    VHS90_ADD_HIDDEN_FLOAT("Green Line Intensity",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_PATTERN_GREEN);
-    VHS90_ADD_HIDDEN_FLOAT("Phase Count",2,8,2,8,3,0,PF_ValueDisplayFlag_NONE,0,ID_PATTERN_PHASE_COUNT);
     VHS90_ADD_HIDDEN_FLOAT("Band Amount",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_AMOUNT);
     VHS90_ADD_HIDDEN_FLOAT("Center Y",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_Y);
     VHS90_ADD_HIDDEN_FLOAT("Height",0,100,0,100,15,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_HEIGHT);
