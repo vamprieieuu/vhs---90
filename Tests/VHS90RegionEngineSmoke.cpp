@@ -179,6 +179,34 @@ int main() {
     for(int aidx=0;aidx<8;++aidx) for(int bidx=aidx+1;bidx<8;++bidx)
         VHS90_CHECK_MSG(profileOutputs[aidx]!=profileOutputs[bidx]);
 
+    // VHS-main tracking noise must move as a continuous spatial field, not
+    // flicker from a frame-seeded random replacement.
+    DamageRegion movingVhs=top;
+    movingVhs.trackingProfile=TrackingProfile::VhsMainTracking;
+    movingVhs.centerY=0.5f; movingVhs.height=1.0f;
+    movingVhs.maxShiftPx=9.0f; movingVhs.waveAmplitudePx=0.0f;
+    movingVhs.servoDriftPx=0.0f; movingVhs.tearProbability=0.0f;
+    movingVhs.noiseAmount=0.35f; movingVhs.noiseDensity=0.0f;
+    movingVhs.chromaShiftPx=0.0f;
+    RegionEngineParams movingVhsP; movingVhsP.regions=&movingVhs; movingVhsP.regionCount=1;
+    movingVhsP.seed=0x90A11E5Eu; movingVhsP.frame=13; movingVhsP.timeSeconds=0.20;
+    std::vector<float> vhsT0(src.size()),vhsT1(src.size()),vhsT2(src.size()),vhsRepeat(src.size());
+    ImageView vhsV0{vhsT0.data(),w,h,w*4},vhsV1{vhsT1.data(),w,h,w*4};
+    ImageView vhsV2{vhsT2.data(),w,h,w*4},vhsVR{vhsRepeat.data(),w,h,w*4};
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,vhsV0,movingVhsP));
+    movingVhsP.timeSeconds=0.22;
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,vhsV1,movingVhsP));
+    movingVhsP.timeSeconds=0.90;
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,vhsV2,movingVhsP));
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,vhsVR,movingVhsP));
+    VHS90_CHECK_MSG(vhsT0!=vhsT1 && vhsT1!=vhsT2 && vhsT2==vhsRepeat);
+    double vhsNearDelta=0.0,vhsFarDelta=0.0;
+    for(size_t i=0;i<vhsT0.size();i+=4) {
+        vhsNearDelta+=std::fabs(vhsT1[i]-vhsT0[i]);
+        vhsFarDelta+=std::fabs(vhsT2[i]-vhsT0[i]);
+    }
+    VHS90_CHECK_MSG(vhsNearDelta>0.0 && vhsFarDelta>vhsNearDelta);
+
     // Source-backed head-switch presets use the same editable region geometry.
     DamageRegion headRift=full;
     headRift.kind=RegionKind::HeadSwitch; headRift.shape=RegionShape::HorizontalBand;
