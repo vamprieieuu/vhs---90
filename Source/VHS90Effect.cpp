@@ -158,7 +158,7 @@ struct RenderSettings {
     float trackingAmount=22, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=12, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=12, trackingServo=12, trackingTear=4;
     float trackingSnowIntensity=35.0f, trackingSnowAnisotropy=55.0f;
-    A_long trackingShape=3, trackingProfile=1, particleMode=1, particleDistribution=1, trackingPresetBase=1, trackingLayerPreset[3]={3,4,5};
+    A_long trackingShape=3, trackingProfile=1, particleMode=1, particleDistribution=1, trackingPresetBase=9, trackingLayerPreset[3]={3,4,5};
     A_long trackingLayerProfile[3]={2,3,4}, trackingLayerShape[3]={1,1,1};
     float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5};
     float particleAmount=0, particleDensity=18, particleSize=1.5f, particleLength=7, particleChroma=0, particleSpeed=1, particleSeed=1, particleSourceMix=100, particleBrightness=85, particleContrast=100;
@@ -686,7 +686,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100,-100,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_MOTION_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SERVO);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_TEAR);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Preset",19,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Preset",19,9,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Intensity",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SNOW_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Anisotropy",0,100,0,100,55,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SNOW_ANISOTROPY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear & Chroma Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_CHROMA_AMOUNT);

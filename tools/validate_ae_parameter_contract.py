@@ -180,7 +180,7 @@ if len(re.findall(r'kVhsStyleChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 2
     fail("VHS Style list must remain curated to 20 distinct presets.")
 if len(re.findall(r'kTrackingPresetChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 19:
     fail("Tracking presets must include the source-backed plugin and repository profiles.")
-if 'PF_ADD_POPUP("Tracking Preset",19,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' not in SOURCE:
+if 'PF_ADD_POPUP("Tracking Preset",19,9,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' not in SOURCE:
     fail("Tracking Noise preset popup must expose all 19 source recipes.")
 if "Vhs6RiftBand = 5" not in REGION_HEADER or "NtscRTracking = 6" not in REGION_HEADER or "VhsMainTracking = 7" not in REGION_HEADER:
     fail("VHS6RIFT and NTSC-R need dedicated tracking render profiles.")
