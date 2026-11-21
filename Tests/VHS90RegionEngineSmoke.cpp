@@ -227,6 +227,30 @@ int main() {
     VHS90_CHECK_MSG(processDamageRegions(profileInput,headRiftRepeatV,headRiftP));
     VHS90_CHECK_MSG(headRiftA!=headRiftB && headRiftB==headRiftRepeat);
 
+    // Every source-family head-switch preset must render distinctly and repeat
+    // deterministically with editable region geometry.
+    std::vector<float> headOutputs[8];
+    for(int profile=0;profile<8;++profile) {
+        DamageRegion variant=headRift;
+        variant.headSwitchProfile=static_cast<HeadSwitchProfile>(profile);
+        variant.maxShiftPx=21.0f; variant.servoDriftPx=9.0f;
+        variant.waveAmplitudePx=7.0f; variant.noiseAmount=0.42f;
+        variant.noiseDensity=0.65f; variant.tearProbability=0.32f;
+        variant.tearShiftPx=17.0f; variant.dropoutProbability=0.15f;
+        variant.dropoutAmount=0.25f;
+        RegionEngineParams hp; hp.regions=&variant; hp.regionCount=1;
+        hp.seed=0xBADC0DEu; hp.frame=19; hp.timeSeconds=0.43;
+        headOutputs[profile].resize(src.size());
+        std::vector<float> repeat(src.size());
+        ImageView out{headOutputs[profile].data(),w,h,w*4};
+        ImageView again{repeat.data(),w,h,w*4};
+        VHS90_CHECK_MSG(processDamageRegions(profileInput,out,hp));
+        VHS90_CHECK_MSG(processDamageRegions(profileInput,again,hp));
+        VHS90_CHECK_MSG(repeat==headOutputs[profile]);
+    }
+    for(int aidx=0;aidx<8;++aidx) for(int bidx=aidx+1;bidx<8;++bidx)
+        VHS90_CHECK_MSG(headOutputs[aidx]!=headOutputs[bidx]);
+
     DamageRegion headNtsc=headRift;
     headNtsc.headSwitchProfile=HeadSwitchProfile::NtscR;
     headNtsc.maxShiftPx=14.0f; headNtsc.waveAmplitudePx=6.0f;
