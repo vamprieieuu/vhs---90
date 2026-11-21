@@ -152,15 +152,15 @@ int main() {
     ImageView headVhsView{headVhs.data(),w,h,w*4},headNtscView{headNtsc.data(),w,h,w*4};
     DamageRegion headNtscRegion=headSource;headNtscRegion.headSwitchProfile=HeadSwitchProfile::NtscR;
     headNtscRegion.tearProbability=1.0f;
-    RegionEngineParams hp;hp.seed=991;hp.frame=13;hp.timeSeconds=.73;
-    assert(processDamageRegions(profileInput,headVhsView,&headSource,1,hp));
-    assert(processDamageRegions(profileInput,headNtscView,&headNtscRegion,1,hp));
+    RegionEngineParams hp;hp.seed=991;hp.frame=13;hp.timeSeconds=.73;hp.regions=&headSource;hp.regionCount=1;
+    assert(processDamageRegions(profileInput,headVhsView,hp));
+    hp.regions=&headNtscRegion;assert(processDamageRegions(profileInput,headNtscView,hp));
     assert(headVhs!=src&&headNtsc!=src&&headVhs!=headNtsc);
     DamageRegion headMoving=headSource;headMoving.motionYPerSecond=.22f;
     std::vector<float> headMoveA(src.size()),headMoveB(src.size());
     ImageView headMoveAv{headMoveA.data(),w,h,w*4},headMoveBv{headMoveB.data(),w,h,w*4};
-    hp.timeSeconds=0.0;assert(processDamageRegions(profileInput,headMoveAv,&headMoving,1,hp));
-    hp.timeSeconds=1.0;assert(processDamageRegions(profileInput,headMoveBv,&headMoving,1,hp));
+    hp.regions=&headMoving;hp.timeSeconds=0.0;assert(processDamageRegions(profileInput,headMoveAv,hp));
+    hp.timeSeconds=1.0;assert(processDamageRegions(profileInput,headMoveBv,hp));
     assert(headMoveA!=headMoveB);
 
     // Four differently typed tracking regions can coexist in one render stack.
