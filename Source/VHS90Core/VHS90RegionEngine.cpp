@@ -80,12 +80,12 @@ inline float ntscRowSpeckles(float xPx, float yPx, float intensity,
         (lineRandom - intensity) / denominator)));
     const float lineIntensity = clamp01(
         (anisotropy / (1.0f + logistic) + intensity * (1.0f - anisotropy)) * 0.125f);
-    if (lineIntensity <= 0.0f) return 0.0f;
+    if (lineIntensity < 1.0e-5f) return 0.0f;
 
     const int block = static_cast<int>(std::floor(patternX / 64.0f));
     float result = 0.0f;
     for (int eventBlock = block - 1; eventBlock <= block; ++eventBlock) {
-        int pixelIndex = eventBlock * 64 - 64;
+        int pixelIndex = eventBlock * 64;
         for (int eventIndex = 0; eventIndex < 24; ++eventIndex) {
             const float u = std::max(1.0e-6f, std::min(1.0f - 1.0e-6f,
                 hash01(static_cast<std::uint32_t>(eventIndex),
