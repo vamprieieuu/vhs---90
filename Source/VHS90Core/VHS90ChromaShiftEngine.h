@@ -10,9 +10,10 @@ bool processChromaChannelShift(ConstImageView src,ImageView dst,const ChromaChan
 
 struct RgbChannelRegistrationParams {
     float redOffsetPixels=0.0f;
+    float greenOffsetPixels=0.0f;
     float blueOffsetPixels=0.0f;
     bool premultipliedAlpha=true;
 };
-// Independent horizontal red/blue registration offsets, with green as the reference channel.
+// Independent horizontal red, green and blue registration offsets.
 bool processRgbChannelRegistration(ConstImageView src,ImageView dst,const RgbChannelRegistrationParams& params) noexcept;
 } // namespace vhs90
