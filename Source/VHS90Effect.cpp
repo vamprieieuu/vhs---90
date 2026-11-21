@@ -2232,7 +2232,8 @@ static PF_Err HandleEvent(PF_InData* in_data,PF_ParamDef* params[],PF_EventExtra
     if(changed) {
         err=VHS90WriteOsdText(in_data,&params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,text);
         if(err!=PF_Err_NONE) return err;
-        extra->evt_out_flags=(extra->evt_out_flags&~PF_EO_NEVER_UPDATE)|PF_EO_HANDLED_EVENT|PF_EO_ALWAYS_UPDATE|PF_EO_UPDATE_NOW;
+        params[PARAM_OSD_TEXT_DATA]->uu.change_flags=PF_ChangeFlag_CHANGED_VALUE;
+        extra->evt_out_flags=(extra->evt_out_flags&~PF_EO_NEVER_UPDATE)|PF_EO_HANDLED_EVENT|PF_EO_ALWAYS_UPDATE;
     }
     return PF_Err_NONE;
 }
