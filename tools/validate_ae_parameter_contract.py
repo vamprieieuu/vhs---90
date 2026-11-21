@@ -9,6 +9,10 @@ SOURCE = (ROOT / "Source/VHS90Effect.cpp").read_text(encoding="utf-8")
 PIPL = (ROOT / "resources/VHS90PiPL.r").read_text(encoding="utf-8")
 COMPOSITE = (ROOT / "Source/VHS90Core/VHS90CompositeEngine.cpp").read_text(encoding="utf-8")
 REGION = (ROOT / "Source/VHS90Core/VHS90RegionEngine.cpp").read_text(encoding="utf-8")
+REGION_HEADER = (ROOT / "Source/VHS90Core/VHS90RegionEngine.h").read_text(encoding="utf-8")
+SYNC_ENGINE = (ROOT / "Source/VHS90Core/VHS90SyncEngine.cpp").read_text(encoding="utf-8")
+IMAGE_GRADE = (ROOT / "Source/VHS90Core/VHS90ImageGradeEngine.cpp").read_text(encoding="utf-8")
+RF_ENGINE = (ROOT / "Source/VHS90Core/VHS90RfInstabilityEngine.cpp").read_text(encoding="utf-8")
 
 def fail(message: str) -> None:
     raise SystemExit(f"AE CONTRACT ERROR: {message}")
@@ -150,5 +154,34 @@ if 'PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100,-100,100,12,1,PF_ValueDisplayFlag_P
     fail("Default Tracking Noise must move vertically.")
 if "wrapMovingCenter" not in REGION:
     fail("Tracking regions must wrap through the frame instead of drifting off-screen permanently.")
+
+# The visible AE panel is intentionally curated; legacy parameters remain hidden
+# to preserve saved-project disk IDs and render compatibility.
+visible_topics = re.findall(r'PF_ADD_TOPIC\\("([^"]+)"', setup_body)
+expected_topics = [
+    "VHS Style & Camera Profiles", "Signal", "Chroma Offset",
+    "Grain & Tracking Noise", "Head Switching", "Ringing", "Waves",
+    "Color & Image", "Glow", "Tape", "Text / OSD",
+]
+if visible_topics != expected_topics:
+    fail("Visible VHS-90 topic order/layout differs from the approved compact panel.")
+if len(re.findall(r'kVhsStyleChoices\\[\\]="([^"]+)"', SOURCE)[0].split("|")) != 20:
+    fail("VHS Style list must remain curated to 20 distinct presets.")
+if len(re.findall(r'kTrackingPresetChoices\\[\\]="([^"]+)"', SOURCE)[0].split("|")) != 10:
+    fail("Tracking presets must include the two source-backed profiles.")
+if 'PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' not in SOURCE:
+    fail("Tracking Noise preset popup must expose all 10 recipes.")
+if "Vhs6RiftBand = 5" not in REGION_HEADER or "NtscRTracking = 6" not in REGION_HEADER:
+    fail("VHS6RIFT and NTSC-R need dedicated tracking render profiles.")
+if "Vhs6RiftBand" not in REGION or "NtscRTracking" not in REGION:
+    fail("Source-backed tracking render profiles are not implemented.")
+if "lineNoise" in SYNC_ENGINE or "const float noise=bandDamage*" not in SYNC_ENGINE:
+    fail("Sync Collapse must not add full-frame static grain.")
+if "chromaMagnitude" not in IMAGE_GRADE or "quantizedMagnitude" not in IMAGE_GRADE:
+    fail("Chroma Quantization must preserve hue by quantizing chroma magnitude.")
+if "std::clamp(p.saturation,0.0f,5.0f)" not in IMAGE_GRADE:
+    fail("Image Grade must support the extended saturation range.")
+if "sceneDrive" not in RF_ENGINE or "randomDrift" not in RF_ENGINE:
+    fail("AGC Pump and RF Drift must use the rebuilt scene/time-base models.")
 
 print(f"AE host contract OK: {len(actual_params)} registered parameters + implicit input, exact enum order, PARAM_COUNT, CUSTOM_UI flags, and VHS6RIFT-compatible legacy render flags.")
