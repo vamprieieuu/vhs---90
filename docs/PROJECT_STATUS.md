@@ -300,3 +300,13 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Tracking Noise and Tear & Chroma remain their existing independent topics; no duplicate controls were introduced.
 - This is a source/UI change only. Do not claim legacy-project migration or AE UI success until the Windows/MSVC AEX build and an actual AE 23.2.1 project reopen test are complete.
 - The frame-by-frame visual comparison matrix and legacy-ID safety rules are recorded in `docs/source-audits/63-vhs90-ui-split-and-visual-validation.md`. RF Drift, Mains Hum, AM Nonlinearity, AGC Pump, Impulse Noise, Tape Dropouts, Tape Material, Glow, Chroma Subsample, Vertical Chroma and OSD still require source-clip visual validation; host-independent smoke tests are not substitutes.
+
+## 2026-11-21 implementation checkpoint
+
+- Grain section split completed in source with existing serialized Grain control IDs retained; new topic ID appended and AE parameter contract validation updated.
+- Fixed localized pixel preservation in Tape Dropouts and Impulse Noise; fixed Sticky Binder / Shed activation and signal contribution in Tape Material; fixed standalone AGC Pump activation.
+- Added isolated RF, glow, dropout, impulse, tape-material, and chroma smoke assertions. Linux core tests passed.
+- Windows 2022 / MSVC AEX build passed on `240f3ff41783bf8828d73a10a9c80886ee5faafc`; direct release asset `VHS-90.aex` published under `vhs90-aex-240f3ff41783`.
+- OSD missing-font fallback now shows a `FONT?` indicator. OSD arbitrary text editing and live font enumeration remain incomplete.
+- Source-reference frames from FXC6 and Gen 7 were extracted and inspected. Visual matching of actual plug-in renders in After Effects and old-project reopen testing remain release gates.
+- Detailed evidence and remaining tasks: `docs/source-audits/63-vhs90-ui-split-and-visual-validation.md`.
