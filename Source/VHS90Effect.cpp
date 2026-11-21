@@ -1744,6 +1744,9 @@ static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
         dst.right=std::max(dst.right,srcRect.right);
         dst.bottom=std::max(dst.bottom,srcRect.bottom);
     };
+    extra->output->result_rect=result.result_rect;
+    extra->output->max_result_rect=result.max_result_rect;
+    unionRect(extra->output->max_result_rect,extra->output->result_rect);
     // Checkout the immediately preceding source frame through SmartFX's declared
     // checkout ID; no global frame cache is used, so MFR/out-of-order renders stay safe.
     if((s->temporalGhost>0||s->interlace>0||(s->frameRepeatFrequency>0&&s->frameRepeatStrength>0)) && in_data->time_step>0 && in_data->current_time>=in_data->time_step) {
@@ -1761,16 +1764,6 @@ static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
             unionRect(extra->output->max_result_rect,extra->output->result_rect);
         }
     }
-    // SmartFX output bounds must come from the checked-out layer's actual
-    // result/max-result rectangles. The requested ROI can extend beyond the
-    // source's valid bounds (e.g. transformed footage or adjustment layers).
-    // Reporting the raw request as result_rect can therefore violate AE's
-    // max_result_rect contract and make the effect render black.
-    extra->output->result_rect=result.result_rect;
-    extra->output->max_result_rect=result.max_result_rect;
-    // Keep the advertised maximum valid even if a host returns a clipped
-    // result rectangle at an image edge.
-    unionRect(extra->output->max_result_rect,extra->output->result_rect);
     extra->output->solid=result.solid;
     extra->output->pre_render_data=s;
     extra->output->delete_pre_render_data_func=DeletePreRenderData;
