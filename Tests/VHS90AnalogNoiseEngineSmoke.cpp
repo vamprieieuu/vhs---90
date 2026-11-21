@@ -8,6 +8,12 @@ int main(){using namespace vhs90;constexpr int w=48,h=24;std::vector<float>s(w*h
  AnalogNoiseParams p;p.lumaAmount=.8f;p.chromaAmount=.7f;p.compositeAmount=.3f;p.hueBiasDegrees=45;p.seed=5;p.frame=8;
  assert(processAnalogNoise(si,ai,p));assert(processAnalogNoise(si,bi,p));assert(a==b&&a!=s);
  p.seed=6;assert(processAnalogNoise(si,ci,p));assert(a!=c);
+ AnalogNoiseParams biasA=p,biasB=p;biasA.seed=29;biasB.seed=29;
+ biasA.hueBiasDegrees=0.0f;biasB.hueBiasDegrees=120.0f;
+ std::vector<float> biasOutA(s.size()),biasOutB(s.size());
+ ImageView biasViewA{biasOutA.data(),w,h,w*4},biasViewB{biasOutB.data(),w,h,w*4};
+ assert(processAnalogNoise(si,biasViewA,biasA));assert(processAnalogNoise(si,biasViewB,biasB));
+ assert(biasOutA!=biasOutB);
  AnalogNoiseParams tape;tape.tapeLineAmount=.85f;tape.tapeLineSpeed=1.0f;tape.framesPerSecond=29.97f;tape.seed=17;tape.frame=9;
  std::vector<float> tapeA(s.size()),tapeB(s.size()),tapeNext(s.size()),tapeOff(s.size());
  ImageView ta{tapeA.data(),w,h,w*4},tb{tapeB.data(),w,h,w*4},tn{tapeNext.data(),w,h,w*4},to{tapeOff.data(),w,h,w*4};
