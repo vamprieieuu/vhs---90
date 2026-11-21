@@ -1,5 +1,9 @@
 #include "VHS90RegionEngine.h"
 #include <cassert>
+#include <cstdio>
+#include <cstdlib>
+
+#define VHS90_CHECK_MSG(expr) do { if (!(expr)) { std::fprintf(stderr, "VHS90RegionEngineSmoke failed at line %d: %s\\n", __LINE__, #expr); std::abort(); } } while (0)
 #include <cmath>
 #include <vector>
 
@@ -29,40 +33,40 @@ int main() {
 
     DamageRegion regions[2]{top,right};
     RegionEngineParams p; p.regions=regions; p.regionCount=2; p.seed=123; p.frame=7; p.timeSeconds=0.25;
-    assert(processDamageRegions(si,da,p));
-    assert(processDamageRegions(si,db,p));
-    assert(a==b);
+    VHS90_CHECK_MSG(processDamageRegions(si,da,p));
+    VHS90_CHECK_MSG(processDamageRegions(si,db,p));
+    VHS90_CHECK_MSG(a==b);
     RegionEngineParams pNext=p; pNext.frame=8;
     std::vector<float> next(src.size(),0.0f); ImageView dnext{next.data(),w,h,w*4};
-    assert(processDamageRegions(si,dnext,pNext));
-    assert(next!=a);
+    VHS90_CHECK_MSG(processDamageRegions(si,dnext,pNext));
+    VHS90_CHECK_MSG(next!=a);
 
-    assert(std::fabs(pixel(a,w,10,12,0)-0.25f)>1e-5f);
-    assert(std::fabs(pixel(a,w,10,40,0)-0.25f)<1e-5f);
-    assert(std::fabs(pixel(a,w,60,40,0)-0.25f)>1e-5f);
+    VHS90_CHECK_MSG(std::fabs(pixel(a,w,10,12,0)-0.25f)>1e-5f);
+    VHS90_CHECK_MSG(std::fabs(pixel(a,w,10,40,0)-0.25f)<1e-5f);
+    VHS90_CHECK_MSG(std::fabs(pixel(a,w,60,40,0)-0.25f)>1e-5f);
 
     DamageRegion full; full.kind=RegionKind::HeadSwitch; full.shape=RegionShape::HorizontalBand;
     full.centerX=0.5f; full.centerY=0.5f; full.width=1.0f; full.height=1.0f;
     full.intensity=1.0f; full.maxShiftPx=4.0f; full.dropoutProbability=1.0f; full.dropoutAmount=0.3f;
     RegionEngineParams pFull; pFull.regions=&full; pFull.regionCount=1; pFull.seed=4; pFull.frame=1;
-    assert(processDamageRegions(si,dc,pFull));
-    assert(std::fabs(pixel(c,w,32,24,0)-0.25f)>1e-5f);
+    VHS90_CHECK_MSG(processDamageRegions(si,dc,pFull));
+    VHS90_CHECK_MSG(std::fabs(pixel(c,w,32,24,0)-0.25f)>1e-5f);
 
     std::vector<float> alphaSrc=src, alphaDst(src.size(),0.0f);
     for (size_t i=3;i<alphaSrc.size();i+=4) alphaSrc[i]=0.0f;
     ConstImageView asi{alphaSrc.data(),w,h,w*4}; ImageView adi{alphaDst.data(),w,h,w*4};
-    assert(processDamageRegions(asi,adi,pFull));
+    VHS90_CHECK_MSG(processDamageRegions(asi,adi,pFull));
     for (size_t i=0;i<alphaDst.size();i+=4) {
-        assert(alphaDst[i]==alphaSrc[i]);
-        assert(alphaDst[i+1]==alphaSrc[i+1]);
-        assert(alphaDst[i+2]==alphaSrc[i+2]);
-        assert(alphaDst[i+3]==0.0f);
+        VHS90_CHECK_MSG(alphaDst[i]==alphaSrc[i]);
+        VHS90_CHECK_MSG(alphaDst[i+1]==alphaSrc[i+1]);
+        VHS90_CHECK_MSG(alphaDst[i+2]==alphaSrc[i+2]);
+        VHS90_CHECK_MSG(alphaDst[i+3]==0.0f);
     }
 
     std::vector<float> zero(src.size(),0.0f); ImageView dzi{zero.data(),w,h,w*4};
     RegionEngineParams pZero=p; pZero.globalIntensity=0.0f;
-    assert(processDamageRegions(si,dzi,pZero));
-    assert(zero==src);
+    VHS90_CHECK_MSG(processDamageRegions(si,dzi,pZero));
+    VHS90_CHECK_MSG(zero==src);
 
     // A region whose bottom edge is exactly at the top of the frame stays
     // outside the raster; it must not be clamped back into the visible image.
@@ -73,8 +77,8 @@ int main() {
     offFrame.noiseAmount=1.0f; offFrame.noiseDensity=1.0f; offFrame.chromaShiftPx=0.0f;
     RegionEngineParams pOff; pOff.regions=&offFrame; pOff.regionCount=1; pOff.seed=5; pOff.frame=1;
     std::vector<float> offOutput(src.size(),0.0f); ImageView doff{offOutput.data(),w,h,w*4};
-    assert(processDamageRegions(si,doff,pOff));
-    assert(offOutput==src);
+    VHS90_CHECK_MSG(processDamageRegions(si,doff,pOff));
+    VHS90_CHECK_MSG(offOutput==src);
 
     // Region geometry supports arbitrary rotation without changing its normalized center/size.
     DamageRegion rotated=full;rotated.kind=RegionKind::TrackingNoise;rotated.shape=RegionShape::Rectangle;
@@ -87,8 +91,8 @@ int main() {
     RegionEngineParams unrotP=rotP;unrotP.regions=&unrotated;
     std::vector<float> rotOut(src.size()),unrotOut(src.size());
     ImageView rotView{rotOut.data(),w,h,w*4},unrotView{unrotOut.data(),w,h,w*4};
-    assert(processDamageRegions(si,rotView,rotP));assert(processDamageRegions(si,unrotView,unrotP));
-    assert(rotOut!=unrotOut);
+    VHS90_CHECK_MSG(processDamageRegions(si,rotView,rotP));VHS90_CHECK_MSG(processDamageRegions(si,unrotView,unrotP));
+    VHS90_CHECK_MSG(rotOut!=unrotOut);
 
     // Servo drift profiles crossfade between deterministic epochs instead of
     // re-randomizing the entire row profile on every frame.
@@ -109,19 +113,19 @@ int main() {
     RegionEngineParams servoB=servoA; servoB.frame=21;
     std::vector<float> servoOutA(src.size(),0.0f),servoOutB(src.size(),0.0f);
     ImageView servoViewA{servoOutA.data(),w,h,w*4},servoViewB{servoOutB.data(),w,h,w*4};
-    assert(processDamageRegions(servoInput,servoViewA,servoA));
-    assert(processDamageRegions(servoInput,servoViewB,servoB));
+    VHS90_CHECK_MSG(processDamageRegions(servoInput,servoViewA,servoA));
+    VHS90_CHECK_MSG(processDamageRegions(servoInput,servoViewB,servoB));
     float servoDelta=0.0f;
     for(size_t i=0;i<servoOutA.size();i+=4) servoDelta+=std::fabs(servoOutA[i]-servoOutB[i]);
-    assert(servoDelta>0.0f);
-    assert(servoDelta<static_cast<float>(w*h)*0.20f);
+    VHS90_CHECK_MSG(servoDelta>0.0f);
+    VHS90_CHECK_MSG(servoDelta<static_cast<float>(w*h)*0.20f);
 
     // Each selectable tracking profile must produce a deterministic, genuinely distinct render.
     std::vector<float> profileSource(src.size(),0.0f);
     for(int py=0;py<h;++py) for(int px=0;px<w;++px) { const size_t pi=(py*w+px)*4; profileSource[pi]=float(px)/float(w-1); profileSource[pi+1]=float(py)/float(h-1); profileSource[pi+2]=1.0f-float(px)/float(w-1); profileSource[pi+3]=1.0f; }
     ConstImageView profileInput{profileSource.data(),w,h,w*4};
-    std::vector<float> profileOutputs[7];
-    for(int profile=0;profile<7;++profile) {
+    std::vector<float> profileOutputs[8];
+    for(int profile=0;profile<8;++profile) {
         profileOutputs[profile].resize(src.size(),0.0f);
         DamageRegion variant=top;
         variant.kind=RegionKind::TrackingNoise; variant.shape=RegionShape::HorizontalBand;
@@ -132,12 +136,45 @@ int main() {
         variant.noiseAmount=0.35f; variant.noiseDensity=0.8f; variant.chromaShiftPx=2.0f;
         RegionEngineParams vp; vp.regions=&variant; vp.regionCount=1; vp.seed=991; vp.frame=13; vp.timeSeconds=0.73;
         ImageView vv{profileOutputs[profile].data(),w,h,w*4};
-        assert(processDamageRegions(profileInput,vv,vp));
+        VHS90_CHECK_MSG(processDamageRegions(profileInput,vv,vp));
         std::vector<float> repeat(src.size(),0.0f); ImageView rv{repeat.data(),w,h,w*4};
-        assert(processDamageRegions(profileInput,rv,vp)); assert(repeat==profileOutputs[profile]);
+        VHS90_CHECK_MSG(processDamageRegions(profileInput,rv,vp)); VHS90_CHECK_MSG(repeat==profileOutputs[profile]);
     }
-    for(int aidx=0;aidx<7;++aidx) for(int bidx=aidx+1;bidx<7;++bidx)
-        assert(profileOutputs[aidx]!=profileOutputs[bidx]);
+    for(int aidx=0;aidx<8;++aidx) for(int bidx=aidx+1;bidx<8;++bidx)
+        VHS90_CHECK_MSG(profileOutputs[aidx]!=profileOutputs[bidx]);
+
+    // NTSC-R snow is independently controlled from line noise and anisotropy.
+    DamageRegion ntscSnow=top;ntscSnow.trackingProfile=TrackingProfile::NtscRTracking;
+    ntscSnow.kind=RegionKind::TrackingNoise;ntscSnow.shape=RegionShape::HorizontalBand;
+    ntscSnow.centerX=.5f;ntscSnow.centerY=.5f;ntscSnow.width=1.0f;ntscSnow.height=1.0f;
+    ntscSnow.maxShiftPx=0.0f;ntscSnow.waveAmplitudePx=0.0f;ntscSnow.servoDriftPx=0.0f;
+    ntscSnow.tearProbability=0.0f;ntscSnow.noiseAmount=0.0f;ntscSnow.noiseDensity=0.0f;
+    ntscSnow.snowIntensity=.8f;ntscSnow.snowAnisotropy=0.0f;
+    ntscSnow.cellWidthPx=8.0f;ntscSnow.cellHeightPx=2.0f;ntscSnow.intensity=1.0f;
+    RegionEngineParams snowP;snowP.regions=&ntscSnow;snowP.regionCount=1;
+    snowP.seed=0x7788;snowP.frame=11;snowP.timeSeconds=.4;
+    std::vector<float> snowIndependent(src.size()),snowOff(src.size()),snowClumped(src.size());
+    ImageView snowIndependentView{snowIndependent.data(),w,h,w*4};
+    ImageView snowOffView{snowOff.data(),w,h,w*4};
+    ImageView snowClumpedView{snowClumped.data(),w,h,w*4};
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,snowIndependentView,snowP));
+    DamageRegion snowDisabled=ntscSnow;snowDisabled.snowIntensity=0.0f;
+    snowP.regions=&snowDisabled;VHS90_CHECK_MSG(processDamageRegions(profileInput,snowOffView,snowP));
+    DamageRegion snowAnisotropic=ntscSnow;snowAnisotropic.snowAnisotropy=.95f;
+    snowP.regions=&snowAnisotropic;VHS90_CHECK_MSG(processDamageRegions(profileInput,snowClumpedView,snowP));
+    VHS90_CHECK_MSG(snowIndependent!=snowOff);
+    VHS90_CHECK_MSG(snowClumped!=snowIndependent);
+
+    // Noise texture advects independently of the region's position.
+    DamageRegion advected=ntscSnow;advected.snowAnisotropy=.25f;
+    advected.noiseDriftXCellsPerSecond=1.35f;advected.noiseDriftYCellsPerSecond=.42f;
+    std::vector<float> advectedA(src.size()),advectedB(src.size());
+    ImageView advectedAv{advectedA.data(),w,h,w*4},advectedBv{advectedB.data(),w,h,w*4};
+    snowP.regions=&advected;snowP.timeSeconds=.2;
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,advectedAv,snowP));
+    snowP.timeSeconds=.9;
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,advectedBv,snowP));
+    VHS90_CHECK_MSG(advectedA!=advectedB);
 
     DamageRegion headSource=top;headSource.kind=RegionKind::HeadSwitch;
     headSource.shape=RegionShape::HorizontalBand;headSource.centerX=.5f;headSource.centerY=.52f;
@@ -153,15 +190,15 @@ int main() {
     DamageRegion headNtscRegion=headSource;headNtscRegion.headSwitchProfile=HeadSwitchProfile::NtscR;
     headNtscRegion.tearProbability=1.0f;
     RegionEngineParams hp;hp.seed=991;hp.frame=13;hp.timeSeconds=.73;hp.regions=&headSource;hp.regionCount=1;
-    assert(processDamageRegions(profileInput,headVhsView,hp));
-    hp.regions=&headNtscRegion;assert(processDamageRegions(profileInput,headNtscView,hp));
-    assert(headVhs!=src&&headNtsc!=src&&headVhs!=headNtsc);
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,headVhsView,hp));
+    hp.regions=&headNtscRegion;VHS90_CHECK_MSG(processDamageRegions(profileInput,headNtscView,hp));
+    VHS90_CHECK_MSG(headVhs!=src&&headNtsc!=src&&headVhs!=headNtsc);
     DamageRegion headMoving=headSource;headMoving.motionYPerSecond=.22f;
     std::vector<float> headMoveA(src.size()),headMoveB(src.size());
     ImageView headMoveAv{headMoveA.data(),w,h,w*4},headMoveBv{headMoveB.data(),w,h,w*4};
-    hp.regions=&headMoving;hp.timeSeconds=0.0;assert(processDamageRegions(profileInput,headMoveAv,hp));
-    hp.timeSeconds=1.0;assert(processDamageRegions(profileInput,headMoveBv,hp));
-    assert(headMoveA!=headMoveB);
+    hp.regions=&headMoving;hp.timeSeconds=0.0;VHS90_CHECK_MSG(processDamageRegions(profileInput,headMoveAv,hp));
+    hp.timeSeconds=1.0;VHS90_CHECK_MSG(processDamageRegions(profileInput,headMoveBv,hp));
+    VHS90_CHECK_MSG(headMoveA!=headMoveB);
 
     // Four differently typed tracking regions can coexist in one render stack.
     DamageRegion trackingStack[4];
@@ -180,9 +217,9 @@ int main() {
     ImageView stackAv{stackA.data(),w,h,w*4},stackBv{stackB.data(),w,h,w*4};
     RegionEngineParams stackParams; stackParams.regions=trackingStack; stackParams.regionCount=4;
     stackParams.seed=0x9911u; stackParams.frame=24; stackParams.timeSeconds=.9;
-    assert(processDamageRegions(profileInput,stackAv,stackParams));
-    assert(processDamageRegions(profileInput,stackBv,stackParams));
-    assert(stackA==stackB && stackA!=profileSource);
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,stackAv,stackParams));
+    VHS90_CHECK_MSG(processDamageRegions(profileInput,stackBv,stackParams));
+    VHS90_CHECK_MSG(stackA==stackB && stackA!=profileSource);
 
     // Signed chroma displacement must work in both directions.
     std::vector<float> chromaSrc(src.size()),chromaOut(src.size(),0.0f);
@@ -199,16 +236,16 @@ int main() {
     signedChroma.dropoutProbability=0.0f; signedChroma.chromaShiftPx=-2.0f;
     RegionEngineParams pChroma; pChroma.regions=&signedChroma; pChroma.regionCount=1;
     pChroma.seed=8; pChroma.frame=2;
-    assert(processDamageRegions(csi,cdo,pChroma));
+    VHS90_CHECK_MSG(processDamageRegions(csi,cdo,pChroma));
     const size_t mid=(24*w+32)*4;
-    assert(chromaOut[mid]>chromaSrc[mid]);
-    assert(chromaOut[mid+2]>chromaSrc[mid+2]);
+    VHS90_CHECK_MSG(chromaOut[mid]>chromaSrc[mid]);
+    VHS90_CHECK_MSG(chromaOut[mid+2]>chromaSrc[mid+2]);
     std::vector<float> positiveChroma(src.size(),0.0f);
     ImageView positiveView{positiveChroma.data(),w,h,w*4};
     signedChroma.chromaShiftPx=2.0f;
-    assert(processDamageRegions(csi,positiveView,pChroma));
-    assert(positiveChroma[mid]<chromaSrc[mid]);
-    assert(positiveChroma[mid+2]<chromaSrc[mid+2]);
+    VHS90_CHECK_MSG(processDamageRegions(csi,positiveView,pChroma));
+    VHS90_CHECK_MSG(positiveChroma[mid]<chromaSrc[mid]);
+    VHS90_CHECK_MSG(positiveChroma[mid+2]<chromaSrc[mid+2]);
     // Tracking bands must travel through the frame and wrap back to their
     // starting position. Hold frame/seed fixed to isolate spatial motion.
     DamageRegion moving=top;
@@ -223,15 +260,15 @@ int main() {
     ImageView moveStartView{moveStart.data(),w,h,w*4};
     ImageView moveMiddleView{moveMiddle.data(),w,h,w*4};
     ImageView moveLoopView{moveLoop.data(),w,h,w*4};
-    assert(processDamageRegions(si,moveStartView,moveP));
+    VHS90_CHECK_MSG(processDamageRegions(si,moveStartView,moveP));
     moveP.timeSeconds=2.0;
-    assert(processDamageRegions(si,moveMiddleView,moveP));
-    assert(moveStart!=moveMiddle);
+    VHS90_CHECK_MSG(processDamageRegions(si,moveMiddleView,moveP));
+    VHS90_CHECK_MSG(moveStart!=moveMiddle);
     moveP.timeSeconds=4.8; // (1 + region height) / 0.25 seconds
-    assert(processDamageRegions(si,moveLoopView,moveP));
+    VHS90_CHECK_MSG(processDamageRegions(si,moveLoopView,moveP));
     float loopError=0.0f;
     for(size_t i=0;i<moveStart.size();++i) loopError+=std::fabs(moveStart[i]-moveLoop[i]);
-    assert(loopError<1.0e-3f);
+    VHS90_CHECK_MSG(loopError<1.0e-3f);
 
     return 0;
 }
