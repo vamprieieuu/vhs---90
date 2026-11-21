@@ -105,6 +105,7 @@ struct CompositeParams {
     ChromaSubsampleParams chromaSubsample{};
     bool verticalChromaBlendEnabled = false;
     float verticalChromaBlendAmount = 0.5f;
+    float verticalChromaDelayRows = 2.0f;
     bool lumaSmearEnabled = false;
     LumaSmearParams lumaSmear{};
     bool premultipliedAlpha = true;

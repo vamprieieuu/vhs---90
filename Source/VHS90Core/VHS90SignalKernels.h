@@ -34,6 +34,7 @@ struct ChromaSubsampleParams {
 struct VerticalChromaBlendParams {
     float amount = 0.5f;
     bool premultipliedAlpha = true;
+    float delayRows = 2.0f;
 };
 
 struct LumaSmearParams {

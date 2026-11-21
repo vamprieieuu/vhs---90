@@ -58,6 +58,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             ImageView pyVhsView{pyVhsGenerated.data(),w,h,w*4};
             PyVhsGenerationParams vp=p.pyVhsGeneration;
             vp.premultipliedAlpha=p.premultipliedAlpha;
+            vp.delayRows=p.verticalChromaDelayRows;
             vp.frame=p.frame;
             if(!processPyVhsGeneration(input,pyVhsView,vp)) return false;
             input={pyVhsGenerated.data(),w,h,w*4};
