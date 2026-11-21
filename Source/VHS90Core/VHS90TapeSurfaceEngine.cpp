@@ -138,7 +138,7 @@ TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfacePara
  TapeSurfaceSample o;o.magnetization=std::pow(10.0f,-wear*10.0f/20.0f);o.roughness=0.0f;o.spacingLift=0.015f+0.1f*wear+std::clamp(p.surfaceRoughness,0.0f,0.25f);o.shed=0.02f*wear+0.9f*sticky*sticky;
  const auto [c5,f5]=cell(pos,5);const float yy=y*10.0f;const auto cy=static_cast<std::int32_t>(std::floor(yy));
  o.magnetization*=1.0f+(0.04f+0.1f*wear)*(2.0f*noise2(s,1,c5,f5,cy,yy-float(cy))-1.0f);
- const float pin=std::clamp(std::max(p.pinholeAmount,(0.05f+6.0f*drop+2.0f*wear)*0.01f),0.0f,1.0f);
+ const float pin=std::clamp(std::max(p.pinholeAmount,(0.05f+2.5f*drop+1.2f*wear)*0.01f),0.0f,1.0f);
  if(detail&&pin>0){const auto [cx,fx]=cell(pos,1);(void)fx;const auto py=static_cast<std::int32_t>(std::floor(y*10.0f));
   for(int j=-1;j<=1;++j)for(int i=-1;i<=1;++i){const auto ci=cx+i,cj=py+j;if(uni(s,11,ci,cj)>=pin)continue;
    const float ddx=dx(pos,ci,1,uni(s,12,ci,cj))*0.1f,ddy=(float(cj)+uni(s,13,ci,cj))*0.1f-y;
@@ -146,13 +146,15 @@ TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfacePara
    if(d<r)o.magnetization*=smoothstep(r*0.6f,r,d);
   }
  }
- const float flake=std::clamp(std::max(p.flakeAmount,0.001f+0.6f*drop*drop+0.06f*wear+0.06f*mold),0.0f,1.0f);
+ const float flake=std::clamp(std::max(p.flakeAmount,0.001f+0.35f*drop*drop+0.06f*wear+0.06f*mold),0.0f,1.0f);
  if(flakes&&flake>0){const auto [cx,fx]=cell(pos,10);(void)fx;const auto py=static_cast<std::int32_t>(std::floor(y));
   for(int j=-1;j<=1;++j)for(int i=-1;i<=1;++i){const auto ci=cx+i,cj=py+j;if(uni(s,21,ci,cj)>=flake)continue;
    const float ddx=dx(pos,ci,10,uni(s,22,ci,cj))*0.1f,ddy=float(cj)+uni(s,23,ci,cj)-y,u=uni(s,24,ci,cj);
-   const float r=0.04f*std::pow(8.0f,u*u)*(1.0f+0.6f*std::max(0.0f,drop-1.0f));
-   const float e=0.6f+0.8f*uni(s,25,ci,cj),d=std::sqrt((ddx/e)*(ddx/e)+(ddy*e)*(ddy*e));
-   if(d<r*1.5f){o.magnetization*=smoothstep(r*0.8f,r,d);o.shed+=0.5f*(1.0f-smoothstep(r,r*1.5f,d));o.spacingLift+=0.15f*(1.0f-smoothstep(r,r*1.5f,d));}
+   const float r=0.025f*std::pow(6.0f,u*u)*(1.0f+0.35f*std::max(0.0f,drop-1.0f));
+   // Tape dropouts follow the recorded track: elongated along tape travel
+   // (video scanline width), narrow across the tape width.
+   const float e=2.5f+4.5f*uni(s,25,ci,cj),d=std::sqrt((ddx/e)*(ddx/e)+(ddy*e)*(ddy*e));
+   if(d<r*1.5f){o.magnetization*=smoothstep(r*0.8f,r,d);o.shed+=0.3f*(1.0f-smoothstep(r,r*1.5f,d));o.spacingLift+=0.10f*(1.0f-smoothstep(r,r*1.5f,d));}
   }
  }
  if(detail&&scratches>0){const auto lane=static_cast<std::int32_t>(std::floor(y*4.0f));const auto [sx,fx]=cell(pos,3000);const auto [c80,f80]=cell(pos,80);const auto [c15,f15]=cell(pos,15);const auto [c200,f200]=cell(pos,200);const auto [c120,f120]=cell(pos,120);
