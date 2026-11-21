@@ -230,6 +230,7 @@ int main() {
     }
     ConstImageView csi{chromaSrc.data(),w,h,w*4}; ImageView cdo{chromaOut.data(),w,h,w*4};
     DamageRegion signedChroma=full;
+    signedChroma.kind=RegionKind::TrackingNoise; signedChroma.trackingProfile=TrackingProfile::ServoSweep;
     signedChroma.maxShiftPx=0.0f; signedChroma.waveAmplitudePx=0.0f;
     signedChroma.servoDriftPx=0.0f; signedChroma.tearProbability=0.0f;
     signedChroma.noiseAmount=0.0f; signedChroma.noiseDensity=0.0f;
