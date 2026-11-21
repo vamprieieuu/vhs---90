@@ -59,6 +59,60 @@ inline float smoothHash2D(float x, float y, std::uint32_t seed) noexcept {
     const float b = b0 + (b1 - b0) * tx;
     return a + (b - a) * ty;
 }
+
+// Deterministic NTSC-R row_speckles port. Geometric inter-arrival sampling
+// creates short horizontal transients; a smooth spatial offset advects the
+// pattern so it travels instead of being regenerated as frame-wide flicker.
+inline float ntscRowSpeckles(float xPx, float yPx, float intensity,
+                             float anisotropy, float cellW, float cellH,
+                             float driftX, float driftY,
+                             std::uint32_t seed) noexcept {
+    intensity = clamp01(intensity);
+    anisotropy = clamp01(anisotropy);
+    if (intensity <= 0.0f) return 0.0f;
+
+    const float patternX = xPx - driftX * std::max(1.0f, cellW);
+    const float patternY = yPx - driftY * std::max(1.0f, cellH);
+    const float lineRandom = smoothHash2D(0.0f, patternY / 4.0f, seed + 0x6a09e667u);
+    const float denominator = std::max(1.0e-6f,
+        intensity * (1.0f - intensity) * (1.0f - anisotropy));
+    const float logistic = std::exp(std::max(-20.0f, std::min(20.0f,
+        (lineRandom - intensity) / denominator)));
+    const float lineIntensity = clamp01(
+        (anisotropy / (1.0f + logistic) + intensity * (1.0f - anisotropy)) * 0.125f);
+    if (lineIntensity <= 0.0f) return 0.0f;
+
+    const int block = static_cast<int>(std::floor(patternX / 64.0f));
+    float result = 0.0f;
+    for (int eventBlock = block - 1; eventBlock <= block; ++eventBlock) {
+        int pixelIndex = eventBlock * 64 - 64;
+        for (int eventIndex = 0; eventIndex < 24; ++eventIndex) {
+            const float u = std::max(1.0e-6f, std::min(1.0f - 1.0e-6f,
+                hash01(static_cast<std::uint32_t>(eventIndex),
+                       static_cast<std::uint32_t>(eventBlock), seed + 0x243f6a88u, 0)));
+            const float gapValue = std::log(1.0f - u) / std::log(1.0f - lineIntensity);
+            pixelIndex += std::max(1, static_cast<int>(std::floor(gapValue)));
+            if (pixelIndex >= (eventBlock + 1) * 64) break;
+
+            const float length = 8.0f + hash01(static_cast<std::uint32_t>(eventIndex + 31),
+                static_cast<std::uint32_t>(eventBlock), seed + 0x85a308d3u, 0) * 56.0f;
+            const float frequency = length * (3.0f + hash01(static_cast<std::uint32_t>(eventIndex + 67),
+                static_cast<std::uint32_t>(eventBlock), seed + 0x13198a2eu, 0) * 2.0f);
+            const float offset = patternX - static_cast<float>(pixelIndex);
+            if (offset >= 0.0f && offset < length) {
+                const float amplitude = hash01(static_cast<std::uint32_t>(std::floor(patternX)) +
+                    static_cast<std::uint32_t>(eventIndex * 19),
+                    static_cast<std::uint32_t>(std::floor(patternY)),
+                    seed + 0x03707344u, 0) * 3.0f - 1.0f;
+                const float envelope = std::pow(1.0f - offset / length, 2.0f);
+                result += std::cos((offset * kPi) / std::max(1.0f, frequency))
+                    * envelope * amplitude;
+            }
+            pixelIndex += 1;
+        }
+    }
+    return result;
+}
 inline float smoothServoNoise(float yPx,float smoothnessPx,std::uint32_t seed,
                                std::int64_t frame,int epochFrames) noexcept {
     const float rowCoordinate=yPx/std::max(1.0f,smoothnessPx);
@@ -225,21 +279,10 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 const float lineNoise=valueNoise1D(x/std::max(1.0f,r.cellWidthPx)-t*r.noiseDriftXCellsPerSecond,
                     regionSeed+0x31u,0)-0.5f;
                 sourceNoise=lineNoise*intensityScale*intensityScale*r.noiseAmount*4.0f;
-                const float snowProbability=clamp01(r.noiseDensity*intensityScale*intensityScale*0.125f);
-                const int block=static_cast<int>(x)/64;
-                for(int eventBlock=block-1;eventBlock<=block;++eventBlock) {
-                    const float event=hashCell(eventBlock,iy,regionSeed+0x6u,p.frame);
-                    if(event>=clamp01(snowProbability*64.0f)) continue;
-                    const int start=eventBlock*64+static_cast<int>(hashCell(eventBlock+13,iy,regionSeed+0x8u,p.frame)*64.0f);
-                    const float length=8.0f+hashCell(eventBlock+29,iy,regionSeed+0x9u,p.frame)*56.0f;
-                    const float offset=x-float(start);
-                    if(offset<0.0f||offset>=length) continue;
-                    const float frequency=length*(3.0f+hashCell(eventBlock+47,iy,regionSeed+0xau,p.frame)*2.0f);
-                    const float amplitude=hashCell(eventBlock+61,iy,regionSeed+0xbu,p.frame)*3.0f-1.0f;
-                    const float phase=(offset*kPi)/std::max(1.0f,frequency);
-                    sourceNoise+=std::cos(phase)*std::pow(1.0f-offset/length,2.0f)
-                        *amplitude*intensityScale*intensityScale*r.noiseDensity;
-                }
+                sourceNoise += ntscRowSpeckles(x, y,
+                    r.snowIntensity * intensityScale * intensityScale,
+                    r.snowAnisotropy, cellW, cellH,
+                    noiseDriftX, noiseDriftY, regionSeed + 0x6u) * 0.28f;
                 if(tearEvent<clamp01(r.tearProbability*intensityScale))
                     shiftX+=(tearDirection-0.5f)*r.tearShiftPx*intensityScale;
                 break;

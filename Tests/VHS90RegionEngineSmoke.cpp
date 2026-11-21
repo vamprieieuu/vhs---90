@@ -175,6 +175,33 @@ int main() {
     for(int aidx=0;aidx<7;++aidx) for(int bidx=aidx+1;bidx<7;++bidx)
         assert(profileOutputs[aidx]!=profileOutputs[bidx]);
 
+    // NTSC-R snow intensity and anisotropy are independent controls.
+    DamageRegion ntscSnow = full;
+    ntscSnow.kind = RegionKind::TrackingNoise;
+    ntscSnow.trackingProfile = TrackingProfile::NtscRTracking;
+    ntscSnow.shape = RegionShape::HorizontalBand;
+    ntscSnow.centerX = 0.5f; ntscSnow.centerY = 0.5f;
+    ntscSnow.width = 1.0f; ntscSnow.height = 1.0f;
+    ntscSnow.intensity = 1.0f; ntscSnow.maxShiftPx = 0.0f;
+    ntscSnow.waveAmplitudePx = 0.0f; ntscSnow.servoDriftPx = 0.0f;
+    ntscSnow.tearProbability = 0.0f; ntscSnow.dropoutProbability = 0.0f;
+    ntscSnow.noiseAmount = 0.0f; ntscSnow.snowIntensity = 0.8f;
+    ntscSnow.snowAnisotropy = 0.0f; ntscSnow.noiseDriftXCellsPerSecond = 1.35f;
+    ntscSnow.noiseDriftYCellsPerSecond = 0.42f;
+    RegionEngineParams snowP; snowP.regions = &ntscSnow; snowP.regionCount = 1;
+    snowP.seed = 0xC0FFEEu; snowP.frame = 8; snowP.timeSeconds = 0.4;
+    std::vector<float> snowIndependent(src.size()), snowClumped(src.size()), snowOff(src.size());
+    ImageView snowIndependentView{snowIndependent.data(),w,h,w*4};
+    ImageView snowClumpedView{snowClumped.data(),w,h,w*4};
+    ImageView snowOffView{snowOff.data(),w,h,w*4};
+    assert(processDamageRegions(profileInput,snowIndependentView,snowP));
+    ntscSnow.snowAnisotropy = 0.95f;
+    assert(processDamageRegions(profileInput,snowClumpedView,snowP));
+    ntscSnow.snowIntensity = 0.0f;
+    assert(processDamageRegions(profileInput,snowOffView,snowP));
+    assert(snowIndependent != snowOff);
+    assert(snowClumped != snowIndependent);
+
     // Four differently typed tracking regions can coexist in one render stack.
     DamageRegion trackingStack[4];
     for(int li=0;li<4;++li) {

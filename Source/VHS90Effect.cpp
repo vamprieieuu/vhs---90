@@ -41,7 +41,7 @@ enum ParamIndex {
     PARAM_RF_HUM, PARAM_RF_AM, PARAM_AGC_PUMP, PARAM_IMPULSE_NOISE, PARAM_DROPOUTS, PARAM_VHS6RIFT_GRAIN, PARAM_VHS6RIFT_GRAIN_SIZE, PARAM_VHS6RIFT_NOISE_DETAIL,
     PARAM_VHS6RIFT_SHADOW_BIAS, PARAM_VHS6RIFT_NOISE_ENABLE, PARAM_VHS6RIFT_NOISE_SEED, PARAM_SIGNAL_HUE_NOISE, PARAM_NTSCRS_PHASE_NOISE, PARAM_TRACKING_AMOUNT, PARAM_TRACKING_SHAPE, PARAM_TRACKING_CENTER_X,
     PARAM_TRACKING_CENTER_Y, PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_ANGLE, PARAM_TRACKING_MOTION_X, PARAM_TRACKING_MOTION_Y, PARAM_TRACKING_SERVO, PARAM_TRACKING_TEAR,
-    PARAM_TRACKING_PRESET_BASE, PARAM_TEAR_CHROMA_AMOUNT, PARAM_TEAR_CHROMA_MODE, PARAM_SPECTRAL_SMEAR, PARAM_SPECTRAL_HUE_SPREAD, PARAM_SPECTRAL_CENTER_Y, PARAM_SPECTRAL_COVERAGE, PARAM_TEAR_BAND_START_Y,
+    PARAM_TRACKING_PRESET_BASE, PARAM_TRACKING_SNOW_INTENSITY, PARAM_TRACKING_SNOW_ANISOTROPY, PARAM_TEAR_CHROMA_AMOUNT, PARAM_TEAR_CHROMA_MODE, PARAM_SPECTRAL_SMEAR, PARAM_SPECTRAL_HUE_SPREAD, PARAM_SPECTRAL_CENTER_Y, PARAM_SPECTRAL_COVERAGE, PARAM_TEAR_BAND_START_Y,
     PARAM_TEAR_BAND_HEIGHT, PARAM_TEAR_BAND_COUNT, PARAM_TEAR_DISPLACEMENT, PARAM_TEAR_FRAGMENTATION, PARAM_TEAR_CHROMA_SHIFT, PARAM_TEAR_SMEAR, PARAM_TEAR_DROPOUT, PARAM_TEAR_SEED,
     PARAM_STATIC_END, PARAM_HEAD_TOPIC, PARAM_HEAD_AMOUNT, PARAM_HEAD_BOTTOM_Y, PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_CONDITION, PARAM_HEAD_END,
     PARAM_COMPOSITE_DECODER_TOPIC, PARAM_RINGING, PARAM_RINGING_POWER, PARAM_CRT_EQUALIZER, PARAM_COMPOSITE_DECODER_END, PARAM_VHS_PLAYBACK_TOPIC, PARAM_EDGE_WAVE, PARAM_EDGE_WAVE_FREQUENCY,
@@ -106,7 +106,7 @@ enum ParamDiskID {
     ID_OSD_STATUS_X, ID_OSD_STATUS_Y, ID_OSD_TIMESTAMP_X, ID_OSD_TIMESTAMP_Y,
     ID_OSD_COUNTER_TOPIC=9026, ID_OSD_COUNTER_FORMAT=9009, ID_OSD_COUNTER_AMOUNT, ID_OSD_COUNTER_X, ID_OSD_COUNTER_Y, ID_OSD_COUNTER_OFFSET=9024, ID_OSD_SHOW_COUNTER=9047, ID_OSD_TEXT_DATA=9013,
     ID_OSD_LOCALIZATION_TOPIC=9027, ID_OSD_LANGUAGE=9014, ID_OSD_DIGITS, ID_OSD_DATE_LAYOUT, ID_OSD_CLOCK_MODE, ID_OSD_MONTH_STYLE, ID_OSD_CLOCK_RUNS, ID_OSD_FONT, ID_OSD_EXTRA_LABEL, ID_OSD_EXTRA_X, ID_OSD_EXTRA_Y,
-    ID_OSD_WORDS_TOPIC=9028, ID_OSD_SHOW_TEXT, ID_OSD_SHOW_REC_LABEL, ID_OSD_SHOW_PLAY_LABEL, ID_OSD_SHOW_PAUSE_LABEL, ID_OSD_SHOW_STOP_LABEL, ID_OSD_SHOW_FF_LABEL, ID_OSD_SHOW_REW_LABEL, ID_OSD_SHOW_SPEED_LABEL, ID_OSD_SHOW_TAPE_LABEL, ID_OSD_SHOW_ERROR_LABEL, ID_OSD_SHOW_PROGRAM_LABEL, ID_OSD_SHOW_RES_LABEL, ID_OSD_SHOW_FORWARD_LABEL, ID_OSD_TEXT_GLOW, ID_OSD_TEXT_SIZE=9048, ID_OSD_TEXT_GLOW_AMOUNT=9049, ID_OSD_TEXT_SEED=9050, ID_OSD_TEXT_OPACITY=9051, ID_OSD_SHOW_DATE, ID_OSD_WORDS_X, ID_OSD_WORDS_Y
+    ID_OSD_WORDS_TOPIC=9028, ID_OSD_SHOW_TEXT, ID_OSD_SHOW_REC_LABEL, ID_OSD_SHOW_PLAY_LABEL, ID_OSD_SHOW_PAUSE_LABEL, ID_OSD_SHOW_STOP_LABEL, ID_OSD_SHOW_FF_LABEL, ID_OSD_SHOW_REW_LABEL, ID_OSD_SHOW_SPEED_LABEL, ID_OSD_SHOW_TAPE_LABEL, ID_OSD_SHOW_ERROR_LABEL, ID_OSD_SHOW_PROGRAM_LABEL, ID_OSD_SHOW_RES_LABEL, ID_OSD_SHOW_FORWARD_LABEL, ID_OSD_TEXT_GLOW, ID_OSD_TEXT_SIZE=9048, ID_OSD_TEXT_GLOW_AMOUNT=9049, ID_OSD_TEXT_SEED=9050, ID_OSD_TEXT_OPACITY=9051, ID_OSD_SHOW_DATE, ID_OSD_WORDS_X, ID_OSD_WORDS_Y, ID_TRACKING_SNOW_INTENSITY=9055, ID_TRACKING_SNOW_ANISOTROPY=9056
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -152,6 +152,7 @@ struct RenderSettings {
     float tapeSurface=35, tapeTransport=0, geometry=0, interlace=0, verticalRoll=0, edgeWave=0, scanlines=0;
     float trackingAmount=22, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=12, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=12, trackingServo=12, trackingTear=4;
+    float trackingSnowIntensity=35.0f, trackingSnowAnisotropy=55.0f;
     A_long trackingShape=3, trackingProfile=1, particleMode=1, particleDistribution=1, trackingPresetBase=1, trackingLayerPreset[3]={3,4,5};
     A_long trackingLayerProfile[3]={2,3,4}, trackingLayerShape[3]={1,1,1};
     float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5};
@@ -622,6 +623,8 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SERVO);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_TEAR);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Intensity",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SNOW_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Anisotropy",0,100,0,100,55,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SNOW_ANISOTROPY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear & Chroma Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_CHROMA_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tear & Chroma Mode",5,5,kTearChromaModeChoices,ID_TEAR_CHROMA_MODE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Spectral Smear",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_SPECTRAL_SMEAR);
@@ -1000,6 +1003,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_TRACKING_ANGLE,trackingAngle);
     READ_FLOAT(PARAM_TRACKING_MOTION_X,trackingMotionX); READ_FLOAT(PARAM_TRACKING_MOTION_Y,trackingMotionY);
     READ_FLOAT(PARAM_TRACKING_SERVO,trackingServo); READ_FLOAT(PARAM_TRACKING_TEAR,trackingTear);
+    READ_FLOAT(PARAM_TRACKING_SNOW_INTENSITY,trackingSnowIntensity); READ_FLOAT(PARAM_TRACKING_SNOW_ANISOTROPY,trackingSnowAnisotropy);
     err=CheckoutPopup(in_data,PARAM_TRACKING_PROFILE,s.trackingProfile); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_BASE,s.trackingPresetBase); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_2,s.trackingLayerPreset[0]); if(err!=PF_Err_NONE) return err;
@@ -1701,6 +1705,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.servoDriftPx=s.trackingServo; r.tearProbability=clamp01(s.trackingTear/100.0f);
                 r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,4));
                 ApplyTrackingRecipe(r,s.trackingPresetBase);
+                r.snowIntensity=clamp01(s.trackingSnowIntensity/100.0f);
+                r.snowAnisotropy=clamp01(s.trackingSnowAnisotropy/100.0f);
             }
             if(s.trackingLayerAmount[0]>0.0f) {
                 DamageRegion& r=regions[count++]; r.kind=RegionKind::TrackingNoise;
@@ -1952,6 +1958,8 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.trackingTear=float(params[PARAM_TRACKING_TEAR]->u.fs_d.value);
     s.trackingProfile=params[PARAM_TRACKING_PROFILE]->u.pd.value;
     s.trackingPresetBase=params[PARAM_TRACKING_PRESET_BASE]->u.pd.value;
+    s.trackingSnowIntensity=float(params[PARAM_TRACKING_SNOW_INTENSITY]->u.fs_d.value);
+    s.trackingSnowAnisotropy=float(params[PARAM_TRACKING_SNOW_ANISOTROPY]->u.fs_d.value);
     s.trackingLayerPreset[0]=params[PARAM_TRACKING_PRESET_2]->u.pd.value; s.trackingLayerPreset[1]=params[PARAM_TRACKING_PRESET_3]->u.pd.value; s.trackingLayerPreset[2]=params[PARAM_TRACKING_PRESET_4]->u.pd.value;
     s.particleAmount=float(params[PARAM_PARTICLE_AMOUNT]->u.fs_d.value); s.particleMode=params[PARAM_PARTICLE_MODE]->u.pd.value;
     s.particleDensity=float(params[PARAM_PARTICLE_DENSITY]->u.fs_d.value); s.particleSize=float(params[PARAM_PARTICLE_SIZE]->u.fs_d.value);

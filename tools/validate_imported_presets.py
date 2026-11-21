@@ -297,3 +297,8 @@ tracking_recipe_end = source.find("static void ApplyCratesMasterPreset", trackin
 tracking_recipe = source[tracking_recipe_start:tracking_recipe_end]
 assert "case 9:" in tracking_recipe and "case 10:" in tracking_recipe, "Missing VHS6RIFT/NTSC-R tracking presets"
 assert 'PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' in source, "Tracking preset popup must expose ten curated entries"
+
+assert 'PF_ADD_FLOAT_SLIDERX("Snow Intensity"' in source and 'PF_ADD_FLOAT_SLIDERX("Snow Anisotropy"' in source, "Missing NTSC-R snow controls"
+assert "r.snowIntensity=clamp01(s.trackingSnowIntensity/100.0f)" in source, "Snow intensity is not wired into Tracking Noise"
+assert "r.snowAnisotropy=clamp01(s.trackingSnowAnisotropy/100.0f)" in source, "Snow anisotropy is not wired into Tracking Noise"
+assert "ntscRowSpeckles(x, y" in region_source, "Missing deterministic NTSC-R row_speckles port"

@@ -57,6 +57,10 @@ struct DamageRegion {
 
     float noiseAmount = 0.12f;
     float noiseDensity = 0.15f;
+    // NTSC-R row_speckles controls; intensity sets event rate and anisotropy
+    // controls whether snow is distributed independently or clumped by scanline.
+    float snowIntensity = 0.35f;
+    float snowAnisotropy = 0.55f;
     float dropoutProbability = 0.02f;
     float dropoutAmount = 0.25f;
     float chromaShiftPx = 1.5f;
