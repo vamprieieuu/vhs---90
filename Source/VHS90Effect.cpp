@@ -1564,7 +1564,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.impulseNoiseEnabled=true; p.impulseNoise.seed=0x90A11E5Eu; p.impulseNoise.frame=s.frame;
                 p.impulseNoise.amount=clamp01(s.impulseNoise/100.0f);
             }
-            if(s.rfDrift>0||s.rfHum>0||s.rfAm>0) {
+            if(s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0) {
                 p.rfInstabilityEnabled=true; p.rfInstability.seed=0x90A11E5Eu; p.rfInstability.frame=s.frame;
                 p.rfInstability.drift=clamp01(s.rfDrift/100.0f);
                 p.rfInstability.hum=clamp01(s.rfHum/100.0f);
