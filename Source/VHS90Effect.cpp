@@ -1663,8 +1663,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.analogGlow.horizontalScale=std::max(0.1f,float(w)/720.0f);
             }
             if(s.bloom>0) {
-                p.bloomEnabled=true; p.bloom.threshold=0.72f; p.bloom.intensity=clamp01(s.bloom/100.0f);
-                p.bloom.spread=2.0f; p.bloom.levels=3;
+                p.bloomEnabled=true; p.bloom.threshold=0.48f; p.bloom.intensity=clamp01(s.bloom/100.0f)*2.5f;
+                p.bloom.spread=2.5f; p.bloom.levels=3;
             }
             if(s.scanlines>0) {
                 p.scanlinesEnabled=true; p.scanlines.amount=clamp01(s.scanlines/100.0f);
