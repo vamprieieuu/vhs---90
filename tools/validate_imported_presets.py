@@ -201,7 +201,7 @@ for needle in [
     "p.imageGrade.chromaSharpenCutoffHz=s.tapeSpeed==3?560000.0f:(s.tapeSpeed==2?600000.0f:640000.0f);",
     "p.imageGrade.chromaIGain=s.chromaIGain/100.0f;p.imageGrade.chromaQGain=s.chromaQGain/100.0f;",
     "p.imageGrade.chromaIOffset=s.chromaIOffset/200.0f;p.imageGrade.chromaQOffset=s.chromaQOffset/200.0f;",
-    "p.imageGrade.chromaQuantization=s.chromaQuantization/1200.0f;",
+    "p.imageGrade.chromaQuantization=s.chromaQuantization/4000.0f;",
     "rp.redOffsetPixels=s.redChannelOffset*master/100.0f;",
     "rp.blueOffsetPixels=s.blueChannelOffset*master/100.0f;",
     "processRgbChannelRegistration(in,out,rp)",
