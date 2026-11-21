@@ -32,3 +32,11 @@ VHS6RIFT and NTSC-R use the corresponding available source-derived models. VHSPr
 - The combined Grain & Tracking Noise UI group still needs a safe split into independent Grain, Tracking Noise and Tear groups. Parameter disk IDs and saved-project compatibility must be preserved.
 - The current CI proves compilation and host-independent smoke tests, not that After Effects loads the AEX or that each effect matches the supplied visual references.
 - All reverse-engineered plugin-family presets remain approximate until individually rendered and compared against the original plugin/reference footage.
+
+
+## Additional corrections after the tracking/head-switch pass
+
+- Chroma Quantization now uses downward-only magnitude bins; it never boosts chroma magnitude when rounding. The UI mapping was reduced from a maximum step of 0.0833 to 0.025, making the high end less destructive. The test now checks that chroma magnitude does not increase and that the hue angle is preserved wherever chroma remains non-zero.
+- RF Drift was changed from large multi-sine excursions (up to roughly 20 pixels at full setting) to a restrained three-scale correlated displacement field. It moves scanlines in a slow, continuous way and is regression-tested against a horizontal ramp with a bounded maximum displacement.
+- Linux Core Tests run `44914777684` passed 36/36. Windows Build run `44914777848` passed SDK/font checks, AE contract validation, MSVC build, single root-level `VHS-90.aex` verification and raw Release publishing.
+- Verified AEX: https://github.com/vamprieieuu/vhs---90/releases/download/vhs90-aex-48d7632a38ee/VHS-90.aex (867,840 bytes).

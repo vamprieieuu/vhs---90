@@ -305,3 +305,11 @@ Do not call VHS-90 test-ready until the Windows build and in-host validation gat
 - Latest Windows Build run `44914282254` passed SDK/font checks, AE parameter contract validation, MSVC build and tests, single-file AEX verification and raw Release publishing. Output: `build/VHS-90.aex`, 867,840 bytes. Release: https://github.com/vamprieieuu/vhs---90/releases/tag/vhs90-aex-27a7d36963d3
 - Latest Linux Core Tests run `44914282265` passed all 36/36 smoke tests.
 - **Still open from the user's review:** separate the combined Grain/Tracking/Tear UI into smaller independently named sections without breaking AE parameter compatibility; full visual calibration against every VHS camera clip and VHS Damage Lab frame; exact binary-derived preset matching; the requested complete UI pruning/reordering; remaining Signal, Chroma Subsample, Vertical Chroma Delay, RF Drift, Mains Hum, AM Nonlinearity, AGC Pump, Impulse Noise, Tape Dropouts, OSD and Tape Material visual/functional acceptance. A successful AEX build is not proof those looks are visually correct.
+
+
+## RF Drift and Chroma Quantization correction — 2026-11-21
+
+- Chroma Quantization now rounds chroma magnitude downward only, preserving hue phase and preventing the previous upward saturation jumps. The AE slider maps to a smaller maximum step (`/4000` rather than `/1200`) so high settings no longer introduce strong artificial color changes. Regression test asserts chroma magnitude never increases and hue angle remains stable when chroma is non-zero.
+- RF Drift no longer uses large full-frame sine excursions and high-amplitude line offsets. It now uses three correlated, low-amplitude spatial noise scales with time-based advection for restrained scanline time-base wander. Regression test bounds the maximum shift on a linear test chart.
+- Linux Core Tests run `44914777684` passed all 36/36 tests. Windows Build run `44914777848` passed AE host contract, MSVC build, root-level single-file output verification and Release publishing.
+- Current raw AEX: https://github.com/vamprieieuu/vhs---90/releases/download/vhs90-aex-48d7632a38ee/VHS-90.aex (867,840 bytes; commit `48d7632a38ee5d974d9c61c8e43c335b2c5bb6e7`).
