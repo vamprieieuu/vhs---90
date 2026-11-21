@@ -22,7 +22,9 @@ enum class TrackingProfile : std::uint8_t {
     RfWave = 1,
     CompositeRibbon = 2,
     TapeFlutter = 3,
-    FourEdgeCrawl = 4
+    FourEdgeCrawl = 4,
+    Vhs6RiftBand = 5,
+    NtscRTracking = 6
 };
 
 // All position and size values are normalized to [0,1] frame coordinates.
