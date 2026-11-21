@@ -60,6 +60,7 @@ struct DamageRegion {
 
     float noiseAmount = 0.12f;
     float noiseDensity = 0.15f;
+    float snowAnisotropy = 0.10f;
     float dropoutProbability = 0.02f;
     float dropoutAmount = 0.25f;
     float chromaShiftPx = 1.5f;
