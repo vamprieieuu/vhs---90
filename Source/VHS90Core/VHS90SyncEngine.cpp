@@ -94,7 +94,7 @@ bool processSyncCollapse(ConstImageView src,ImageView dst,const SyncCollapsePara
             float r=sample(src,sx,sy,0),g=sample(src,sx,sy,1),b=sample(src,sx,sy,2);
             const float sourceA=sample(src,sx,sy,3);
             const float bandDamage=glitchBand;
-            const float noise=bandDamage*(hash01(std::uint32_t(x/3),std::uint32_t(y),p.seed+31u,p.frame)-0.5f)*0.8f;
+            const float noise=bandDamage*(hash01(std::uint32_t(x/3),std::uint32_t(y),p.seed+31u,p.frame)-0.5f)*clamp01(p.noiseAmount);
             const float lumaGain=1.0f-bandDamage*0.55f-trackingBand*p.trackingLineStrength;
             if(p.premultipliedAlpha) {
                 if(sourceA>1.0e-6f) { r/=sourceA; g/=sourceA; b/=sourceA; }

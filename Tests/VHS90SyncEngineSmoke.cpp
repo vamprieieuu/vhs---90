@@ -14,6 +14,9 @@ int main() {
     SyncCollapseParams p; p.seed=17; p.frame=9; p.timeSeconds=0.1; p.eventFrequency=1.0f;
     p.noiseAmount=0.08f; p.enableVerticalRoll=false; p.syncEventProbability=0.0f;
     assert(processSyncCollapse(si,da,p)); assert(processSyncCollapse(si,db,p)); assert(a==b); assert(a!=src);
+    SyncCollapseParams noTearNoise=p; noTearNoise.noiseAmount=0.0f;
+    std::vector<float> noTearNoiseOut(src.size()); ImageView noTearNoiseView{noTearNoiseOut.data(),w,h,w*4};
+    assert(processSyncCollapse(si,noTearNoiseView,noTearNoise)); assert(noTearNoiseOut!=a);
     SyncCollapseParams zero=p; zero.strength=0.0f; assert(processSyncCollapse(si,dc,zero)); assert(c==src);
     SyncCollapseParams clean; clean.eventFrequency=0.0f; clean.slowTimebasePx=0.0f; clean.fastTimebasePx=0.0f;
     clean.noiseAmount=1.0f; clean.enableTrackingLine=false; // Noise control must not create full-frame static. clean.syncEventProbability=0.0f;

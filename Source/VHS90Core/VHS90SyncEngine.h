@@ -10,7 +10,7 @@ struct SyncCollapseParams {
     float displacementPx=36.0f, slowTimebasePx=2.5f, fastTimebasePx=1.0f, lineTextureAmount=0.38f;
     float trackingLineSpeed=0.071f, trackingLineWobble=0.13f, trackingLineStrength=0.22f;
     float syncEventRateHz=0.25f, syncEventWindowFraction=0.14f, syncEventProbability=0.18f, syncRollStrength=0.45f;
-    float noiseAmount=0.12f;
+    float noiseAmount=0.0f;
     bool enableTrackingLine=true, enableVerticalRoll=true, premultipliedAlpha=true;
     std::uint32_t seed=1;
     std::int64_t frame=0;
