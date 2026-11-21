@@ -17,6 +17,7 @@ bool processImpulseNoise(ConstImageView src,ImageView dst,const ImpulseNoisePara
  try {
   const int w=src.width,h=src.height;
   std::vector<float> impulses(std::size_t(w)*h,0.0f);
+  std::vector<std::uint8_t> affected(std::size_t(w)*h,0u);
   const float eventDrive=1.0f+58.0f*amount;
   const int events=std::max(1,int(std::lround(eventDrive*(0.4f+0.6f*hash01(0u,0u,p.seed,p.frame)))));
   for(int e=0;e<events;++e){
@@ -29,13 +30,14 @@ bool processImpulseNoise(ConstImageView src,ImageView dst,const ImpulseNoisePara
    for(int x=start;x<std::min(w,start+len);++x){
     const float noise=hash01(std::uint32_t(x),id^0xA53u,p.seed,p.frame)*2.0f-1.0f;
     walk=0.76f*walk+noise*(0.005f+0.038f*amount);
-    impulses[std::size_t(y)*w+x]+=amp+walk;
+    const std::size_t at=std::size_t(y)*w+x;affected[at]=1u;impulses[at]+=amp+walk;
     amp*=0.70f;
    }
   }
   for(int y=0;y<h;++y){const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
    for(int x=0;x<w;++x){const float*px=sr+x*4;float*out=dr+x*4;const float a=px[3];
-    if(a<=1.0e-6f){std::copy_n(px,4,out);continue;}
+    const std::size_t at=std::size_t(y)*w+x;
+    if(a<=1.0e-6f||affected[at]==0u){std::copy_n(px,4,out);continue;}
     RGB rgb{px[0],px[1],px[2]};if(p.premultipliedAlpha){rgb.r/=a;rgb.g/=a;rgb.b/=a;}
     YIQ yiq=rgbToYiq(rgb);yiq.y+=impulses[std::size_t(y)*w+x];rgb=yiqToRgb(yiq);
     if(p.premultipliedAlpha){rgb.r*=a;rgb.g*=a;rgb.b*=a;}
