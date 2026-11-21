@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <cstring>
 #include <new>
+#include <string>
 #include <vector>
 
 namespace {
@@ -2173,6 +2174,116 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
 }
 } // namespace
 
+static void AppendOsdCodepoint(std::string& text,A_long cp) {
+    if(cp<0||cp>0x10ffff) return;
+    if(cp<=0x7f) text.push_back(static_cast<char>(cp));
+    else if(cp<=0x7ff) {
+        text.push_back(static_cast<char>(0xc0|(cp>>6)));
+        text.push_back(static_cast<char>(0x80|(cp&0x3f)));
+    } else if(cp<=0xffff) {
+        text.push_back(static_cast<char>(0xe0|(cp>>12)));
+        text.push_back(static_cast<char>(0x80|((cp>>6)&0x3f)));
+        text.push_back(static_cast<char>(0x80|(cp&0x3f)));
+    } else {
+        text.push_back(static_cast<char>(0xf0|(cp>>18)));
+        text.push_back(static_cast<char>(0x80|((cp>>12)&0x3f)));
+        text.push_back(static_cast<char>(0x80|((cp>>6)&0x3f)));
+        text.push_back(static_cast<char>(0x80|(cp&0x3f)));
+    }
+}
+static void RemoveLastOsdCodepoint(std::string& text) {
+    if(text.empty()) return;
+    std::size_t pos=text.size()-1;
+    while(pos>0&&(static_cast<unsigned char>(text[pos])&0xc0u)==0x80u) --pos;
+    text.erase(pos);
+}
+static PF_Err HandleEvent(PF_InData* in_data,PF_ParamDef* params[],PF_EventExtra* extra) {
+    if(!in_data||!extra) return PF_Err_NONE;
+    extra->evt_out_flags=PF_EO_NONE;
+    PF_ContextPtr context=(extra->contextH?*extra->contextH:nullptr);
+    if(extra->e_type==PF_Event_NEW_CONTEXT) {
+        if(context) context->plugin_state[0]=-1;
+        return PF_Err_NONE;
+    }
+    if(extra->e_type==PF_Event_CLOSE_CONTEXT) return PF_Err_NONE;
+    if((extra->e_type==PF_Event_DRAW||extra->e_type==PF_Event_DO_CLICK||
+        extra->e_type==PF_Event_ADJUST_CURSOR)&&extra->effect_win.index==PARAM_OSD_TEXT_DATA) {
+        if(extra->e_type==PF_Event_DRAW) {
+            std::string current;
+            if(params&&params[PARAM_OSD_TEXT_DATA])
+                VHS90ReadOsdText(in_data,params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,current);
+            std::string line1=current.empty()?"OSD TEXT: click here and type":"OSD TEXT: "+current;
+            if(line1.size()>120) line1.resize(120);
+            if(extra->cbs.info_draw_color) {
+                PF_Pixel ink; ink.alpha=255; ink.red=230; ink.green=225; ink.blue=205;
+                extra->cbs.info_draw_color(extra->cbs.refcon,ink);
+            }
+            if(extra->cbs.info_draw_text)
+                extra->cbs.info_draw_text(extra->cbs.refcon,line1.c_str(),"Arabic / English supported - Backspace edits");
+            extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
+            return PF_Err_NONE;
+        }
+        if(extra->e_type==PF_Event_DO_CLICK) {
+            if(context) context->plugin_state[0]=PARAM_OSD_TEXT_DATA;
+            extra->u.do_click.send_drag=FALSE;
+            extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
+            return PF_Err_NONE;
+        }
+        if(extra->e_type==PF_Event_ADJUST_CURSOR) {
+            extra->u.adjust_cursor.set_cursor=PF_Cursor_HORZ_I_BEAM;
+            extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
+            return PF_Err_NONE;
+        }
+    }
+    if(extra->e_type==PF_Event_DEACTIVATE) {
+        if(context) context->plugin_state[0]=-1;
+        return PF_Err_NONE;
+    }
+    const bool editing=(context&&context->plugin_state[0]==PARAM_OSD_TEXT_DATA);
+    if(extra->e_type!=PF_Event_KEYDOWN||!editing||!params||!params[PARAM_OSD_TEXT_DATA])
+        return PF_Err_NONE;
+    std::string text;
+    PF_Err err=VHS90ReadOsdText(in_data,params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,text);
+    if(err!=PF_Err_NONE) return err;
+    const PF_KeyCode key=extra->u.key_down.keycode;
+    bool changed=false;
+    if(PF_KEYCODE_IS_PRINTABLE(key)) {
+        const A_long cp=static_cast<A_long>(PF_KEYCODE_GET_SHORTCUT_CHARACTER(key));
+        if(cp>=0x20&&cp<=0x10ffff&&text.size()<vhs90::kOsdTextMaxUtf8Bytes) {
+            AppendOsdCodepoint(text,cp); changed=true;
+        }
+    } else {
+        switch(PF_KEYCODE_GET_CONTROL_CODE(key)) {
+            case PF_ControlCode_Space:
+                if(text.size()<vhs90::kOsdTextMaxUtf8Bytes){text.push_back(' ');changed=true;}
+                break;
+            case PF_ControlCode_Backspace:
+                if(!text.empty()){RemoveLastOsdCodepoint(text);changed=true;}
+                break;
+            case PF_ControlCode_Delete:
+                if(!text.empty()){text.clear();changed=true;}
+                break;
+            case PF_ControlCode_Return:
+            case PF_ControlCode_Enter:
+                if(text.size()+1<vhs90::kOsdTextMaxUtf8Bytes){text.push_back('\n');changed=true;}
+                break;
+            case PF_ControlCode_Escape:
+                if(context) context->plugin_state[0]=-1;
+                extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
+                return PF_Err_NONE;
+            default: break;
+        }
+    }
+    extra->evt_out_flags|=PF_EO_HANDLED_EVENT|PF_EO_NEVER_UPDATE;
+    if(changed) {
+        err=VHS90WriteOsdText(in_data,&params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,text);
+        if(err!=PF_Err_NONE) return err;
+        params[PARAM_OSD_TEXT_DATA]->uu.change_flags=PF_ChangeFlag_CHANGED_VALUE;
+        extra->evt_out_flags=(extra->evt_out_flags&~PF_EO_NEVER_UPDATE)|PF_EO_HANDLED_EVENT|PF_EO_ALWAYS_UPDATE;
+    }
+    return PF_Err_NONE;
+}
+
 extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in_data,PF_OutData* out_data,
     PF_ParamDef* params[],PF_LayerDef* output,void* extra) {
     (void)params; (void)output;
@@ -2183,6 +2294,7 @@ extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in_data,PF_OutData*
             case PF_Cmd_GLOBAL_SETUP: err=GlobalSetup(in_data,out_data); break;
             case PF_Cmd_PARAMS_SETUP: err=ParamsSetup(in_data,out_data); break;
             case PF_Cmd_ARBITRARY_CALLBACK: err=VHS90OsdArbitraryCallback(in_data,static_cast<PF_ArbParamsExtra*>(extra)); break;
+            case PF_Cmd_EVENT: err=HandleEvent(in_data,params,static_cast<PF_EventExtra*>(extra)); break;
             case PF_Cmd_RENDER: err=LegacyRender(in_data,out_data,params,output); break;
             case PF_Cmd_SMART_PRE_RENDER: err=SmartPreRender(in_data,static_cast<PF_PreRenderExtra*>(extra)); break;
             case PF_Cmd_SMART_RENDER: err=SmartRender(in_data,out_data,static_cast<PF_SmartRenderExtra*>(extra)); break;
