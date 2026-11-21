@@ -220,49 +220,42 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
         }
     } else {
         const float tear=hashCell(0,iy/2,regionSeed+0x9e3779b9u,p.frame);
-        const float tearDirection=hashCell(7,iy+11,regionSeed+0x85ebca6bu,p.frame);
-        if(r.trackingProfile==TrackingProfile::Vhs6RiftBand) {
-            // VHS6RIFT head-switch recipe: row jitter and tape snow stay
-            // clipped to the movable head-switch region, never the full frame.
-            const auto bandTick=static_cast<std::int64_t>(std::floor(t*60.0f));
-            const float bandJitter=hashCell(0,iy,regionSeed+0x202u,bandTick)-0.5f;
-            shiftX+=bandJitter*r.maxShiftPx*bandFactor;
-            shiftX+=(rowN-0.5f)*r.servoDriftPx*0.45f*bandFactor;
-            if(tear<clamp01(r.tearProbability*bandFactor))
-                shiftX+=(tearDirection-0.5f)*2.0f*r.tearShiftPx*bandFactor;
+        if(r.headSwitchProfile==HeadSwitchProfile::Vhs6Rift) {
+            // VHS6RIFT source: quadratic head-switch line jitter and localized
+            // grayscale snow. The region geometry replaces the source's fixed
+            // bottom-only boundary without changing the underlying response.
+            const float headSwitchFactor=localProgress;
+            shiftX+=std::pow(headSwitchFactor,2.0f)*r.maxShiftPx;
             const auto snowTick=static_cast<std::uint32_t>(std::max(0.0f,t*240.0f));
-            const float snowHash=hashCell(static_cast<int>(x),iy,regionSeed+snowTick,p.frame);
-            if(bandFactor>0.35f&&snowHash>0.52f) {
-                sourceSnow=0.72f;
+            const float snowHash=hashCell(static_cast<int>(x),iy,regionSeed+snowTick+55u,p.frame);
+            if(snowHash>(1.0f-headSwitchFactor*0.7f)) {
+                sourceSnow=1.0f;
                 sourceSnowValue=snowHash;
             }
-        } else if(r.trackingProfile==TrackingProfile::NtscRTracking) {
-            // NTSC-R head switching: nonlinear edge ramp, row-gradient drift,
-            // and sparse horizontal transients, generalized to the chosen shape.
-            const float intensityScale=std::pow(localProgress,1.5f);
-            const float rowGradient=valueNoise1D(y/std::max(1.0f,r.servoSmoothnessPx),
-                regionSeed+0x53u,p.frame)-0.5f;
-            shiftX+=rowGradient*intensityScale*r.waveAmplitudePx*0.32f;
-            const float lineNoise=valueNoise1D(x/std::max(1.0f,r.cellWidthPx),
-                regionSeed+0x71u,p.frame)-0.5f;
-            sourceNoise=lineNoise*intensityScale*intensityScale*r.noiseAmount*3.5f;
-            const float snowProbability=clamp01(r.noiseDensity*intensityScale*intensityScale*0.11f);
-            const int block=static_cast<int>(x)/64;
-            for(int eventBlock=block-1;eventBlock<=block;++eventBlock) {
-                const float event=hashCell(eventBlock,iy,regionSeed+0x76u,p.frame);
-                if(event>=clamp01(snowProbability*64.0f)) continue;
-                const int start=eventBlock*64+static_cast<int>(hashCell(eventBlock+17,iy,regionSeed+0x78u,p.frame)*64.0f);
-                const float length=8.0f+hashCell(eventBlock+31,iy,regionSeed+0x79u,p.frame)*56.0f;
-                const float offset=x-float(start);
-                if(offset<0.0f||offset>=length) continue;
-                const float frequency=length*(3.0f+hashCell(eventBlock+43,iy,regionSeed+0x7au,p.frame)*2.0f);
-                const float amplitude=hashCell(eventBlock+59,iy,regionSeed+0x7bu,p.frame)*3.0f-1.0f;
-                sourceNoise+=std::cos(offset*kPi/std::max(1.0f,frequency))
-                    *std::pow(1.0f-offset/length,2.0f)*amplitude
-                    *intensityScale*intensityScale*r.noiseDensity;
+        } else if(r.headSwitchProfile==HeadSwitchProfile::NtscR) {
+            // NTSC-R source: shift grows with the 1.5-power head-switch ramp;
+            // a seeded per-row offset represents the source bandwidth jitter.
+            const float headSwitchFactor=localProgress;
+            shiftX+=r.maxShiftPx*std::pow(headSwitchFactor,1.5f);
+            const float rowJitter=hashCell(0,iy,regionSeed+0x4e545343u,p.frame)-0.5f;
+            shiftX+=rowJitter*r.servoDriftPx;
+            // NTSC-R's optional mid-line start transient, generalized to the
+            // leading edge of the user-positioned region.
+            const float regionRows=std::max(1.0f,r.height*float(std::max(1,src.height)));
+            if(r.tearProbability>0.0f&&headSwitchFactor*regionRows<1.0f) {
+                const float jitterRand=(hashCell(0,iy,regionSeed+0x4d49444cu,p.frame)
+                    +hashCell(1,iy,regionSeed+0x4d49444du,p.frame))*0.5f;
+                const float copyStart=float(src.width)*(0.5f+(jitterRand-0.5f)*0.12f);
+                if(x<copyStart) shiftX=0.0f;
+                const float transientLength=16.0f;
+                const float transientX=x-copyStart;
+                if(transientX>=0.0f&&transientX<transientLength) {
+                    const float transientIntensity=(hashCell(2,iy,regionSeed+0x4d49444eu,p.frame)+0.5f)*0.5f;
+                    sourceNoise+=(1.0f-transientX/transientLength)
+                        *(1.0f-transientX/transientLength)
+                        *(1.0f-transientX/transientLength)*transientIntensity;
+                }
             }
-            if(tear<clamp01(r.tearProbability*intensityScale))
-                shiftX+=(tearDirection-0.5f)*r.tearShiftPx*intensityScale;
         } else {
             shiftX+=(tear-0.5f)*r.maxShiftPx*1.75f;
         }
