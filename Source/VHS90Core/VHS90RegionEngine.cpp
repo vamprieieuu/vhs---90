@@ -170,7 +170,7 @@ inline float evaluateMask(const DamageRegion& r, float u, float v,
                           double timeSeconds) noexcept {
     const float elapsed=static_cast<float>(timeSeconds);
     float cx=r.centerX,cy=r.centerY;
-    if(r.kind==RegionKind::TrackingNoise) {
+    if(r.kind==RegionKind::TrackingNoise || r.kind==RegionKind::HeadSwitch) {
         if(std::fabs(r.motionXPerSecond)>1.0e-7f)
             cx=wrapMovingCenter(cx,std::max(0.0f,r.width)*0.5f,r.motionXPerSecond*elapsed);
         if(std::fabs(r.motionYPerSecond)>1.0e-7f)
@@ -223,7 +223,7 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
     const float rowWave = std::sin((float(iy) / std::max(1, src.height)) *
                                    r.waveFrequency * 2.0f * kPi + t * 2.0f * kPi);
     float movingCenterX=r.centerX,movingCenterY=r.centerY;
-    if(r.kind==RegionKind::TrackingNoise) {
+    if(r.kind==RegionKind::TrackingNoise || r.kind==RegionKind::HeadSwitch) {
         if(std::fabs(r.motionXPerSecond)>1.0e-7f)
             movingCenterX=wrapMovingCenter(movingCenterX,std::max(0.0f,r.width)*0.5f,r.motionXPerSecond*t);
         if(std::fabs(r.motionYPerSecond)>1.0e-7f)
