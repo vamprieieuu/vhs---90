@@ -38,7 +38,14 @@ assert len(disk_ids) == len(set(disk_ids)), "Duplicate ParamDiskID"
 assert len(registered_ids) == len(disk_ids), (
     f"UI registration count mismatch: {len(registered_ids)} vs {len(disk_ids)}"
 )
-assert registered_ids == disk_ids, "PF_ADD registration order differs from ParamDiskID order"
+# Grain is a newly introduced topic. Its disk ID is deliberately appended
+# to ParamDiskID so no existing serialized ID is renumbered, while its UI topic
+# is placed beside the Grain controls. Compare all legacy IDs in their original
+# order, and validate the appended topic exactly once.
+assert registered_ids.count("ID_GRAIN_TOPIC") == 1, "Grain topic disk ID must be registered exactly once"
+assert [item for item in registered_ids if item != "ID_GRAIN_TOPIC"] == [
+    item for item in disk_ids if item != "ID_GRAIN_TOPIC"
+], "Legacy PF_ADD registration order differs from ParamDiskID order"
 
 # Confirm the new UI controls are read in SmartFX and legacy paths.
 required_reads = [
