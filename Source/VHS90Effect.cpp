@@ -225,20 +225,18 @@ static void ApplyTrackingRecipe(DamageRegion& r,A_long preset) noexcept {
         case 8: // Full-Frame Breakdown recipe; geometry remains editable by the user.
             r.maxShiftPx*=1.8f; r.noiseDensity=0.8f; r.noiseAmount=0.28f;
             r.tearProbability=std::max(r.tearProbability,0.5f); break;
-        case 9: // VHS6RIFT moving-band source profile, with VHS-90's movable region geometry.
+        case 9: // VHS6RIFT localized moving band: source jitter and in-band snow only.
             r.trackingProfile=TrackingProfile::Vhs6RiftBand;
             r.maxShiftPx=std::max(r.maxShiftPx,14.0f);
-            r.waveAmplitudePx=std::max(r.waveAmplitudePx,8.0f);
-            r.servoDriftPx=std::max(r.servoDriftPx,8.0f);
-            r.noiseAmount=0.32f; r.noiseDensity=0.58f;
-            r.tearProbability=std::max(r.tearProbability,0.18f);
+            r.noiseAmount=0.0f; r.noiseDensity=0.0f;
+            r.tearProbability=0.0f; r.tearShiftPx=0.0f;
             break;
-        case 10: // NTSC-R gradient row noise and transient-snow source profile.
+        case 10: // NTSC-R tracking_noise: gradient row shift, line FBM and row speckles.
             r.trackingProfile=TrackingProfile::NtscRTracking;
             r.waveAmplitudePx=std::max(r.waveAmplitudePx,10.0f);
             r.servoSmoothnessPx=std::max(r.servoSmoothnessPx,18.0f);
-            r.noiseAmount=0.30f; r.noiseDensity=0.52f;
-            r.tearProbability=std::max(r.tearProbability,0.10f);
+            r.noiseAmount=0.30f; r.noiseDensity=0.52f; r.snowAnisotropy=0.10f;
+            r.tearProbability=0.0f; r.tearShiftPx=0.0f;
             break;
         default: break;
     }
