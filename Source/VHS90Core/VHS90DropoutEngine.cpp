@@ -31,7 +31,7 @@ bool processDropouts(ConstImageView src,ImageView dst,const DropoutParams&p) noe
  if(amount<=0){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
  try{
   const int w=src.width,h=src.height;const std::size_t count=std::size_t(w)*h;
-  std::vector<float> y(count),i(count),q(count),alpha(count);
+  std::vector<float> y(count),i(count),q(count),alpha(count);\n  std::vector<std::uint8_t> affected(count,0u);
   for(int row=0;row<h;++row)for(int x=0;x<w;++x){
    const float*px=src.rgba+row*src.rowStrideFloats+x*4;const std::size_t n=std::size_t(row)*w+x;
    alpha[n]=px[3];RGB rgb{px[0],px[1],px[2]};
@@ -59,7 +59,7 @@ bool processDropouts(ConstImageView src,ImageView dst,const DropoutParams&p) noe
   }
   const float chance=std::min(1.0f,amount*.0018f/(p.horizontalScale*p.verticalScale));
   const int speckles=std::min<int>(int(std::min<std::size_t>(count,200000)),rng.poisson(float(count)*chance));
-  for(int n=0;n<speckles;++n){const std::size_t at=std::size_t(rng.next())%count;y[at]=rng.uniform();}
+  for(int n=0;n<speckles;++n){const std::size_t at=std::size_t(rng.next())%count;affected[at]=1u;y[at]=rng.uniform();}
   for(int row=0;row<h;++row)for(int x=0;x<w;++x){
    const std::size_t n=std::size_t(row)*w+x;const float a=alpha[n];float*out=dst.rgba+row*dst.rowStrideFloats+x*4;
    if(a<=1.0e-6f){std::copy_n(src.rgba+row*src.rowStrideFloats+x*4,4,out);continue;}
