@@ -100,7 +100,7 @@ if not flags or (int(flags.group(1), 16) & (1 << 15)) == 0:
 
 # SmartFX rectangle contract: output bounds must be sourced from the layer
 # checkout, not copied from an arbitrary output request ROI.
-pre_render_match = re.search(r"static\\s+PF_Err\\s+SmartPreRender\\s*\\([^)]*\\)\\s*\\{", SOURCE)
+pre_render_match = re.search(r"static\s+PF_Err\s+SmartPreRender\s*\([^)]*\)\s*\{", SOURCE)
 if not pre_render_match:
     fail("SmartPreRender function was not found.")
 start = SOURCE.find("{", pre_render_match.start())

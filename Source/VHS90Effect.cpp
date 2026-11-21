@@ -1736,6 +1736,14 @@ static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
     err=extra->cb->checkout_layer(in_data->effect_ref,PARAM_INPUT,kInputCheckoutID,&req,
         in_data->current_time,in_data->time_step,in_data->time_scale,&result);
     if(err!=PF_Err_NONE) { delete s; return err; }
+    auto unionRect=[](PF_Rect& dst,const PF_Rect& srcRect) {
+        if(srcRect.right<=srcRect.left || srcRect.bottom<=srcRect.top) return;
+        if(dst.right<=dst.left || dst.bottom<=dst.top) { dst=srcRect; return; }
+        dst.left=std::min(dst.left,srcRect.left);
+        dst.top=std::min(dst.top,srcRect.top);
+        dst.right=std::max(dst.right,srcRect.right);
+        dst.bottom=std::max(dst.bottom,srcRect.bottom);
+    };
     // Checkout the immediately preceding source frame through SmartFX's declared
     // checkout ID; no global frame cache is used, so MFR/out-of-order renders stay safe.
     if((s->temporalGhost>0||s->interlace>0||(s->frameRepeatFrequency>0&&s->frameRepeatStrength>0)) && in_data->time_step>0 && in_data->current_time>=in_data->time_step) {
@@ -1758,14 +1766,6 @@ static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
     // source's valid bounds (e.g. transformed footage or adjustment layers).
     // Reporting the raw request as result_rect can therefore violate AE's
     // max_result_rect contract and make the effect render black.
-    auto unionRect=[](PF_Rect& dst,const PF_Rect& srcRect) {
-        if(srcRect.right<=srcRect.left || srcRect.bottom<=srcRect.top) return;
-        if(dst.right<=dst.left || dst.bottom<=dst.top) { dst=srcRect; return; }
-        dst.left=std::min(dst.left,srcRect.left);
-        dst.top=std::min(dst.top,srcRect.top);
-        dst.right=std::max(dst.right,srcRect.right);
-        dst.bottom=std::max(dst.bottom,srcRect.bottom);
-    };
     extra->output->result_rect=result.result_rect;
     extra->output->max_result_rect=result.max_result_rect;
     // Keep the advertised maximum valid even if a host returns a clipped
