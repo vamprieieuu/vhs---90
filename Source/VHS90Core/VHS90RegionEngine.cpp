@@ -63,13 +63,25 @@ inline float smoothHash2D(float x, float y, std::uint32_t seed) noexcept {
 // Deterministic NTSC-R row_speckles port. Geometric inter-arrival sampling
 // creates short horizontal transients; a smooth spatial offset advects the
 // pattern so it travels instead of being regenerated as frame-wide flicker.
+inline float fbmNoise1D(float x, std::uint32_t seed) noexcept {
+    float value = 0.0f, amplitude = 1.0f, normalization = 0.0f, frequency = 1.0f;
+    for (std::uint32_t octave = 0; octave < 3; ++octave) {
+        value += (valueNoise1D(x * frequency,
+            seed + octave * 0x9e3779b9u, 0) - 0.5f) * amplitude;
+        normalization += amplitude;
+        amplitude *= 0.5f;
+        frequency *= 2.0f;
+    }
+    return normalization > 0.0f ? value / normalization : 0.0f;
+}
+
 inline float gaussianHash2D(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
     const float u1 = std::max(1.0e-6f, hash01(static_cast<std::uint32_t>(x),
         static_cast<std::uint32_t>(y), seed, frame));
     const float u2 = hash01(static_cast<std::uint32_t>(x + 37),
         static_cast<std::uint32_t>(y + 19), seed + 0x9e3779b9u, frame);
     const float value = std::sqrt(-2.0f * std::log(u1)) * std::cos(2.0f * kPi * u2);
-    return std::max(-2.5f, std::min(2.5f, value));
+    return std::max(-3.0f, std::min(3.0f, value));
 }
 
 inline float ntscRowSpeckles(float xPx, float yPx, float intensity,
@@ -264,14 +276,14 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
             case TrackingProfile::Vhs6RiftBand: {
                 // VHS6RIFT source model: time-stepped scanline jitter localized to a moving band,
                 // with independent high-frequency tape snow confined to the damaged rows.
-                const auto bandTick=static_cast<std::int64_t>(std::floor(t*60.0f));
-                const float bandJitter=hashCell(0,iy,regionSeed+0x202u,bandTick)-0.5f;
+                const float bandJitter=smoothHash2D(static_cast<float>(iy)-noiseDriftY,
+                    t*8.0f,regionSeed+202u)-0.5f;
                 shiftX += bandJitter*r.maxShiftPx*bandFactor;
                 shiftX += (servo-0.5f)*r.servoDriftPx*0.35f;
                 if(tearEvent<clamp01(r.tearProbability*bandFactor))
                     shiftX += (tearDirection-0.5f)*2.0f*r.tearShiftPx*bandFactor;
-                const auto snowTick=static_cast<std::uint32_t>(std::max(0.0f,t*240.0f));
-                const float snowHash=hashCell(static_cast<int>(x),iy,regionSeed+snowTick,p.frame);
+                const float snowHash=smoothHash2D(static_cast<float>(x)-noiseDriftX,
+                    static_cast<float>(iy)-noiseDriftY,regionSeed+0x6u);
                 if(bandFactor>0.4f&&snowHash>0.55f) {
                     sourceSnow=0.70f;
                     sourceSnowValue=snowHash;
@@ -297,16 +309,20 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 // bottom-to-top intensity ramp generalized to the selected user region,
                 // and sparse 8..64 px transient events.
                 const float intensityScale=localProgress;
-                const float rowGradient=valueNoise1D(y/std::max(1.0f,r.servoSmoothnessPx)-t*r.noiseDriftYCellsPerSecond,
-                    regionSeed+0x3u,0)-0.5f;
-                shiftX += rowGradient*intensityScale*r.waveAmplitudePx*0.25f;
-                const float lineNoise=valueNoise1D(x/std::max(1.0f,r.cellWidthPx)-t*r.noiseDriftXCellsPerSecond,
-                    regionSeed+0x31u,0)-0.5f;
-                sourceNoise=lineNoise*intensityScale*intensityScale*r.noiseAmount*4.0f;
-                sourceNoise += ntscRowSpeckles(x, y,
-                    r.snowIntensity * intensityScale * intensityScale,
-                    r.snowAnisotropy, cellW, cellH,
-                    noiseDriftX, noiseDriftY, regionSeed + 0x6u) * 0.28f;
+                const float regionRows=std::max(1.0f,r.shape==RegionShape::VerticalBand
+                    ?r.width*float(std::max(1,src.width)):r.height*float(std::max(1,src.height)));
+                const float bandwidthScale=std::clamp(r.servoSmoothnessPx/12.0f,0.25f,2.0f);
+                const float noiseOffset=smoothHash2D(t*r.noiseDriftXCellsPerSecond,0.0f,
+                    regionSeed+0x4e545343u)*regionRows;
+                const float shiftNoise=valueNoise1D((localProgress*regionRows+noiseOffset)*0.5f,
+                    regionSeed+0x53484946u,0)-0.5f;
+                shiftX+=shiftNoise*intensityScale*r.waveAmplitudePx*0.25f*bandwidthScale;
+                const float videoNoise=fbmNoise1D(x*(0.25f/bandwidthScale)-noiseDriftX,
+                    regionSeed+0x564e4f49u)*intensityScale*intensityScale*r.noiseAmount*4.0f;
+                const float speckles=ntscRowSpeckles(x,iy,regionSeed+0x53504543u,0,
+                    r.snowIntensity*intensityScale*intensityScale,r.snowAnisotropy,bandwidthScale,
+                    cellW,cellH,noiseDriftX,noiseDriftY);
+                sourceNoise=videoNoise+speckles*0.28f;
                 if(tearEvent<clamp01(r.tearProbability*intensityScale))
                     shiftX+=(tearDirection-0.5f)*r.tearShiftPx*intensityScale;
                 break;
