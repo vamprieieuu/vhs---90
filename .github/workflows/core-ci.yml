@@ -1,0 +1,28 @@
+name: VHS-90 Core CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  linux-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate imported AE preset wiring
+        run: python tools/validate_imported_presets.py
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DVHS90_BUILD_AE_PLUGIN=OFF
+      - name: Build core and smoke tests
+        run: cmake --build build --config Release --parallel 2
+      - name: Run smoke tests
+        run: ctest --test-dir build -C Release --output-on-failure

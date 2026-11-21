@@ -1,0 +1,36 @@
+#include "VHS90AnalogGeometryEngine.h"
+#include <cassert>
+#include <cmath>
+#include <vector>
+int main(){using namespace vhs90;constexpr int w=40,h=24;std::vector<float>s(w*h*4),a(s.size()),b(s.size()),c(s.size()),scan(s.size()),off(s.size());
+ for(int y=0;y<h;++y)for(int x=0;x<w;++x){size_t i=(y*w+x)*4;s[i]=float(x)/float(w-1);s[i+1]=float(y)/float(h-1);s[i+2]=.4f;s[i+3]=1.0f;}
+ ConstImageView si{s.data(),w,h,w*4};ImageView ai{a.data(),w,h,w*4},bi{b.data(),w,h,w*4},ci{c.data(),w,h,w*4},sc{scan.data(),w,h,w*4},oi{off.data(),w,h,w*4};
+ AnalogGeometryParams p;p.lineJitterPixels=1.5f;p.topSkewPixels=3.0f;p.edgePincushionPixels=2.0f;p.seed=17;p.frame=6;
+ assert(processAnalogGeometry(si,ai,p));assert(processAnalogGeometry(si,bi,p));assert(a==b&&a!=s);
+ p.frame=7;assert(processAnalogGeometry(si,ci,p));assert(a!=c);
+ AnalogGeometryParams zero;assert(processAnalogGeometry(si,oi,zero));assert(off==s);
+ ScanlineParams sp;sp.amount=.7f;sp.frequency=.5f;assert(processScanlines(si,sc,sp));assert(scan!=s);
+ std::fill(off.begin(),off.end(),0.0f);sp.amount=0;assert(processScanlines(si,oi,sp));assert(off==s);
+ for(size_t i=3;i<scan.size();i+=4)assert(scan[i]==1.0f);
+    AnalogGeometryParams interlace;interlace.interlaceAmount=.8f;interlace.frame=7;
+    std::vector<float> fieldA(s.size()),fieldB(s.size());
+    ImageView fieldAView{fieldA.data(),w,h,w*4},fieldBView{fieldB.data(),w,h,w*4};
+    assert(processAnalogGeometry(si,fieldAView,interlace));assert(processAnalogGeometry(si,fieldBView,interlace));
+    assert(fieldA==fieldB&&fieldA!=s);
+    AnalogGeometryParams roll;roll.verticalRoll=.75f;roll.frame=11;roll.seed=9;
+    std::vector<float> rollA(s.size()),rollB(s.size());
+    ImageView rollAView{rollA.data(),w,h,w*4},rollBView{rollB.data(),w,h,w*4};
+    assert(processAnalogGeometry(si,rollAView,roll));assert(processAnalogGeometry(si,rollBView,roll));
+    assert(rollA==rollB&&rollA!=s);
+    AnalogGeometryParams edge;edge.edgeWaveAmplitudePixels=4.0f;edge.edgeWaveFrequency=0.05f;edge.edgeWaveSpeed=4.0f;edge.edgeWaveDetail=3;edge.horizontalScale=1.0f;edge.verticalScale=1.0f;edge.frame=5;edge.seed=21;
+    std::vector<float> edgeA(s.size()),edgeB(s.size()),edgeC(s.size());
+    ImageView edgeAView{edgeA.data(),w,h,w*4},edgeBView{edgeB.data(),w,h,w*4},edgeCView{edgeC.data(),w,h,w*4};
+    assert(processAnalogGeometry(si,edgeAView,edge));assert(processAnalogGeometry(si,edgeBView,edge));assert(edgeA==edgeB&&edgeA!=s);
+    edge.frame=6;assert(processAnalogGeometry(si,edgeCView,edge));assert(edgeA!=edgeC);
+    AnalogGeometryParams playback;playback.vhs43Frame=true;playback.digitalZoom=1.1f;playback.lensDistortion=.04f;
+    std::vector<float> frameCrop(s.size());ImageView frameCropView{frameCrop.data(),w,h,w*4};
+    assert(processAnalogGeometry(si,frameCropView,playback));
+    assert(frameCrop[0]==0.0f&&frameCrop[1]==0.0f&&frameCrop[2]==0.0f);
+    assert(frameCrop[(h/2*w+w/2)*4]>0.1f&&frameCrop!=s);
+    for(size_t i=3;i<frameCrop.size();i+=4)assert(frameCrop[i]==1.0f);
+ return 0;}

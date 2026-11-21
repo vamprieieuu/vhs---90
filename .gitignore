@@ -1,0 +1,16 @@
+build/
+build-*/
+out/
+*.aex
+*.dll
+*.lib
+*.pdb
+*.obj
+*.o
+*.a
+CMakeFiles/
+CMakeCache.txt
+Testing/
+
+# Native build output
+dist/
