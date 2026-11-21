@@ -157,7 +157,7 @@ if "wrapMovingCenter" not in REGION:
 
 # The visible AE panel is intentionally curated; legacy parameters remain hidden
 # to preserve saved-project disk IDs and render compatibility.
-visible_topics = re.findall(r'PF_ADD_TOPIC\\("([^"]+)"', setup_body)
+visible_topics = re.findall(r'PF_ADD_TOPIC\("([^"]+)"', setup_body)
 expected_topics = [
     "VHS Style & Camera Profiles", "Signal", "Chroma Offset",
     "Grain & Tracking Noise", "Head Switching", "Ringing", "Waves",
@@ -165,9 +165,9 @@ expected_topics = [
 ]
 if visible_topics != expected_topics:
     fail("Visible VHS-90 topic order/layout differs from the approved compact panel.")
-if len(re.findall(r'kVhsStyleChoices\\[\\]="([^"]+)"', SOURCE)[0].split("|")) != 20:
+if len(re.findall(r'kVhsStyleChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 20:
     fail("VHS Style list must remain curated to 20 distinct presets.")
-if len(re.findall(r'kTrackingPresetChoices\\[\\]="([^"]+)"', SOURCE)[0].split("|")) != 10:
+if len(re.findall(r'kTrackingPresetChoices\[\]="([^"]+)"', SOURCE)[0].split("|")) != 10:
     fail("Tracking presets must include the two source-backed profiles.")
 if 'PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE)' not in SOURCE:
     fail("Tracking Noise preset popup must expose all 10 recipes.")
