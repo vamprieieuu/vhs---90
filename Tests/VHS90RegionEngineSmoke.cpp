@@ -139,6 +139,30 @@ int main() {
     for(int aidx=0;aidx<7;++aidx) for(int bidx=aidx+1;bidx<7;++bidx)
         assert(profileOutputs[aidx]!=profileOutputs[bidx]);
 
+    DamageRegion headSource=top;headSource.kind=RegionKind::HeadSwitch;
+    headSource.shape=RegionShape::HorizontalBand;headSource.centerX=.5f;headSource.centerY=.52f;
+    headSource.width=1.0f;headSource.height=.34f;headSource.intensity=1.0f;
+    headSource.maxShiftPx=24.0f;headSource.servoDriftPx=1.0f;
+    headSource.noiseAmount=0.0f;headSource.noiseDensity=0.0f;
+    headSource.dropoutProbability=0.0f;headSource.dropoutAmount=0.0f;
+    headSource.tearProbability=0.0f;headSource.tearShiftPx=0.0f;
+    headSource.motionXPerSecond=0.0f;headSource.motionYPerSecond=0.0f;
+    headSource.headSwitchProfile=HeadSwitchProfile::Vhs6Rift;
+    std::vector<float> headVhs(src.size()),headNtsc(src.size());
+    ImageView headVhsView{headVhs.data(),w,h,w*4},headNtscView{headNtsc.data(),w,h,w*4};
+    DamageRegion headNtscRegion=headSource;headNtscRegion.headSwitchProfile=HeadSwitchProfile::NtscR;
+    headNtscRegion.tearProbability=1.0f;
+    RegionEngineParams hp;hp.seed=991;hp.frame=13;hp.timeSeconds=.73;
+    assert(processDamageRegions(profileInput,headVhsView,&headSource,1,hp));
+    assert(processDamageRegions(profileInput,headNtscView,&headNtscRegion,1,hp));
+    assert(headVhs!=src&&headNtsc!=src&&headVhs!=headNtsc);
+    DamageRegion headMoving=headSource;headMoving.motionYPerSecond=.22f;
+    std::vector<float> headMoveA(src.size()),headMoveB(src.size());
+    ImageView headMoveAv{headMoveA.data(),w,h,w*4},headMoveBv{headMoveB.data(),w,h,w*4};
+    hp.timeSeconds=0.0;assert(processDamageRegions(profileInput,headMoveAv,&headMoving,1,hp));
+    hp.timeSeconds=1.0;assert(processDamageRegions(profileInput,headMoveBv,&headMoving,1,hp));
+    assert(headMoveA!=headMoveB);
+
     // Four differently typed tracking regions can coexist in one render stack.
     DamageRegion trackingStack[4];
     for(int li=0;li<4;++li) {
