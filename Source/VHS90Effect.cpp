@@ -1843,7 +1843,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.headShape-1,0,2));
                 r.centerX=clamp01(s.headCenterX/100.0f); r.centerY=clamp01(s.headY/100.0f);
                 r.width=clamp01(s.headWidth/100.0f); r.height=clamp01(s.headHeight/100.0f);
-                r.angleRadians=s.headAngle*(kPi/180.0f);
+                r.angleRadians=s.headAngle*0.01745329251994329577f;
                 r.motionXPerSecond=s.headMotionX/100.0f; r.motionYPerSecond=s.headMotionY/100.0f;
                 r.intensity=clamp01(s.headAmount/100.0f*master); r.maxShiftPx=s.headShift*1.25f;
                 r.waveAmplitudePx=s.headShift*0.12f; r.servoDriftPx=s.headShift*0.16f; r.servoSmoothnessPx=12.0f;
