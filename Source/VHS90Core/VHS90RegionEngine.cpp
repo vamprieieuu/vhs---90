@@ -42,6 +42,47 @@ inline float sampleChannel(ConstImageView im, float x, float y, int channel) noe
 inline float hashCell(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
     return hash01(static_cast<std::uint32_t>(x), static_cast<std::uint32_t>(y), seed, frame);
 }
+
+// Direct VHS6RIFT integer hash, with smooth interpolation used only to advect
+// the source texture continuously rather than regenerate it as frame flicker.
+inline std::uint32_t vhs6RiftHash(std::uint32_t x) noexcept {
+    x = ((x >> 16) ^ x) * 0x45d9f3bu;
+    x = ((x >> 16) ^ x) * 0x45d9f3bu;
+    return (x >> 16) ^ x;
+}
+inline float vhs6RiftHash2D(int x, int y, std::uint32_t seed) noexcept {
+    const std::uint32_t h = seed ^
+        (static_cast<std::uint32_t>(x) * 374761393u) ^
+        (static_cast<std::uint32_t>(y) * 668265263u);
+    return static_cast<float>(vhs6RiftHash(h) & 0x00FFFFFFu) / 16777216.0f;
+}
+inline float smoothHash2D(float x, float y, std::uint32_t seed) noexcept {
+    const int x0=static_cast<int>(std::floor(x)),y0=static_cast<int>(std::floor(y));
+    const float tx0=x-float(x0),ty0=y-float(y0);
+    const float tx=tx0*tx0*(3.0f-2.0f*tx0),ty=ty0*ty0*(3.0f-2.0f*ty0);
+    const auto sample=[seed](int sx,int sy) noexcept {
+        return hashCell(sx,sy,seed,0);
+    };
+    const float a0=sample(x0,y0),a1=sample(x0+1,y0);
+    const float b0=sample(x0,y0+1),b1=sample(x0+1,y0+1);
+    const float a=a0+(a1-a0)*tx,b=b0+(b1-b0)*tx;
+    return a+(b-a)*ty;
+}
+inline float smoothVhs6RiftHash2D(float x,float y,std::uint32_t seed) noexcept {
+    const int x0=static_cast<int>(std::floor(x)),y0=static_cast<int>(std::floor(y));
+    const float tx0=x-float(x0),ty0=y-float(y0);
+    const float tx=tx0*tx0*(3.0f-2.0f*tx0),ty=ty0*ty0*(3.0f-2.0f*ty0);
+    const float a0=vhs6RiftHash2D(x0,y0,seed),a1=vhs6RiftHash2D(x0+1,y0,seed);
+    const float b0=vhs6RiftHash2D(x0,y0+1,seed),b1=vhs6RiftHash2D(x0+1,y0+1,seed);
+    const float a=a0+(a1-a0)*tx,b=b0+(b1-b0)*tx;
+    return a+(b-a)*ty;
+}
+inline float gaussianSmooth2D(float x,float y,std::uint32_t seed) noexcept {
+    const float u1=std::max(1.0e-6f,smoothHash2D(x,y,seed));
+    const float u2=smoothHash2D(x+37.0f,y+19.0f,seed+0x9e3779b9u);
+    const float value=std::sqrt(-2.0f*std::log(u1))*std::cos(2.0f*kPi*u2);
+    return std::max(-3.0f,std::min(3.0f,value));
+}
 inline float fbmNoise1D(float x,std::uint32_t seed,std::int64_t frame) noexcept {
     float value=0.0f,amplitude=1.0f,normalization=0.0f,frequency=1.0f;
     for(std::uint32_t octave=0;octave<3;++octave) {
@@ -162,6 +203,7 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
     const float localProgress=r.shape==RegionShape::VerticalBand?localX:localY;
     const float bandFactor=std::sin(localProgress*kPi);
     float sourceNoise=0.0f,sourceSnow=0.0f,sourceSnowValue=0.0f;
+    float sourceChromaAttenuation=1.0f;
 
     float shiftX = (rowN - 0.5f) * r.maxShiftPx + rowWave * r.waveAmplitudePx;
     const float shiftY = (n - 0.5f) * r.verticalShiftPx;
@@ -211,15 +253,32 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
             case TrackingProfile::Vhs6RiftBand: {
                 // VHS6RIFT source model: time-stepped scanline jitter localized to a moving band,
                 // with independent high-frequency tape snow confined to the damaged rows.
-                const auto bandTick=static_cast<std::int64_t>(std::max(0.0f,t*60.0f));
-                const float bandJitter=hashCell(iy,0,regionSeed+202u,bandTick)-0.5f;
+                const float bandJitter=smoothVhs6RiftHash2D(
+                    static_cast<float>(iy)-r.noiseDriftYCellsPerSecond*t,0.0f,
+                    regionSeed+202u)-0.5f;
                 shiftX += bandJitter*r.maxShiftPx*bandFactor;
-                const auto snowTick=static_cast<std::uint32_t>(std::max(0.0f,t*240.0f));
-                const float snowHash=hashCell(static_cast<int>(x),iy,regionSeed+snowTick,0);
+                const float snowHash=smoothVhs6RiftHash2D(
+                    x-r.noiseDriftXCellsPerSecond*t*cellW,
+                    y-r.noiseDriftYCellsPerSecond*t*cellH,regionSeed+55u);
                 if(bandFactor>0.4f&&snowHash>0.55f) {
                     sourceSnow=0.70f;
                     sourceSnowValue=snowHash;
                 }
+                break;
+            }
+            case TrackingProfile::VhsMainTracking: {
+                // VHS-main Tracking Error source port: triangular band profile,
+                // Gaussian luma noise, 4-line row jitter and chroma attenuation.
+                const float trackPhase=1.0f-std::fabs(localProgress*2.0f-1.0f);
+                const int rowBlock=iy&~3;
+                const float rowJitter=smoothHash2D(13.0f,
+                    static_cast<float>(rowBlock)-r.noiseDriftYCellsPerSecond*t,
+                    regionSeed+0x4f1bbcdcu)*2.0f-1.0f;
+                shiftX=rowJitter*r.maxShiftPx*trackPhase;
+                sourceNoise=gaussianSmooth2D(x-r.noiseDriftXCellsPerSecond*t*cellW,
+                    y-r.noiseDriftYCellsPerSecond*t*cellH,regionSeed+0x9e3779b9u)
+                    *0.25f*trackPhase;
+                sourceChromaAttenuation=1.0f-0.5f*trackPhase;
                 break;
             }
             case TrackingProfile::NtscRTracking: {
@@ -229,14 +288,19 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 const float regionRows=std::max(1.0f,r.shape==RegionShape::VerticalBand
                     ?r.width*float(std::max(1,src.width)):r.height*float(std::max(1,src.height)));
                 const float bandwidthScale=std::clamp(r.servoSmoothnessPx/12.0f,0.25f,2.0f);
-                const float noiseOffset=hashCell(0,0,regionSeed+0x4e545343u,p.frame)*regionRows;
+                const float noiseOffset=smoothHash2D(t*r.noiseDriftYCellsPerSecond,0.0f,
+                    regionSeed+0x4e545343u)*regionRows;
                 const float shiftNoise=valueNoise1D((localProgress*regionRows+noiseOffset)*0.5f,
-                    regionSeed+0x53484946u,p.frame)-0.5f;
+                    regionSeed+0x53484946u,0)-0.5f;
                 shiftX+=shiftNoise*intensityScale*r.waveAmplitudePx*0.25f*bandwidthScale;
-                const float videoNoise=fbmNoise1D(x*(0.25f/bandwidthScale),
-                    regionSeed+0x564e4f49u,p.frame)*intensityScale*intensityScale*r.noiseAmount*4.0f;
-                const float speckles=ntscRRowSpeckles(x,iy,regionSeed+0x53504543u,p.frame,
-                    r.noiseDensity*intensityScale*intensityScale,r.snowAnisotropy,bandwidthScale);
+                const float videoNoise=fbmNoise1D(
+                    (x-r.noiseDriftXCellsPerSecond*t*cellW)*(0.25f/bandwidthScale),
+                    regionSeed+0x564e4f49u,0)*intensityScale*intensityScale*r.noiseAmount*4.0f;
+                const float speckles=ntscRRowSpeckles(
+                    x-r.noiseDriftXCellsPerSecond*t*cellW,
+                    static_cast<int>(std::floor(y-r.noiseDriftYCellsPerSecond*t*cellH)),
+                    regionSeed+0x53504543u,0,r.snowIntensity*intensityScale*intensityScale,
+                    r.snowAnisotropy,bandwidthScale);
                 sourceNoise=videoNoise+speckles;
                 break;
             }        }
@@ -248,8 +312,8 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
             // bottom-only boundary without changing the underlying response.
             const float headSwitchFactor=localProgress;
             shiftX+=std::pow(headSwitchFactor,2.0f)*r.maxShiftPx;
-            const auto snowTick=static_cast<std::uint32_t>(std::max(0.0f,t*240.0f));
-            const float snowHash=hashCell(static_cast<int>(x),iy,regionSeed+snowTick+55u,0);
+            const float snowHash=smoothVhs6RiftHash2D(x-r.noiseDriftXCellsPerSecond*t*cellW,
+                y-r.noiseDriftYCellsPerSecond*t*cellH,regionSeed+55u);
             if(snowHash>(1.0f-headSwitchFactor*0.7f)) {
                 sourceSnow=1.0f;
                 sourceSnowValue=snowHash;
@@ -259,7 +323,8 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
             // a seeded per-row offset represents the source bandwidth jitter.
             const float headSwitchFactor=localProgress;
             shiftX+=r.maxShiftPx*std::pow(headSwitchFactor,1.5f);
-            const float rowJitter=hashCell(0,iy,regionSeed+0x4e545343u,0)-0.5f;
+            const float rowJitter=smoothHash2D(0.0f,static_cast<float>(iy)-r.noiseDriftYCellsPerSecond*t,
+                regionSeed+0x4e545343u)-0.5f;
             shiftX+=rowJitter*r.servoDriftPx;
             // NTSC-R's optional mid-line start transient, generalized to the
             // leading edge of the user-positioned region.
@@ -314,8 +379,15 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
         }
     }
 
+    if(sourceChromaAttenuation<0.99999f) {
+        const float luma=0.299f*sr+0.587f*sg+0.114f*sb;
+        sr=luma+(sr-luma)*sourceChromaAttenuation;
+        sg=luma+(sg-luma)*sourceChromaAttenuation;
+        sb=luma+(sb-luma)*sourceChromaAttenuation;
+    }
+
     float noise = sourceNoise;
-    if(r.trackingProfile!=TrackingProfile::NtscRTracking && n<clamp01(r.noiseDensity)) {
+    if(r.trackingProfile!=TrackingProfile::NtscRTracking && r.trackingProfile!=TrackingProfile::VhsMainTracking && n<clamp01(r.noiseDensity)) {
         const float signedNoise=hashCell(cx+41,cy+97,regionSeed+0x85ebca6bu,p.frame)-0.5f;
         noise+=signedNoise*r.noiseAmount;
     }
