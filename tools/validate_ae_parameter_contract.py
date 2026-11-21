@@ -159,8 +159,8 @@ if "wrapMovingCenter" not in REGION:
 # to preserve saved-project disk IDs and render compatibility.
 visible_topics = re.findall(r'PF_ADD_TOPIC\("([^"]+)"', setup_body)
 expected_topics = [
-    "VHS Style & Camera Profiles", "Signal", "Chroma Offset",
-    "Grain & Tracking Noise", "Head Switching", "Ringing", "Waves",
+    "VHS Style & Camera Profiles", "Chroma Offset",
+    "Grain & Tracking Noise", "Signal", "Head Switching", "Ringing", "Waves",
     "Color & Image", "Glow", "Tape", "Text / OSD",
 ]
 if visible_topics != expected_topics:
