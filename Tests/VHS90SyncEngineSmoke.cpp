@@ -16,7 +16,7 @@ int main() {
     assert(processSyncCollapse(si,da,p)); assert(processSyncCollapse(si,db,p)); assert(a==b); assert(a!=src);
     SyncCollapseParams zero=p; zero.strength=0.0f; assert(processSyncCollapse(si,dc,zero)); assert(c==src);
     SyncCollapseParams clean; clean.eventFrequency=0.0f; clean.slowTimebasePx=0.0f; clean.fastTimebasePx=0.0f;
-    clean.noiseAmount=0.0f; clean.enableTrackingLine=false; clean.syncEventProbability=0.0f;
+    clean.noiseAmount=1.0f; clean.enableTrackingLine=false; // Noise control must not create full-frame static. clean.syncEventProbability=0.0f;
     std::vector<float> identity(src.size()); ImageView di{identity.data(),w,h,w*4};
     assert(processSyncCollapse(si,di,clean)); assert(identity==src);
     std::uint32_t seed=1; while(hash01(0u,92u,seed+0x94d049bbu,0)<=0.52f) ++seed;
