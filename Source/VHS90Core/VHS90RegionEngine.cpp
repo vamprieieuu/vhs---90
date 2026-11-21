@@ -319,9 +319,9 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 shiftX+=shiftNoise*intensityScale*r.waveAmplitudePx*0.25f*bandwidthScale;
                 const float videoNoise=fbmNoise1D(x*(0.25f/bandwidthScale)-noiseDriftX,
                     regionSeed+0x564e4f49u)*intensityScale*intensityScale*r.noiseAmount*4.0f;
-                const float speckles=ntscRowSpeckles(x,iy,regionSeed+0x53504543u,0,
-                    r.snowIntensity*intensityScale*intensityScale,r.snowAnisotropy,bandwidthScale,
-                    cellW,cellH,noiseDriftX,noiseDriftY);
+                const float speckles=ntscRowSpeckles(x,y,
+                    r.snowIntensity*intensityScale*intensityScale,r.snowAnisotropy,
+                    cellW*bandwidthScale,cellH,noiseDriftX,noiseDriftY,regionSeed+0x53504543u);
                 sourceNoise=videoNoise+speckles*0.28f;
                 if(tearEvent<clamp01(r.tearProbability*intensityScale))
                     shiftX+=(tearDirection-0.5f)*r.tearShiftPx*intensityScale;
