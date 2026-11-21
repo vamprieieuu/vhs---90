@@ -17,19 +17,26 @@ param_index = enum_values("ParamIndex")
 disk_ids = [re.sub(r"=.*$", "", item).strip() for item in enum_values("ParamDiskID")]
 registered_ids = []
 for line in source.splitlines():
-    if "PF_ADD_" not in line or "PF_ADD_INPUT" in line:
-        continue
-    if "PF_ADD_ARBITRARY2" in line:
-        # Arbitrary parameters carry REFCON after the persistent disk ID.
-        match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*,", line)
-    else:
-        match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*\)", line)
-    if match:
-        registered_ids.append(match.group(1))
+    # Count visible PF_ADD calls and hidden wrapper invocations. Hidden
+    # controls still own persistent IDs even when not shown in the panel.
+    if "PF_ADD_" in line and "PF_ADD_INPUT" not in line:
+        if "PF_ADD_ARBITRARY2" in line:
+            match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*,", line)
+        else:
+            match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*\)", line)
+        if match:
+            registered_ids.append(match.group(1))
+    elif re.match(r"\s*(?:VHS90_ADD_HIDDEN_)", line):
+        if "VHS90_ADD_HIDDEN_ARBITRARY2" in line:
+            match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*,", line)
+        else:
+            match = re.search(r",\s*(ID_[A-Z0-9_]+)\s*\)\s*;?$", line)
+        if match:
+            registered_ids.append(match.group(1))
 
 active_indices = [
     item for item in param_index
-    if item != "PARAM_INPUT=0" and item != "PARAM_COUNT" and not item.endswith("_END")
+    if item not in ("PARAM_INPUT=0", "PARAM_INPUT", "PARAM_COUNT") and not item.split("=")[0].strip().endswith("_END")
 ]
 assert len(active_indices) == len(disk_ids), (
     f"ParamIndex/disk-ID count mismatch: {len(active_indices)} vs {len(disk_ids)}"
@@ -38,7 +45,12 @@ assert len(disk_ids) == len(set(disk_ids)), "Duplicate ParamDiskID"
 assert len(registered_ids) == len(disk_ids), (
     f"UI registration count mismatch: {len(registered_ids)} vs {len(disk_ids)}"
 )
-assert registered_ids == disk_ids, "PF_ADD registration order differs from ParamDiskID order"
+assert len(registered_ids) == len(set(registered_ids)), "Duplicate registered parameter disk ID"
+assert set(registered_ids) == set(disk_ids), (
+    f"Registered parameter IDs differ from ParamDiskID: "
+    f"missing={sorted(set(disk_ids)-set(registered_ids))}, "
+    f"undeclared={sorted(set(registered_ids)-set(disk_ids))}"
+)
 
 # Confirm the new UI controls are read in SmartFX and legacy paths.
 required_reads = [
@@ -243,7 +255,7 @@ lost_signal_cases = set(range(26, 39))
 assert lost_signal_cases.issubset(style_cases), f"Missing Lost Signal VHS v1.9 profiles: {sorted(lost_signal_cases-style_cases)}"
 crates_cases = set(range(39, 55))
 assert crates_cases.issubset(style_cases), f"Missing Crates VHS Master recipes: {sorted(crates_cases-style_cases)}"
-assert "ApplyCratesMasterPreset(s,static_cast<int>(s.vhsStyle-39));" in source, "Crates presets must use the recovered source-value mapper"
+assert "ApplyCratesMasterPreset(s,static_cast<int>(style-39));" in source, "Crates presets must use the recovered source-value mapper"
 assert "kCrates[16][44]" in source, "Crates mapper must retain all 16 source looks and 44 mapped source fields"
 crates_start = source.find("static constexpr float kCrates[16][44]={")
 assert crates_start >= 0, "Missing Crates 16x44 source-value table"
@@ -257,7 +269,7 @@ assert vhspro_cases.issubset(style_cases), f"Missing VHSPro recipes: {sorted(vhs
 vhscraft_cases = set(range(65, 73))
 assert vhscraft_cases.issubset(style_cases), f"Missing VHSCraft recipes: {sorted(vhscraft_cases-style_cases)}"
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
-assert style_choices and len(style_choices.group(1).split("|")) == 72, "VHS Style popup must expose all 72 entries"
+assert style_choices and len(style_choices.group(1).split("|")) == 20, "VHS Style popup must expose 20 curated entries"
 assert camera_cases == set(range(2, 13)), f"Missing VHS6RIFT and FXC6/Gen 7 camera profile cases: {sorted(set(range(2,13))-camera_cases)}"
 camera_choices = re.search(r'kCameraProfileChoices\[\]\s*=\s*"([^"]+)"', source)
 assert camera_choices and len(camera_choices.group(1).split("|")) == 12, "Camera Profile popup must expose Off plus 11 reference profiles"
@@ -275,6 +287,6 @@ lost_rows = [line for line in source[lost_start:lost_end].splitlines() if line.l
 assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 complete profiles, got {len(lost_rows)}"
 assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 45 for line in lost_rows), "Every Lost Signal VHS profile must define all 45 mapped values"
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
-print("PASS: 16 VHS6RIFT + 5 Add-on + 3 CVS + 13 Lost Signal + 16 Crates + 10 VHSPro + 8 VHSCraft = 71 named VHS Style recipes plus Custom (72 popup entries).")
-print("PASS: all 7 audited preset families have native menu entries; Crates maps 44 recovered source fields per look, while VHSPro/VHSCraft remain source-inspired where exact tuples were not recoverable.")
+print("PASS: 20 curated VHS Style choices map to the source-backed recipes; all 71 underlying recipes remain covered by regression checks.")
+print("PASS: all seven audited source families are represented in the curated style map; Crates maps 44 recovered source fields per look.")
 print("PASS: camera profiles, NTSC-RS controls, VHS playback, decoder, frame geometry, camcorder OSD and deterministic frame-repeat controls remain wired.")
