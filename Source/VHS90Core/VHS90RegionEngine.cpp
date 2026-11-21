@@ -42,6 +42,23 @@ inline float sampleChannel(ConstImageView im, float x, float y, int channel) noe
 inline float hashCell(int x, int y, std::uint32_t seed, std::int64_t frame) noexcept {
     return hash01(static_cast<std::uint32_t>(x), static_cast<std::uint32_t>(y), seed, frame);
 }
+inline float smoothHash2D(float x, float y, std::uint32_t seed) noexcept {
+    const int x0 = static_cast<int>(std::floor(x));
+    const int y0 = static_cast<int>(std::floor(y));
+    const float tx0 = x - static_cast<float>(x0);
+    const float ty0 = y - static_cast<float>(y0);
+    const float tx = tx0 * tx0 * (3.0f - 2.0f * tx0);
+    const float ty = ty0 * ty0 * (3.0f - 2.0f * ty0);
+    const auto sample = [seed](int sx, int sy) noexcept {
+        return hash01(static_cast<std::uint32_t>(sx),
+                      static_cast<std::uint32_t>(sy), seed, 0);
+    };
+    const float a0 = sample(x0, y0), a1 = sample(x0 + 1, y0);
+    const float b0 = sample(x0, y0 + 1), b1 = sample(x0 + 1, y0 + 1);
+    const float a = a0 + (a1 - a0) * tx;
+    const float b = b0 + (b1 - b0) * tx;
+    return a + (b - a) * ty;
+}
 inline float smoothServoNoise(float yPx,float smoothnessPx,std::uint32_t seed,
                                std::int64_t frame,int epochFrames) noexcept {
     const float rowCoordinate=yPx/std::max(1.0f,smoothnessPx);
@@ -107,9 +124,17 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
     const int cy = static_cast<int>(std::floor(y / cellH));
     const std::uint32_t regionSeed = p.seed ^ r.seedOffset ^
         static_cast<std::uint32_t>(regionIndex * 0x9e3779b9u);
-    const float n = hashCell(cx, cy, regionSeed, p.frame);
-    const float rowN = hashCell(0, iy, regionSeed + 0x68bc21ebu, p.frame);
     const float t = static_cast<float>(p.timeSeconds);
+    // Move the random field continuously through space. The lattice remains
+    // deterministic (seed + absolute time), while adjacent frames are correlated.
+    const float noiseDriftX = t * r.noiseDriftXCellsPerSecond;
+    const float noiseDriftY = t * r.noiseDriftYCellsPerSecond;
+    const float n = smoothHash2D(static_cast<float>(cx) - noiseDriftX,
+                                 static_cast<float>(cy) - noiseDriftY,
+                                 regionSeed);
+    const float rowN = smoothHash2D(-noiseDriftX,
+                                    static_cast<float>(iy) / cellH - noiseDriftY,
+                                    regionSeed + 0x68bc21ebu);
     const float rowWave = std::sin((float(iy) / std::max(1, src.height)) *
                                    r.waveFrequency * 2.0f * kPi + t * 2.0f * kPi);
     float movingCenterX=r.centerX,movingCenterY=r.centerY;
@@ -194,11 +219,11 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 // bottom-to-top intensity ramp generalized to the selected user region,
                 // and sparse 8..64 px transient events.
                 const float intensityScale=localProgress;
-                const float rowGradient=valueNoise1D(y/std::max(1.0f,r.servoSmoothnessPx),
-                    regionSeed+0x3u,p.frame)-0.5f;
+                const float rowGradient=valueNoise1D(y/std::max(1.0f,r.servoSmoothnessPx)-t*r.noiseDriftYCellsPerSecond,
+                    regionSeed+0x3u,0)-0.5f;
                 shiftX += rowGradient*intensityScale*r.waveAmplitudePx*0.25f;
-                const float lineNoise=valueNoise1D(x/std::max(1.0f,r.cellWidthPx),
-                    regionSeed+0x31u,p.frame)-0.5f;
+                const float lineNoise=valueNoise1D(x/std::max(1.0f,r.cellWidthPx)-t*r.noiseDriftXCellsPerSecond,
+                    regionSeed+0x31u,0)-0.5f;
                 sourceNoise=lineNoise*intensityScale*intensityScale*r.noiseAmount*4.0f;
                 const float snowProbability=clamp01(r.noiseDensity*intensityScale*intensityScale*0.125f);
                 const int block=static_cast<int>(x)/64;
@@ -258,7 +283,9 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
 
     float noise = sourceNoise;
     if(r.trackingProfile!=TrackingProfile::NtscRTracking && n<clamp01(r.noiseDensity)) {
-        const float signedNoise=hashCell(cx+41,cy+97,regionSeed+0x85ebca6bu,p.frame)-0.5f;
+        const float signedNoise = smoothHash2D(static_cast<float>(cx + 41) - noiseDriftX,
+                                                static_cast<float>(cy + 97) - noiseDriftY,
+                                                regionSeed + 0x85ebca6bu) - 0.5f;
         noise+=signedNoise*r.noiseAmount;
     }
 

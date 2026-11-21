@@ -62,6 +62,10 @@ struct DamageRegion {
     float chromaShiftPx = 1.5f;
     float cellWidthPx = 8.0f;
     float cellHeightPx = 2.0f;
+    // Independent advection of the tracking-noise texture in cell-space.
+    // It avoids a new unrelated random texture being generated every frame.
+    float noiseDriftXCellsPerSecond = 1.35f;
+    float noiseDriftYCellsPerSecond = 0.42f;
 
     float motionXPerSecond = 0.0f;
     float motionYPerSecond = 0.0f;

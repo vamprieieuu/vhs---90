@@ -116,6 +116,42 @@ int main() {
     assert(servoDelta>0.0f);
     assert(servoDelta<static_cast<float>(w*h)*0.20f);
 
+    // Tracking-noise texture advects smoothly instead of being independently
+    // reseeded each frame (which reads as random flicker).
+    DamageRegion advected = full;
+    advected.kind = RegionKind::TrackingNoise;
+    advected.shape = RegionShape::Rectangle;
+    advected.centerX = 0.5f; advected.centerY = 0.5f;
+    advected.width = 1.0f; advected.height = 1.0f;
+    advected.intensity = 1.0f; advected.maxShiftPx = 0.0f;
+    advected.waveAmplitudePx = 0.0f; advected.servoDriftPx = 0.0f;
+    advected.tearProbability = 0.0f; advected.dropoutProbability = 0.0f;
+    advected.noiseAmount = 0.8f; advected.noiseDensity = 1.0f;
+    advected.chromaShiftPx = 0.0f; advected.cellWidthPx = 4.0f; advected.cellHeightPx = 2.0f;
+    RegionEngineParams advectP; advectP.regions = &advected; advectP.regionCount = 1;
+    advectP.seed = 0xA55Au; advectP.frame = 100; advectP.timeSeconds = 0.0;
+    std::vector<float> advect0(src.size()), advectNear(src.size()), advectFar(src.size()), advectRepeat(src.size());
+    ImageView advect0View{advect0.data(),w,h,w*4};
+    ImageView advectNearView{advectNear.data(),w,h,w*4};
+    ImageView advectFarView{advectFar.data(),w,h,w*4};
+    ImageView advectRepeatView{advectRepeat.data(),w,h,w*4};
+    assert(processDamageRegions(si,advect0View,advectP));
+    advectP.timeSeconds = 0.02;
+    assert(processDamageRegions(si,advectNearView,advectP));
+    advectP.timeSeconds = 1.0;
+    assert(processDamageRegions(si,advectFarView,advectP));
+    assert(processDamageRegions(si,advectRepeatView,advectP));
+    assert(advectNear != advect0);
+    assert(advectFar != advect0);
+    assert(advectRepeat == advectFar);
+    double nearDelta = 0.0, farDelta = 0.0;
+    for (size_t i=0; i<advect0.size(); i+=4) {
+        nearDelta += std::fabs(advectNear[i] - advect0[i]);
+        farDelta += std::fabs(advectFar[i] - advect0[i]);
+    }
+    assert(nearDelta > 0.0);
+    assert(farDelta > nearDelta);
+
     // Each selectable tracking profile must produce a deterministic, genuinely distinct render.
     std::vector<float> profileSource(src.size(),0.0f);
     for(int py=0;py<h;++py) for(int px=0;px<w;++px) { const size_t pi=(py*w+px)*4; profileSource[pi]=float(px)/float(w-1); profileSource[pi+1]=float(py)/float(h-1); profileSource[pi+2]=1.0f-float(px)/float(w-1); profileSource[pi+3]=1.0f; }
@@ -193,6 +229,8 @@ int main() {
     moving.waveAmplitudePx=0.0f; moving.servoDriftPx=0.0f;
     moving.tearProbability=0.0f; moving.dropoutProbability=0.0f;
     moving.noiseAmount=.8f; moving.noiseDensity=1.0f; moving.chromaShiftPx=0.0f;
+    moving.noiseDriftXCellsPerSecond=0.0f; moving.noiseDriftYCellsPerSecond=0.0f;
+    moving.noiseDriftXCellsPerSecond=0.0f; moving.noiseDriftYCellsPerSecond=0.0f;
     RegionEngineParams moveP; moveP.regions=&moving; moveP.regionCount=1;
     moveP.seed=404; moveP.frame=17; moveP.timeSeconds=0.0;
     std::vector<float> moveStart(src.size()),moveMiddle(src.size()),moveLoop(src.size());
