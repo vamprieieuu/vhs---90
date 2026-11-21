@@ -154,12 +154,12 @@ if 'PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100,-100,100,12,1,PF_ValueDisplayFlag_P
     fail("Default Tracking Noise must move vertically.")
 if "wrapMovingCenter" not in REGION:
     fail("Tracking regions must wrap through the frame instead of drifting off-screen permanently.")
-if 'PF_ADD_POPUP("Head Switch Preset",3,2,kHeadSwitchPresetChoices,ID_HEAD_PRESET)' not in SOURCE:
+if 'PF_ADD_POPUP("Head Switch Preset",8,2,kHeadSwitchPresetChoices,ID_HEAD_PRESET)' not in SOURCE:
     fail("Head Switching must default to the source-backed VHS6RIFT preset.")
 for control in ('ID_HEAD_CENTER_X','ID_HEAD_WIDTH','ID_HEAD_SHAPE','ID_HEAD_ANGLE','ID_HEAD_MOTION_X','ID_HEAD_MOTION_Y'):
     if control not in SOURCE:
         fail(f"Head Switching is missing movable-region control {control}.")
-if "HeadSwitchProfile::Vhs6Rift" not in REGION or "HeadSwitchProfile::NtscR" not in REGION:
+if any(f"HeadSwitchProfile::{name}" not in REGION for name in ("Vhs6Rift", "NtscR", "VhsPro", "Crates", "VhsCraft", "UniverseBad", "UniverseVeryBad")):
     fail("Head Switching must use independent VHS6RIFT and NTSC-R source profiles.")
 if 'PF_ADD_ARBITRARY2("Text Content"' not in SOURCE or "case PF_Cmd_EVENT: err=HandleEvent" not in SOURCE:
     fail("The single Text / OSD section must expose the editable custom text control.")
