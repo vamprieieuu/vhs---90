@@ -297,31 +297,29 @@ static void ApplyCratesMasterPreset(RenderSettings& s,int preset) noexcept {
     b(s.gradeBrightness,v[42]-100.0f);b(s.gradeContrast,v[43]);
 }
 static void ApplyHeadSwitchRecipe(DamageRegion& r,A_long preset) noexcept {
-    // Source presets change the head-switch signal; geometry stays user-editable.
+    // Source profiles keep their original signal recipe; VHS-90 exposes
+    // independent position, width, height, shape, angle and motion controls.
     switch(preset) {
-        case 2:
-            r.trackingProfile=TrackingProfile::Vhs6RiftBand;
-            r.maxShiftPx=std::max(r.maxShiftPx,13.0f);
-            r.waveAmplitudePx=std::max(r.waveAmplitudePx,4.0f);
-            r.servoDriftPx=std::max(r.servoDriftPx,7.0f);
-            r.noiseAmount=0.30f; r.noiseDensity=0.58f;
-            r.dropoutProbability=std::max(r.dropoutProbability,0.08f);
-            r.dropoutAmount=std::max(r.dropoutAmount,0.25f);
-            r.tearProbability=std::max(r.tearProbability,0.14f);
-            r.tearShiftPx=std::max(r.tearShiftPx,18.0f);
+        case 2: // VHS6RIFT bottom head-switch line jitter + localized snow.
+            r.headSwitchProfile=HeadSwitchProfile::Vhs6Rift;
+            r.noiseAmount=0.0f; r.noiseDensity=0.0f;
+            r.dropoutProbability=0.0f; r.dropoutAmount=0.0f;
+            r.tearProbability=0.0f; r.tearShiftPx=0.0f;
+            r.servoDriftPx=0.0f; r.waveAmplitudePx=0.0f;
             break;
-        case 3:
-            r.trackingProfile=TrackingProfile::NtscRTracking;
-            r.maxShiftPx=std::max(r.maxShiftPx,10.0f);
-            r.waveAmplitudePx=std::max(r.waveAmplitudePx,9.0f);
-            r.servoSmoothnessPx=std::max(r.servoSmoothnessPx,18.0f);
-            r.noiseAmount=0.28f; r.noiseDensity=0.52f;
-            r.dropoutProbability=std::max(r.dropoutProbability,0.10f);
-            r.dropoutAmount=std::max(r.dropoutAmount,0.28f);
-            r.tearProbability=std::max(r.tearProbability,0.10f);
-            r.tearShiftPx=std::max(r.tearShiftPx,14.0f);
+        case 3: // NTSC-R head-switch row displacement + optional start-line transient.
+            r.headSwitchProfile=HeadSwitchProfile::NtscR;
+            r.noiseAmount=0.0f; r.noiseDensity=0.0f;
+            r.dropoutProbability=0.0f; r.dropoutAmount=0.0f;
+            r.tearProbability=1.0f; r.tearShiftPx=16.0f;
+            r.servoDriftPx=1.0f; r.waveAmplitudePx=0.0f;
+            r.servoSmoothnessPx=12.0f;
             break;
-        default: r.trackingProfile=TrackingProfile::ServoSweep; break;
+        default:
+            r.headSwitchProfile=HeadSwitchProfile::Custom;
+            r.noiseAmount=0.12f; r.noiseDensity=0.18f;
+            r.dropoutProbability=0.02f; r.dropoutAmount=0.12f;
+            break;
     }
 }
 
@@ -1790,7 +1788,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.width=clamp01(s.headWidth/100.0f); r.height=clamp01(s.headHeight/100.0f);
                 r.angleRadians=s.headAngle*(kPi/180.0f);
                 r.motionXPerSecond=s.headMotionX/100.0f; r.motionYPerSecond=s.headMotionY/100.0f;
-                r.intensity=clamp01(s.headAmount/100.0f*master); r.maxShiftPx=s.headShift*0.45f;
+                r.intensity=clamp01(s.headAmount/100.0f*master); r.maxShiftPx=s.headShift*1.25f;
                 r.waveAmplitudePx=s.headShift*0.12f; r.servoDriftPx=s.headShift*0.16f; r.servoSmoothnessPx=12.0f;
                 r.noiseAmount=0.22f; r.noiseDensity=0.62f; r.dropoutProbability=0.12f;
                 r.dropoutAmount=0.35f; r.tearProbability=0.12f; r.tearShiftPx=s.headShift*0.75f;
