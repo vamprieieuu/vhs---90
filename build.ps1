@@ -124,7 +124,9 @@ Write-Host "Bundled fonts: $($fontFiles -join '; ')"
 cmake -S $repoRoot -B $BuildDir -G "Visual Studio 17 2022" -A x64 -DVHS90_BUILD_AE_PLUGIN=ON "-DAE_SDK_ROOT=$resolvedSdk"
 if ($LASTEXITCODE -ne 0) { throw "CMake configure failed." }
 
-cmake --build $BuildDir --config $Configuration --target VHS90_AEX --parallel
+# Match VHS6RIFT's default all-target build: compile the AEX plus the CPU smoke-test executables.
+# Only build/VHS-90.aex is published; test binaries remain internal to the build workspace.
+cmake --build $BuildDir --config $Configuration --parallel
 if ($LASTEXITCODE -ne 0) { throw "VHS-90 native build failed." }
 
 ctest --test-dir $BuildDir -C $Configuration --output-on-failure
