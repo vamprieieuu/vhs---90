@@ -133,4 +133,7 @@ unwired = sorted(read_params - legacy_params)
 if unwired:
     fail("LegacyRender does not read these registered render controls: " + ", ".join(unwired))
 
+if "if(s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0)" not in SOURCE:
+    fail("AGC Pump must activate the standalone RF instability stage even when used alone.")
+
 print(f"AE host contract OK: {len(actual_params)} registered parameters + implicit input, exact enum order, PARAM_COUNT, CUSTOM_UI flags, and VHS6RIFT-compatible legacy render flags.")
