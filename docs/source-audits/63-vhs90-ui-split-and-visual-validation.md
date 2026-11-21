@@ -116,3 +116,29 @@ Current source review found that the earlier OSD specification is partially impl
 2. Connect the DirectWrite system-font enumeration to a usable font-selection workflow, or explicitly constrain the selector to the bundled + installed families that are actually supported.
 3. Keep a clear warning when a requested family is missing; never silently present an unrelated family as the requested font.
 4. Test all OSD states/positions in AE 23.2.1 and confirm OSD text is damaged by downstream VHS stages as intended.
+
+## Implemented fixes and CI verification (2026-11-21)
+
+The following source changes are now committed:
+
+- Grain has its own AE topic. Existing grain control disk IDs were retained; the new topic disk ID was appended, and the AE parameter contract validator explicitly allows that appended topic while checking the old ID order.
+- Signal Dropouts and Tape Material Dropouts are now distinguishable in the UI. Dropout and Impulse Noise engines preserve exact source pixels outside affected defects rather than running every pixel through an approximate YIQ round-trip.
+- Tape Material's Sticky Binder / Shed control was previously bypassed by the inactive fast-path and its `shed` sample was not applied to the output. The inactive predicate now includes `debrisAmount`, and the renderer applies bounded signal loss/chroma attenuation plus deterministic shed texture. A sticky-only smoke case was added.
+- AGC Pump now activates the standalone RF instability stage when used without RF Drift, Hum or AM Nonlinearity. The AE contract validator guards this activation condition.
+- Smoke tests now isolate RF Drift, Hum, AM Nonlinearity and AGC Pump; verify impulse/dropout sparsity; verify highlight-selective glow spread; and verify chroma subsampling/vertical chroma reduce chroma while preserving luma.
+- UI labels were clarified: `Signal Dropouts`, `Bloom`, and `Ground-Loop Hum`.
+- Missing OSD font families now produce a visible `FONT?` warning instead of an unmarked DirectWrite fallback.
+
+### Verified automated results
+
+- Linux core CI passed on commit `240f3ff41783bf8828d73a10a9c80886ee5faafc` (run 44916521961).
+- Windows 2022 / MSVC AEX build passed on the same commit (run 44916521997). The workflow verified the root-level single-file `build/VHS-90.aex` and published a direct release asset: `vhs90-aex-240f3ff41783` (852,992 bytes).
+- The reference-frame extraction workflow passed (run 44915922717); FXC6 and Gen 7 source frames were inspected and observations are recorded above.
+
+### Still not verified / incomplete
+
+- No actual AE 23.2.1 project was opened and saved after the Grain topic split. Disk IDs are preserved and automated contract checks pass, but an AE-host reopen test is still required to prove project migration end-to-end.
+- No plug-in output render was available from AE in this CI environment, so the named effects have not yet been visually matched to the source clips at identical timecodes/settings. Core smoke tests verify algorithm contracts, not reference-image parity.
+- The arbitrary OSD text data is still hidden behind `PF_PUI_NO_ECW_UI`; there is not yet a visible free-text editor.
+- The OSD font picker remains a fixed list rather than a live system-font enumeration UI.
+- Tape Material, Dropouts, Glow, and the signal/chroma modules still require final AE-host visual tuning against the extracted references.
