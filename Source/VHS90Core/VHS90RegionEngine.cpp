@@ -259,9 +259,11 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 shiftX += bandJitter*r.maxShiftPx*bandFactor;
                 const float snowHash=smoothVhs6RiftHash2D(
                     x-r.noiseDriftXCellsPerSecond*t*cellW,
-                    y-r.noiseDriftYCellsPerSecond*t*cellH,regionSeed+55u);
-                if(bandFactor>0.4f&&snowHash>0.55f) {
-                    sourceSnow=0.70f;
+                    (y-r.noiseDriftYCellsPerSecond*t*cellH)*(1.0f+r.snowAnisotropy*4.0f),
+                    regionSeed+55u);
+                const float snowAmount=clamp01(r.snowIntensity)*bandFactor;
+                if(bandFactor>0.08f&&snowHash>1.0f-snowAmount*0.68f) {
+                    sourceSnow=clamp01(snowAmount*0.95f);
                     sourceSnowValue=snowHash;
                 }
                 break;
@@ -313,9 +315,10 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
             const float headSwitchFactor=localProgress;
             shiftX+=std::pow(headSwitchFactor,2.0f)*r.maxShiftPx;
             const float snowHash=smoothVhs6RiftHash2D(x-r.noiseDriftXCellsPerSecond*t*cellW,
-                y-r.noiseDriftYCellsPerSecond*t*cellH,regionSeed+55u);
-            if(snowHash>(1.0f-headSwitchFactor*0.7f)) {
-                sourceSnow=1.0f;
+                (y-r.noiseDriftYCellsPerSecond*t*cellH)*(1.0f+r.snowAnisotropy*4.0f),regionSeed+55u);
+            const float snowAmount=clamp01(r.snowIntensity)*headSwitchFactor;
+            if(snowHash>(1.0f-snowAmount*0.7f)) {
+                sourceSnow=clamp01(snowAmount);
                 sourceSnowValue=snowHash;
             }
         } else if(r.headSwitchProfile==HeadSwitchProfile::NtscR) {
