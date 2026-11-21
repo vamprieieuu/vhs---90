@@ -192,7 +192,7 @@ if "chromaMagnitude" not in IMAGE_GRADE or "quantizedMagnitude" not in IMAGE_GRA
     fail("Chroma Quantization must preserve hue by quantizing chroma magnitude.")
 if "std::clamp(p.saturation,0.0f,5.0f)" not in IMAGE_GRADE:
     fail("Image Grade must support the extended saturation range.")
-if "sceneDrive" not in RF_ENGINE or "randomDrift" not in RF_ENGINE:
+if "sceneDrive" not in RF_ENGINE or "fineDrift" not in RF_ENGINE:
     fail("AGC Pump and RF Drift must use the rebuilt scene/time-base models.")
 
 print(f"AE host contract OK: {len(actual_params)} registered parameters + implicit input, exact enum order, PARAM_COUNT, CUSTOM_UI flags, and VHS6RIFT-compatible legacy render flags.")
