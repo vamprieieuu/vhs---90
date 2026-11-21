@@ -25,7 +25,10 @@ int main(){using namespace vhs90;constexpr int w=64,h=32;std::vector<float>s(w*h
   const size_t k=(size_t(y)*w+x)*4;
   const YIQ before=rgbToYiq(RGB{s[k],s[k+1],s[k+2]});
   const YIQ after=rgbToYiq(RGB{quantized[k],quantized[k+1],quantized[k+2]});
-  if(std::sqrt(before.i*before.i+before.q*before.q)>.01f){
+  const float beforeMagnitude=std::sqrt(before.i*before.i+before.q*before.q);
+  const float afterMagnitude=std::sqrt(after.i*after.i+after.q*after.q);
+  assert(afterMagnitude<=beforeMagnitude+1.0e-6f);
+  if(beforeMagnitude>.01f&&afterMagnitude>1.0e-6f){
    const float angleBefore=std::atan2(before.q,before.i),angleAfter=std::atan2(after.q,after.i);
    const float angleError=std::fabs(std::remainder(angleAfter-angleBefore,2.0f*3.14159265358979323846f));
    assert(angleError<1.0e-4f);

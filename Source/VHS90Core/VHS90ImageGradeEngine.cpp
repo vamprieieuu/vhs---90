@@ -84,7 +84,9 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
     // rounding rotates hue and can create unrelated false-colour patches.
     const float chromaMagnitude=std::sqrt(yiq.i*yiq.i+yiq.q*yiq.q);
     if(chromaMagnitude>1.0e-6f){
-     const float quantizedMagnitude=std::round(chromaMagnitude/chromaStep)*chromaStep;
+     // Quantize downward only: the control must never amplify chroma or
+     // invent saturated colors when a magnitude rounds up to the next bin.
+     const float quantizedMagnitude=std::floor(chromaMagnitude/chromaStep)*chromaStep;
      const float scale=quantizedMagnitude/chromaMagnitude;
      yiq.i*=scale;yiq.q*=scale;
     }
