@@ -71,3 +71,29 @@ The following must be tested against extracted frames from the supplied source c
 ## Current boundary
 
 The repository's current `main` head is `a6e107a`; recent commits repaired legacy render parameter wiring. The current code has separate Tracking Noise and Tear & Chroma topics, but Grain is still grouped in VHS-90 Signal Looks. Audit 62 documents OSD/DirectWrite implementation gaps. No visual comparison of the named effects is claimed by this checkpoint, and no claim is made that a reference clip was frame-inspected in this pass.
+
+## Source-reference frames inspected (2026-11-21)
+
+The four source clips in `VHS/Vhs cams` were decoded through the dedicated `VHS reference frame extraction` workflow (run 44915922717). Twelve evenly distributed frames per clip were extracted to a temporary CI artifact and inspected as contact sheets. This verifies source-reference appearance only; it does not compare the current plug-in render against those clips.
+
+### FXC6 split-screen references
+
+- `ScreenRecording_10-14-2026 18-22-43_1.mov`: the reference is vertically split. The left half is visibly softer during motion and has stronger smear/blur; the right half retains more edge detail and shows a cool blue/purple chroma/noise character with an RF Direct Capture/VHS overlay. At frame 103 (~2.69 s), the moving pedestrian is substantially more smeared on the left half while the right half retains more localized detail.
+- `ScreenRecording_10-14-2026 18-23-02_1.mov`: same split-screen comparison pattern. At frame 100 (~2.70 s), the right half has stronger blue/purple chroma texture/noise while the left half is smoother and softer. The camera movement and scene geometry remain aligned across the split.
+
+### Gen 7 reference
+
+- `IMG_3621.MP4` is the clean green-screen source with natural skin tone and shirt colors.
+- `After vhs_/ScreenRecording_10-14-2026 17-30-46_1.mov` demonstrates a wide range of signal damage, not one static overlay: early frames show a green/teal cast, yellow-biased skin/highlights and cyan/red edge separation; later samples show dense horizontal interference and RF-like snow, with the subject still partly visible; some later samples return to a cleaner saturated color image before strong interference reappears.
+- Representative sampled positions: 0.90 s (initial chroma distortion), 1.79 s (stronger interference), 2.66–4.46 s (dense horizontal/noise breakdown), 5.35 s (cleaner color return), and 7.12–8.47 s (strong color/noise variation). These are screen-recording time positions, not calibrated effect-strength values.
+
+### Implications for the named effect checks
+
+- RF Drift must create coherent, temporally evolving receiver instability and horizontal displacement, not just a static RGB offset.
+- Mains Hum must have coherent line/field cadence and remain distinguishable from ground-loop hum and broad noise.
+- AM Nonlinearity should visibly alter the signal envelope/highlight compression, not merely apply global contrast.
+- AGC Pump must respond to image energy/transients over time; it should not be a generic frame flicker.
+- Impulse Noise should remain sparse and transient against the dense RF snow seen in the Gen 7 breakdown samples.
+- The FXC6 split-screen establishes that motion smear, sharpness loss and chroma/noise texture are separate behaviors; do not collapse them into one blur/noise control.
+
+The sampled frames were not enough to infer exact numerical settings for each individual RF effect. A true per-effect fidelity pass still requires isolated AE renders at known parameter values and a side-by-side comparison to matching source time ranges.
