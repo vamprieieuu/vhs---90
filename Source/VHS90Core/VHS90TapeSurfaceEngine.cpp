@@ -58,7 +58,7 @@ inline RGB straightAt(ConstImageView s,int x,int y,bool premul) noexcept {
 inline bool valid(ConstImageView s,ImageView d) noexcept {
  return s.rgba&&d.rgba&&s.width>0&&s.height>0&&d.width==s.width&&d.height==s.height&&s.rowStrideFloats>=s.width*4&&d.rowStrideFloats>=d.width*4&&s.rgba!=d.rgba;
 }
-inline bool inactive(const TapeSurfaceParams&p) noexcept { return p.defectDensity<=0.0f&&p.edgeLift<=0.0f&&p.surfaceRoughness<=0.0f&&p.oxideLoss<=0.0f&&p.scratchDensity<=0.0f&&p.creaseStrength<=0.0f&&p.moldAmount<=0.0f&&p.vaselineAmount<=0.0f&&p.pinholeAmount<=0.0f&&p.flakeAmount<=0.0f; }
+inline bool inactive(const TapeSurfaceParams&p) noexcept { return p.defectDensity<=0.0f&&p.edgeLift<=0.0f&&p.surfaceRoughness<=0.0f&&p.oxideLoss<=0.0f&&p.scratchDensity<=0.0f&&p.creaseStrength<=0.0f&&p.moldAmount<=0.0f&&p.vaselineAmount<=0.0f&&p.debrisAmount<=0.0f&&p.pinholeAmount<=0.0f&&p.flakeAmount<=0.0f; }
 }
 double tapeWidthMm() noexcept { return double(kTapeWidthMm); }
 double tapeTrackStartMm() noexcept { return double(kTrackStartMm); }
@@ -227,9 +227,15 @@ bool processTapeSurface(ConstImageView src,ImageView dst,const TapeSurfaceParams
    const float spacingUm=std::clamp(d.spacingLift+d.film,0.0f,8.0f),headGapUm=1.0f,writingSpeed=5.8f;
    const auto channelGain=[&](float mhz) noexcept {const float spacing=std::exp(-2.0f*kPi*spacingUm*mhz/writingSpeed);const float aperture=kPi*headGapUm*mhz/writingSpeed;const float gap=std::fabs(aperture)<1e-5f?1.0f:std::fabs(std::sin(aperture)/aperture);return spacing*gap;};
    const float lumaGain=channelGain(4.0f),chromaGain=channelGain(0.62937f);
+   const float stickyBase=0.02f*std::clamp(p.oxideLoss,0.0f,1.85f)+0.9f*std::pow(std::clamp(p.debrisAmount,0.0f,1.0f),2.0f);
+   const float localShed=std::clamp(d.shed-stickyBase,0.0f,2.0f);
+   const float shedLoss=std::clamp(d.shed*0.08f,0.0f,0.24f);
    const float leftY=rgbToYiq(straightAt(src,std::max(0,x-1),y,p.premultipliedAlpha)).y,rightY=rgbToYiq(straightAt(src,std::min(src.width-1,x+1),y,p.premultipliedAlpha)).y;
-   const float lowY=(leftY+2.0f*q.y+rightY)*0.25f;q.y=(lowY+(q.y-lowY)*lumaGain)*mag;
-   const float ca=mag*chromaGain;q.i*=ca;q.q*=ca;q.y+=(unit(hashCell(p.seed,static_cast<std::int64_t>(std::floor(u*4096.0f)),static_cast<std::int64_t>(std::floor(v*1024.0f)),static_cast<std::uint32_t>(p.frame)))*2.0f-1.0f)*d.roughness;
+   const float lowY=(leftY+2.0f*q.y+rightY)*0.25f;q.y=(lowY+(q.y-lowY)*lumaGain)*mag*(1.0f-shedLoss)*(1.0f-0.65f*localShed);
+   const float ca=mag*chromaGain*(1.0f-shedLoss)*(1.0f-0.85f*localShed);q.i*=ca;q.q*=ca;
+   const auto shedCell=hashCell(p.seed,static_cast<std::int64_t>(std::floor(u*160.0f)),static_cast<std::int64_t>(std::floor(v*80.0f)),0x53484544u);
+   q.y+=(unit(hashCell(p.seed,static_cast<std::int64_t>(std::floor(u*4096.0f)),static_cast<std::int64_t>(std::floor(v*1024.0f)),static_cast<std::uint32_t>(p.frame)))*2.0f-1.0f)*d.roughness;
+   q.y+=(unit(shedCell)*2.0f-1.0f)*std::clamp(d.shed,0.0f,1.5f)*0.006f;
    rgb=yiqToRgb(q);if(p.premultipliedAlpha){rgb.r*=a;rgb.g*=a;rgb.b*=a;}out[0]=rgb.r;out[1]=rgb.g;out[2]=rgb.b;out[3]=a;
   }
  }return true;
