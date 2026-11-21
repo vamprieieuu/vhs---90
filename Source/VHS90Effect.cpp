@@ -110,8 +110,8 @@ enum ParamDiskID {
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
-static char kTrackingProfileChoices[]="Servo Sweep|RF Wave|Composite Ribbon|Tape Flutter|Four-Edge Crawl";
-static char kTrackingPresetChoices[]="Custom|Fine Sweep|Fragmented Sweep|RF Snowline|Composite Flagging|Tape Flutter|Four-Edge Crawl|Full-Frame Breakdown";
+static char kTrackingProfileChoices[]="Servo Sweep|RF Wave|Composite Ribbon|Tape Flutter|Four-Edge Crawl|VHS6RIFT Moving Band|NTSC-R Tracking";
+static char kTrackingPresetChoices[]="Custom|Fine Sweep|Fragmented Sweep|RF Snowline|Composite Flagging|Tape Flutter|Four-Edge Crawl|Full-Frame Breakdown|VHS6RIFT Moving Band|NTSC-R Tracking Noise";
 static char kParticleModeChoices[]="Dark-Field Speckles|Horizontal Fragments|Colored Speckles|Bottom-Weighted Streaks|Vertical Columns";
 static char kParticleDistributionChoices[]="Uniform|Top Weighted|Bottom Weighted|Center Weighted|Edge Weighted";
 static char kTearChromaModeChoices[]="Spectral Chroma Smear|Localized Headbleed|Chroma Streaks & Interleave|Multi-Band Tear|Spectral + Lower Tear";
@@ -219,6 +219,21 @@ static void ApplyTrackingRecipe(DamageRegion& r,A_long preset) noexcept {
         case 8: // Full-Frame Breakdown recipe; geometry remains editable by the user.
             r.maxShiftPx*=1.8f; r.noiseDensity=0.8f; r.noiseAmount=0.28f;
             r.tearProbability=std::max(r.tearProbability,0.5f); break;
+        case 9: // VHS6RIFT moving-band source profile, with VHS-90's movable region geometry.
+            r.trackingProfile=TrackingProfile::Vhs6RiftBand;
+            r.maxShiftPx=std::max(r.maxShiftPx,14.0f);
+            r.waveAmplitudePx=std::max(r.waveAmplitudePx,8.0f);
+            r.servoDriftPx=std::max(r.servoDriftPx,8.0f);
+            r.noiseAmount=0.32f; r.noiseDensity=0.58f;
+            r.tearProbability=std::max(r.tearProbability,0.18f);
+            break;
+        case 10: // NTSC-R gradient row noise and transient-snow source profile.
+            r.trackingProfile=TrackingProfile::NtscRTracking;
+            r.waveAmplitudePx=std::max(r.waveAmplitudePx,10.0f);
+            r.servoSmoothnessPx=std::max(r.servoSmoothnessPx,18.0f);
+            r.noiseAmount=0.30f; r.noiseDensity=0.52f;
+            r.tearProbability=std::max(r.tearProbability,0.10f);
+            break;
         default: break;
     }
 }
@@ -606,7 +621,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100,-100,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_MOTION_Y);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_SERVO);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_TEAR);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Preset",8,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Preset",10,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear & Chroma Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_CHROMA_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tear & Chroma Mode",5,5,kTearChromaModeChoices,ID_TEAR_CHROMA_MODE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Spectral Smear",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_SPECTRAL_SMEAR);
@@ -769,7 +784,7 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_ADD_HIDDEN_FLOAT("OSD Battery",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_BATTERY);
     VHS90_ADD_HIDDEN_FLOAT("Frame Repeat Frequency",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_FREQUENCY);
     VHS90_ADD_HIDDEN_FLOAT("Frame Repeat Strength",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_STRENGTH);
-    VHS90_ADD_HIDDEN_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
+    VHS90_ADD_HIDDEN_POPUP("Tracking Type",7,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
     VHS90_ADD_HIDDEN_FLOAT("Particle Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_AMOUNT);
     VHS90_ADD_HIDDEN_POPUP("Pattern",5,1,kParticleModeChoices,ID_PARTICLE_MODE);
     VHS90_ADD_HIDDEN_FLOAT("Density",0,100,0,100,18,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_DENSITY);
@@ -815,9 +830,9 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_ADD_HIDDEN_FLOAT("Displacement",0,200,0,200,12,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER4_SHIFT);
     VHS90_ADD_HIDDEN_FLOAT("Wave Intensity",0,100,0,100,2,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_WAVE);
     VHS90_ADD_HIDDEN_FLOAT("Tear Probability",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_TEAR);
-    VHS90_ADD_HIDDEN_POPUP("Layer 2 Preset",8,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
-    VHS90_ADD_HIDDEN_POPUP("Layer 3 Preset",8,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
-    VHS90_ADD_HIDDEN_POPUP("Layer 4 Preset",8,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
+    VHS90_ADD_HIDDEN_POPUP("Layer 2 Preset",10,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
+    VHS90_ADD_HIDDEN_POPUP("Layer 3 Preset",10,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
+    VHS90_ADD_HIDDEN_POPUP("Layer 4 Preset",10,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
     VHS90_ADD_HIDDEN_POPUP("Pattern Type",11,2,kStaticPatternChoices,ID_PATTERN_MODE);
     VHS90_ADD_HIDDEN_FLOAT("Pattern Angle",-90,90,-90,90,24,1,PF_ValueDisplayFlag_NONE,0,ID_PATTERN_ANGLE);
     VHS90_ADD_HIDDEN_FLOAT("Ribbon / Diagonal Width",1,50,1,50,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_PATTERN_WIDTH);
