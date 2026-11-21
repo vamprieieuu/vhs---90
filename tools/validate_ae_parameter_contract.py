@@ -97,4 +97,31 @@ flags = re.search(r"AE_Effect_Global_OutFlags\s*\{\s*(0x[0-9A-Fa-f]+)\s*\}", PIP
 if not flags or (int(flags.group(1), 16) & (1 << 15)) == 0:
     fail("PiPL AE_Effect_Global_OutFlags must include PF_OutFlag_CUSTOM_UI (0x00008000).")
 
+
+# SmartFX rectangle contract: output bounds must be sourced from the layer
+# checkout, not copied from an arbitrary output request ROI.
+pre_render_match = re.search(r"static\\s+PF_Err\\s+SmartPreRender\\s*\\([^)]*\\)\\s*\\{", SOURCE)
+if not pre_render_match:
+    fail("SmartPreRender function was not found.")
+start = SOURCE.find("{", pre_render_match.start())
+depth = 0
+end = None
+for pos in range(start, len(SOURCE)):
+    if SOURCE[pos] == "{":
+        depth += 1
+    elif SOURCE[pos] == "}":
+        depth -= 1
+        if depth == 0:
+            end = pos + 1
+            break
+pre_render_body = SOURCE[start:end] if end else ""
+if "extra->output->result_rect=result.result_rect" not in pre_render_body:
+    fail("SmartPreRender must publish the checked-out input result_rect.")
+if "extra->output->max_result_rect=result.max_result_rect" not in pre_render_body:
+    fail("SmartPreRender must publish the checked-out input max_result_rect.")
+if "extra->output->result_rect=extra->input->output_request.rect" in pre_render_body:
+    fail("SmartPreRender must not report the raw requested ROI as result_rect.")
+if "unionRect(extra->output->max_result_rect,extra->output->result_rect)" not in pre_render_body:
+    fail("SmartPreRender must guarantee max_result_rect encloses result_rect.")
+
 print(f"AE host contract OK: {len(actual_params)} registered parameters + implicit input, exact enum order, PARAM_COUNT, GlobalSetup/PiPL CUSTOM_UI flags.")

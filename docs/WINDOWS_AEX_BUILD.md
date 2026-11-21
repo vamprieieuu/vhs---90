@@ -42,3 +42,8 @@ After a successful native build and CTest run, the workflow uploads an Actions a
 ## Release gates
 
 A successful native build and CPU smoke suite still do not prove the effect loads or renders correctly in After Effects. The final host check must be performed in AE 2023 / Windows 11: load the AEX, apply it to footage, render, save/reopen the project, duplicate the effect, test MFR, and inspect Arabic/English OSD output.
+
+
+## Raw AEX delivery
+
+The Build workflow publishes only `VHS-90.aex` as a raw GitHub Release asset. It intentionally does not use `actions/upload-artifact`, because GitHub Actions artifacts are downloaded as ZIP archives even when the uploaded payload is a single AEX. The build workspace contains the AEX at `build/VHS-90.aex`; the direct Release download is the user-facing deliverable.

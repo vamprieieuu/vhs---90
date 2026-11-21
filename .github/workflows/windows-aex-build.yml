@@ -65,14 +65,6 @@ jobs:
           Write-Host "AEX_READY=$($item.FullName)"
           Write-Host "AEX_SIZE=$($item.Length)"
 
-      - name: Upload bare AEX artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: VHS-90-AEX
-          path: build/VHS-90.aex
-          if-no-files-found: error
-          compression-level: 0
-
       - name: Publish direct AEX download
         if: github.event_name != 'pull_request'
         shell: pwsh

@@ -1744,9 +1744,33 @@ static PF_Err SmartPreRender(PF_InData* in_data,PF_PreRenderExtra* extra) {
         const PF_Err previousErr=extra->cb->checkout_layer(in_data->effect_ref,PARAM_INPUT,kInputCheckoutID+1,&req,
             previousTime,in_data->time_step,in_data->time_scale,&previousResult);
         s->previousFrameAvailable=(previousErr==PF_Err_NONE);
+        if(s->previousFrameAvailable) {
+            // The temporal checkout is another input dependency. Union its
+            // valid rectangles into the output contract as in Adobe's
+            // SmartFX SmartyPants sample.
+            unionRect(extra->output->result_rect,previousResult.result_rect);
+            unionRect(extra->output->max_result_rect,previousResult.max_result_rect);
+            unionRect(extra->output->max_result_rect,extra->output->result_rect);
+        }
     }
-    extra->output->result_rect=extra->input->output_request.rect;
+    // SmartFX output bounds must come from the checked-out layer's actual
+    // result/max-result rectangles. The requested ROI can extend beyond the
+    // source's valid bounds (e.g. transformed footage or adjustment layers).
+    // Reporting the raw request as result_rect can therefore violate AE's
+    // max_result_rect contract and make the effect render black.
+    auto unionRect=[](PF_Rect& dst,const PF_Rect& srcRect) {
+        if(srcRect.right<=srcRect.left || srcRect.bottom<=srcRect.top) return;
+        if(dst.right<=dst.left || dst.bottom<=dst.top) { dst=srcRect; return; }
+        dst.left=std::min(dst.left,srcRect.left);
+        dst.top=std::min(dst.top,srcRect.top);
+        dst.right=std::max(dst.right,srcRect.right);
+        dst.bottom=std::max(dst.bottom,srcRect.bottom);
+    };
+    extra->output->result_rect=result.result_rect;
     extra->output->max_result_rect=result.max_result_rect;
+    // Keep the advertised maximum valid even if a host returns a clipped
+    // result rectangle at an image edge.
+    unionRect(extra->output->max_result_rect,extra->output->result_rect);
     extra->output->solid=result.solid;
     extra->output->pre_render_data=s;
     extra->output->delete_pre_render_data_func=DeletePreRenderData;

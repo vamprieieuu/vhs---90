@@ -53,4 +53,4 @@ Requirements and SDK setup are documented in [Windows AEX Build](docs/WINDOWS_AE
  .\build.ps1 -BuildDir build -Configuration Release
 ```
 
-The output is the bare file `build/VHS-90.aex`. The workflow uploads it as `VHS-90-AEX` and publishes it as a raw release asset. A successful build is not proof that the plugin loads or renders correctly in After Effects; host verification remains a separate gate.
+The output is the bare file `build/VHS-90.aex`. The workflow publishes `VHS-90.aex` as a raw GitHub Release asset. It deliberately does not upload a GitHub Actions artifact, because GitHub wraps Actions artifacts in ZIP files. A successful build is not proof that the plugin loads or renders correctly in After Effects; host verification remains a separate gate.
