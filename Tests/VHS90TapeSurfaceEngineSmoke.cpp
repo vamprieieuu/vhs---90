@@ -7,6 +7,7 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  ConstImageView si{s.data(),w,h,w*4};ImageView ai{a.data(),w,h,w*4},bi{b.data(),w,h,w*4},ci{c.data(),w,h,w*4};
  TapeSurfaceParams p;p.seed=17;p.frame=12;p.defectDensity=.9f;p.edgeLift=.2f;p.pinholeAmount=.5f;p.flakeAmount=.6f;p.moldAmount=.7f;p.vaselineAmount=.4f;assert(processTapeSurface(si,ai,p));assert(processTapeSurface(si,bi,p));assert(a==b);
  p.frame=13;assert(processTapeSurface(si,ci,p));assert(a!=c);
+ TapeSurfaceParams stickyOnly;stickyOnly.debrisAmount=1.0f;stickyOnly.seed=17;assert(processTapeSurface(si,ci,stickyOnly));assert(c!=s);
  TapeSurfaceParams off;off.defectDensity=0;off.oxideLoss=0;off.scratchDensity=0;off.creaseStrength=0;off.debrisAmount=0;off.edgeLift=0;off.surfaceRoughness=0;off.moldAmount=0;off.vaselineAmount=0;off.pinholeAmount=0;off.flakeAmount=0;std::fill(b.begin(),b.end(),0);assert(processTapeSurface(si,bi,off));assert(b==s);
  std::vector<float>semi=s,out(s.size());for(size_t i=0;i<semi.size();i+=4){semi[i]*=.4f;semi[i+1]*=.4f;semi[i+2]*=.4f;semi[i+3]=.4f;}
  ConstImageView ssi{semi.data(),w,h,w*4};ImageView so{out.data(),w,h,w*4};p.frame=12;p.premultipliedAlpha=true;assert(processTapeSurface(ssi,so,p));
