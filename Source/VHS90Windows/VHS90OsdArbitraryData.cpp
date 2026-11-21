@@ -102,6 +102,28 @@ PF_Err VHS90ReadOsdText(PF_InData* in_data, PF_ArbitraryH handle, std::string& u
     return PF_Err_NONE;
 }
 
+PF_Err VHS90WriteOsdText(PF_InData* in_data,PF_ArbitraryH* handle,std::string_view utf8_text) {
+    if(!in_data||!handle) return PF_Err_BAD_CALLBACK_PARAM;
+    vhs90::OsdTextData parsed;
+    if(!vhs90::setOsdText(parsed,utf8_text)) return PF_Err_BAD_CALLBACK_PARAM;
+    std::vector<std::uint8_t> bytes;
+    if(!vhs90::flattenOsdText(parsed,bytes)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+    HandleSuiteScope scope(in_data);
+    const auto* hs=scope.get();
+    if(!hs) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+    if(!*handle) {
+        *handle=makeBlob(hs,bytes);
+        return *handle?PF_Err_NONE:PF_Err_OUT_OF_MEMORY;
+    }
+    const PF_Err resizeErr=hs->host_resize_handle(static_cast<A_HandleSize>(bytes.size()),*handle);
+    if(resizeErr!=PF_Err_NONE) return resizeErr;
+    void* memory=hs->host_lock_handle(*handle);
+    if(!memory) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+    std::memcpy(memory,bytes.data(),bytes.size());
+    hs->host_unlock_handle(*handle);
+    return PF_Err_NONE;
+}
+
 PF_Err VHS90OsdArbitraryCallback(PF_InData* in_data,PF_ArbParamsExtra* e) {
     if (!in_data || !e || e->id!=kOsdTextArbId) return PF_Err_BAD_CALLBACK_PARAM;
     HandleSuiteScope scope(in_data);
