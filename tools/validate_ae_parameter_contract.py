@@ -7,6 +7,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = (ROOT / "Source/VHS90Effect.cpp").read_text(encoding="utf-8")
 PIPL = (ROOT / "resources/VHS90PiPL.r").read_text(encoding="utf-8")
+COMPOSITE = (ROOT / "Source/VHS90Core/VHS90CompositeEngine.cpp").read_text(encoding="utf-8")
+REGION = (ROOT / "Source/VHS90Core/VHS90RegionEngine.cpp").read_text(encoding="utf-8")
 
 def fail(message: str) -> None:
     raise SystemExit(f"AE CONTRACT ERROR: {message}")
@@ -132,5 +134,27 @@ legacy_params = set(re.findall(r"\bPARAM_[A-Z0-9_]+\b", SOURCE[legacy_start:lega
 unwired = sorted(read_params - legacy_params)
 if unwired:
     fail("LegacyRender does not read these registered render controls: " + ", ".join(unwired))
+
+# Regression guards for previously confirmed inert/limited controls.
+if not re.search(r'PF_ADD_FLOAT_SLIDERX\\("Master Strength",0,500,0,500,100', SOURCE):
+    fail("Master Strength must expose a 0..500 range.")
+if "std::clamp(s.master/100.0f,0.0f,5.0f)" not in SOURCE:
+    fail("Master Strength must preserve values above 100 percent in the render adapter.")
+if "std::min(5.0f,p.strength)" not in COMPOSITE:
+    fail("Composite engine must support the extended Master Strength blend range.")
+if not re.search(r'if\\(s.rfDrift>0\\|\\|s.rfHum>0\\|\\|s.rfAm>0\\|\\|s.agcPump>0\\)', SOURCE):
+    fail("AGC Pump alone must activate the RF instability stage.")
+if not re.search(r'ID_TRACKING_AMOUNT\\);', SOURCE) or not re.search(
+    r'PF_ADD_FLOAT_SLIDERX\\("Amount",0,100,0,100,22,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_AMOUNT\\)',
+    SOURCE
+):
+    fail("New instances must start with visible, enabled Tracking Noise.")
+if not re.search(
+    r'PF_ADD_FLOAT_SLIDERX\\("Motion Y",-100,100,-100,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACKING_MOTION_Y\\)',
+    SOURCE
+):
+    fail("Default Tracking Noise must move vertically.")
+if "wrapMovingCenter" not in REGION:
+    fail("Tracking regions must wrap through the frame instead of drifting off-screen permanently.")
 
 print(f"AE host contract OK: {len(actual_params)} registered parameters + implicit input, exact enum order, PARAM_COUNT, CUSTOM_UI flags, and VHS6RIFT-compatible legacy render flags.")
