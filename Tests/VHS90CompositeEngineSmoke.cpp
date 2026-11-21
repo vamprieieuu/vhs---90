@@ -27,6 +27,22 @@ int main() {
     for(size_t i=0;i<boxOut.size();i+=4) if(std::fabs(boxOut[i]-src[i])>1e-4f) { changed=true; break; }
     assert(changed);
 
+    // Master Strength above 100% must amplify the processed difference,
+    // rather than being silently clamped to a normal 0..1 blend.
+    std::vector<float> boostedOut(src.size());
+    ImageView boostedView{boostedOut.data(),w,h,w*4};
+    CompositeParams boosted=p; boosted.strength=2.0f;
+    assert(processCompositeRoundTrip(si,boostedView,boosted));
+    float normalDelta=0.0f,boostedDelta=0.0f;
+    for(size_t i=0;i<src.size();i+=4) {
+        for(int c=0;c<3;++c) {
+            normalDelta+=std::fabs(boxOut[i+size_t(c)]-src[i+size_t(c)]);
+            boostedDelta+=std::fabs(boostedOut[i+size_t(c)]-src[i+size_t(c)]);
+            assert(std::isfinite(boostedOut[i+size_t(c)]));
+        }
+    }
+    assert(boostedDelta>normalDelta*1.5f);
+
     CompositeParams pZero=p; pZero.strength=0.0f;
     assert(processCompositeRoundTrip(si,zo,pZero));
     assert(zeroOut==src);
