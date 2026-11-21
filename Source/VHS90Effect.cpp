@@ -5,6 +5,7 @@
 #include "AE_EffectCB.h"
 #include "AE_EffectCBSuites.h"
 #include "AE_EffectPixelFormat.h"
+#include "AE_Macros.h"
 #include "Param_Utils.h"
 #include "VHS90SignalKernels.h"
 #include "VHS90RegionEngine.h"
@@ -15,6 +16,9 @@
 #include "VHS90CompositeEngine.h"
 #include "VHS90ChromaShiftEngine.h"
 #include "VHS90OsdEngine.h"
+#include "VHS90OsdLocalization.h"
+#include "VHS90OsdArbitraryData.h"
+#include "VHS90DirectWriteText.h"
 #include "VHS90DeviceConnectionEngine.h"
 #include "VHS90SyncEngine.h"
 #include <algorithm>
@@ -25,6 +29,8 @@
 #include <vector>
 
 namespace {
+using namespace vhs90;
+
 enum ParamIndex {
     PARAM_INPUT=0, PARAM_MASTER, PARAM_SIGNAL_TOPIC, PARAM_COMPOSITE_AMOUNT,
     PARAM_SYNC_AMOUNT, PARAM_PAL_MODE, PARAM_SIGNAL_MODEL, PARAM_TAPE_SPEED, PARAM_TAPE_DETAIL, PARAM_TRACK_READ, PARAM_TRACK_MISALIGNMENT, PARAM_CHROMA_SHIFT, PARAM_CHROMA_REG_RED, PARAM_CHROMA_REG_BLUE, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA,
@@ -49,7 +55,12 @@ enum ParamIndex {
     PARAM_TEAR_BAND2_TOPIC, PARAM_TEAR_BAND2_AMOUNT, PARAM_TEAR_BAND2_Y, PARAM_TEAR_BAND2_HEIGHT, PARAM_TEAR_BAND2_SHIFT, PARAM_TEAR_BAND2_FRAGMENTATION, PARAM_TEAR_BAND2_CHROMA, PARAM_TEAR_BAND2_SMEAR, PARAM_TEAR_BAND2_DROPOUT, PARAM_TEAR_BAND2_END,
     PARAM_TEAR_BAND3_TOPIC, PARAM_TEAR_BAND3_AMOUNT, PARAM_TEAR_BAND3_Y, PARAM_TEAR_BAND3_HEIGHT, PARAM_TEAR_BAND3_SHIFT, PARAM_TEAR_BAND3_FRAGMENTATION, PARAM_TEAR_BAND3_CHROMA, PARAM_TEAR_BAND3_SMEAR, PARAM_TEAR_BAND3_DROPOUT, PARAM_TEAR_BAND3_END,
     PARAM_TEAR_BAND4_TOPIC, PARAM_TEAR_BAND4_AMOUNT, PARAM_TEAR_BAND4_Y, PARAM_TEAR_BAND4_HEIGHT, PARAM_TEAR_BAND4_SHIFT, PARAM_TEAR_BAND4_FRAGMENTATION, PARAM_TEAR_BAND4_CHROMA, PARAM_TEAR_BAND4_SMEAR, PARAM_TEAR_BAND4_DROPOUT, PARAM_TEAR_BAND4_END,
-    PARAM_TEAR_BAND5_TOPIC, PARAM_TEAR_BAND5_AMOUNT, PARAM_TEAR_BAND5_Y, PARAM_TEAR_BAND5_HEIGHT, PARAM_TEAR_BAND5_SHIFT, PARAM_TEAR_BAND5_FRAGMENTATION, PARAM_TEAR_BAND5_CHROMA, PARAM_TEAR_BAND5_SMEAR, PARAM_TEAR_BAND5_DROPOUT, PARAM_TEAR_BAND5_END, PARAM_COUNT
+    PARAM_TEAR_BAND5_TOPIC, PARAM_TEAR_BAND5_AMOUNT, PARAM_TEAR_BAND5_Y, PARAM_TEAR_BAND5_HEIGHT, PARAM_TEAR_BAND5_SHIFT, PARAM_TEAR_BAND5_FRAGMENTATION, PARAM_TEAR_BAND5_CHROMA, PARAM_TEAR_BAND5_SMEAR, PARAM_TEAR_BAND5_DROPOUT, PARAM_TEAR_BAND5_END,
+    PARAM_OSD_LAYOUT_TOPIC, PARAM_OSD_DECK_MODE, PARAM_OSD_DATE_FORMAT, PARAM_OSD_REC_X, PARAM_OSD_REC_Y,
+    PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
+    PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_OFFSET, PARAM_OSD_SHOW_COUNTER, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
+    PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
+    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_MASTER=1, ID_SIGNAL_TOPIC, ID_COMPOSITE, ID_SYNC, ID_PAL_MODE, ID_SIGNAL_MODEL, ID_TAPE_SPEED, ID_TAPE_DETAIL, ID_TRACK_READ, ID_TRACK_MISALIGNMENT, ID_CHROMA_SHIFT, ID_CHROMA_REG_RED, ID_CHROMA_REG_BLUE,
@@ -72,7 +83,12 @@ enum ParamDiskID {
     ID_TEAR_BAND2_TOPIC, ID_TEAR_BAND2_AMOUNT, ID_TEAR_BAND2_Y, ID_TEAR_BAND2_HEIGHT, ID_TEAR_BAND2_SHIFT, ID_TEAR_BAND2_FRAGMENTATION, ID_TEAR_BAND2_CHROMA, ID_TEAR_BAND2_SMEAR, ID_TEAR_BAND2_DROPOUT,
     ID_TEAR_BAND3_TOPIC, ID_TEAR_BAND3_AMOUNT, ID_TEAR_BAND3_Y, ID_TEAR_BAND3_HEIGHT, ID_TEAR_BAND3_SHIFT, ID_TEAR_BAND3_FRAGMENTATION, ID_TEAR_BAND3_CHROMA, ID_TEAR_BAND3_SMEAR, ID_TEAR_BAND3_DROPOUT,
     ID_TEAR_BAND4_TOPIC, ID_TEAR_BAND4_AMOUNT, ID_TEAR_BAND4_Y, ID_TEAR_BAND4_HEIGHT, ID_TEAR_BAND4_SHIFT, ID_TEAR_BAND4_FRAGMENTATION, ID_TEAR_BAND4_CHROMA, ID_TEAR_BAND4_SMEAR, ID_TEAR_BAND4_DROPOUT,
-    ID_TEAR_BAND5_TOPIC, ID_TEAR_BAND5_AMOUNT, ID_TEAR_BAND5_Y, ID_TEAR_BAND5_HEIGHT, ID_TEAR_BAND5_SHIFT, ID_TEAR_BAND5_FRAGMENTATION, ID_TEAR_BAND5_CHROMA, ID_TEAR_BAND5_SMEAR, ID_TEAR_BAND5_DROPOUT
+    ID_TEAR_BAND5_TOPIC, ID_TEAR_BAND5_AMOUNT, ID_TEAR_BAND5_Y, ID_TEAR_BAND5_HEIGHT, ID_TEAR_BAND5_SHIFT, ID_TEAR_BAND5_FRAGMENTATION, ID_TEAR_BAND5_CHROMA, ID_TEAR_BAND5_SMEAR, ID_TEAR_BAND5_DROPOUT,
+    ID_OSD_LAYOUT_TOPIC=9025, ID_OSD_DECK_MODE=9001, ID_OSD_DATE_FORMAT, ID_OSD_REC_X, ID_OSD_REC_Y,
+    ID_OSD_STATUS_X, ID_OSD_STATUS_Y, ID_OSD_TIMESTAMP_X, ID_OSD_TIMESTAMP_Y,
+    ID_OSD_COUNTER_TOPIC=9026, ID_OSD_COUNTER_FORMAT=9009, ID_OSD_COUNTER_AMOUNT, ID_OSD_COUNTER_X, ID_OSD_COUNTER_Y, ID_OSD_COUNTER_OFFSET=9024, ID_OSD_SHOW_COUNTER=9047, ID_OSD_TEXT_DATA=9013,
+    ID_OSD_LOCALIZATION_TOPIC=9027, ID_OSD_LANGUAGE=9014, ID_OSD_DIGITS, ID_OSD_DATE_LAYOUT, ID_OSD_CLOCK_MODE, ID_OSD_MONTH_STYLE, ID_OSD_CLOCK_RUNS, ID_OSD_FONT, ID_OSD_EXTRA_LABEL, ID_OSD_EXTRA_X, ID_OSD_EXTRA_Y,
+    ID_OSD_WORDS_TOPIC=9028, ID_OSD_SHOW_TEXT, ID_OSD_SHOW_REC_LABEL, ID_OSD_SHOW_PLAY_LABEL, ID_OSD_SHOW_PAUSE_LABEL, ID_OSD_SHOW_STOP_LABEL, ID_OSD_SHOW_FF_LABEL, ID_OSD_SHOW_REW_LABEL, ID_OSD_SHOW_SPEED_LABEL, ID_OSD_SHOW_TAPE_LABEL, ID_OSD_SHOW_ERROR_LABEL, ID_OSD_SHOW_PROGRAM_LABEL, ID_OSD_SHOW_RES_LABEL, ID_OSD_SHOW_FORWARD_LABEL, ID_OSD_TEXT_GLOW, ID_OSD_TEXT_SIZE=9048, ID_OSD_TEXT_GLOW_AMOUNT=9049, ID_OSD_TEXT_SEED=9050, ID_OSD_TEXT_OPACITY=9051, ID_OSD_SHOW_DATE, ID_OSD_WORDS_X, ID_OSD_WORDS_Y
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -89,6 +105,16 @@ static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|
 static char kNtscRsLookChoices[]="Custom|VHS-90 Natural NTSC|VHS-90 Home SP|VHS-90 LP Tape|VHS-90 EP Tape|VHS-90 Tracking Snow|VHS-90 Chroma Loss|VHS-90 Edge Wave|VHS-90 Field Blend|VHS-90 Composite Smear|VHS-90 Chroma Instability";
 static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
 static char kCompositeDecoderChoices[]="Consumer Notch|One-Line Comb|Two-Line Comb";
+static char kOsdDeckModeChoices[]="Play|Pause|Stop|Fast Forward|Rewind";
+static char kOsdDateFormatChoices[]="ISO Date + Time|US Date + Time|European Date + Time|Date Only|Time Only";
+static char kOsdCounterFormatChoices[]="Six-Digit Frames|HH:MM:SS|HH:MM:SS:FF";
+static char kOsdLanguageChoices[]="English|Arabic|English + Arabic";
+static char kOsdDigitsChoices[]="Latin|Arabic-Indic|Persian";
+static char kOsdDateLayoutChoices[]="JAN.21.1994|1.21.1994|21.1.1994|1994.1.21";
+static char kOsdClockModeChoices[]="Off|12 Hour|24 Hour";
+static char kOsdMonthStyleChoices[]="Short|Full";
+static char kOsdFontChoices[]="A Massir Ballpoint|A Naskh Tahrir|a-bad-khat|Guesswhat Exceptional|Arabic Childhood|Arial Narrow Bold|Evogria|K Kamran|Maqroo Regular|Milan Display Black|Nasma|Real Vhs Font Regular|RooyinFree Bold|YR Sponge Arabic|ZIAN Black";
+static char kOsdExtraLabelChoices[]="Off|TAPE|ERROR|P01|RES|FORWARD|EJECT|SEARCH|TRACKING|AUTO|CH|CAM|DECK|TIMER|STEREO|SLOW|STILL|MEMORY";
 
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35, staticAngle=24, staticRibbonWidth=12, staticGreenLine=75, staticPhaseCount=3;
@@ -112,7 +138,8 @@ struct RenderSettings {
     A_long trackingLayerProfile[3]={2,3,4}, trackingLayerShape[3]={1,1,1};
     float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5};
     float particleAmount=0, particleDensity=18, particleSize=1.5f, particleLength=7, particleChroma=0, particleSpeed=1, particleSeed=1, particleSourceMix=100, particleBrightness=85, particleContrast=100;
-    A_long tearChromaMode=5, tearBandCount=2;
+    A_long tearChromaMode=5;
+    float tearBandCount=2.0f;
     float tearChromaAmount=0, spectralSmear=75, spectralHueSpread=70, chromaSaturation=140, spectralCenterY=38, spectralCoverage=72, tearBandStartY=60, tearBandHeight=18, tearDisplacement=18, tearFragmentation=55, tearChromaShift=5, tearSmear=6, tearDropout=12, tearSeed=1;
     float tearBandAmount[4]={70,60,80,55}, tearBandY[4]={75,45,90,30}, tearBandHeightExtra[4]={15,12,8,10}, tearBandShift[4]={30,-24,40,-18}, tearBandFragmentation[4]={60,70,45,65}, tearBandChroma[4]={8,-6,12,-10}, tearBandSmear[4]={8,12,5,10}, tearBandDropout[4]={20,15,25,10};
     float headAmount=0, headY=100, headHeight=4, headShift=24;
@@ -123,6 +150,15 @@ struct RenderSettings {
     float pyVhsLumaCompression=1.0f, pyVhsChromaCompression=1.0f, pyVhsLumaNoise=0.0f, pyVhsChromaNoise=0.0f, pyVhsChromaWave=0.0f, pyVhsGeneration=1.0f;
     float osdAmount=0.0f, osdRec=100.0f, osdPlay=100.0f, osdTimestamp=100.0f, osdOpacity=82.0f, osdScale=100.0f, osdGlitch=50.0f, osdGhost=35.0f, osdRecBlink=1.4f, osdTimeSpeed=1.0f;
     float osdYear=1994.0f, osdMonth=6.0f, osdDay=11.0f, osdHour=12.0f, osdMinute=0.0f, osdSecond=0.0f;
+    A_long osdDeckMode=1, osdDateFormat=1;
+    A_long osdLanguage=1, osdDigits=1, osdDateLayout=1, osdClockMode=3, osdMonthStyle=1, osdClockRuns=1, osdFont=12, osdExtraLabel=1;
+    float osdExtraX=50.0f, osdExtraY=50.0f;
+    A_long osdShowText=1, osdShowRecLabel=1, osdShowPlayLabel=1, osdShowPauseLabel=1, osdShowStopLabel=1, osdShowFfLabel=1, osdShowRewLabel=1, osdShowSpeedLabel=1, osdShowTapeLabel=0, osdShowErrorLabel=0, osdShowProgramLabel=0, osdShowResLabel=0, osdShowForwardLabel=0, osdTextGlow=0, osdShowDate=1;
+    float osdWordsX=50.0f, osdWordsY=50.0f, osdTextSize=100.0f, osdTextGlowAmount=50.0f, osdTextSeed=1.0f, osdTextOpacity=100.0f;
+    float osdRecX=2.2f, osdRecY=3.0f, osdStatusX=98.0f, osdStatusY=3.0f, osdTimestampX=98.0f, osdTimestampY=96.0f;
+    A_long osdCounterFormat=1, osdShowCounter=0;
+    float osdCounterAmount=0.0f, osdCounterX=2.2f, osdCounterY=96.0f, osdCounterOffset=0.0f;
+    std::string osdText;
     float vhs6RiftGrain=0.0f, vhs6RiftGrainSize=2.0f, vhs6RiftNoiseDetail=50.0f, vhs6RiftShadowBias=65.0f, vhs6RiftNoiseSeed=1.0f;
     bool vhs6RiftNoiseEnable=true;
     float signalHueNoise=0.0f;
@@ -465,7 +501,7 @@ static PF_Err GlobalSetup(PF_InData* in_data,PF_OutData* out_data) {
 static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     PF_Err err=PF_Err_NONE;
     PF_ParamDef def;
-    AEFX_CLR_STRUCT(def); PF_ADD_INPUT("Source",PF_LayerDefault_MYSELF,PF_PixelFormat_ARGB32);
+    AEFX_CLR_STRUCT(def); PF_ADD_LAYER("Source",PF_LayerDefault_MYSELF,PARAM_INPUT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
@@ -591,7 +627,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Generation",0,5,0,5,1,2,PF_ValueDisplayFlag_NONE,0,ID_PYVHS_GENERATION);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PYVHS_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Camcorder OSD",ID_OSD_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("OSD Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("OSD Mix / Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("REC Indicator",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_REC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("PLAY / SP Status",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_PLAY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Date / Time",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TIMESTAMP);
@@ -779,6 +815,63 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Smear",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_SMEAR);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dropout",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_DROPOUT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TEAR_BAND5_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Tape OSD Layout",ID_OSD_LAYOUT_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Deck Transport",5,1,kOsdDeckModeChoices,ID_OSD_DECK_MODE);
+    AEFX_CLR_STRUCT(def); def.ui_flags=PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Legacy Timestamp Format",5,1,kOsdDateFormatChoices,ID_OSD_DATE_FORMAT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("REC Horizontal Position",0,100,0,100,2.2,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_REC_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("REC Vertical Position",0,100,0,100,3,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_REC_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Deck Status Horizontal Position",0,100,0,100,98,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_STATUS_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Deck Status Vertical Position",0,100,0,100,3,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_STATUS_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Timestamp Horizontal Position",0,100,0,100,98,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TIMESTAMP_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Timestamp Vertical Position",0,100,0,100,96,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TIMESTAMP_Y);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_LAYOUT_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tape Counter",ID_OSD_COUNTER_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Counter Format",3,1,kOsdCounterFormatChoices,ID_OSD_COUNTER_FORMAT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Amount",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Horizontal Position",0,100,0,100,2.2,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Vertical Position",0,100,0,100,96,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Counter Offset (seconds)",-3600,3600,-3600,3600,0,1,PF_ValueDisplayFlag_NONE,0,ID_OSD_COUNTER_OFFSET);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Show Counter", "Enable", 0, 0, ID_OSD_SHOW_COUNTER);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_COUNTER_TOPIC+100);
+    PF_ArbitraryH osdTextDefault = nullptr;
+    err = VHS90CreateOsdTextDefault(in_data, &osdTextDefault);
+    if (err != PF_Err_NONE) return err;
+    AEFX_CLR_STRUCT(def); PF_ADD_ARBITRARY2("OSD Text Data",1,1,0,PF_PUI_NO_ECW_UI,osdTextDefault,ID_OSD_TEXT_DATA,nullptr);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Text Localization",ID_OSD_LOCALIZATION_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("OSD Language",3,1,kOsdLanguageChoices,ID_OSD_LANGUAGE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("OSD Digits",3,1,kOsdDigitsChoices,ID_OSD_DIGITS);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Date Layout",4,1,kOsdDateLayoutChoices,ID_OSD_DATE_LAYOUT);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Clock",3,3,kOsdClockModeChoices,ID_OSD_CLOCK_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Month Names",2,1,kOsdMonthStyleChoices,ID_OSD_MONTH_STYLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Clock Runs", "Enable", 1, 0, ID_OSD_CLOCK_RUNS);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("OSD Font Family",15,12,kOsdFontChoices,ID_OSD_FONT);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Extra VHS Label",18,1,kOsdExtraLabelChoices,ID_OSD_EXTRA_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Extra Label Horizontal Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_EXTRA_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Extra Label Vertical Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_EXTRA_Y);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_LOCALIZATION_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Text Words",ID_OSD_WORDS_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Show Text", "Enable", 1, 0, ID_OSD_SHOW_TEXT);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("REC Label", "Show", 1, 0, ID_OSD_SHOW_REC_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("PLAY", "Show", 1, 0, ID_OSD_SHOW_PLAY_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("PAUSE", "Show", 1, 0, ID_OSD_SHOW_PAUSE_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("STOP", "Show", 1, 0, ID_OSD_SHOW_STOP_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("FF", "Show", 1, 0, ID_OSD_SHOW_FF_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("REW", "Show", 1, 0, ID_OSD_SHOW_REW_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("SP / LP / EP", "Show", 1, 0, ID_OSD_SHOW_SPEED_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("TAPE", "Show", 0, 0, ID_OSD_SHOW_TAPE_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("ERROR", "Show", 0, 0, ID_OSD_SHOW_ERROR_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("P.O.1 / P01", "Show", 0, 0, ID_OSD_SHOW_PROGRAM_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("RES", "Show", 0, 0, ID_OSD_SHOW_RES_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("FORWARD", "Show", 0, 0, ID_OSD_SHOW_FORWARD_LABEL);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Text Glow", "Enable", 0, 0, ID_OSD_TEXT_GLOW);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Text Size (%)",10,500,10,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TEXT_SIZE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Text Glow Amount",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TEXT_GLOW_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Text Random Seed",1,32767,1,32767,1,0,PF_ValueDisplayFlag_NONE,0,ID_OSD_TEXT_SEED);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Text Opacity (%)",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_TEXT_OPACITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Show Date", "Enable", 1, 0, ID_OSD_SHOW_DATE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Word Group Horizontal Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_WORDS_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Word Group Vertical Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_WORDS_Y);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_WORDS_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -804,6 +897,16 @@ static PF_Err CheckoutPopup(PF_InData* in_data,A_long index,A_long& value) {
     value=param.u.pd.value;
     return PF_CHECKIN_PARAM(in_data,&param);
 }
+static PF_Err CheckoutOsdText(PF_InData* in_data, std::string& value) {
+    PF_ParamDef param; AEFX_CLR_STRUCT(param);
+    PF_Err err=PF_CHECKOUT_PARAM(in_data,PARAM_OSD_TEXT_DATA,in_data->current_time,
+        in_data->time_step,in_data->time_scale,&param);
+    if(err!=PF_Err_NONE) return err;
+    err=VHS90ReadOsdText(in_data,param.u.arb_d.value,value);
+    const PF_Err checkin=PF_CHECKIN_PARAM(in_data,&param);
+    return err!=PF_Err_NONE?err:checkin;
+}
+
 static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     PF_Err err=PF_Err_NONE;
 #define READ_FLOAT(I,F) do { err=CheckoutFloat(in_data,(I),s.F); if(err!=PF_Err_NONE) return err; } while(0)
@@ -912,6 +1015,13 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_OSD_REC_BLINK,osdRecBlink); READ_FLOAT(PARAM_OSD_TIME_SPEED,osdTimeSpeed);
     READ_FLOAT(PARAM_OSD_YEAR,osdYear); READ_FLOAT(PARAM_OSD_MONTH,osdMonth); READ_FLOAT(PARAM_OSD_DAY,osdDay);
     READ_FLOAT(PARAM_OSD_HOUR,osdHour); READ_FLOAT(PARAM_OSD_MINUTE,osdMinute); READ_FLOAT(PARAM_OSD_SECOND,osdSecond);
+    err=CheckoutPopup(in_data,PARAM_OSD_DECK_MODE,s.osdDeckMode); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_OSD_DATE_FORMAT,s.osdDateFormat); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_OSD_REC_X,osdRecX); READ_FLOAT(PARAM_OSD_REC_Y,osdRecY);
+    READ_FLOAT(PARAM_OSD_STATUS_X,osdStatusX); READ_FLOAT(PARAM_OSD_STATUS_Y,osdStatusY);
+    READ_FLOAT(PARAM_OSD_TIMESTAMP_X,osdTimestampX); READ_FLOAT(PARAM_OSD_TIMESTAMP_Y,osdTimestampY);
+    err=CheckoutPopup(in_data,PARAM_OSD_COUNTER_FORMAT,s.osdCounterFormat); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_OSD_COUNTER_AMOUNT,osdCounterAmount); READ_FLOAT(PARAM_OSD_COUNTER_OFFSET,osdCounterOffset); err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_COUNTER,s.osdShowCounter); if(err!=PF_Err_NONE) return err; READ_FLOAT(PARAM_OSD_COUNTER_X,osdCounterX); READ_FLOAT(PARAM_OSD_COUNTER_Y,osdCounterY);
     PF_ParamDef recColor; AEFX_CLR_STRUCT(recColor);
     err=PF_CHECKOUT_PARAM(in_data,PARAM_OSD_REC_COLOR,in_data->current_time,in_data->time_step,in_data->time_scale,&recColor);
     if(err!=PF_Err_NONE) return err;
@@ -930,6 +1040,33 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     PF_ParamDef noiseEnable; AEFX_CLR_STRUCT(noiseEnable); err=PF_CHECKOUT_PARAM(in_data,PARAM_VHS6RIFT_NOISE_ENABLE,in_data->current_time,in_data->time_step,in_data->time_scale,&noiseEnable); if(err!=PF_Err_NONE) return err; s.vhs6RiftNoiseEnable=noiseEnable.u.bd.value!=0; err=PF_CHECKIN_PARAM(in_data,&noiseEnable); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_EDGE_WAVE_FREQUENCY,edgeWaveFrequency); READ_FLOAT(PARAM_EDGE_WAVE_SPEED,edgeWaveSpeed); READ_FLOAT(PARAM_EDGE_WAVE_DETAIL,edgeWaveDetail);
     READ_FLOAT(PARAM_CHROMA_EDGE_ENHANCE,chromaEdgeEnhance);
+    err=CheckoutOsdText(in_data,s.osdText); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_OSD_LANGUAGE,s.osdLanguage); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_OSD_DIGITS,s.osdDigits); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_OSD_DATE_LAYOUT,s.osdDateLayout); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_OSD_CLOCK_MODE,s.osdClockMode); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_OSD_MONTH_STYLE,s.osdMonthStyle); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_CLOCK_RUNS,s.osdClockRuns); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_OSD_FONT,s.osdFont); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_OSD_EXTRA_LABEL,s.osdExtraLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_TEXT,s.osdShowText); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_REC_LABEL,s.osdShowRecLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_PLAY_LABEL,s.osdShowPlayLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_PAUSE_LABEL,s.osdShowPauseLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_STOP_LABEL,s.osdShowStopLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_FF_LABEL,s.osdShowFfLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_REW_LABEL,s.osdShowRewLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_SPEED_LABEL,s.osdShowSpeedLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_TAPE_LABEL,s.osdShowTapeLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_ERROR_LABEL,s.osdShowErrorLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_PROGRAM_LABEL,s.osdShowProgramLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_RES_LABEL,s.osdShowResLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_FORWARD_LABEL,s.osdShowForwardLabel); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_OSD_TEXT_GLOW,s.osdTextGlow); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_OSD_TEXT_SIZE,osdTextSize); READ_FLOAT(PARAM_OSD_TEXT_GLOW_AMOUNT,osdTextGlowAmount); READ_FLOAT(PARAM_OSD_TEXT_SEED,osdTextSeed); READ_FLOAT(PARAM_OSD_TEXT_OPACITY,osdTextOpacity);
+    err=CheckoutCheckbox(in_data,PARAM_OSD_SHOW_DATE,s.osdShowDate); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_OSD_WORDS_X,osdWordsX); READ_FLOAT(PARAM_OSD_WORDS_Y,osdWordsY);
+    READ_FLOAT(PARAM_OSD_EXTRA_X,osdExtraX); READ_FLOAT(PARAM_OSD_EXTRA_Y,osdExtraY);
 #undef READ_FLOAT
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
@@ -1022,9 +1159,173 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             op.startDay=static_cast<int>(std::lround(s.osdDay)); op.startHour=static_cast<int>(std::lround(s.osdHour));
             op.startMinute=static_cast<int>(std::lround(s.osdMinute)); op.startSecond=static_cast<int>(std::lround(s.osdSecond));
             op.recColorR=s.osdRecColorR/255.0f; op.recColorG=s.osdRecColorG/255.0f; op.recColorB=s.osdRecColorB/255.0f;
+            op.deckMode=static_cast<VhsDeckMode>(std::clamp<A_long>(s.osdDeckMode,1,5));
+            op.timestampFormat=static_cast<VhsTimestampFormat>(std::clamp<A_long>(s.osdDateFormat,1,5));
+            op.drawRecText=false; op.drawDeckText=false; op.drawTapeSpeedText=false; op.drawTimestampText=false; op.drawTapeCounterText=false;
+            op.tapeSpeed=std::clamp<A_long>(s.tapeSpeed,1,3);
+            op.recX=s.osdRecX; op.recY=s.osdRecY; op.statusX=s.osdStatusX; op.statusY=s.osdStatusY;
+            op.timestampX=s.osdTimestampX; op.timestampY=s.osdTimestampY;
+            op.showTapeCounter=s.osdCounterAmount>0.0f && s.osdShowText!=0 && s.osdShowCounter!=0; op.tapeCounterAmount=clamp01(s.osdCounterAmount/100.0f);
+            op.tapeCounterFormat=static_cast<VhsTapeCounterFormat>(std::clamp<A_long>(s.osdCounterFormat,1,3));
+            op.tapeCounterX=s.osdCounterX; op.tapeCounterY=s.osdCounterY;
             op.seed=0x9050D5u; op.premultipliedAlpha=true;
             ImageView osdView{working.data(),w,h,w*4};
             if(!applyVhsOsd(osdView,op)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            static constexpr const char* kOsdFontFamilies[]={
+                "A Massir Ballpoint","A Naskh Tahrir","A-bad kh@t","Guesswhat Exceptional",
+                "Arabic Childhood ver1","Arial Narrow","Evogria","K Kamran","Maqroo",
+                "Milan Display","Nasma","Real Vhs Font","RooyinFree",
+                "YR Sponge Arabic","ZIAN Black"};
+            const A_long osdFontIndex=std::clamp<A_long>(s.osdFont-1,0,14);
+            const char* osdFont=kOsdFontFamilies[osdFontIndex];
+            static constexpr std::uint16_t kOsdFontWeights[]={400,400,400,400,400,700,400,400,400,900,400,400,700,400,900};
+            const auto osdFontWeight=kOsdFontWeights[osdFontIndex];
+            const auto language=static_cast<VhsOsdLanguage>(std::clamp<A_long>(s.osdLanguage-1,0,2));
+            const auto digits=static_cast<VhsOsdDigitSet>(std::clamp<A_long>(s.osdDigits-1,0,2));
+            const int osdCell=std::max(1,int(std::lround((float(h)/294.0f)*std::max(0.35f,op.scale))));
+            auto drawOsdText=[&](const std::string& text,float x,float y,float size,float alpha,
+                                 vhs90::win::TextAlignment alignment,float rightEdge=0.0f) -> PF_Err {
+                alpha=clamp01(alpha*clamp01(s.osdTextOpacity/100.0f));
+                if(text.empty()||alpha<=0.001f) return PF_Err_NONE;
+                vhs90::win::DirectWriteTextOptions options;
+                options.utf8Text=text.c_str(); options.utf8FontFamily=osdFont; options.fontWeight=osdFontWeight;
+                const double phase=double(s.frame)*0.7548776662466927+double(s.osdTextSeed)*0.000123;
+                const float jitterX=std::sin(phase*12.9898)*op.glitch*float(osdCell)*0.45f;
+                const float jitterY=std::cos(phase*78.233)*op.glitch*float(osdCell)*0.22f;
+                options.x=std::max(0.0f,x+jitterX); options.y=std::max(0.0f,y+jitterY);
+                options.fontSize=std::max(8.0f,size);
+                options.maxWidth=std::max(1.0f,rightEdge>0.0f?rightEdge-options.x:float(w)-options.x);
+                options.maxHeight=std::max(1.0f,float(h)-options.y);
+                options.red=1.0f; options.green=1.0f; options.blue=1.0f;
+                options.opacity=clamp01(alpha);
+                options.direction=language==VhsOsdLanguage::Arabic?
+                    vhs90::win::TextDirection::RightToLeft:vhs90::win::TextDirection::Auto;
+                options.alignment=alignment; options.premultipliedDestination=true;
+                if(op.ghost>0.002f) {
+                    const float ghostOffset=std::max(1.0f,options.fontSize*0.12f*op.ghost);
+                    auto ghostA=options; ghostA.x=std::max(0.0f,options.x+ghostOffset);
+                    ghostA.red=0.15f; ghostA.green=0.78f; ghostA.blue=1.0f;
+                    ghostA.opacity=clamp01(alpha*op.ghost*0.28f);
+                    const auto ghostResultA=vhs90::win::drawDirectWriteText(osdView,ghostA);
+                    if(!ghostResultA.rendered) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+                    auto ghostB=options; ghostB.x=std::max(0.0f,options.x-ghostOffset);
+                    ghostB.red=1.0f; ghostB.green=0.22f; ghostB.blue=0.45f;
+                    ghostB.opacity=clamp01(alpha*op.ghost*0.18f);
+                    const auto ghostResultB=vhs90::win::drawDirectWriteText(osdView,ghostB);
+                    if(!ghostResultB.rendered) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+                }
+                if(s.osdTextGlow) {
+                    const float glowAlpha=clamp01(alpha*0.48f*clamp01(s.osdTextGlowAmount/100.0f));
+                    const float glowRadius=std::max(1.0f,std::round(options.fontSize*0.08f));
+                    for(int gy=-1;gy<=1;gy+=2) for(int gx=-1;gx<=1;gx+=2) {
+                        auto glow=options;
+                        glow.x=std::max(0.0f,options.x+float(gx)*glowRadius);
+                        glow.y=std::max(0.0f,options.y+float(gy)*glowRadius);
+                        glow.red=0.55f; glow.green=0.82f; glow.blue=1.0f;
+                        glow.opacity=glowAlpha;
+                        const auto glowResult=vhs90::win::drawDirectWriteText(osdView,glow);
+                        if(!glowResult.rendered) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+                    }
+                }
+                const auto result=vhs90::win::drawDirectWriteText(osdView,options);
+                return result.rendered?PF_Err_NONE:PF_Err_INTERNAL_STRUCT_DAMAGED;
+            };
+            const float textSize=7.0f*float(osdCell)*std::clamp(s.osdTextSize/100.0f,0.1f,5.0f);
+            if(s.osdShowText) {
+                if(s.osdRec>0.0f && s.osdShowRecLabel) {
+                    const std::string rec=vhsOsdLabel(VhsOsdLabel::Record,language);
+                    const float x=float(w)*s.osdRecX/100.0f+5.0f*float(osdCell);
+                    const float y=float(h)*s.osdRecY/100.0f;
+                    const PF_Err e=drawOsdText(rec,x,y,textSize,op.opacity*op.amount*op.recAmount,
+                        vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
+                }
+                if(s.osdPlay>0.0f) {
+                    bool showDeck=false;
+                    VhsOsdLabel deck=VhsOsdLabel::Play;
+                    switch(op.deckMode) {
+                        case VhsDeckMode::Pause: deck=VhsOsdLabel::Pause; showDeck=s.osdShowPauseLabel!=0; break;
+                        case VhsDeckMode::Stop: deck=VhsOsdLabel::Stop; showDeck=s.osdShowStopLabel!=0; break;
+                        case VhsDeckMode::FastForward: deck=VhsOsdLabel::FastForward; showDeck=s.osdShowFfLabel!=0; break;
+                        case VhsDeckMode::Rewind: deck=VhsOsdLabel::Rewind; showDeck=s.osdShowRewLabel!=0; break;
+                        default: showDeck=s.osdShowPlayLabel!=0; break;
+                    }
+                    const float sx=float(w)*s.osdStatusX/100.0f;
+                    const float sy=float(h)*s.osdStatusY/100.0f;
+                    if(showDeck) {
+                        const std::string status=vhsOsdLabel(deck,language);
+                        const PF_Err e=drawOsdText(status,0.0f,sy,textSize,
+                            op.opacity*op.amount*op.playAmount,vhs90::win::TextAlignment::Trailing,sx);
+                        if(e!=PF_Err_NONE) return e;
+                    }
+                    if(s.osdShowSpeedLabel) {
+                        const std::string speed=vhsOsdLabel(s.tapeSpeed==3?VhsOsdLabel::TapeSpeedEP:
+                            (s.tapeSpeed==2?VhsOsdLabel::TapeSpeedLP:VhsOsdLabel::TapeSpeedSP),language);
+                        const PF_Err se=drawOsdText(speed,0.0f,sy+textSize*1.25f,textSize*0.72f,
+                            op.opacity*op.amount*op.playAmount,vhs90::win::TextAlignment::Trailing,sx);
+                        if(se!=PF_Err_NONE) return se;
+                    }
+                }
+                if(s.osdCounterAmount>0.0f && s.osdShowCounter) {
+                    const std::string counter=formatVhsOsdCounter(s.frame,s.frameRate,s.osdCounterOffset,
+                        static_cast<int>(std::clamp<A_long>(s.osdCounterFormat,1,3)),digits);
+                    const float x=float(w)*s.osdCounterX/100.0f;
+                    const float y=float(h)*s.osdCounterY/100.0f-textSize*0.72f;
+                    const PF_Err e=drawOsdText(counter,x,y,textSize*0.72f,
+                        op.opacity*op.amount*clamp01(s.osdCounterAmount/100.0f),
+                        vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
+                }
+                if(s.osdTimestamp>0.0f && (s.osdShowDate || s.osdClockMode>1)) {
+                    VhsOsdDateTime dt;
+                    dt.year=static_cast<int>(std::lround(s.osdYear));
+                    dt.month=static_cast<int>(std::lround(s.osdMonth));
+                    dt.day=static_cast<int>(std::lround(s.osdDay));
+                    dt.hour=static_cast<int>(std::lround(s.osdHour));
+                    dt.minute=static_cast<int>(std::lround(s.osdMinute));
+                    dt.second=static_cast<int>(std::lround(s.osdSecond));
+                    dt.elapsedSeconds=s.timeSeconds*std::max(0.0f,s.osdTimeSpeed);
+                    dt.clockRuns=s.osdClockRuns!=0;
+                    dt.dateFormat=static_cast<VhsOsdDateFormat>(std::clamp<A_long>(s.osdDateLayout,1,4));
+                    dt.timeMode=static_cast<VhsOsdTimeMode>(std::clamp<A_long>(s.osdClockMode,1,3)-1);
+                    dt.monthStyle=static_cast<VhsOsdMonthStyle>(std::clamp<A_long>(s.osdMonthStyle,1,2)-1);
+                    const std::string stamp=s.osdShowDate?formatVhsOsdDateTime(dt,language,digits):formatVhsOsdTime(dt,language,digits);
+                    const float x=float(w)*s.osdTimestampX/100.0f;
+                    const float y=float(h)*s.osdTimestampY/100.0f-textSize;
+                    const PF_Err e=drawOsdText(stamp,0.0f,y,textSize,
+                        op.opacity*op.amount*op.timestampAmount,vhs90::win::TextAlignment::Trailing,x);
+                    if(e!=PF_Err_NONE) return e;
+                }
+                float wordY=float(h)*s.osdWordsY/100.0f;
+                const float wordX=float(w)*s.osdWordsX/100.0f;
+                auto drawWord=[&](bool enabled,VhsOsdLabel label)->PF_Err {
+                    if(!enabled) return PF_Err_NONE;
+                    const std::string word=vhsOsdLabel(label,language);
+                    const PF_Err e=drawOsdText(word,wordX,wordY,textSize,op.opacity*op.amount,
+                        vhs90::win::TextAlignment::Leading);
+                    if(e==PF_Err_NONE) wordY+=textSize*1.25f;
+                    return e;
+                };
+                PF_Err wordErr=drawWord(s.osdShowTapeLabel!=0,VhsOsdLabel::Tape); if(wordErr!=PF_Err_NONE)return wordErr;
+                wordErr=drawWord(s.osdShowErrorLabel!=0,VhsOsdLabel::Error); if(wordErr!=PF_Err_NONE)return wordErr;
+                wordErr=drawWord(s.osdShowProgramLabel!=0,VhsOsdLabel::Program01); if(wordErr!=PF_Err_NONE)return wordErr;
+                wordErr=drawWord(s.osdShowResLabel!=0,VhsOsdLabel::Resolution); if(wordErr!=PF_Err_NONE)return wordErr;
+                wordErr=drawWord(s.osdShowForwardLabel!=0,VhsOsdLabel::Forward); if(wordErr!=PF_Err_NONE)return wordErr;
+                if(s.osdExtraLabel>=2&&s.osdExtraLabel<=18) {
+                    static constexpr VhsOsdLabel kExtraLabels[]={
+                        VhsOsdLabel::Tape,VhsOsdLabel::Error,VhsOsdLabel::Program01,VhsOsdLabel::Resolution,
+                        VhsOsdLabel::Forward,VhsOsdLabel::Eject,VhsOsdLabel::Search,VhsOsdLabel::Tracking,
+                        VhsOsdLabel::Auto,VhsOsdLabel::Channel,VhsOsdLabel::Camera,VhsOsdLabel::Deck,
+                        VhsOsdLabel::Timer,VhsOsdLabel::Stereo,VhsOsdLabel::Slow,VhsOsdLabel::Still,VhsOsdLabel::Memory};
+                    const std::string extra=vhsOsdLabel(kExtraLabels[s.osdExtraLabel-2],language);
+                    const float x=float(w)*s.osdExtraX/100.0f;
+                    const float y=float(h)*s.osdExtraY/100.0f;
+                    const PF_Err e=drawOsdText(extra,x,y,textSize,op.opacity*op.amount,
+                        vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
+                }
+                if(!s.osdText.empty()) {
+                    const PF_Err e=drawOsdText(s.osdText,24.0f,24.0f,textSize,op.opacity*op.amount,
+                        vhs90::win::TextAlignment::Leading); if(e!=PF_Err_NONE) return e;
+                }
+            }
         }
         if(compositeStages&&master>0.0f) {
             CompositeParams p;
@@ -1635,6 +1936,27 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.osdRecBlink=float(params[PARAM_OSD_REC_BLINK]->u.fs_d.value); s.osdTimeSpeed=float(params[PARAM_OSD_TIME_SPEED]->u.fs_d.value);
     s.osdYear=float(params[PARAM_OSD_YEAR]->u.fs_d.value); s.osdMonth=float(params[PARAM_OSD_MONTH]->u.fs_d.value); s.osdDay=float(params[PARAM_OSD_DAY]->u.fs_d.value);
     s.osdHour=float(params[PARAM_OSD_HOUR]->u.fs_d.value); s.osdMinute=float(params[PARAM_OSD_MINUTE]->u.fs_d.value); s.osdSecond=float(params[PARAM_OSD_SECOND]->u.fs_d.value);
+    s.osdDeckMode=params[PARAM_OSD_DECK_MODE]->u.pd.value; s.osdDateFormat=params[PARAM_OSD_DATE_FORMAT]->u.pd.value;
+    s.osdLanguage=params[PARAM_OSD_LANGUAGE]->u.pd.value; s.osdDigits=params[PARAM_OSD_DIGITS]->u.pd.value;
+    s.osdDateLayout=params[PARAM_OSD_DATE_LAYOUT]->u.pd.value; s.osdClockMode=params[PARAM_OSD_CLOCK_MODE]->u.pd.value;
+    s.osdMonthStyle=params[PARAM_OSD_MONTH_STYLE]->u.pd.value; s.osdClockRuns=params[PARAM_OSD_CLOCK_RUNS]->u.bd.value?1:0; s.osdFont=params[PARAM_OSD_FONT]->u.pd.value;
+    s.osdExtraLabel=params[PARAM_OSD_EXTRA_LABEL]->u.pd.value; s.osdExtraX=float(params[PARAM_OSD_EXTRA_X]->u.fs_d.value); s.osdExtraY=float(params[PARAM_OSD_EXTRA_Y]->u.fs_d.value);
+    s.osdShowText=params[PARAM_OSD_SHOW_TEXT]->u.bd.value?1:0; s.osdShowRecLabel=params[PARAM_OSD_SHOW_REC_LABEL]->u.bd.value?1:0;
+    s.osdShowPlayLabel=params[PARAM_OSD_SHOW_PLAY_LABEL]->u.bd.value?1:0; s.osdShowPauseLabel=params[PARAM_OSD_SHOW_PAUSE_LABEL]->u.bd.value?1:0;
+    s.osdShowStopLabel=params[PARAM_OSD_SHOW_STOP_LABEL]->u.bd.value?1:0; s.osdShowFfLabel=params[PARAM_OSD_SHOW_FF_LABEL]->u.bd.value?1:0;
+    s.osdShowRewLabel=params[PARAM_OSD_SHOW_REW_LABEL]->u.bd.value?1:0; s.osdShowSpeedLabel=params[PARAM_OSD_SHOW_SPEED_LABEL]->u.bd.value?1:0;
+    s.osdShowTapeLabel=params[PARAM_OSD_SHOW_TAPE_LABEL]->u.bd.value?1:0; s.osdShowErrorLabel=params[PARAM_OSD_SHOW_ERROR_LABEL]->u.bd.value?1:0;
+    s.osdShowProgramLabel=params[PARAM_OSD_SHOW_PROGRAM_LABEL]->u.bd.value?1:0; s.osdShowResLabel=params[PARAM_OSD_SHOW_RES_LABEL]->u.bd.value?1:0;
+    s.osdShowForwardLabel=params[PARAM_OSD_SHOW_FORWARD_LABEL]->u.bd.value?1:0; s.osdTextGlow=params[PARAM_OSD_TEXT_GLOW]->u.bd.value?1:0; s.osdShowDate=params[PARAM_OSD_SHOW_DATE]->u.bd.value?1:0;
+    s.osdTextSize=float(params[PARAM_OSD_TEXT_SIZE]->u.fs_d.value); s.osdTextGlowAmount=float(params[PARAM_OSD_TEXT_GLOW_AMOUNT]->u.fs_d.value); s.osdTextSeed=float(params[PARAM_OSD_TEXT_SEED]->u.fs_d.value); s.osdTextOpacity=float(params[PARAM_OSD_TEXT_OPACITY]->u.fs_d.value);
+    s.osdWordsX=float(params[PARAM_OSD_WORDS_X]->u.fs_d.value); s.osdWordsY=float(params[PARAM_OSD_WORDS_Y]->u.fs_d.value);
+    s.osdRecX=float(params[PARAM_OSD_REC_X]->u.fs_d.value); s.osdRecY=float(params[PARAM_OSD_REC_Y]->u.fs_d.value);
+    s.osdStatusX=float(params[PARAM_OSD_STATUS_X]->u.fs_d.value); s.osdStatusY=float(params[PARAM_OSD_STATUS_Y]->u.fs_d.value);
+    s.osdTimestampX=float(params[PARAM_OSD_TIMESTAMP_X]->u.fs_d.value); s.osdTimestampY=float(params[PARAM_OSD_TIMESTAMP_Y]->u.fs_d.value);
+    s.osdCounterFormat=params[PARAM_OSD_COUNTER_FORMAT]->u.pd.value;
+    s.osdCounterAmount=float(params[PARAM_OSD_COUNTER_AMOUNT]->u.fs_d.value); s.osdCounterOffset=float(params[PARAM_OSD_COUNTER_OFFSET]->u.fs_d.value); s.osdShowCounter=params[PARAM_OSD_SHOW_COUNTER]->u.bd.value?1:0;
+    { const PF_Err textErr=VHS90ReadOsdText(in_data,params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,s.osdText); if(textErr!=PF_Err_NONE) return textErr; }
+    s.osdCounterX=float(params[PARAM_OSD_COUNTER_X]->u.fs_d.value); s.osdCounterY=float(params[PARAM_OSD_COUNTER_Y]->u.fs_d.value);
     s.osdRecColorR=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.red); s.osdRecColorG=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.green); s.osdRecColorB=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.blue);
     s.vhsStyle=params[PARAM_VHS_STYLE]->u.pd.value; s.vhsStyleIntensity=float(params[PARAM_VHS_STYLE_INTENSITY]->u.fs_d.value);
     s.cameraProfile=params[PARAM_CAMERA_PROFILE]->u.pd.value; s.cameraIntensity=float(params[PARAM_CAMERA_INTENSITY]->u.fs_d.value);
@@ -1666,6 +1988,7 @@ extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in_data,PF_OutData*
             case PF_Cmd_ABOUT: PF_STRCPY(out_data->return_msg,"VHS-90 1.0.0 - Native procedural VHS / NTSC signal engine."); break;
             case PF_Cmd_GLOBAL_SETUP: err=GlobalSetup(in_data,out_data); break;
             case PF_Cmd_PARAMS_SETUP: err=ParamsSetup(in_data,out_data); break;
+            case PF_Cmd_ARBITRARY_CALLBACK: err=VHS90OsdArbitraryCallback(in_data,static_cast<PF_ArbParamsExtra*>(extra)); break;
             case PF_Cmd_RENDER: err=LegacyRender(in_data,out_data,params,output); break;
             case PF_Cmd_SMART_PRE_RENDER: err=SmartPreRender(in_data,static_cast<PF_PreRenderExtra*>(extra)); break;
             case PF_Cmd_SMART_RENDER: err=SmartRender(in_data,out_data,static_cast<PF_SmartRenderExtra*>(extra)); break;
@@ -1678,7 +2001,9 @@ extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in_data,PF_OutData*
 extern "C" DllExport PF_Err PluginDataEntryFunction2(PF_PluginDataPtr inPtr,
     PF_PluginDataCB2 callback,SPBasicSuite* spBasic,const char* hostName,const char* hostVersion) {
     (void)spBasic; (void)hostName; (void)hostVersion;
-    return PF_REGISTER_EFFECT_EXT2(inPtr,callback,"VHS-90","com.vhs90.effect",
+    PF_Err result=PF_Err_NONE;
+    PF_REGISTER_EFFECT_EXT2(inPtr,callback,"VHS-90","com.vhs90.effect",
         "Analog & Tape Effects",AE_RESERVED_INFO,"EffectMain",
         "https://github.com/vamprieieuu/vhs---90");
+    return result;
 }

@@ -1,0 +1,77 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - work/osd-directwrite-integration-map
+      - main
+      - build-on-main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      vhs_archive_url:
+        description: "Optional fallback URL for vhs.zip. Normally leave blank: SDK and licensed fonts are checked into VHS/."
+        required: false
+        type: string
+permissions:
+  contents: write
+
+jobs:
+  build-aex:
+    name: Build
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify checked-in VHS6RIFT SDK and font assets
+        shell: pwsh
+        env:
+          VHS_ARCHIVE_URL: ${{ inputs.vhs_archive_url }}
+        run: |
+          $sdk = "VHS/open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK/Headers/AE_Effect.h"
+          $pipl = "VHS/open source native plugin for ae/VHS6RIFT/extern/AfterEffectsSDK/Resources/PiPLtool.exe"
+          $rooyin = "VHS/fonts/Rooyin_Free_Bold.ttf"
+          $sponge = "VHS/fonts/Sponge_Arabic_Regular.otf"
+          if ((-not (Test-Path $sdk) -or -not (Test-Path $pipl) -or -not (Test-Path $rooyin) -or -not (Test-Path $sponge)) -and
+              -not [string]::IsNullOrWhiteSpace($env:VHS_ARCHIVE_URL)) {
+            Invoke-WebRequest -Uri $env:VHS_ARCHIVE_URL -OutFile "vhs.zip"
+          }
+          if ((-not (Test-Path $sdk) -or -not (Test-Path $pipl) -or -not (Test-Path $rooyin) -or -not (Test-Path $sponge)) -and
+              -not (Test-Path "vhs.zip")) {
+            throw "Required SDK/PiPLtool/font inputs are missing. Expected the checked-in VHS/ directory or optional vhs.zip."
+          }
+          Write-Host "Checked-in SDK/font availability verified."
+
+      - name: Configure, build and test
+        shell: pwsh
+        run: .\\build.ps1 -BuildDir build -Configuration Release
+
+      - name: Verify single-file output
+        shell: pwsh
+        run: |
+          $aex = Join-Path $env:GITHUB_WORKSPACE "build\\VHS-90.aex"
+          if (-not (Test-Path $aex)) { throw "Missing root-level AEX: $aex" }
+          $item = Get-Item $aex
+          if ($item.Length -lt 65536) { throw "AEX is unexpectedly small ($($item.Length) bytes)." }
+          Write-Host "AEX_READY=$($item.FullName)"
+          Write-Host "AEX_SIZE=$($item.Length)"
+
+      - name: Upload bare AEX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VHS-90-AEX
+          path: build/VHS-90.aex
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Publish direct AEX download
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "vhs90-aex-$($env:GITHUB_SHA.Substring(0,12))"
+          gh release create $tag build/VHS-90.aex --repo "${{ github.repository }}" --title "VHS-90 AEX $($env:GITHUB_SHA.Substring(0,12))" --notes "Windows x64 / MSVC 2022 build from commit $env:GITHUB_SHA. Validate in After Effects before production use."
