@@ -18,6 +18,7 @@
 #include "VHS90OsdEngine.h"
 #include "VHS90OsdLocalization.h"
 #include "VHS90OsdArbitraryData.h"
+#include "VHS90OsdTextData.h"
 #include "VHS90DirectWriteText.h"
 #include "VHS90DeviceConnectionEngine.h"
 #include "VHS90SyncEngine.h"
