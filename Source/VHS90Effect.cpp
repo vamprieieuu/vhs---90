@@ -542,17 +542,38 @@ static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
         b(s.lumaNoise,8);b(s.chromaNoise,10);b(s.compositeNoise,6);
         b(s.vhs6RiftGrain,20);b(s.vhs6RiftNoiseDetail,65);b(s.vhs6RiftShadowBias,70);
         break;
-    case 12: // Gen 7 Reference — teal/yellow camcorder color, stronger chroma instability and intermittent signal damage.
-        b(s.tapeDetail,50);b(s.chromaSubsample,32);b(s.chromaShift,6);
-        b(s.gradeContrast,108);b(s.gradeBrightness,-3);b(s.gradeSaturation,132);
-        b(s.chromaIGain,130);b(s.chromaQGain,115);b(s.chromaIOffset,-6);b(s.chromaQOffset,8);
-        b(s.verticalChroma,25);b(s.verticalLuma,14);b(s.lumaNoise,18);b(s.chromaNoise,24);b(s.compositeNoise,20);
-        b(s.rfDrift,16);b(s.colorPhaseDrift,18);b(s.chromaFlutter,14);
-        b(s.vhs6RiftGrain,28);b(s.vhs6RiftNoiseDetail,80);b(s.vhs6RiftShadowBias,75);
-        b(s.staticAmount,22);b(s.staticDensity,70);b(s.trackingAmount,20);
-        s.trackingProfile=2;s.trackingPresetBase=4;s.staticMode=9;
-        b(s.tearChromaAmount,15);s.tearChromaMode=5;s.tearBandCount=3;
+    case 12: { // Gen 7 Reference — teal/yellow camcorder response with deterministic color/interference/recovery states.
+        b(s.tapeDetail,56);b(s.chromaSubsample,26);b(s.chromaShift,5);
+        b(s.gradeContrast,104);b(s.gradeBrightness,-1);b(s.gradeSaturation,118);
+        b(s.chromaIGain,120);b(s.chromaQGain,110);b(s.chromaIOffset,-5);b(s.chromaQOffset,7);
+        b(s.verticalChroma,18);b(s.verticalLuma,10);b(s.lumaNoise,14);b(s.chromaNoise,18);
+        b(s.vhs6RiftGrain,22);b(s.vhs6RiftNoiseDetail,75);b(s.vhs6RiftShadowBias,70);
+        b(s.staticDensity,70);
+        s.trackingProfile=2;s.trackingPresetBase=4;s.staticMode=8;
+        s.tearChromaMode=5;s.tearBandCount=3;
+
+        // The reference alternates between a readable colorized image, dense
+        // horizontal interference, and partial recovery. Use a deterministic
+        // low-frequency envelope instead of hard-coding a single clip sequence.
+        const float t=static_cast<float>(s.timeSeconds);
+        const std::uint32_t seed=static_cast<std::uint32_t>(s.vhs6RiftNoiseSeed)+0x47374e37u;
+        const float slow=valueNoise1D(t*0.08f,seed,0);
+        const float fast=valueNoise1D(t*0.21f,seed+0x9e3779b9u,0);
+        const float raw=slow*0.72f+fast*0.28f;
+        const float ramp=clamp01((raw-0.45f)/0.42f);
+        const float interference=ramp*ramp*(3.0f-2.0f*ramp);
+        b(s.staticAmount,22.0f+52.0f*interference);
+        b(s.trackingAmount,16.0f+34.0f*interference);
+        b(s.tearChromaAmount,12.0f+38.0f*interference);
+        b(s.sync,6.0f+54.0f*interference);
+        b(s.compositeNoise,14.0f+30.0f*interference);
+        b(s.gradeSaturation,118.0f-18.0f*interference);
+        b(s.gradeBrightness,-1.0f-14.0f*interference);
+        b(s.rfDrift,10.0f+16.0f*interference);
+        b(s.colorPhaseDrift,12.0f+18.0f*interference);
+        b(s.chromaFlutter,10.0f+10.0f*interference);
         break;
+    }
     default:break;
     }
 }
