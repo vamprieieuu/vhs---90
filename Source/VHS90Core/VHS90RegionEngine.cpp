@@ -112,6 +112,20 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
     const float t = static_cast<float>(p.timeSeconds);
     const float rowWave = std::sin((float(iy) / std::max(1, src.height)) *
                                    r.waveFrequency * 2.0f * kPi + t * 2.0f * kPi);
+    float movingCenterX=r.centerX,movingCenterY=r.centerY;
+    if(r.kind==RegionKind::TrackingNoise) {
+        if(std::fabs(r.motionXPerSecond)>1.0e-7f)
+            movingCenterX=wrapMovingCenter(movingCenterX,std::max(0.0f,r.width)*0.5f,r.motionXPerSecond*t);
+        if(std::fabs(r.motionYPerSecond)>1.0e-7f)
+            movingCenterY=wrapMovingCenter(movingCenterY,std::max(0.0f,r.height)*0.5f,r.motionYPerSecond*t);
+    }
+    const float u=(x+0.5f)/float(std::max(1,src.width));
+    const float v=(y+0.5f)/float(std::max(1,src.height));
+    const float localX=clamp01((u-(movingCenterX-r.width*0.5f))/std::max(1.0e-5f,r.width));
+    const float localY=clamp01((v-(movingCenterY-r.height*0.5f))/std::max(1.0e-5f,r.height));
+    const float localProgress=r.shape==RegionShape::VerticalBand?localX:localY;
+    const float bandFactor=std::sin(localProgress*kPi);
+    float sourceNoise=0.0f,sourceSnow=0.0f,sourceSnowValue=0.0f;
 
     float shiftX = (rowN - 0.5f) * r.maxShiftPx + rowWave * r.waveAmplitudePx;
     const float shiftY = (n - 0.5f) * r.verticalShiftPx;
@@ -158,6 +172,53 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
                 if(tearEvent<clamp01(r.tearProbability)) shiftX += (tearDirection-0.5f)*r.tearShiftPx*1.25f;
                 break;
             }
+            case TrackingProfile::Vhs6RiftBand: {
+                // VHS6RIFT source model: time-stepped scanline jitter localized to a moving band,
+                // with independent high-frequency tape snow confined to the damaged rows.
+                const auto bandTick=static_cast<std::int64_t>(std::floor(t*60.0f));
+                const float bandJitter=hashCell(0,iy,regionSeed+0x202u,bandTick)-0.5f;
+                shiftX += bandJitter*r.maxShiftPx*bandFactor;
+                shiftX += (servo-0.5f)*r.servoDriftPx*0.35f;
+                if(tearEvent<clamp01(r.tearProbability*bandFactor))
+                    shiftX += (tearDirection-0.5f)*2.0f*r.tearShiftPx*bandFactor;
+                const auto snowTick=static_cast<std::uint32_t>(std::max(0.0f,t*240.0f));
+                const float snowHash=hashCell(static_cast<int>(x),iy,regionSeed+snowTick,p.frame);
+                if(bandFactor>0.4f&&snowHash>0.55f) {
+                    sourceSnow=0.70f;
+                    sourceSnowValue=snowHash;
+                }
+                break;
+            }
+            case TrackingProfile::NtscRTracking: {
+                // NTSC-R scalar port: gradient-noise row displacement, luma FBM-like noise,
+                // bottom-to-top intensity ramp generalized to the selected user region,
+                // and sparse 8..64 px transient events.
+                const float intensityScale=localProgress;
+                const float rowGradient=valueNoise1D(y/std::max(1.0f,r.servoSmoothnessPx),
+                    regionSeed+0x3u,p.frame)-0.5f;
+                shiftX += rowGradient*intensityScale*r.waveAmplitudePx*0.25f;
+                const float lineNoise=valueNoise1D(x/std::max(1.0f,r.cellWidthPx),
+                    regionSeed+0x31u,p.frame)-0.5f;
+                sourceNoise=lineNoise*intensityScale*intensityScale*r.noiseAmount*4.0f;
+                const float snowProbability=clamp01(r.noiseDensity*intensityScale*intensityScale*0.125f);
+                const int block=static_cast<int>(x)/64;
+                for(int eventBlock=block-1;eventBlock<=block;++eventBlock) {
+                    const float event=hashCell(eventBlock,iy,regionSeed+0x6u,p.frame);
+                    if(event>=snowProbability*64.0f) continue;
+                    const int start=eventBlock*64+static_cast<int>(hashCell(eventBlock+13,iy,regionSeed+0x8u,p.frame)*64.0f);
+                    const float length=8.0f+hashCell(eventBlock+29,iy,regionSeed+0x9u,p.frame)*56.0f;
+                    const float offset=x-float(start);
+                    if(offset<0.0f||offset>=length) continue;
+                    const float frequency=length*(3.0f+hashCell(eventBlock+47,iy,regionSeed+0xau,p.frame)*2.0f);
+                    const float amplitude=hashCell(eventBlock+61,iy,regionSeed+0xbu,p.frame)*3.0f-1.0f;
+                    const float phase=(offset*kPi)/std::max(1.0f,frequency);
+                    sourceNoise+=std::cos(phase)*std::pow(1.0f-offset/length,2.0f)
+                        *amplitude*intensityScale*intensityScale*r.noiseDensity;
+                }
+                if(tearEvent<clamp01(r.tearProbability*intensityScale))
+                    shiftX+=(tearDirection-0.5f)*r.tearShiftPx*intensityScale;
+                break;
+            }
         }
     } else {
         const float tear = hashCell(0, iy / 2, regionSeed + 0x9e3779b9u, p.frame);
@@ -195,10 +256,10 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
         }
     }
 
-    float noise = 0.0f;
-    if (n < clamp01(r.noiseDensity)) {
-        const float signedNoise = hashCell(cx + 41, cy + 97, regionSeed + 0x85ebca6bu, p.frame) - 0.5f;
-        noise = signedNoise * r.noiseAmount;
+    float noise = sourceNoise;
+    if(r.trackingProfile!=TrackingProfile::NtscRTracking && n<clamp01(r.noiseDensity)) {
+        const float signedNoise=hashCell(cx+41,cy+97,regionSeed+0x85ebca6bu,p.frame)-0.5f;
+        noise+=signedNoise*r.noiseAmount;
     }
 
     float dropout = 0.0f;
@@ -216,6 +277,11 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
     sr += (noise + dropout) * alphaScale;
     sg += (noise + dropout) * alphaScale;
     sb += (noise + dropout) * alphaScale;
+    if(sourceSnow>0.0f) {
+        sr=sr*(1.0f-sourceSnow)+sourceSnowValue*sourceSnow;
+        sg=sg*(1.0f-sourceSnow)+sourceSnowValue*sourceSnow;
+        sb=sb*(1.0f-sourceSnow)+sourceSnowValue*sourceSnow;
+    }
 
     const float amount = clamp01(r.intensity * p.globalIntensity);
     current.r += (sr - current.r) * amount;
