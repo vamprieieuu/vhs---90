@@ -24,40 +24,44 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
   return true;
  }
  const float framePhase=0.0042f*float(p.frame)+0.0039f*float(p.seed);
- const float globalGain=1.0f+0.22f*drift*std::sin(framePhase*0.73f);
- const float globalBias=9.0f*drift*std::sin(framePhase*0.19f+0.7f);
  const float humPeriod=3.0f-1.0f*hum;
  const float humPhase=framePhase+float(p.frame)*(2.0f*kPi/std::max(1.0f,30.0f*humPeriod));
- float brightEnergy=0.0f,transientEnergy=0.0f,peakLevel=0.0f;std::size_t energyCount=0;
+ float lumaEnergy=0.0f,transientEnergy=0.0f;std::size_t energyCount=0;
  if(agc>0.0f){
-  for(int y=0;y<src.height;++y){const float*row=src.rgba+y*src.rowStrideFloats;float previous=0.0f;
+  for(int y=0;y<src.height;++y){const float*row=src.rgba+y*src.rowStrideFloats;float previous=0.0f;bool havePrevious=false;
    for(int x=0;x<src.width;++x){const float a=row[x*4+3];if(a<=1.0e-6f)continue;
     RGB rgb{row[x*4],row[x*4+1],row[x*4+2]};if(p.premultipliedAlpha){rgb.r/=a;rgb.g/=a;rgb.b/=a;}
-    const float lum=rgbToYiq(rgb).y;const float positive=std::max(0.0f,lum);
-    brightEnergy+=std::max(0.0f,positive-0.78f);transientEnergy+=std::abs(lum-previous);peakLevel=std::max(peakLevel,positive);previous=lum;++energyCount;
+    const float lum=rgbToYiq(rgb).y;
+    lumaEnergy+=lum;
+    if(havePrevious)transientEnergy+=std::abs(lum-previous);
+    previous=lum;havePrevious=true;++energyCount;
    }
   }
  }
  const float invCount=energyCount?1.0f/float(energyCount):0.0f;
- const float brightDrive=std::clamp(brightEnergy*invCount/0.26f,0.0f,1.0f);
- const float transDrive=std::clamp(transientEnergy*invCount/0.07f,0.0f,1.0f);
- const float peakDrive=std::clamp((peakLevel-0.96f)/0.26f,0.0f,1.0f);
- const float eventDrive=std::clamp(0.50f*brightDrive+0.35f*transDrive+0.30f*peakDrive-0.40f,0.0f,1.0f);
- const float pulse=std::max(0.0f,std::sin(framePhase*0.47f+0.6f))*(0.78f+0.22f*std::sin(framePhase*0.19f+1.4f));
- const float pump=(0.06f+0.46f*agc)*std::clamp((eventDrive-0.08f)/(0.95f-0.08f),0.0f,1.0f)*pulse;
+ const float meanLuma=lumaEnergy*invCount;
+ const float sceneDrive=std::clamp((meanLuma-0.12f)/0.58f,0.0f,1.0f);
+ const float transDrive=std::clamp(transientEnergy*invCount/0.045f,0.0f,1.0f);
+ // AGC pumping follows the average picture level and temporal envelope. It
+ // remains active on ordinary footage instead of requiring near-white peaks.
+ const float eventDrive=std::clamp(0.68f*sceneDrive+0.32f*transDrive,0.0f,1.0f);
+ const float pulse=0.5f+0.5f*std::sin(framePhase*0.47f+0.6f);
+ const float pump=agc*(0.06f+0.52f*eventDrive)*pulse;
  const float hiKnee=0.68f-0.20f*am,loKnee=0.40f-0.12f*am;
  const float hiComp=0.010f+0.085f*am,loComp=0.013f+0.110f*am;
  for(int y=0;y<src.height;++y) {
+  const float rowPosition=(float(y)+0.5f)/float(src.height);
   const float paired=float(std::min(y,(y+src.height/2)%src.height));
-  const float lineGain=globalGain+0.075f*drift*std::sin(framePhase*0.61f+0.031f*paired);
-  const float lineBias=globalBias+3.5f*drift*std::sin(framePhase*0.43f+0.024f*paired);
-  const float wanderPhase=framePhase*0.47f+0.13f*paired+1.2f;
   const float humLinePhase=humPhase+paired*(0.8f+4.2f*hum)*((2.0f*kPi)/std::max(1.0f,float(src.height)));
   const float humOffset=(0.5f+8.8f*hum)*std::sin(humLinePhase+0.2f)+
                         (0.2f+4.6f*hum)*std::sin(2.0f*humLinePhase+1.7f);
   const float humGain=1.0f+(0.003f+0.042f*hum)*std::sin(humLinePhase+0.9f);
-  const float shift=(0.10f+2.6f*drift)*(std::sin(framePhase*0.41f+0.059f*paired)+
-                    0.35f*std::sin(framePhase*0.13f+0.017f*paired+1.1f));
+  // RF drift is time-base instability: slow, medium and stochastic line
+  // displacement. It must not behave like a global exposure/opacity slider.
+  const float slowDrift=std::sin(2.0f*kPi*(rowPosition*1.15f-framePhase*0.07f));
+  const float mediumDrift=std::sin(2.0f*kPi*(rowPosition*4.3f+framePhase*0.13f));
+  const float randomDrift=valueNoise1D(rowPosition*17.0f+framePhase*0.05f,p.seed,p.frame/4)-0.5f;
+  const float shift=drift*(0.6f+10.0f*slowDrift+3.0f*mediumDrift+8.0f*randomDrift);
   const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
   for(int x=0;x<src.width;++x) {
    const float sx=float(x)-shift;const float alpha=sample(sr,src.width,sx,3);
@@ -65,9 +69,7 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
    RGB rgb{sample(sr,src.width,sx,0),sample(sr,src.width,sx,1),sample(sr,src.width,sx,2)};
    if(p.premultipliedAlpha){rgb.r/=alpha;rgb.g/=alpha;rgb.b/=alpha;}
    YIQ yiq=rgbToYiq(rgb);
-   const float centered=yiq.y-p.blackPedestal;
-   const float driftWander=4.2f*drift*std::sin(wanderPhase+0.015f*float(x));
-   float luma=p.blackPedestal+lineBias+driftWander+centered*lineGain;
+   float luma=yiq.y;
    const float ripple=(0.12f+3.2f*hum)*std::sin(humLinePhase+0.0095f*float(x)+
                        0.25f*std::sin(framePhase*0.71f+0.0032f*float(x)));
    const float interference=(0.03f+1.1f*hum)*std::sin((kPi*0.5f)*float(x)+0.63f*humLinePhase);
