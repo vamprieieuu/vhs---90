@@ -1876,8 +1876,9 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(!processDeviceConnections(in,out,dp)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
-        if(master>0.0f&&(s.redChannelOffset!=0.0f||s.blueChannelOffset!=0.0f)) {
+        if(master>0.0f&&(s.redChannelOffset!=0.0f||s.greenChannelOffset!=0.0f||s.blueChannelOffset!=0.0f)) {
             RgbChannelRegistrationParams rp; rp.redOffsetPixels=s.redChannelOffset*master/100.0f;
+            rp.greenOffsetPixels=s.greenChannelOffset*master/100.0f;
             rp.blueOffsetPixels=s.blueChannelOffset*master/100.0f; rp.premultipliedAlpha=true;
             ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
             if(!processRgbChannelRegistration(in,out,rp)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
