@@ -10,6 +10,8 @@ enum class RegionKind : std::uint8_t {
     HeadSwitch = 1
 };
 
+enum class HeadSwitchProfile : std::uint8_t { Custom = 0, Vhs6Rift = 1, NtscR = 2 };
+
 enum class RegionShape : std::uint8_t {
     HorizontalBand = 0,
     VerticalBand = 1,
@@ -36,6 +38,7 @@ struct DamageRegion {
     RegionKind kind = RegionKind::TrackingNoise;
     RegionShape shape = RegionShape::HorizontalBand;
     TrackingProfile trackingProfile = TrackingProfile::ServoSweep;
+    HeadSwitchProfile headSwitchProfile = HeadSwitchProfile::Vhs6Rift;
 
     float centerX = 0.5f;
     float centerY = 0.5f;
