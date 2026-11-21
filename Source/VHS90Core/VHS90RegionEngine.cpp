@@ -241,7 +241,7 @@ inline void applyRegion(ConstImageView src, float x, float y, float centerAlpha,
             shiftX+=rowJitter*r.servoDriftPx;
             // NTSC-R's optional mid-line start transient, generalized to the
             // leading edge of the user-positioned region.
-            const float regionRows=std::max(1.0f,r.height*float(std::max(1,src.height)));
+            const float regionRows=std::max(1.0f,r.shape==RegionShape::VerticalBand?r.width*float(std::max(1,src.width)):r.height*float(std::max(1,src.height)));
             if(r.tearProbability>0.0f&&headSwitchFactor*regionRows<1.0f) {
                 const float jitterRand=(hashCell(0,iy,regionSeed+0x4d49444cu,p.frame)
                     +hashCell(1,iy,regionSeed+0x4d49444du,p.frame))*0.5f;
