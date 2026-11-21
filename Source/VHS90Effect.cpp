@@ -945,8 +945,6 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_ADD_HIDDEN_POPUP("Layer 2 Preset",10,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
     VHS90_ADD_HIDDEN_POPUP("Layer 3 Preset",10,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
     VHS90_ADD_HIDDEN_POPUP("Layer 4 Preset",10,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
-    VHS90_ADD_HIDDEN_FLOAT("Ribbon / Diagonal Width",1,50,1,50,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_PATTERN_WIDTH);
-    VHS90_ADD_HIDDEN_FLOAT("Green Line Intensity",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_PATTERN_GREEN);
     VHS90_ADD_HIDDEN_FLOAT("Band Amount",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_AMOUNT);
     VHS90_ADD_HIDDEN_FLOAT("Center Y",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_Y);
     VHS90_ADD_HIDDEN_FLOAT("Height",0,100,0,100,15,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_HEIGHT);
