@@ -302,4 +302,4 @@ assert 'PF_ADD_POPUP("Tracking Preset",19,1,kTrackingPresetChoices,ID_TRACKING_P
 assert 'PF_ADD_FLOAT_SLIDERX("Snow Intensity"' in source and 'PF_ADD_FLOAT_SLIDERX("Snow Anisotropy"' in source, "Missing NTSC-R snow controls"
 assert "r.snowIntensity=clamp01(s.trackingSnowIntensity/100.0f)" in source, "Snow intensity is not wired into Tracking Noise"
 assert "r.snowAnisotropy=clamp01(s.trackingSnowAnisotropy/100.0f)" in source, "Snow anisotropy is not wired into Tracking Noise"
-assert "ntscRowSpeckles(x, y" in region_source, "Missing deterministic NTSC-R row_speckles port"
+assert "ntscRowSpeckles(x,y" in region_source, "Missing deterministic NTSC-R row_speckles port"
