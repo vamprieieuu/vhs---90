@@ -161,7 +161,7 @@ visible_topics = re.findall(r'PF_ADD_TOPIC\("([^"]+)"', setup_body)
 expected_topics = [
     "VHS Style & Camera Profiles", "Chroma Offset",
     "Grain & Tracking Noise", "Signal", "Head Switching", "Ringing", "Waves",
-    "Color & Image", "Glow", "Tape", "Text / OSD",
+    "Static", "Color & Image", "Glow", "Tape", "Text / OSD",
 ]
 if visible_topics != expected_topics:
     fail("Visible VHS-90 topic order/layout differs from the approved compact panel.")
