@@ -934,6 +934,9 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data) {
     VHS90_ADD_HIDDEN_FLOAT("Counter Vertical Position",0,100,0,100,96,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_COUNTER_Y);
     VHS90_ADD_HIDDEN_FLOAT("Counter Offset (seconds)",-3600,3600,-3600,3600,0,1,PF_ValueDisplayFlag_NONE,0,ID_OSD_COUNTER_OFFSET);
     VHS90_ADD_HIDDEN_CHECKBOX("Show Counter","Enable",0,0,ID_OSD_SHOW_COUNTER);
+    PF_ArbitraryH osdTextDefault = nullptr;
+    PF_Err osdTextErr = VHS90CreateOsdTextDefault(in_data, &osdTextDefault);
+    if (osdTextErr != PF_Err_NONE) return osdTextErr;
     VHS90_ADD_HIDDEN_ARBITRARY2("OSD Text Data",1,1,0,PF_PUI_NO_ECW_UI,osdTextDefault,ID_OSD_TEXT_DATA,nullptr);
     VHS90_ADD_HIDDEN_POPUP("Extra VHS Label",18,1,kOsdExtraLabelChoices,ID_OSD_EXTRA_LABEL);
     VHS90_ADD_HIDDEN_FLOAT("Extra Label Horizontal Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_EXTRA_X);
