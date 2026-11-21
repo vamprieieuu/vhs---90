@@ -6,6 +6,7 @@ import sys
 
 root = Path(__file__).resolve().parents[1]
 source = (root / "Source/VHS90Effect.cpp").read_text(encoding="utf-8")
+region_source = (root / "Source/VHS90Core/VHS90RegionEngine.cpp").read_text(encoding="utf-8")
 
 def enum_values(name):
     match = re.search(r"enum\s+" + re.escape(name) + r"\s*\{([\s\S]*?)\};", source)
