@@ -16,6 +16,7 @@ struct SyncCollapseLabParams {
     float boundaryFragmentation = 0.62f, fullFrameCoverage = 1.0f;
     float lumaInstability = 0.90f, brightFlashIntensity = 0.85f, darkCollapseIntensity = 0.85f;
     float eventFrequencyHz = 1.7f, eventDurationSeconds = 0.30f, transitionSharpness = 0.90f;
+    float brightEventProbability = 0.50f, darkEventProbability = 0.50f;
     float localBandLumaVariation = 0.70f, manualBrightPulse = 0.0f, manualDarkCollapse = 0.0f;
     float dropoutStreakDensity = 0.65f, streakLengthPx = 18.0f, streakBrightness = 0.75f;
     float darkDropoutAmount = 0.70f, horizontalFragmentation = 0.65f, temporalVariation = 0.85f;
