@@ -124,9 +124,9 @@ TapeSurfaceParams makeTapeSurfaceParams(const TapeMaterialControls& c) noexcept 
  p.moldAmount=knob(c.mold);
  p.vaselineAmount=knob(c.vaseline);
  p.debrisAmount=knob(c.sticky);
- p.pinholeAmount=0.0f;
- p.flakeAmount=0.0f;
- p.surfaceRoughness=0.0f;
+ p.pinholeAmount=knob(c.pinholes);
+ p.flakeAmount=knob(c.flakes);
+ p.surfaceRoughness=0.25f*knob(c.surfaceRoughness);
  return p;
 }
 TapeSurfaceSample sampleTapeSurfaceAtMm(double xMm,float y,const TapeSurfaceParams&p,bool detail,bool flakes) noexcept {
