@@ -254,6 +254,9 @@ assert "const float humOffset = 0.002f * loopDrive + 0.045f * hum;" in physical_
 assert "hum <= 0.0f && loopDrive <= 0.0f && rfDrive <= 0.0f" in physical_engine, "Ground Loop must remain active when it is the only physical-interference control"
 assert "const float hiComp=0.80f*am,loComp=0.88f*am;" in rf_engine, "AM nonlinearity must be neutral when its own control is zero"
 assert 'PF_ADD_FLOAT_SLIDERX("Exposure (EV)",-3,3,-3,3,0,2,PF_ValueDisplayFlag_NONE,0,ID_GRADE_EXPOSURE)' in source, "General Adjustments must expose a real EV exposure control"
+assert "osdFont=13, osdExtraLabel=1" in source, "New OSD instances must default to the bundled Rooyin Arabic font"
+assert 'PF_ADD_POPUP("OSD Font Family",15,13,kOsdFontChoices,ID_OSD_FONT)' in source, "OSD font popup must default to bundled Rooyin while preserving legacy font choices"
+assert '"Real Vhs Font","RooyinFree","YR Sponge Arabic"' in source, "Bundled OSD fonts must remain addressable by their DirectWrite family names"
 style_pos=source.find('PF_ADD_TOPIC("VHS Style & Presets",ID_VHS_STYLE_TOPIC)')
 master_pos=source.find('PF_ADD_FLOAT_SLIDERX("Master Strength"')
 signal_pos=source.find('PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC)')
