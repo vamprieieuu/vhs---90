@@ -7,6 +7,8 @@ vhscraft_cases = set(range(65, 73))
 assert vhscraft_cases.issubset(style_cases), f"Missing VHSCraft recipes: {sorted(vhscraft_cases-style_cases)}"
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
 assert style_choices and len(style_choices.group(1).split("|")) == 32, "VHS Style popup must expose the curated 32 entries"
+assert 'PF_ADD_POPUP("VHS Style Preset",32,1,kVhsStyleChoices,ID_VHS_STYLE)' in source, "VHS Style popup count must match its 32 labels"
+assert "kVhsStyleRecipeMap[33]" in source and "switch(styleRecipe)" in source, "Compact labels must map to source recipe IDs"
 assert camera_cases == set(range(2, 13)), f"Missing VHS6RIFT and FXC6/Gen 7 camera profile cases: {sorted(set(range(2,13))-camera_cases)}"
 camera_choices = re.search(r'kCameraProfileChoices\[\]\s*=\s*"([^"]+)"', source)
 assert camera_choices and len(camera_choices.group(1).split("|")) == 12, "Camera Profile popup must expose Off plus 11 reference profiles"
@@ -26,4 +28,4 @@ assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 4
 print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
 print("PASS: Phase-1 VHS Style popup is curated to 32 non-duplicate entries mapped to source-backed recipes; the full source recipe tables remain in the engine for later source-specific preset groups.")
 print("PASS: all 7 audited preset families have native menu entries; Crates maps 44 recovered source fields per look, while VHSPro/VHSCraft remain source-inspired where exact tuples were not recoverable.")
-print("PASS: camera profiles, NTSC-RS controls, VHS playback, decoder, frame geometry, camcorder OSD and deterministic frame-repeat controls remain wired.")
+print("PASS: camera profiles and NTSC-RS Signal Looks remain wired; retired Playback, Decoder, Frame, HUD, Particle and Signal Network groups are removed.")
