@@ -371,7 +371,7 @@ static char kTearChromaModeChoices[]="Spectral Chroma Smear|Localized Headbleed|
 static char kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|Top Strip|Bottom-Weighted Streaks|Monochrome Streaks|Split-Band Chromatic|Static to Blackout|Dark-Field Luma Streaks|Multi-Phase Green Line|Two-Stage Angular Ribbon|Diagonal Sync Collapse";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
-static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS|Bad Tracking|Very Bad Tracking|Unstable VCR|Tape Damage|Static Interference|Color Bleed|Color Shift|Signal Loss|Severe Analog Glitch|Soft Transfer|Classic Transfer|Worn Transfer|Reference Analog|Neutral Playback|Fresh Cassette|Aged Cassette|Tracking Failure|Home Video Camera|Chroma Bleed|Broadcast Deck|Multi-Generation Dub|Music Video Grade|Craft Clean|Craft Sharp|Violet Glow|Green Glow|Worn Cassette|Tape Monochrome";
+static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS|Bad Tracking|Very Bad Tracking|Unstable VCR|Tape Damage|Static Interference|Color Bleed|Color Shift|Signal Loss|Severe Analog Glitch|Soft Transfer|Classic Transfer|Reference Analog|Crate Archive Standard|Crate Violet Transfer|Crate Signal Corruption|Crate Handheld Camcorder|Neutral Playback|Fresh Cassette|Aged Cassette|Tracking Failure|Home Video Camera|Chroma Bleed|Multi-Generation Dub|Craft Clean|Craft Sharp|Violet Glow|Green Glow|Tape Monochrome";
 static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300|FXC6 Direct Capture|Gen 7 Reference";
 static char kNtscRsLookChoices[]="Custom|VHS-90 Natural NTSC|VHS-90 Home SP|VHS-90 LP Tape|VHS-90 EP Tape|VHS-90 Tracking Snow|VHS-90 Chroma Loss|VHS-90 Edge Wave|VHS-90 Field Blend|VHS-90 Composite Smear|VHS-90 Chroma Instability";
 static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
@@ -531,7 +531,15 @@ static void ApplyCratesMasterPreset(RenderSettings& s,int preset) noexcept {
 }
 static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     const float i=clamp01(s.vhsStyleIntensity/100.0f);
-    if(s.vhsStyle<=1||i<=0.0f)return;
+    // Compact 32-entry menu maps to the original source recipes. Values above
+    // 32 are retained as legacy recipe IDs so older projects keep their look.
+    static constexpr int kVhsStyleRecipeMap[33]={
+        0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,
+        55,56,58,59,60,61,63,66,67,68,69,72
+    };
+    const int selected=std::clamp<int>(s.vhsStyle,1,72);
+    const int styleRecipe=selected<=32?kVhsStyleRecipeMap[selected]:selected;
+    if(styleRecipe<=1||i<=0.0f)return;
     auto b=[&](float& v,float target){v=blendPreset(v,target,s.vhsStyleIntensity);};
     auto bi=[&](A_long& v,float target){v=static_cast<A_long>(std::lround(blendPreset(float(v),target,s.vhsStyleIntensity)));};
     // Lost Signal VHS v1.9: 13 source profiles. These settings are translated
@@ -579,7 +587,7 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
         b(s.lensDistortion,v[39]*1000.0f);bi(s.vhs43Frame,v[40]>0.5f?1.0f:0.0f);
         b(s.roundedOverscan,v[41]*100.0f);b(s.digitalZoom,v[42]);
     };
-    switch(s.vhsStyle) {
+    switch(styleRecipe) {
     case 2: b(s.composite,12);b(s.chromaSubsample,8);b(s.lumaNoise,3);b(s.chromaNoise,2);b(s.trackingAmount,4);b(s.headAmount,3);b(s.tapeSurface,2);break;
     case 3: b(s.composite,24);b(s.chromaSubsample,22);b(s.chromaShift,3);b(s.tapeNoise,20);b(s.colorPhaseDrift,15);b(s.edgeEnhance,12);b(s.trackingAmount,10);b(s.geometry,6);b(s.headAmount,10);b(s.blackLift,10);break;
     case 4: b(s.composite,45);b(s.chromaSubsample,45);b(s.chromaNoise,45);b(s.tapeNoise,60);b(s.trackingAmount,55);b(s.dropouts,60);b(s.geometry,30);b(s.headAmount,35);b(s.staticAmount,30);break;
@@ -655,7 +663,7 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     // source-informed parameter translations, not claimed byte-exact values.
     case 39: case 40: case 41: case 42: case 43: case 44: case 45: case 46:
     case 47: case 48: case 49: case 50: case 51: case 52: case 53: case 54:
-        ApplyCratesMasterPreset(s,static_cast<int>(s.vhsStyle-39));break;
+        ApplyCratesMasterPreset(s,static_cast<int>(styleRecipe-39));break;
     // VHSPro: ten recovered menu looks. The supplied decompilation preserves
     // labels but not reliable full slider tuples, so these native mappings
     // reproduce each look's intent and remain explicitly source-inspired.
@@ -698,7 +706,7 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
         b(s.gradeSaturation,0);b(s.chromaLoss,100);b(s.tapeDetail,82);b(s.lumaNoise,18);b(s.tapeNoise,22);b(s.scanlines,28);break;
     default:break;
     }
-    if(s.vhsStyle<26){bi(s.vhs43Frame,0.0f);b(s.roundedOverscan,0.0f);b(s.lensDistortion,0.0f);b(s.digitalZoom,1.0f);b(s.osdBattery,0.0f);b(s.frameRepeatFrequency,0.0f);b(s.frameRepeatStrength,0.0f);}
+    if(styleRecipe<26){bi(s.vhs43Frame,0.0f);b(s.roundedOverscan,0.0f);b(s.lensDistortion,0.0f);b(s.digitalZoom,1.0f);b(s.osdBattery,0.0f);b(s.frameRepeatFrequency,0.0f);b(s.frameRepeatStrength,0.0f);}
 }
 static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
     const float i=clamp01(s.cameraIntensity/100.0f);
@@ -784,7 +792,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     PF_Err err=PF_Err_NONE;
     PF_ParamDef def;
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Style & Presets",ID_VHS_STYLE_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",72,1,kVhsStyleChoices,ID_VHS_STYLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",32,1,kVhsStyleChoices,ID_VHS_STYLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Style Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS_STYLE_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile Preset",12,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
