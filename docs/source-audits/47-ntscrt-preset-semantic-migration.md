@@ -1,6 +1,6 @@
-# NTSCRT preset semantic migration audit (45/45)
+# NTSCRT preset semantic migration audit (39/39 supplied repository snapshot)
 
-All 45 upstream JSON preset files were fetched and semantically inspected. This pass distinguishes enabled stages from serialized defaults and inspects active values, descriptions, downscale/shader choices, timeline metadata and the separate Screen Loop schema. Parsed JSON is not automatically a port candidate.
+Repository-tree verification on 2026-11-27 found 39 JSON files beneath `VHS/github repos/NTSCRT-0.26.0/presets/` in this checked-in source snapshot: 34 top-level preset files and 5 Screen Loop feedback presets. The earlier 45/45 count is not supported by this snapshot and must not be repeated as a verified count. The 39 files are semantically classified below; the five Screen Loop files are a separate video-feedback family, not analog VHS presets. This pass distinguishes enabled stages from serialized defaults and inspects active values, descriptions, downscale/shader choices, timeline metadata and the separate Screen Loop schema. Parsed JSON is not automatically a port candidate.
 
 ## Schema and migration rules
 
