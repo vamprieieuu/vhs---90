@@ -40,8 +40,6 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90OsdEngine.cpp
     Source/VHS90Core/VHS90OsdTextData.cpp
     Source/VHS90Core/VHS90OsdLocalization.cpp
-    Source/VHS90Core/VHS90DeviceConnectionEngine.cpp
-    Source/VHS90Core/VHS90ParticlePatternEngine.cpp
     Source/VHS90Core/VHS90TearChromaEngine.cpp
     ThirdParty/AnalogNTSC/src/ntsc_signal.cpp
     ThirdParty/AnalogNTSC/src/ntsc_params.cpp
@@ -70,7 +68,7 @@ endif()
 
 if(VHS90_BUILD_TESTS)
     enable_testing()
-    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine AnalogGeometryEngine AnalogNoiseEngine RfInstabilityEngine ImpulseNoiseEngine MultipathEchoEngine ReceiverInstabilityEngine ImageGradeEngine TapeDetailEngine ChromaShiftEngine WaveformEngine RingingEngine DropoutEngine SignalGhostEngine AnalogGlowEngine CrtEqualizerEngine TrackReadEngine HeadConditionEngine VcrSignalEngine PhysicalInterferenceEngine PyVhsGenerationEngine OsdEngine OsdTextData OsdLocalization DeviceConnectionEngine ParticlePatternEngine TearChromaEngine)
+    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine AnalogGeometryEngine AnalogNoiseEngine RfInstabilityEngine ImpulseNoiseEngine MultipathEchoEngine ReceiverInstabilityEngine ImageGradeEngine TapeDetailEngine ChromaShiftEngine WaveformEngine RingingEngine DropoutEngine SignalGhostEngine AnalogGlowEngine CrtEqualizerEngine TrackReadEngine HeadConditionEngine VcrSignalEngine PhysicalInterferenceEngine PyVhsGenerationEngine OsdEngine OsdTextData OsdLocalization TearChromaEngine)
         add_executable(VHS90${test_name}Smoke Tests/VHS90${test_name}Smoke.cpp)
         target_link_libraries(VHS90${test_name}Smoke PRIVATE VHS90Core)
         # The smoke tests use assert(); keep those checks active in Release too.
