@@ -82,32 +82,74 @@ int main() {
     }
     assert(insideChanged);
 
-    // Save a real pixel-level OSD render from the Windows DirectWrite backend.
-    // CI uploads this image so Arabic shaping, mixed RTL/LTR text and the two
-    // bundled font families can be inspected independently of the smoke assertions.
+    // Save a readable multi-row OSD visual proof, not the overlapping
+    // accumulation buffer used by the individual shaping smoke assertions.
     {
-        #pragma pack(push,1)
+        std::vector<float> visual(static_cast<std::size_t>(w)*h*4,0.0f);
+        for(std::size_t i=3;i<visual.size();i+=4)visual[i]=1.0f;
+        DirectWriteTextOptions line;
+        line.x=14;line.fontSize=26;line.fontWeight=600;line.direction=TextDirection::Auto;
+        line.utf8FontFamily="Segoe UI";line.utf8Text=u8"VHS-90 | REC  PLAY  STOP  REW  FF  SP";
+        line.y=10;assert(drawDirectWriteText({visual.data(),w,h,w*4},line).rendered);
+        line.utf8Text=u8"السَّلَامُ عَلَيْكُمْ ١٢٣  |  VHS-90";
+        line.direction=TextDirection::RightToLeft;line.y=62;
+        assert(drawDirectWriteText({visual.data(),w,h,w*4},line).rendered);
+#if defined(VHS90_TEST_BUNDLED_FONTS)
+        line.utf8Text=u8"تسجيل REC ١٢٣  |  التاريخ 21.1.1994";
+        line.utf8FontFamily="RooyinFree";line.y=114;
+        const auto rooyinVisual=drawDirectWriteText({visual.data(),w,h,w*4},line);
+        assert(rooyinVisual.rendered&&rooyinVisual.requestedFontFound&&!rooyinVisual.usedFallbackFont);
+        line.utf8FontFamily="YR Sponge Arabic";line.y=166;
+        const auto spongeVisual=drawDirectWriteText({visual.data(),w,h,w*4},line);
+        assert(spongeVisual.rendered&&spongeVisual.requestedFontFound&&!spongeVisual.usedFallbackFont);
+#else
+        line.utf8Text=u8"تسجيل REC ١٢٣  |  التاريخ 21.1.1994";
+        line.utf8FontFamily="Segoe UI";line.y=114;
+        assert(drawDirectWriteText({visual.data(),w,h,w*4},line).rendered);
+        line.utf8Text=u8"PAUSE  إيقاف  REW  ←  ۱۲۳";line.y=166;
+        assert(drawDirectWriteText({visual.data(),w,h,w*4},line).rendered);
+#endif
         struct BitmapFileHeader { std::uint16_t type; std::uint32_t size; std::uint16_t r1,r2; std::uint32_t offset; };
         struct BitmapInfoHeader {
             std::uint32_t size; std::int32_t width,height; std::uint16_t planes,bits;
             std::uint32_t compression,imageSize; std::int32_t xppm,yppm;
             std::uint32_t used,important;
         };
+        #pragma pack(push,1)
+        // The declarations above are kept local; packed wire headers below
+        // are emitted explicitly to avoid compiler-specific struct padding.
         #pragma pack(pop)
-        static_assert(sizeof(BitmapFileHeader)==14 && sizeof(BitmapInfoHeader)==40);
         const std::uint32_t imageBytes=static_cast<std::uint32_t>(w*h*4);
-        BitmapFileHeader fh{0x4D42u,static_cast<std::uint32_t>(54u+imageBytes),0,0,54u};
-        BitmapInfoHeader ih{40u,w,h,1u,32u,0u,imageBytes,2835,2835,0u,0u};
+        const std::uint16_t type=0x4D42u,zero16=0;
+        const std::uint32_t fileSize=54u+imageBytes,offset=54u,infoSize=40u;
+        const std::uint16_t planes=1u,bits=32u;
+        const std::uint32_t compression=0u;
+        const std::int32_t ppm=2835;
+        const std::uint32_t zero32=0;
         std::ofstream bmp("vhs90-osd-arabic-smoke.bmp",std::ios::binary);
         assert(bmp.good());
-        bmp.write(reinterpret_cast<const char*>(&fh),sizeof(fh));
-        bmp.write(reinterpret_cast<const char*>(&ih),sizeof(ih));
+        bmp.write(reinterpret_cast<const char*>(&type),2);
+        bmp.write(reinterpret_cast<const char*>(&fileSize),4);
+        bmp.write(reinterpret_cast<const char*>(&zero16),2);
+        bmp.write(reinterpret_cast<const char*>(&zero16),2);
+        bmp.write(reinterpret_cast<const char*>(&offset),4);
+        bmp.write(reinterpret_cast<const char*>(&infoSize),4);
+        bmp.write(reinterpret_cast<const char*>(&w),4);
+        bmp.write(reinterpret_cast<const char*>(&h),4);
+        bmp.write(reinterpret_cast<const char*>(&planes),2);
+        bmp.write(reinterpret_cast<const char*>(&bits),2);
+        bmp.write(reinterpret_cast<const char*>(&compression),4);
+        bmp.write(reinterpret_cast<const char*>(&imageBytes),4);
+        bmp.write(reinterpret_cast<const char*>(&ppm),4);
+        bmp.write(reinterpret_cast<const char*>(&ppm),4);
+        bmp.write(reinterpret_cast<const char*>(&zero32),4);
+        bmp.write(reinterpret_cast<const char*>(&zero32),4);
         for(int yy=h-1;yy>=0;--yy) for(int xx=0;xx<w;++xx) {
             const std::size_t p=(static_cast<std::size_t>(yy)*w+xx)*4;
             const auto byte=[](float v)->std::uint8_t {
                 return static_cast<std::uint8_t>(std::lround(std::max(0.0f,std::min(1.0f,v))*255.0f));
             };
-            const std::uint8_t bgra[4]={byte(pixels[p+2]),byte(pixels[p+1]),byte(pixels[p]),255u};
+            const std::uint8_t bgra[4]={byte(visual[p+2]),byte(visual[p+1]),byte(visual[p]),255u};
             bmp.write(reinterpret_cast<const char*>(bgra),4);
         }
         bmp.flush();
