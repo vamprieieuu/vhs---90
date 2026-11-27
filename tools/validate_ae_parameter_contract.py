@@ -55,6 +55,18 @@ if "PF_PUI_NO_ECW_UI" in tracking_layers_ui:
 if 'PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE)' not in setup_body:
     fail("The primary Tracking Type selector must remain visible/editable in Effect Controls.")
 
+tracking_presets_start = setup_body.find('PF_ADD_TOPIC("Tracking Presets"')
+tracking_presets_end = setup_body.find("PF_END_TOPIC(ID_TRACKING_PRESETS_TOPIC+100)", tracking_presets_start)
+if tracking_presets_start < 0 or tracking_presets_end < 0:
+    fail("Tracking recipe selector topic is missing.")
+tracking_presets_ui = setup_body[tracking_presets_start:tracking_presets_end]
+if "PF_PUI_NO_ECW_UI" in tracking_presets_ui:
+    fail("All four VHS Damage Lab tracking recipe selectors must remain visible/editable.")
+for selector in ("Base Tracking Preset", "Layer 2 Preset", "Layer 3 Preset", "Layer 4 Preset"):
+    if 'PF_ADD_POPUP("' + selector + '"' not in tracking_presets_ui:
+        fail("Missing visible tracking recipe selector: " + selector)
+
+
 calls = re.findall(r"\b(PF_ADD_[A-Z0-9_]+|PF_END_TOPIC)\s*\(([^;\n]*)\)\s*;", setup_body)
 if any(macro == "PF_ADD_LAYER" for macro, _ in calls):
     fail("Do not add a second Source layer: AE already supplies PARAM_INPUT at index 0.")
