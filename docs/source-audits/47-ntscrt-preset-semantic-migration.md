@@ -60,6 +60,13 @@ Normal looks contain description, digital, downscale, glitch, ntsc, shader, time
 | Very wavy | 2 s/24 fps, 5 NTSC/CRT keys; strong slow edge waves, NTSC filter/noise and vertical scaling | NTSC edge-wave animation; port only if corresponding DSP stage exists. |
 | Wavy loop | 2 s/24 fps, NTSC edge-wave with tracking noise and CRT; timeline enabled with zero keys | Static NTSC wave look; no timeline keys. |
 | Webcam (low quality) | Digital-only 256 px webcam camera/compression/noise/aliasing; tape/NTSC/CRT disabled | Exclude from analog VHS engine. |
+
+## Related source-engine families (not preset JSON files)
+
+The following rows are feature-family dispositions and are not included in the 39-file preset inventory above.
+
+| Source family / engine | Semantic content | VHS-90 migration disposition |
+|---|---|---|
 | glitchy block video | Digital-only Microsoft Video 1 block codec, heavy data loss, ~4 s keyframe interval; tape/NTSC/CRT disabled | Exclude from analog VHS engine; separate digital codec. |
 | glitchy streaming video with noise | Digital-only fixed-bitrate stream, long keyframe interval, data loss/noise/sharpening; tape/NTSC/CRT disabled | Exclude from analog VHS engine. |
 | glitchy streaming video | Digital-only low-quality streaming compression, sharpening/moiré/data loss; tape/NTSC/CRT disabled | Exclude from analog VHS engine. |
