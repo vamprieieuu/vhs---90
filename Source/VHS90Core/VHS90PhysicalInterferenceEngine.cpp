@@ -79,7 +79,7 @@ bool processPhysicalInterference(ConstImageView src, ImageView dst,
     const float humDrive = loopDrive > 0.0f ? loopDrive : 1.0f;
     const float rfDrive = std::clamp(std::fabs(p.rfFieldVPerM) / 40.0f, 0.0f, 1.0f) * rf;
 
-    if (signalGain >= 0.999999f && hum <= 0.0f && humDrive <= 0.0f && rfDrive <= 0.0f) {
+    if (signalGain >= 0.999999f && hum <= 0.0f && rfDrive <= 0.0f) {
         for (int y = 0; y < src.height; ++y)
             std::copy_n(src.rgba + y * src.rowStrideFloats, src.width * 4,
                         dst.rgba + y * dst.rowStrideFloats);
