@@ -713,15 +713,52 @@ static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
     if(s.cameraProfile<=1||i<=0.0f)return;
     auto b=[&](float& v,float target){v=blendPreset(v,target,s.cameraIntensity);};
     switch(s.cameraProfile) {
-    case 2: b(s.tapeDetail,58);b(s.chromaSubsample,26);b(s.chromaShift,6);b(s.geometry,30);b(s.gradeSaturation,108);break;
-    case 3: b(s.tapeDetail,72);b(s.chromaSubsample,14);b(s.geometry,15);b(s.chromaShift,3);break;
-    case 4: b(s.tapeDetail,84);b(s.edgeEnhance,35);b(s.geometry,8);b(s.chromaSubsample,10);break;
-    case 5: b(s.tapeDetail,92);b(s.chromaSubsample,8);b(s.chromaShift,2);b(s.geometry,6);break;
-    case 6: b(s.tapeDetail,96);b(s.chromaSubsample,5);b(s.chromaShift,1);b(s.geometry,3);break;
-    case 7: b(s.tapeDetail,76);b(s.chromaSubsample,16);b(s.colorPhaseDrift,12);b(s.gradeSaturation,92);break;
-    case 8: b(s.tapeDetail,98);b(s.edgeEnhance,30);b(s.chromaSubsample,4);break;
-    case 9: b(s.tapeDetail,52);b(s.chromaSubsample,30);b(s.chromaShift,5);b(s.gradeBrightness,5);b(s.gradeSaturation,112);break;
-    case 10: b(s.tapeDetail,64);b(s.edgeEnhance,38);b(s.bloom,18);b(s.gradeSaturation,105);break;
+    case 2: // JVC GR-C7U — early VHS-C, warm chroma, soft luma and fine cassette grain.
+        b(s.tapeDetail,70);b(s.composite,36);b(s.chromaSubsample,24);b(s.verticalChroma,18);b(s.chromaShift,3.5f);
+        b(s.gradeContrast,102);b(s.gradeBrightness,2);b(s.gradeSaturation,108);b(s.chromaIGain,108);b(s.chromaQGain,102);
+        b(s.chromaIOffset,2);b(s.chromaQOffset,-2);b(s.lumaNoise,7);b(s.chromaNoise,12);b(s.compositeNoise,5);
+        b(s.vhs6RiftGrain,18);b(s.vhs6RiftNoiseDetail,55);b(s.vhs6RiftShadowBias,65);b(s.ringing,8);break;
+    case 3: // JVC GR-AX220U — early-90s VHS-C, slightly cool color and steadier playback.
+        b(s.tapeDetail,78);b(s.composite,30);b(s.chromaSubsample,20);b(s.verticalChroma,12);b(s.chromaShift,2);
+        b(s.gradeContrast,100);b(s.gradeBrightness,1);b(s.gradeSaturation,104);b(s.chromaIGain,105);b(s.chromaQGain,108);
+        b(s.chromaIOffset,-1);b(s.chromaQOffset,2);b(s.lumaNoise,6);b(s.chromaNoise,10);b(s.compositeNoise,4);
+        b(s.vhs6RiftGrain,14);b(s.vhs6RiftNoiseDetail,58);b(s.vhs6RiftShadowBias,60);break;
+    case 4: // JVC GR-AX920U — cleaner consumer VHS-C with firmer edges and restrained noise.
+        b(s.tapeDetail,82);b(s.composite,25);b(s.chromaSubsample,14);b(s.verticalChroma,10);b(s.chromaShift,1.5f);
+        b(s.edgeEnhance,14);b(s.gradeContrast,105);b(s.gradeSaturation,108);b(s.chromaIGain,108);b(s.chromaQGain,104);
+        b(s.lumaNoise,4);b(s.chromaNoise,6);b(s.compositeNoise,2);b(s.vhs6RiftGrain,10);b(s.vhs6RiftNoiseDetail,55);
+        b(s.vhs6RiftShadowBias,50);b(s.ringing,12);break;
+    case 5: // JVC GR-SXM37US — S-VHS-C detail, wider luma response and clean chroma edges.
+        b(s.tapeDetail,92);b(s.composite,18);b(s.chromaSubsample,8);b(s.verticalChroma,6);b(s.chromaShift,0.8f);
+        b(s.edgeEnhance,22);b(s.gradeContrast,106);b(s.gradeSaturation,112);b(s.chromaIGain,102);b(s.chromaQGain,100);
+        b(s.lumaNoise,3);b(s.chromaNoise,4);b(s.compositeNoise,1);b(s.vhs6RiftGrain,8);b(s.vhs6RiftNoiseDetail,60);
+        b(s.vhs6RiftShadowBias,45);b(s.ringing,18);b(s.bloom,6);break;
+    case 6: // JVC GR-SXM740U — higher-end S-VHS-C, crisp luma, stable color and subtle optics.
+        b(s.tapeDetail,96);b(s.composite,15);b(s.chromaSubsample,6);b(s.verticalChroma,4);b(s.chromaShift,0.5f);
+        b(s.edgeEnhance,26);b(s.gradeContrast,108);b(s.gradeBrightness,1);b(s.gradeSaturation,115);
+        b(s.lumaNoise,2);b(s.chromaNoise,3);b(s.compositeNoise,1);b(s.vhs6RiftGrain,6);b(s.ringing,20);
+        b(s.bloom,8);b(s.vignette,3);b(s.flicker,1);break;
+    case 7: // Sony CCD-TR55 — Video8 look, warm highlights, softer chroma and visible fine grain.
+        b(s.tapeDetail,74);b(s.composite,42);b(s.chromaSubsample,28);b(s.verticalChroma,22);b(s.chromaShift,4);
+        b(s.gradeContrast,96);b(s.gradeBrightness,4);b(s.gradeSaturation,116);b(s.chromaIGain,112);b(s.chromaQGain,106);
+        b(s.chromaIOffset,3);b(s.chromaQOffset,-2);b(s.lumaNoise,12);b(s.chromaNoise,16);b(s.compositeNoise,8);
+        b(s.vhs6RiftGrain,24);b(s.vhs6RiftNoiseDetail,70);b(s.vhs6RiftShadowBias,70);b(s.glow,7);b(s.flicker,3);
+        b(s.colorPhaseDrift,6);break;
+    case 8: // JVC GR-S55 — older compact VHS-C, softer detail, stronger tape texture and warm chroma.
+        b(s.tapeDetail,68);b(s.composite,48);b(s.chromaSubsample,34);b(s.verticalChroma,28);b(s.chromaShift,5);
+        b(s.gradeContrast,94);b(s.gradeBrightness,-1);b(s.gradeSaturation,102);b(s.chromaIGain,106);b(s.chromaQGain,100);
+        b(s.lumaNoise,16);b(s.chromaNoise,18);b(s.compositeNoise,10);b(s.vhs6RiftGrain,28);b(s.vhs6RiftNoiseDetail,70);
+        b(s.vhs6RiftShadowBias,75);b(s.ringing,6);b(s.glow,3);break;
+    case 9: // Panasonic NV-M1 — early VHS-C color, warm saturation and mild RF instability.
+        b(s.tapeDetail,62);b(s.composite,52);b(s.chromaSubsample,36);b(s.verticalChroma,32);b(s.chromaShift,5.5f);
+        b(s.gradeContrast,102);b(s.gradeBrightness,2);b(s.gradeSaturation,125);b(s.chromaIGain,118);b(s.chromaQGain,110);
+        b(s.chromaIOffset,2);b(s.chromaQOffset,4);b(s.lumaNoise,14);b(s.chromaNoise,22);b(s.compositeNoise,12);
+        b(s.lumaSmear,12);b(s.rfDrift,5);b(s.colorPhaseDrift,8);b(s.vhs6RiftGrain,24);b(s.vhs6RiftShadowBias,72);break;
+    case 10: // RCA CMR300 — 90s consumer camcorder, faded color, visible luma noise and mild instability.
+        b(s.tapeDetail,70);b(s.composite,38);b(s.chromaSubsample,26);b(s.verticalChroma,20);b(s.chromaShift,3.5f);
+        b(s.gradeContrast,92);b(s.gradeBrightness,3);b(s.gradeSaturation,92);b(s.chromaIGain,95);b(s.chromaQGain,98);
+        b(s.chromaIOffset,-2);b(s.chromaQOffset,1);b(s.lumaNoise,18);b(s.chromaNoise,20);b(s.compositeNoise,12);
+        b(s.rfDrift,8);b(s.colorPhaseDrift,10);b(s.flicker,4);b(s.vhs6RiftGrain,22);b(s.vhs6RiftShadowBias,78);break;
     case 11: // FXC6 Direct Capture — cool blue/cyan cast, fine grain and softened detail; no severe tracking bars.
         b(s.tapeDetail,70);b(s.chromaSubsample,18);b(s.chromaShift,2.5f);
         b(s.gradeContrast,94);b(s.gradeBrightness,2);b(s.gradeSaturation,112);
