@@ -168,12 +168,11 @@ bool processNtscQtSignal(ConstImageView src,ImageView dst,const NtscQtParams& ra
             const float sourceAlpha=sourcePixel[3];
             RGB sourceRgb{sourcePixel[0],sourcePixel[1],sourcePixel[2]};
             if(p.premultipliedAlpha&&sourceAlpha>1.0e-8f){sourceRgb.r/=sourceAlpha;sourceRgb.g/=sourceAlpha;sourceRgb.b/=sourceAlpha;}
-            const YIQ original=rgbToYiq(sourceRgb);
-            const YIQ result{original.y+(y[at]-original.y)*p.amount,original.i+(i[at]-original.i)*p.amount,original.q+(q[at]-original.q)*p.amount};
+            const YIQ originalYiq=rgbToYiq(sourceRgb);
+            const YIQ result{originalYiq.y+(y[at]-originalYiq.y)*p.amount,originalYiq.i+(i[at]-originalYiq.i)*p.amount,originalYiq.q+(q[at]-originalYiq.q)*p.amount};
             const RGB rgb=yiqToRgb(result);
-            const float* original=src.rgba+static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4;
             float* out=dst.rgba+static_cast<std::ptrdiff_t>(row)*dst.rowStrideFloats+x*4;
-            out[3]=original[3];
+            out[3]=sourceAlpha;
             if(p.premultipliedAlpha){out[0]=rgb.r*out[3];out[1]=rgb.g*out[3];out[2]=rgb.b*out[3];}
             else{out[0]=rgb.r;out[1]=rgb.g;out[2]=rgb.b;}
         }
