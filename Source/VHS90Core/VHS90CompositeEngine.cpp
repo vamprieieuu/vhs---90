@@ -125,6 +125,16 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             input={prefiltered.data(),w,h,w*4};
         }
 
+        std::vector<float> ntscQtProcessed;
+        if(p.ntscQtEnabled) {
+            ntscQtProcessed.resize(count*4);
+            ImageView ntscQtView{ntscQtProcessed.data(),w,h,w*4};
+            NtscQtParams np=p.ntscQt;
+            np.premultipliedAlpha=p.premultipliedAlpha;
+            if(!processNtscQtSignal(input,ntscQtView,np)) return false;
+            input={ntscQtProcessed.data(),w,h,w*4};
+        }
+
         std::vector<float> decoded;
         if(compositeStrength>0.0f && p.waveformCompositeEnabled) {
             decoded.resize(count*4);

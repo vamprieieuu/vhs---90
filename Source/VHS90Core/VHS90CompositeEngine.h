@@ -78,6 +78,8 @@ struct CompositeParams {
     RingingParams ringing{};
     bool chromaChannelShiftEnabled = false;
     ChromaChannelShiftParams chromaChannelShift{};
+    bool ntscQtEnabled = false;
+    NtscQtParams ntscQt{};
     bool waveformCompositeEnabled = false;
     NtscWaveformParams waveformComposite{};
     bool temporalGhostEnabled = false;

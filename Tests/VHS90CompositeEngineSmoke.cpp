@@ -344,5 +344,21 @@ int main() {
         assert(std::fabs(productionNtsc[k+3]-1.0f)<1.0e-6f);
     }
 
+
+    // NTSC-QT spectral ringing and pre-emphasis are distinct from spatial
+    // VHS ringing. Exercise odd/even widths, deterministic seeded masks,
+    // field selection, unclipped processing, and pre-emphasis-only behavior.
+    {
+        std::vector<float> qtA(src.size()),qtB(src.size()),qtPre(src.size()),qtZero(src.size());
+        ImageView qa{qtA.data(),w,h,w*4},qb{qtB.data(),w,h,w*4},qp{qtPre.data(),w,h,w*4},qz{qtZero.data(),w,h,w*4};
+        NtscQtParams q; q.spectralRingingEnabled=true;q.alpha=0.48f;q.frequencyNoiseSize=0.65f;
+        q.frequencyNoiseAmplitude=1.2f;q.seed=0x91A2B3u;q.frame=17;
+        assert(processNtscQtSignal(si,qa,q));assert(processNtscQtSignal(si,qb,q));assert(qtA==qtB);
+        assert(qtA!=src);
+        q.spectralRingingEnabled=false;q.preEmphasis=2.5f;q.preEmphasisCutoffMHz=1.0f;
+        assert(processNtscQtSignal(si,qp,q));assert(qtPre!=src);
+        q.preEmphasis=0.0f;assert(processNtscQtSignal(si,qz,q));assert(qtZero==src);
+        for(int y=0;y<h;++y)for(int x=0;x<w;++x){const size_t k=(size_t(y)*w+x)*4;assert(std::fabs(qtA[k+3]-src[k+3])<1e-6f);}
+    }
     return 0;
 }
