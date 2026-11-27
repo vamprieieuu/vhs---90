@@ -251,6 +251,7 @@ assert "std::clamp(p.saturation,0.0f,5.0f)" in grade_engine, "Image Grade engine
 assert "const float humOffset=hum*" in rf_engine and "const float ripple=hum*" in rf_engine and "const float interference=hum*" in rf_engine and "const float humGain=1.0f+hum*" in rf_engine, "RF Hum must be neutral when its own control is zero"
 assert "const float pump=agc*" in rf_engine, "AGC Pump must be neutral when its own control is zero"
 assert "const float humOffset = 0.002f * loopDrive + 0.045f * hum;" in physical_engine and "const float humGain = 1.0f + 0.006f * loopDrive + 0.018f * hum;" in physical_engine, "Mains Hum must remain independent of Ground Loop voltage"
+assert "hum <= 0.0f && loopDrive <= 0.0f && rfDrive <= 0.0f" in physical_engine, "Ground Loop must remain active when it is the only physical-interference control"
 assert "const float hiComp=0.80f*am,loComp=0.88f*am;" in rf_engine, "AM nonlinearity must be neutral when its own control is zero"
 assert 'PF_ADD_FLOAT_SLIDERX("Exposure (EV)",-3,3,-3,3,0,2,PF_ValueDisplayFlag_NONE,0,ID_GRADE_EXPOSURE)' in source, "General Adjustments must expose a real EV exposure control"
 style_pos=source.find('PF_ADD_TOPIC("VHS Style & Presets",ID_VHS_STYLE_TOPIC)')
