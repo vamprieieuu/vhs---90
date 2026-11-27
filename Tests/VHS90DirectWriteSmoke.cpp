@@ -109,16 +109,7 @@ int main() {
         line.utf8Text=u8"PAUSE  إيقاف  REW  ←  ۱۲۳";line.y=166;
         assert(drawDirectWriteText({visual.data(),w,h,w*4},line).rendered);
 #endif
-        struct BitmapFileHeader { std::uint16_t type; std::uint32_t size; std::uint16_t r1,r2; std::uint32_t offset; };
-        struct BitmapInfoHeader {
-            std::uint32_t size; std::int32_t width,height; std::uint16_t planes,bits;
-            std::uint32_t compression,imageSize; std::int32_t xppm,yppm;
-            std::uint32_t used,important;
-        };
-        #pragma pack(push,1)
-        // The declarations above are kept local; packed wire headers below
-        // are emitted explicitly to avoid compiler-specific struct padding.
-        #pragma pack(pop)
+        // Write the BMP headers field-by-field to avoid compiler-specific padding.
         const std::uint32_t imageBytes=static_cast<std::uint32_t>(w*h*4);
         const std::uint16_t type=0x4D42u,zero16=0;
         const std::uint32_t fileSize=54u+imageBytes,offset=54u,infoSize=40u;
