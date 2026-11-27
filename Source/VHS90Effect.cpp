@@ -413,7 +413,7 @@ static char kOsdExtraLabelChoices[]="Off|TAPE|ERROR|P01|RES|FORWARD|EJECT|SEARCH
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35, staticAngle=24, staticRibbonWidth=12, staticGreenLine=75, staticPhaseCount=3;
     A_long staticMode=2;
-    A_long colorSystem=1, signalModel=1, tapeSpeed=1, compositeDecoder=1, vhs43Frame=0;
+    A_long colorSystem=1, signalModel=1, tapeSpeed=1, vhs43Frame=0;
     float roundedOverscan=0.0f, lensDistortion=0.0f, digitalZoom=1.0f, osdBattery=0.0f;
     float frameRepeatFrequency=0.0f, frameRepeatStrength=0.0f;
     float tapeDetail=100.0f, trackRead=0.0f, trackMisalignment=0.0f, chromaShift=0.0f, redChannelOffset=0.0f, blueChannelOffset=0.0f;
@@ -577,7 +577,7 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     };
     auto lostSignal=[&](int index){
         const float* v=kLostSignalProfiles[index];
-        bi(s.compositeDecoder,1);b(s.composite,100);b(s.lumaNoise,v[0]*100);b(s.chromaNoise,v[0]*85);b(s.tapeNoise,v[0]*100);
+        b(s.composite,100);b(s.lumaNoise,v[0]*100);b(s.chromaNoise,v[0]*85);b(s.tapeNoise,v[0]*100);
         b(s.scanlines,v[1]*100);b(s.trackingAmount,v[2]*200);b(s.trackingTear,v[3]/36.0f*100.0f);
         b(s.trackingServo,v[4]/6.0f*100.0f);b(s.staticAmount,v[5]/0.5f*100.0f);
         b(s.colorPhaseDrift,v[6]*100);b(s.agcPump,v[7]*100);b(s.chromaLoss,v[8]*100);
@@ -1663,7 +1663,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             p.strength=master;
             p.demodulator=CompositeDemodulator::ConsumerNotch;
             p.geometry.roundedOverscan=clamp01(s.roundedOverscan/100.0f);
-            p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);
+            p.demodulator=CompositeDemodulator::ConsumerNotch;
             if(s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0) {
                 p.physicalInterferenceEnabled=true;
                 p.physicalInterference.magnetMomentAm2=s.magnetMoment;
