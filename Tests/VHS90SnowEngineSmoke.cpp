@@ -63,6 +63,36 @@ int main() {
     colorP.seed+=1; assert(processSnow(input,seedView,colorP));
     assert(otherSeed!=colored);
 
+    auto renderSnow=[&](SnowParams q) {
+        std::vector<float> result(src.size());
+        ImageView view{result.data(),w,h,w*4};
+        assert(processSnow(input,view,q));
+        return result;
+    };
+    SnowParams densityLow=p; densityLow.density=0.0f;
+    assert(renderSnow(densityLow)==src);
+    densityLow.density=0.12f; const auto sparse=renderSnow(densityLow);
+    densityLow.density=0.95f; const auto dense=renderSnow(densityLow);
+    assert(sparse!=dense);
+    SnowParams sizeSmall=p; sizeSmall.sizePx=0.5f;
+    SnowParams sizeLarge=p; sizeLarge.sizePx=8.0f;
+    assert(renderSnow(sizeSmall)!=renderSnow(sizeLarge));
+    SnowParams uniform=p; uniform.distribution=0.0f;
+    SnowParams clustered=p; clustered.distribution=1.0f;
+    assert(renderSnow(uniform)!=renderSnow(clustered));
+    SnowParams lowContrast=p; lowContrast.contrast=0.0f;
+    SnowParams highContrast=p; highContrast.contrast=1.0f;
+    assert(renderSnow(lowContrast)!=renderSnow(highContrast));
+    SnowParams dim=p; dim.brightness=0.0f;
+    SnowParams bright=p; bright.brightness=1.0f;
+    assert(renderSnow(dim)!=renderSnow(bright));
+    SnowParams orderly=p; orderly.randomness=0.0f;
+    SnowParams random=p; random.randomness=1.0f;
+    assert(renderSnow(orderly)!=renderSnow(random));
+    SnowParams stopped=p; stopped.animationSpeed=0.0f;
+    SnowParams fast=p; fast.animationSpeed=2.0f;
+    assert(renderSnow(stopped)!=renderSnow(fast));
+
     // Preserve transparent and premultiplied alpha.
     std::vector<float> transparent=src,transparentOut(src.size());
     for(std::size_t i=0;i<transparent.size();i+=4) {
