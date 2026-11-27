@@ -26,7 +26,7 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
  const float sat=std::clamp(p.saturation,0.0f,3.0f),vignette=clamp01(p.vignette),flicker=clamp01(p.flicker);
  const float iGain=std::clamp(p.chromaIGain,0.0f,3.0f),qGain=std::clamp(p.chromaQGain,0.0f,3.0f);
  const float iOffset=std::clamp(p.chromaIOffset,-0.5f,0.5f),qOffset=std::clamp(p.chromaQOffset,-0.5f,0.5f);
- const float chromaStep=std::clamp(p.chromaQuantization,0.0f,0.25f);
+ const float chromaStep=std::clamp(p.chromaQuantization,0.0f,0.06f);
  if(edge==0&&chromaEdge==0&&fade==0&&contrast==1&&p.brightness==0&&blackLift==0&&sat==1&&iGain==1&&qGain==1&&iOffset==0&&qOffset==0&&chromaStep==0&&vignette==0&&flicker==0){
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
