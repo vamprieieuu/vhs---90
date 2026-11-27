@@ -67,9 +67,14 @@ bool processSnow(ConstImageView src,ImageView dst,const SnowParams& p) noexcept 
                 const float radiusRand=lerp(0.5f,hash(cellX,cellY,p.seed+0x94d049bbu,tick),randomness);
                 const float radius=sizePx*(0.22f+0.58f*radiusRand);
                 const float dx=localX-centerJitterX,dy=localY-centerJitterY;
-                const float distance=std::sqrt(dx*dx+dy*dy);
-                const float particleMask=particleRand<localDensity
-                    ?1.0f-smooth01((distance-radius*0.72f)/std::max(0.01f,radius*0.28f)):0.0f;
+                float particleMask=0.0f;
+                if(particleRand<localDensity) {
+                    const float distanceSquared=dx*dx+dy*dy;
+                    if(distanceSquared<radius*radius) {
+                        const float distance=std::sqrt(distanceSquared);
+                        particleMask=1.0f-smooth01((distance-radius*0.72f)/std::max(0.01f,radius*0.28f));
+                    }
+                }
                 const float snowMask=particleMask*snowIntensity;
                 if(snowMask>0.0f) {
                     const float valueRand=lerp(0.5f,hash(cellX+11,cellY+7,p.seed+0x51ed270bu,tick),randomness);
