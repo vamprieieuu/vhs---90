@@ -52,6 +52,8 @@ if tracking_layers_start < 0 or tracking_layers_end < 0:
 tracking_layers_ui = setup_body[tracking_layers_start:tracking_layers_end]
 if "PF_PUI_NO_ECW_UI" in tracking_layers_ui:
     fail("Tracking Layers 2–4 controls must remain visible/editable in Effect Controls.")
+if 'PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE)' not in setup_body:
+    fail("The primary Tracking Type selector must remain visible/editable in Effect Controls.")
 
 calls = re.findall(r"\b(PF_ADD_[A-Z0-9_]+|PF_END_TOPIC)\s*\(([^;\n]*)\)\s*;", setup_body)
 if any(macro == "PF_ADD_LAYER" for macro, _ in calls):
