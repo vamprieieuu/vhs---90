@@ -59,7 +59,7 @@ enum ParamIndex {
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
     PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_OFFSET, PARAM_OSD_SHOW_COUNTER, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
     PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
-    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_COUNT
+    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_PLAYBACK_TOPIC, PARAM_DECODER_MODE, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_PLAYBACK_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_VHS_STYLE_TOPIC=136,
@@ -368,6 +368,10 @@ enum ParamDiskID {
     ID_TAPE_ROUGHNESS=353,
     ID_OSD_TEXT_EDIT_TOPIC=354,
     ID_OSD_TEXT_EDIT=355,
+    ID_PLAYBACK_TOPIC=356,
+    ID_DECODER_MODE=357,
+    ID_FRAME_REPEAT_FREQUENCY=358,
+    ID_FRAME_REPEAT_STRENGTH=359,
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -876,7 +880,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Edge Enhancement",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_EDGE_ENHANCE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tape Fade",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_FADE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Black Lift",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BLACK_LIFT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Previous Frame Ghost",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEMPORAL_GHOST);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Previous Frame Ghost",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEMPORAL_GHOST);
 
 
 
@@ -1199,6 +1203,11 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("OSD Text Input",ID_OSD_TEXT_EDIT_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_BUTTON("OSD Text Editor","Edit Text...",0,PF_ParamFlag_SUPERVISE,ID_OSD_TEXT_EDIT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_TEXT_EDIT_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Playback & Decoder",ID_PLAYBACK_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Raster Decoder",3,1,kCompositeDecoderChoices,ID_DECODER_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Frequency",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_FREQUENCY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Strength",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_STRENGTH);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PLAYBACK_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -1242,6 +1251,9 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_PAL_MODE,s.colorSystem); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_SIGNAL_MODEL,s.signalModel); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TAPE_SPEED,s.tapeSpeed); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_DECODER_MODE,s.compositeDecoder); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency);
+    READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength);
     READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_TRACK_READ,trackRead);
     READ_FLOAT(PARAM_TRACK_MISALIGNMENT,trackMisalignment); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
     READ_FLOAT(PARAM_CHROMA_REG_RED,redChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_GREEN,greenChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_BLUE,blueChannelOffset); err=CheckoutPopup(in_data,PARAM_CHROMA_REG_MODE,s.chromaRegMode); if(err!=PF_Err_NONE) return err;
@@ -1665,9 +1677,10 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         if(compositeStages&&master>0.0f) {
             CompositeParams p;
             p.strength=master;
+            // This selector is active only for the raster composite renderer.
+            // Full Waveform NTSC uses its own source decoder implementation.
             p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);
             p.geometry.roundedOverscan=clamp01(s.roundedOverscan/100.0f);
-            p.demodulator=CompositeDemodulator::ConsumerNotch;
             if(s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0) {
                 p.physicalInterferenceEnabled=true;
                 p.physicalInterference.magnetMomentAm2=s.magnetMoment;
@@ -2144,6 +2157,9 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.colorSystem=params[PARAM_PAL_MODE]->u.pd.value;
     s.signalModel=params[PARAM_SIGNAL_MODEL]->u.pd.value;
     s.tapeSpeed=params[PARAM_TAPE_SPEED]->u.pd.value;
+    s.compositeDecoder=params[PARAM_DECODER_MODE]->u.pd.value;
+    s.frameRepeatFrequency=float(params[PARAM_FRAME_REPEAT_FREQUENCY]->u.fs_d.value);
+    s.frameRepeatStrength=float(params[PARAM_FRAME_REPEAT_STRENGTH]->u.fs_d.value);
     s.tapeDetail=float(params[PARAM_TAPE_DETAIL]->u.fs_d.value);
     s.trackRead=float(params[PARAM_TRACK_READ]->u.fs_d.value);
     s.headCondition=float(params[PARAM_HEAD_CONDITION]->u.fs_d.value);
