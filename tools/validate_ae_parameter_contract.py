@@ -22,8 +22,10 @@ for raw in enum_match.group(1).split(","):
         enum_items.append(match.group(1))
 if not enum_items or enum_items[0] != "PARAM_INPUT" or enum_items[-1] != "PARAM_COUNT":
     fail("ParamIndex must start with PARAM_INPUT and end with PARAM_COUNT.")
-if enum_items[-4:-1] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
-    fail("Ground Loop parameters must be appended to preserve existing AE parameter indices.")
+if enum_items[-14:-11] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
+    fail("Ground Loop parameters must remain appended after all legacy AE parameters.")
+if enum_items[-11:-1] != ["PARAM_TRACK_LAYER_MOTION_TOPIC", "PARAM_TRACK_LAYER2_ANGLE", "PARAM_TRACK_LAYER2_MOTION_X", "PARAM_TRACK_LAYER2_MOTION_Y", "PARAM_TRACK_LAYER3_ANGLE", "PARAM_TRACK_LAYER3_MOTION_X", "PARAM_TRACK_LAYER3_MOTION_Y", "PARAM_TRACK_LAYER4_ANGLE", "PARAM_TRACK_LAYER4_MOTION_X", "PARAM_TRACK_LAYER4_MOTION_Y", "PARAM_TRACK_LAYER_MOTION_END"]:
+    fail("Tracking layer direction/motion parameters must be appended after legacy AE parameters.")
 expected_params = enum_items[1:-1]
 
 setup_match = re.search(r"static\s+PF_Err\s+ParamsSetup\s*\([^)]*\)\s*\{", SOURCE)
@@ -86,6 +88,11 @@ for topic_name in ("Waves / Static", "Grain", "Tracking Noise", "Head Switching"
 
 if "READ_FLOAT(PARAM_GROUND_LOOP,groundLoop)" not in SOURCE:
     fail("Ground Loop must be read from its AE parameter into RenderSettings.")
+for layer in (2, 3, 4):
+    for field in ("ANGLE", "MOTION_X", "MOTION_Y"):
+        token = f"READ_FLOAT(PARAM_TRACK_LAYER{layer}_{field},"
+        if token not in SOURCE:
+            fail("Tracking layer direction/motion control is not wired: " + token)
 
 for required in [
     'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100',
@@ -99,6 +106,15 @@ for required in [
     'PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100',
     'PF_ADD_FLOAT_SLIDERX("Mains Hum",0,100',
     'PF_ADD_FLOAT_SLIDERX("Ground Loop (mV)",0,500,0,500,0,1,PF_ValueDisplayFlag_NONE,0,ID_GROUND_LOOP)',
+    'PF_ADD_FLOAT_SLIDERX("Layer 2 Angle",-180,180',
+    'PF_ADD_FLOAT_SLIDERX("Layer 2 Motion X",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 2 Motion Y",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 3 Angle",-180,180',
+    'PF_ADD_FLOAT_SLIDERX("Layer 3 Motion X",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 3 Motion Y",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 4 Angle",-180,180',
+    'PF_ADD_FLOAT_SLIDERX("Layer 4 Motion X",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 4 Motion Y",-100,100',
 ]:
     if required not in setup_body:
         fail("Missing required visible Damage Lab control: " + required)
@@ -145,7 +161,7 @@ end_map = {
     "ID_OSD_WORDS_TOPIC": "PARAM_OSD_WORDS_END", "ID_GRAIN_TOPIC": "PARAM_GRAIN_END",
     "ID_TAPE_SURFACE_DETAIL_TOPIC": "PARAM_TAPE_SURFACE_DETAIL_END",
     "ID_OSD_TEXT_EDIT_TOPIC": "PARAM_OSD_TEXT_EDIT_END",
-    "ID_PLAYBACK_TOPIC": "PARAM_PLAYBACK_END", "ID_GROUND_LOOP_TOPIC": "PARAM_GROUND_LOOP_END",
+    "ID_PLAYBACK_TOPIC": "PARAM_PLAYBACK_END", "ID_GROUND_LOOP_TOPIC": "PARAM_GROUND_LOOP_END", "ID_TRACK_LAYER_MOTION_TOPIC": "PARAM_TRACK_LAYER_MOTION_END",
     "ID_EXTENDED_VHS_PRESET_TOPIC": "PARAM_EXTENDED_VHS_PRESET_END",
 }
 aliases = {
