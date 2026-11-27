@@ -397,7 +397,7 @@ static char kTearChromaModeChoices[]="Spectral Chroma Smear|Localized Headbleed|
 static char kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|Top Strip|Bottom-Weighted Streaks|Monochrome Streaks|Split-Band Chromatic|Static to Blackout|Dark-Field Luma Streaks|Multi-Phase Green Line|Two-Stage Angular Ribbon|Diagonal Sync Collapse";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
-static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS Degradation|Bad Tracking|Very Bad Tracking|Unstable VCR Playback|Moving Band Noise|Tape Damage|Bottom Tape Damage|Static Interference|Color Bleed|Color Shift|Ghosting|Signal Loss|Severe Analog Glitch|Damaged Tape Playback|Soft Transfer|Classic Transfer|Severe Transfer|Worn Transfer|Clean Television|Studio SP|Studio LP|Studio EP|Reference Analog|True Analog|Liminal Backroom|Liminal Pool|Liminal Night|Subtle Atmosphere|Found Footage|Worn Cassette|Rental Cassette|Camcorder 1996|Broken Signal|Composite Decode|Analog Fog|Archive Standard|Studio Clean|Edge Definition|Violet Transfer|Soft Composite|Green Phosphor|Signal Corruption|Tape Streaks|Cool Transfer|Warm Transfer|Blue Halation|Signal Echo|Retro Grade|Handheld Camcorder|Hue Instability|Monochrome Transfer|Neutral Playback|Fresh Cassette|Rental Copy|Aged Cassette|Tracking Failure|Home Video Camera|Chroma Bleed|Broadcast Deck|Multi-Generation Dub|Music Video Grade|Craft Neutral|Craft Clean|Craft Sharp|Violet Glow|Green Glow|Worn Playback|Handheld Cinema|Tape Monochrome";
+static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS|Bad Tracking|Very Bad Tracking|Unstable VCR|Tape Damage|Static Interference|Color Bleed|Color Shift|Signal Loss|Severe Analog Glitch|Soft Transfer|Classic Transfer|Worn Transfer|Reference Analog|Neutral Playback|Fresh Cassette|Aged Cassette|Tracking Failure|Home Video Camera|Chroma Bleed|Broadcast Deck|Multi-Generation Dub|Music Video Grade|Craft Clean|Craft Sharp|Violet Glow|Green Glow|Worn Cassette|Tape Monochrome";
 static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300|FXC6 Direct Capture|Gen 7 Reference";
 static char kNtscRsLookChoices[]="Custom|VHS-90 Natural NTSC|VHS-90 Home SP|VHS-90 LP Tape|VHS-90 EP Tape|VHS-90 Tracking Snow|VHS-90 Chroma Loss|VHS-90 Edge Wave|VHS-90 Field Blend|VHS-90 Composite Smear|VHS-90 Chroma Instability";
 static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
@@ -469,7 +469,7 @@ struct RenderSettings {
 };
 inline float clamp01(float x) noexcept { return std::max(0.0f,std::min(1.0f,x)); }
 
-static float blendPreset(float current,float target,float intensity) noexcept {
+static float masterDrive(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }\nstatic float masterMix(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }\n\nstatic float blendPreset(float current,float target,float intensity) noexcept {
     const float t=clamp01(intensity/100.0f);
     return current+(target-current)*t;
 }
@@ -804,7 +804,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile Preset",12,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_VHS_STYLE_TOPIC+100);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Signal",0,100,0,100,28,1,PF_ValueDisplayFlag_PERCENT,0,ID_COMPOSITE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Sync Collapse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC);
@@ -887,12 +887,12 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("General Adjustments",ID_GENERAL_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Contrast",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_CONTRAST);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Brightness",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_GRADE_BRIGHTNESS);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,500,0,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vignette",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VIGNETTE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Flicker",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FLICKER);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_GENERAL_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Chroma",ID_CHROMA_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",0,20,0,20,1.5f,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift (RGB)",0,50,0,50,1.5f,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Red Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_RED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Blue Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_BLUE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Subsample / Bleed",0,100,0,100,16,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_SUBSAMPLE);
@@ -2039,7 +2039,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(sx<0||sx>=w||sy<0||sy>=h) { const float z[4]={0,0,0,0}; WritePixel(output,format,x,y,z); continue; }
             const std::size_t pixelOffset=(std::size_t(sy)*w+sx)*4;
             const float* processed=working.data()+pixelOffset;
-            if(s.master>100.0f && masterOverdrive>1.0f) {
+            if(masterOverdrive>1.0f) {
                 const float* original=source.data()+pixelOffset;
                 const float boosted[4]={
                     original[0]+(processed[0]-original[0])*masterOverdrive,
