@@ -236,7 +236,7 @@ for needle in [
     "p.temporalGhost.fieldWeave=clamp01(s.interlace/100.0f);p.temporalGhost.fieldParity=static_cast<int>(p.frame&1);",
     "if(previousInput && (s.temporalGhost>0||s.interlace>0||(s.frameRepeatFrequency>0&&s.frameRepeatStrength>0))",
     "b(s.frameRepeatFrequency,v[43]*100.0f);b(s.frameRepeatStrength,v[44]*100.0f);",
-    "b(s.pyVhsGeneration,1.0f+v[28]*0.8f);b(s.tapeSurface,std::max(v[29],std::max(v[34],v[35]))*100.0f);b(s.tapeWear,v[29]*100.0f);",
+    "b(s.tapeSurface,std::max(v[29],std::max(v[34],v[35]))*100.0f);b(s.tapeWear,v[29]*100.0f);",
     "p.temporalGhost.frameRepeatStrength=clamp01(s.frameRepeatStrength/100.0f);",
     "p.temporalGhost.frame=s.frame;p.temporalGhost.seed=static_cast<std::uint32_t>(std::max(1.0f,s.tapeSeed));",
     "if((s->temporalGhost>0||s->interlace>0||(s->frameRepeatFrequency>0&&s->frameRepeatStrength>0))",
