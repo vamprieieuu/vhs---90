@@ -94,6 +94,18 @@ for layer in (2, 3, 4):
         if token not in SOURCE:
             fail("Tracking layer direction/motion control is not wired: " + token)
 
+# Keep the visible mode menus synchronized with the native engine enums.
+tear_choices = re.search(r'kTearChromaModeChoices\[\]\s*=\s*"([^"]+)"', SOURCE)
+static_choices = re.search(r'kStaticPatternChoices\[\]\s*=\s*"([^"]+)"', SOURCE)
+if not tear_choices or len(tear_choices.group(1).split("|")) != 5:
+    fail("Tear & Chroma must expose exactly five native engine modes.")
+if not static_choices or len(static_choices.group(1).split("|")) != 13:
+    fail("Procedural Static must expose exactly thirteen native engine modes.")
+if 'PF_ADD_POPUP("Tear & Chroma Mode",5,5,kTearChromaModeChoices,ID_TEAR_CHROMA_MODE)' not in setup_body:
+    fail("The five Tear & Chroma modes must remain visible in Effect Controls.")
+if 'PF_ADD_POPUP("Pattern Type",13,2,kStaticPatternChoices,ID_PATTERN_MODE)' not in setup_body:
+    fail("All thirteen procedural static modes must remain visible in Effect Controls.")
+
 for required in [
     'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100',
     'PF_ADD_FLOAT_SLIDERX("Bottom Edge Y",0,100,0,100,100',
