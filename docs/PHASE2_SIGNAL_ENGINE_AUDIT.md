@@ -53,14 +53,16 @@ A UI/source audit was performed for the retired Playback, Decoder, Frame, HUD, P
 - **Decoder:** the old dedicated UI group is absent. The current render path selects Consumer Notch directly; One-Line Comb and Two-Line Comb implementations remain in the core engine but there is no active AE selector. The old popup-choice string and unused RenderSettings field are stale remnants, not a working user control. Do not claim selectable decoder modes until a compatibility-safe UI route is implemented.
 - **Playback / Frame:** there is no separate Playback or Frame group. Previous Frame Ghost is still registered but hidden from Effect Controls; temporal frame-repeat fields are preset-driven and currently have no dedicated visible controls. Geometry / Interlace / Vertical Roll / Scanlines remain in Signal. Treat temporal controls as a future UI decision rather than claiming a complete visible playback panel.
 
-No legacy parameter indices or disk IDs were moved to expose the static controls; only the existing static popup's choice count and appended enum values changed.
+No legacy parameter indices or disk IDs were moved. The Playback & Decoder topic and its three controls were appended after the existing OSD editor using new persistent IDs 356–359; the old Previous Frame Ghost control was only made visible, without changing its index or disk ID. The static popup's original eleven entries remain in order, with two modes appended.
 
 ## Validation still required
 
 - Run the full Linux core suite and Windows x64/MSVC build on this branch.
 - Verify each RF control in isolation and inspect the waveform-path implementation separately from the image-domain path.
+- In After Effects, switch Raster Decoder between Consumer Notch, One-Line Comb and Two-Line Comb and confirm visibly distinct output in Raster NTSC mode; separately confirm the popup is intentionally not used by Full Waveform NTSC.
+- In After Effects, animate Frame Repeat Frequency/Strength and Previous Frame Ghost across several frames; confirm deterministic repeat selection, correct frame checkout, and stable out-of-order/MFR rendering.
 - Audit impulse-noise statistics, dropout density/shape and alpha behavior at multiple resolutions.
 - Trace each Tape Material UI control through `makeTapeSurfaceParams` and the final pixel stage; check that the control response is monotonic and useful.
 - Inspect Analog Glow's horizontal/vertical spread behavior and test against the supplied VHS camera frames.
 - Compare Chroma Subsample and Vertical Chroma at SD, HD and non-4:3 frame sizes.
-- Actual After Effects GUI playback and reference-frame visual matching remain a separate manual validation gate; CI success alone does not establish visual fidelity.
+- Actual After Effects GUI playback, save/reopen, MFR/out-of-order rendering and reference-frame visual matching remain a separate manual validation gate; CI success alone does not establish visual fidelity. Source preset migration is also not fully closed: NTSCRT timeline snapshots, exact VHSPro/VHSCraft parameter tuples, NTSCQT frequency-domain ringing/pre-emphasis, and VHSCraft's distinct Classic/Cinematic paths remain explicitly separate follow-up work.
