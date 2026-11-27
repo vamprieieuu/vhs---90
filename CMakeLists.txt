@@ -221,7 +221,7 @@ if(VHS90_BUILD_AE_PLUGIN)
     if(NOT VHS90_FONT_RESOURCE_RC)
         message(FATAL_ERROR "The two licensed Arabic font files must be present in Resources/Fonts before building the AEX. Run build.ps1 with the original vhs.zip.")
     endif()
-    add_library(VHS90 MODULE Source/VHS90Effect.cpp Source/VHS90Windows/VHS90OsdArbitraryData.cpp "${VHS90_PIPL_RC}" "${VHS90_FONT_RESOURCE_RC}")
+    add_library(VHS90 MODULE Source/VHS90Effect.cpp Source/VHS90Windows/VHS90OsdArbitraryData.cpp Source/VHS90Windows/VHS90OsdTextDialog.cpp resources/VHS90TextEditor.rc "${VHS90_PIPL_RC}" "${VHS90_FONT_RESOURCE_RC}")
     target_link_libraries(VHS90 PRIVATE VHS90Core VHS90DirectWrite)
     target_include_directories(VHS90 PRIVATE
         "${VHS90_AE_HEADERS}"
