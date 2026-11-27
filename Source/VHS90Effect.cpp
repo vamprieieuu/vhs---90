@@ -1218,6 +1218,8 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_2,s.trackingLayerPreset[0]); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_3,s.trackingLayerPreset[1]); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_4,s.trackingLayerPreset[2]); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_PARTICLE_MODE,s.particleMode); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_PARTICLE_DISTRIBUTION,s.particleDistribution); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_TEAR_CHROMA_AMOUNT,tearChromaAmount); READ_FLOAT(PARAM_SPECTRAL_SMEAR,spectralSmear);
     READ_FLOAT(PARAM_SPECTRAL_HUE_SPREAD,spectralHueSpread); READ_FLOAT(PARAM_CHROMA_SATURATION,chromaSaturation);
     READ_FLOAT(PARAM_SPECTRAL_CENTER_Y,spectralCenterY); READ_FLOAT(PARAM_SPECTRAL_COVERAGE,spectralCoverage);
