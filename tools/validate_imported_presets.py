@@ -223,7 +223,7 @@ for needle in [
 
 recipe_start = source.find("static void ApplyVhsStyleRecipe(RenderSettings& s,int styleRecipe)")
 recipe_end = source.find("static constexpr int kLegacyVhsStyleRecipeMap", recipe_start)
-recipe_cases = set(map(int, re.findall(r"case (\\d+):", source[recipe_start:recipe_end])))
+recipe_cases = set(map(int, re.findall(r"case (\d+):", source[recipe_start:recipe_end])))
 assert set(range(2, 73)).issubset(recipe_cases), f"Missing native style recipe cases: {sorted(set(range(2,73))-recipe_cases)}"
 assert "ApplyCratesMasterPreset(s,static_cast<int>(styleRecipe-39));" in source, "Crates presets must use the recovered source-value mapper"
 assert "kCrates[16][44]" in source, "Crates mapper must retain all 16 source looks and 44 mapped source fields"
@@ -234,18 +234,18 @@ assert crates_end > crates_start, "Unterminated Crates source-value table"
 crates_rows = [line for line in source[crates_start:crates_end].splitlines() if line.lstrip().startswith("{")]
 assert len(crates_rows) == 16, f"Crates table must contain 16 source presets, got {len(crates_rows)}"
 assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 44 for line in crates_rows), "Every Crates preset must define all 44 mapped source values"
-legacy_map = re.search(r"kLegacyVhsStyleRecipeMap\\[33\\]=\\s*\\{([^}]+)\\}", source)
+legacy_map = re.search(r"kLegacyVhsStyleRecipeMap\[33\]=\s*\{([^}]+)\}", source)
 assert legacy_map, "Missing legacy VHS style compatibility map"
 legacy_values = [int(x.strip()) for x in legacy_map.group(1).split(",")]
 assert len(legacy_values) == 33 and legacy_values[0] == 0 and legacy_values[1] == 1, "Legacy style map must preserve Custom and all 32 prior popup choices"
 assert legacy_values[2:] == [2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,55,56,58,59,60,61,63,66,67,68,69,72], "Legacy style map must preserve the exact historic source recipe IDs"
-extended_map = re.search(r"kExtendedVhsStyleRecipeMap\\[41\\]=\\s*\\{([^}]+)\\}", source)
+extended_map = re.search(r"kExtendedVhsStyleRecipeMap\[41\]=\s*\{([^}]+)\}", source)
 assert extended_map, "Missing expanded VHS style recipe map"
 extended_values = [int(x.strip()) for x in extended_map.group(1).split(",")]
 assert len(extended_values) == 41 and extended_values[0] == 0, "Expanded style map must contain Custom plus 40 additional recipes"
 assert sorted(extended_values[1:]) == sorted(set(range(2,73))-set(legacy_values[2:])), "Expanded styles must expose every remaining source recipe exactly once"
 assert "ApplyVhsStyleRecipe(s,kExtendedVhsStyleRecipeMap[selected]);" in source, "Expanded style popup must apply the selected native recipe"
-extended_choices = re.search(r'kExtendedVhsStyleChoices\\[\\]\\s*=\\s*"([^"]+)"', source)
+extended_choices = re.search(r'kExtendedVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
 assert extended_choices and len(extended_choices.group(1).split("|")) == 41, "Expanded VHS style popup must retain 41 matching labels"
 assert 'PF_ADD_POPUP("Additional VHS Style Preset",41,1,kExtendedVhsStyleChoices,ID_EXTENDED_VHS_PRESET)' in source, "Expanded style popup count must match its labels"
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
