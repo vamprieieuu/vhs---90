@@ -137,12 +137,14 @@ bool processStaticPattern(ConstImageView src,ImageView dst,
                         chromaQ=(hashCell(cx+13,cy+5,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*2.0f;
                         break;
                     case StaticPatternMode::ColoredSpeckles: {
-                        const float nr=(hashCell(cx+3,cy+7,p.seed+0x243f6a88u,tick)-0.5f)*2.0f;
-                        const float ng=(hashCell(cx+11,cy+19,p.seed+0x85a308d3u,tick)-0.5f)*2.0f;
-                        const float nb=(hashCell(cx+23,cy+5,p.seed+0x13198a2eu,tick)-0.5f)*2.0f;
-                        lumaNoise=((nr+ng+nb)/3.0f)*p.lumaAmount;
-                        chromaI=(nr-ng)*0.5f*p.chromaAmount;
-                        chromaQ=(nb-(nr+ng)*0.5f)*0.5f*p.chromaAmount;
+                        if(hashCell(cx,cy,p.seed+0x243f6a88u,tick)<clamp01(p.density)) {
+                            const float nr=(hashCell(cx+3,cy+7,p.seed+0x243f6a88u,tick)-0.5f)*2.0f;
+                            const float ng=(hashCell(cx+11,cy+19,p.seed+0x85a308d3u,tick)-0.5f)*2.0f;
+                            const float nb=(hashCell(cx+23,cy+5,p.seed+0x13198a2eu,tick)-0.5f)*2.0f;
+                            lumaNoise=((nr+ng+nb)/3.0f)*p.lumaAmount;
+                            chromaI=(nr-ng)*0.5f*p.chromaAmount;
+                            chromaQ=(nb-(nr+ng)*0.5f)*0.5f*p.chromaAmount;
+                        }
                         break;
                     }
                     case StaticPatternMode::VerticalColumns: {
