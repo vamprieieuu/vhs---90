@@ -43,7 +43,11 @@ inline EventState evaluateEvent(const SyncCollapseLabParams& p,double time) noex
     const float sharp=clamp01(p.transitionSharpness);
     const float edge=std::clamp(0.22f-sharp*0.20f,0.008f,0.22f);
     const float envelope=smoothEdge(0.0f,edge,age)*(1.0f-smoothEdge(1.0f-edge,1.0f,age));
-    const bool isBright=hash(int(eventIndex),19,p.seed+0x85ebca6bu,0)>=0.5f;
+    const float eventChoice=hash(int(eventIndex),19,p.seed+0x85ebca6bu,0);
+    const float brightProbability=clamp01(p.brightEventProbability);
+    const float darkProbability=clamp01(p.darkEventProbability);
+    if(eventChoice>=brightProbability+darkProbability) return {};
+    const bool isBright=eventChoice<brightProbability;
     return isBright?EventState{envelope*clamp01(p.brightFlashIntensity),0.0f}
                    :EventState{0.0f,envelope*clamp01(p.darkCollapseIntensity)};
 }
@@ -124,7 +128,7 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
             const bool dropout=p.dropoutsEnabled&&dropoutRow<dropoutDensity*0.24f&&segmentRand>dropoutFragment*0.42f;
             const float dropoutType=hash(segment+17,y/2,p.seed+0x27d4eb2fu,tick);
             const float dropoutStrength=dropout?(dropoutType>0.58f?clamp01(p.streakBrightness):clamp01(p.darkDropoutAmount)):0.0f;
-            const float rowShift=rowShiftBase+rowTear+(dropout?(segmentRand-0.5f)*streakLength*0.65f:0.0f);
+            const float rowShift=rowShiftBase*bandMask+rowTear+(dropout?(segmentRand-0.5f)*streakLength*0.65f:0.0f);
             const float sx=float(x)+rowShift;
             const float sampleA=sample(src,sx,float(y),3);
             float r=sample(src,sx-rgbOffset-bleed*3.0f,float(y),0);
@@ -132,9 +136,10 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
             float b=sample(src,sx+rgbOffset+bleed*3.0f,float(y),2);
             if(p.premultipliedAlpha&&sampleA>1.0e-6f) { r/=sampleA;g/=sampleA;b/=sampleA; }
             else if(p.premultipliedAlpha) r=g=b=0.0f;
-            const float sourceLuma=luma(r,g,b);
             const float generatedBase=0.025f+0.035f*hash(x/8,y/4,p.seed+0x13198a2eu,tick);
-            const float baseLuma=p.inputMode==SyncDamageInputMode::GeneratedSignal?generatedBase:sourceLuma;
+            if(p.inputMode==SyncDamageInputMode::GeneratedSignal) r=g=b=generatedBase;
+            const float sourceLuma=p.inputMode==SyncDamageInputMode::GeneratedSignal?generatedBase:luma(r,g,b);
+            const float baseLuma=sourceLuma;
             const float bandBlend=bandMask*bandDrive*(0.55f+0.45f*tear)*segmentMask;
             float damagedLuma=lerp(baseLuma,bandLevel+localVariation,bandBlend);
             damagedLuma=clamp01(damagedLuma+rowEventLuma);
