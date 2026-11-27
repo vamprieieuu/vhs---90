@@ -360,5 +360,13 @@ int main() {
         q.preEmphasis=0.0f;assert(processNtscQtSignal(si,qz,q));assert(qtZero==src);
         for(int y=0;y<h;++y)for(int x=0;x<w;++x){const size_t k=(size_t(y)*w+x)*4;assert(std::fabs(qtA[k+3]-src[k+3])<1e-6f);}
     }
+
+    // NTSCRT sample-domain VCR record/playback can run as an independent
+    // physical signal stage before NTSC composite modulation.
+    std::vector<float> vcrOnly(src.size());
+    ImageView vcrOnlyView{vcrOnly.data(),w,h,w*4};
+    CompositeParams vcr=p;vcr.compositeSignalStrength=0.0f;vcr.inputBandwidthEnabled=false;vcr.outputBandwidthEnabled=false;
+    vcr.vcrSignalEnabled=true;vcr.vcrSignal.amount=0.6f;vcr.vcrSignal.noise=0.004f;
+    assert(processCompositeRoundTrip(si,vcrOnlyView,vcr));assert(vcrOnly!=src);
     return 0;
 }

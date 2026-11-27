@@ -125,6 +125,34 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             input={prefiltered.data(),w,h,w*4};
         }
 
+
+        std::vector<float> vcrProcessed;
+        if(p.vcrSignalEnabled) {
+            vcrProcessed.resize(count*4);
+            ImageView vcrView{vcrProcessed.data(),w,h,w*4};
+            for(int row=0;row<h;++row) {
+                std::vector<float> lineY(w),lineI(w),lineQ(w),lineSpacing(w,p.vcrSignal.spacingUm);
+                std::vector<float> outY(w),outI(w),outQ(w);
+                for(int x=0;x<w;++x) {
+                    const RGB rgb=readStraight(input,x,row,p.premultipliedAlpha);
+                    const YIQ yiq=rgbToYiq(rgb);
+                    lineY[x]=7.5f+92.5f*yiq.y;lineI[x]=yiq.i;lineQ[x]=yiq.q;
+                }
+                VcrSignalParams vp=p.vcrSignal;vp.lineIndex=row;
+                if(!processVcrSignalLine(lineY.data(),lineI.data(),lineQ.data(),lineSpacing.data(),lineY.size(),vp,
+                                         outY.data(),outI.data(),outQ.data()))return false;
+                for(int x=0;x<w;++x) {
+                    const YIQ yiq{(outY[x]-7.5f)/92.5f,outI[x],outQ[x]};
+                    const RGB rgb=yiqToRgb(yiq);
+                    float* dstPixel=vcrView.rgba+static_cast<std::ptrdiff_t>(row)*vcrView.rowStrideFloats+x*4;
+                    const float* srcPixel=input.rgba+static_cast<std::ptrdiff_t>(row)*input.rowStrideFloats+x*4;
+                    dstPixel[3]=srcPixel[3];
+                    if(p.premultipliedAlpha){dstPixel[0]=rgb.r*dstPixel[3];dstPixel[1]=rgb.g*dstPixel[3];dstPixel[2]=rgb.b*dstPixel[3];}
+                    else{dstPixel[0]=rgb.r;dstPixel[1]=rgb.g;dstPixel[2]=rgb.b;}
+                }
+            }
+            input={vcrProcessed.data(),w,h,w*4};
+        }
         std::vector<float> ntscQtProcessed;
         if(p.ntscQtEnabled) {
             ntscQtProcessed.resize(count*4);
