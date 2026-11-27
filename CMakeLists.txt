@@ -14,6 +14,7 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90CompositeEngine.cpp
     Source/VHS90Core/VHS90SyncEngine.cpp
     Source/VHS90Core/VHS90SyncCollapseLabEngine.cpp
+    Source/VHS90Core/VHS90SnowEngine.cpp
     Source/VHS90Core/VHS90TapeSurfaceEngine.cpp
     Source/VHS90Core/VHS90TapeTransportEngine.cpp
     Source/VHS90Core/VHS90BloomEngine.cpp
@@ -68,7 +69,7 @@ endif()
 
 if(VHS90_BUILD_TESTS)
     enable_testing()
-    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine SyncCollapseLabEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine AnalogGeometryEngine AnalogNoiseEngine RfInstabilityEngine ImpulseNoiseEngine MultipathEchoEngine ReceiverInstabilityEngine ImageGradeEngine TapeDetailEngine ChromaShiftEngine WaveformEngine RingingEngine DropoutEngine SignalGhostEngine AnalogGlowEngine CrtEqualizerEngine TrackReadEngine HeadConditionEngine VcrSignalEngine PhysicalInterferenceEngine OsdEngine OsdTextData OsdLocalization TearChromaEngine)
+    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine SyncCollapseLabEngine SnowEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine AnalogGeometryEngine AnalogNoiseEngine RfInstabilityEngine ImpulseNoiseEngine MultipathEchoEngine ReceiverInstabilityEngine ImageGradeEngine TapeDetailEngine ChromaShiftEngine WaveformEngine RingingEngine DropoutEngine SignalGhostEngine AnalogGlowEngine CrtEqualizerEngine TrackReadEngine HeadConditionEngine VcrSignalEngine PhysicalInterferenceEngine OsdEngine OsdTextData OsdLocalization TearChromaEngine)
         add_executable(VHS90${test_name}Smoke Tests/VHS90${test_name}Smoke.cpp)
         target_link_libraries(VHS90${test_name}Smoke PRIVATE VHS90Core)
         # The smoke tests use assert(); keep those checks active in Release too.
