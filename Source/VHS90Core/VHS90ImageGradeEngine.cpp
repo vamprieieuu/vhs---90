@@ -46,7 +46,7 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
   float lowI1=0.0f,lowI2=0.0f,lowI3=0.0f,lowQ1=0.0f,lowQ2=0.0f,lowQ3=0.0f;
   for(int x=0;x<src.width;++x){const float*px=src.rgba+y*src.rowStrideFloats+x*4;const float a=px[3];float*out=dr+x*4;
    if(a<=1.0e-6f){std::copy_n(px,4,out);continue;}
-   RGB rgb=straightAt(src,x,y,p.premultipliedAlpha);YIQ yiq=rgbToYiq(rgb);
+   RGB rgb=straightAt(src,x,y,p.premultipliedAlpha);rgb.r*=exposure;rgb.g*=exposure;rgb.b*=exposure;YIQ yiq=rgbToYiq(rgb);
    if(edge>0.0f){
     // URP Retro VHS used a blurred reference image for unsharp edge recovery.
     // Use a normalized 3x3 Gaussian reference so sharpening is isotropic and
@@ -74,7 +74,7 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
     yiq.i+=(yiq.i-lowI3)*(0.85f*chromaEdge);
     yiq.q+=(yiq.q-lowQ3)*(0.85f*chromaEdge);
    }
-   yiq.y=(yiq.y*fadeLuma+fadeLift)*exposure;
+   yiq.y=yiq.y*fadeLuma+fadeLift;
    const float pedestal=(46.0f/255.0f)*blackLift; yiq.y=yiq.y*(1.0f-pedestal)+pedestal;
    yiq.i*=fadeSat;yiq.q*=fadeSat;
    yiq.y=(yiq.y-0.5f)*contrast+0.5f+p.brightness;
