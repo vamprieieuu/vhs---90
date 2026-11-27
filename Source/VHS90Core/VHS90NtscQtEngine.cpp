@@ -164,7 +164,11 @@ bool processNtscQtSignal(ConstImageView src,ImageView dst,const NtscQtParams& ra
         }
         for(int row=0;row<h;++row)for(int x=0;x<w;++x) {
             const std::size_t at=static_cast<std::size_t>(row)*w+x;
-            const YIQ original=rgbToYiq({src.rgba[static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4],src.rgba[static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4+1],src.rgba[static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4+2]});
+            const float* sourcePixel=src.rgba+static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4;
+            const float sourceAlpha=sourcePixel[3];
+            RGB sourceRgb{sourcePixel[0],sourcePixel[1],sourcePixel[2]};
+            if(p.premultipliedAlpha&&sourceAlpha>1.0e-8f){sourceRgb.r/=sourceAlpha;sourceRgb.g/=sourceAlpha;sourceRgb.b/=sourceAlpha;}
+            const YIQ original=rgbToYiq(sourceRgb);
             const YIQ result{original.y+(y[at]-original.y)*p.amount,original.i+(i[at]-original.i)*p.amount,original.q+(q[at]-original.q)*p.amount};
             const RGB rgb=yiqToRgb(result);
             const float* original=src.rgba+static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4;

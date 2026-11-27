@@ -50,6 +50,12 @@ if "RenderWorld(*s,inWorld,outWorld,inFmt,previousWorld)" not in smart:
 for token in ("checkout_layer_pixels", "checkout_output", "checkin_layer_pixels"):
     if token not in smart:
         fail("SmartRender checkout/checkin contract missing: " + token)
+for token in ("PARAM_VCR_SIGNAL_ENABLE", "PARAM_VCR_SIGNAL_AMOUNT", "PARAM_NTSCQT_RINGING_ENABLE", "PARAM_NTSCQT_PREEMPHASIS"):
+    if token not in SOURCE:
+        fail("NTSCRT / NTSC-QT controls are not wired through the AE adapter: " + token)
+if "p.vcrSignalEnabled=true" not in SOURCE or "p.ntscQtEnabled=true" not in SOURCE:
+    fail("NTSCRT / NTSC-QT render-stage wiring is missing")
+
 if "PF_OutFlag2_SUPPORTS_THREADED_RENDERING" not in global_setup:
     fail("threaded-rendering flag is missing")
 
