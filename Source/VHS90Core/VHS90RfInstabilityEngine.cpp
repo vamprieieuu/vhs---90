@@ -44,7 +44,9 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
  const float peakDrive=std::clamp((peakLevel-0.96f)/0.26f,0.0f,1.0f);
  const float eventDrive=std::clamp(0.10f+0.52f*brightDrive+0.32f*transDrive+0.28f*peakDrive,0.0f,1.0f);
  const float pulse=std::max(0.0f,std::sin(framePhase*0.47f+0.6f))*(0.78f+0.22f*std::sin(framePhase*0.19f+1.4f));
- const float pump=(0.04f+0.55f*agc)*std::clamp((eventDrive-0.03f)/0.80f,0.0f,1.0f)*pulse;
+ // AGC Pump must be exactly neutral when its own control is zero, even if
+ // Drift, Hum or AM processing activates this shared receiver stage.
+ const float pump=agc*(0.04f+0.55f*agc)*std::clamp((eventDrive-0.03f)/0.80f,0.0f,1.0f)*pulse;
  const float hiKnee=0.50f-0.20f*am,loKnee=0.32f-0.12f*am;
  // AM nonlinearity is a separately controlled stage. A zero AM setting must
  // not impose the old always-on baseline compression while Drift or Hum runs.
