@@ -72,7 +72,7 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
     const float coverage=clamp01(p.fullFrameCoverage),coverageTop=(1.0f-coverage)*0.5f;
     const int bandCount=std::clamp(int(std::lround(p.bandDensity)),1,32);
     const float bandHeight=clamp01(p.bandHeight),irregularity=clamp01(p.bandIrregularity);
-    const float tear=clamp01(p.horizontalTearAmount),bandDrive=clamp01(p.bandIntensity)*effect;
+    const float tear=clamp01(p.horizontalTearAmount),bandDrive=clamp01(p.bandIntensity);
     const float fragmentation=clamp01(p.boundaryFragmentation);
     const float dropoutDensity=p.dropoutsEnabled?clamp01(p.dropoutStreakDensity):0.0f;
     const float dropoutFragment=clamp01(p.horizontalFragmentation);
@@ -84,7 +84,7 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
     const float green=p.chromaEnabled?clamp01(p.subtleChromaTint)*clamp01(p.greenTint):0.0f;
     const float rgbOffset=p.chromaEnabled?std::clamp(p.rgbOffsetPx,0.0f,8.0f):0.0f;
     const float bleed=p.chromaEnabled?clamp01(p.chromaBleed):0.0f;
-    const float framePulse=p.lumaEnabled?(event.bright-event.dark)*clamp01(p.lumaInstability):0.0f;
+    const float framePulse=p.lumaEnabled?(event.bright-event.dark):0.0f;
 
     for(int y=0;y<src.height;++y) {
         const float v=(float(y)+0.5f)/float(src.height);
@@ -110,7 +110,7 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
             bandLevel=(bandIndex&1)==0?brightLevel:darkLevel;
         }
         const float localVariation=(hash(0,y/2,p.seed+0x165667b1u,tick)-0.5f)*clamp01(p.localBandLumaVariation)*0.28f;
-        const float rowEventLuma=framePulse*(0.20f+0.80f*bandMask);
+        const float rowEventLuma=framePulse*(0.20f+0.80f*bandMask)*clamp01(p.lumaInstability);
         const float rowTear=bandMask*displacement*tear*((rowNoise-0.5f)*1.25f+rowWave*0.35f);
         for(int x=0;x<src.width;++x) {
             const float* original=src.rgba+y*src.rowStrideFloats+x*4;
@@ -137,11 +137,11 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
             const float baseLuma=p.inputMode==SyncDamageInputMode::GeneratedSignal?generatedBase:sourceLuma;
             const float bandBlend=bandMask*bandDrive*(0.55f+0.45f*tear)*segmentMask;
             float damagedLuma=lerp(baseLuma,bandLevel+localVariation,bandBlend);
-            damagedLuma=clamp01(damagedLuma+rowEventLuma*clamp01(p.lumaInstability)*effect);
+            damagedLuma=clamp01(damagedLuma+rowEventLuma);
             if(dropout) {
                 const float along=float(x%segmentWidth)/float(segmentWidth);
                 const float edge=std::min(1.0f,std::min(along*5.0f,(1.0f-along)*5.0f));
-                const float dropoutMix=dropoutStrength*edge*effect;
+                const float dropoutMix=dropoutStrength*edge;
                 const float target=dropoutType>0.58f?0.92f:(1.0f-dropoutStrength*0.98f);
                 damagedLuma=lerp(damagedLuma,target,dropoutMix);
             }
