@@ -22,9 +22,9 @@ for raw in enum_match.group(1).split(","):
         enum_items.append(match.group(1))
 if not enum_items or enum_items[0] != "PARAM_INPUT" or enum_items[-1] != "PARAM_COUNT":
     fail("ParamIndex must start with PARAM_INPUT and end with PARAM_COUNT.")
-if enum_items[-14:-11] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
+if enum_items[-15:-12] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
     fail("Ground Loop parameters must remain appended after all legacy AE parameters.")
-if enum_items[-11:-1] != ["PARAM_TRACK_LAYER_MOTION_TOPIC", "PARAM_TRACK_LAYER2_ANGLE", "PARAM_TRACK_LAYER2_MOTION_X", "PARAM_TRACK_LAYER2_MOTION_Y", "PARAM_TRACK_LAYER3_ANGLE", "PARAM_TRACK_LAYER3_MOTION_X", "PARAM_TRACK_LAYER3_MOTION_Y", "PARAM_TRACK_LAYER4_ANGLE", "PARAM_TRACK_LAYER4_MOTION_X", "PARAM_TRACK_LAYER4_MOTION_Y", "PARAM_TRACK_LAYER_MOTION_END"]:
+if enum_items[-12:-1] != ["PARAM_TRACK_LAYER_MOTION_TOPIC", "PARAM_TRACK_LAYER2_ANGLE", "PARAM_TRACK_LAYER2_MOTION_X", "PARAM_TRACK_LAYER2_MOTION_Y", "PARAM_TRACK_LAYER3_ANGLE", "PARAM_TRACK_LAYER3_MOTION_X", "PARAM_TRACK_LAYER3_MOTION_Y", "PARAM_TRACK_LAYER4_ANGLE", "PARAM_TRACK_LAYER4_MOTION_X", "PARAM_TRACK_LAYER4_MOTION_Y", "PARAM_TRACK_LAYER_MOTION_END"]:
     fail("Tracking layer direction/motion parameters must be appended after legacy AE parameters.")
 expected_params = enum_items[1:-1]
 
