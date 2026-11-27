@@ -136,6 +136,26 @@ bool processStaticPattern(ConstImageView src,ImageView dst,
                         chromaI=(hashCell(cx+7,cy+3,p.seed+0x51ed270bu,tick)-0.5f)*p.chromaAmount*2.0f;
                         chromaQ=(hashCell(cx+13,cy+5,p.seed+0x94d049bbu,tick)-0.5f)*p.chromaAmount*2.0f;
                         break;
+                    case StaticPatternMode::ColoredSpeckles: {
+                        const float nr=(hashCell(cx+3,cy+7,p.seed+0x243f6a88u,tick)-0.5f)*2.0f;
+                        const float ng=(hashCell(cx+11,cy+19,p.seed+0x85a308d3u,tick)-0.5f)*2.0f;
+                        const float nb=(hashCell(cx+23,cy+5,p.seed+0x13198a2eu,tick)-0.5f)*2.0f;
+                        lumaNoise=((nr+ng+nb)/3.0f)*p.lumaAmount;
+                        chromaI=(nr-ng)*0.5f*p.chromaAmount;
+                        chromaQ=(nb-(nr+ng)*0.5f)*0.5f*p.chromaAmount;
+                        break;
+                    }
+                    case StaticPatternMode::VerticalColumns: {
+                        const int column=x/cell;
+                        const int segment=y/streak;
+                        const float event=hashCell(column,segment,p.seed+0x243f6a88u,tick);
+                        if(event<clamp01(p.density)) {
+                            lumaNoise=(hashCell(column+5,segment+13,p.seed+0xb7e15162u,tick)-0.5f)*2.0f*p.lumaAmount;
+                            chromaI=(hashCell(column+11,segment+3,p.seed+0x51ed270bu,tick)-0.5f)*2.0f*p.chromaAmount;
+                            chromaQ=(hashCell(column+19,segment+7,p.seed+0x94d049bbu,tick)-0.5f)*2.0f*p.chromaAmount;
+                        }
+                        break;
+                    }
                     case StaticPatternMode::MonochromeStreaks:
                         lumaNoise=horizontal*p.lumaAmount;
                         break;
