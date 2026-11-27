@@ -46,7 +46,9 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
  const float pulse=std::max(0.0f,std::sin(framePhase*0.47f+0.6f))*(0.78f+0.22f*std::sin(framePhase*0.19f+1.4f));
  const float pump=(0.04f+0.55f*agc)*std::clamp((eventDrive-0.03f)/0.80f,0.0f,1.0f)*pulse;
  const float hiKnee=0.50f-0.20f*am,loKnee=0.32f-0.12f*am;
- const float hiComp=0.15f+0.65f*am,loComp=0.18f+0.70f*am;
+ // AM nonlinearity is a separately controlled stage. A zero AM setting must
+ // not impose the old always-on baseline compression while Drift or Hum runs.
+ const float hiComp=0.80f*am,loComp=0.88f*am;
  for(int y=0;y<src.height;++y) {
   const float paired=float(std::min(y,(y+src.height/2)%src.height));
   const float lineGain=globalGain+0.075f*drift*std::sin(framePhase*0.61f+0.031f*paired);
@@ -79,8 +81,10 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
     luma=p.blackPedestal+centered;
    }
    float v=luma-p.blackPedestal;
-   if(v>hiKnee){const float over=v-hiKnee;v=hiKnee+over/(1.0f+hiComp*over);}
-   else if(v< -loKnee){const float under=-loKnee-v;v=-loKnee-under/(1.0f+loComp*under);}
+   if(am>0.0f) {
+    if(v>hiKnee){const float over=v-hiKnee;v=hiKnee+over/(1.0f+hiComp*over);}
+    else if(v< -loKnee){const float under=-loKnee-v;v=-loKnee-under/(1.0f+loComp*under);}
+   }
    yiq.y=p.blackPedestal+v;
    rgb=yiqToRgb(yiq);if(p.premultipliedAlpha){rgb.r*=alpha;rgb.g*=alpha;rgb.b*=alpha;}
    float*out=dr+x*4;out[0]=rgb.r;out[1]=rgb.g;out[2]=rgb.b;out[3]=alpha;
