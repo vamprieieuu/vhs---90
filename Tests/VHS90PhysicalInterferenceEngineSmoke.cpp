@@ -24,6 +24,11 @@ int main() {
     assert(vhs90::magneticTapeEraseFraction(p)>=0.0f &&
            vhs90::magneticTapeEraseFraction(p)<=1.0f);
 
+    p={}; p.mainsHumAmount=0.8f;
+    assert(vhs90::processPhysicalInterference(in,out,p));
+    assert(dst!=src); // Mains Hum works without enabling Ground Loop.
+    for (float v:dst) assert(std::isfinite(v));
+
     p={}; p.mainsHumAmount=0.8f; p.groundLoopMillivolts=350.0f;
     assert(vhs90::processPhysicalInterference(in,out,p));
     assert(dst!=src);
