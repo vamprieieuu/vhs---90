@@ -88,7 +88,7 @@ int main() {
         std::vector<float> visual(static_cast<std::size_t>(w)*h*4,0.0f);
         for(std::size_t i=3;i<visual.size();i+=4)visual[i]=1.0f;
         DirectWriteTextOptions line;
-        line.x=14;line.fontSize=26;line.fontWeight=600;line.direction=TextDirection::Auto;
+        line.x=20;line.maxWidth=580;line.maxHeight=42;line.fontSize=26;line.fontWeight=600;line.direction=TextDirection::Auto;
         line.utf8FontFamily="Segoe UI";line.utf8Text=u8"VHS-90 | REC  PLAY  STOP  REW  FF  SP";
         line.y=10;assert(drawDirectWriteText({visual.data(),w,h,w*4},line).rendered);
         line.utf8Text=u8"السَّلَامُ عَلَيْكُمْ ١٢٣  |  VHS-90";
