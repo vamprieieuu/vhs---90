@@ -38,14 +38,18 @@ assert len(disk_ids) == len(set(disk_ids)), "Duplicate ParamDiskID"
 assert len(registered_ids) == len(disk_ids), (
     f"UI registration count mismatch: {len(registered_ids)} vs {len(disk_ids)}"
 )
-# Grain is a newly introduced topic. Its disk ID is deliberately appended
-# to ParamDiskID so no existing serialized ID is renumbered, while its UI topic
-# is placed beside the Grain controls. Compare all legacy IDs in their original
-# order, and validate the appended topic exactly once.
+# ParamDiskID values are persistent serialized IDs; their enum declaration
+# order is deliberately independent from the visible AE parameter order.
+# This permits grouping/reordering UI controls without changing saved projects.
 assert registered_ids.count("ID_GRAIN_TOPIC") == 1, "Grain topic disk ID must be registered exactly once"
-assert [item for item in registered_ids if item != "ID_GRAIN_TOPIC"] == [
-    item for item in disk_ids if item != "ID_GRAIN_TOPIC"
-], "Legacy PF_ADD registration order differs from ParamDiskID order"
+assert len(registered_ids) == len(set(registered_ids)), "Duplicate registered disk ID"
+assert set(registered_ids) == set(disk_ids), "Registered UI disk IDs differ from the persistent ParamDiskID set"
+disk_values = []
+for item in enum_values("ParamDiskID"):
+    match = re.match(r"(ID_[A-Z0-9_]+)\\s*=\\s*(\\d+)", item.strip())
+    assert match, f"ParamDiskID must use explicit stable numeric values: {item}"
+    disk_values.append(int(match.group(2)))
+assert len(disk_values) == len(set(disk_values)), "Duplicate persistent ParamDiskID numeric value"
 
 # Confirm the new UI controls are read in SmartFX and legacy paths.
 required_reads = [
