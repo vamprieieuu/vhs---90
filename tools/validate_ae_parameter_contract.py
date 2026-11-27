@@ -46,7 +46,9 @@ if any(macro == "PF_ADD_LAYER" for macro, _ in calls):
     fail("Do not add a second Source layer: AE already supplies PARAM_INPUT at index 0.")
 
 end_map = {
-    "ID_SIGNAL_TOPIC": "PARAM_SIGNAL_END", "ID_STATIC_TOPIC": "PARAM_STATIC_END",
+    "ID_SIGNAL_TOPIC": "PARAM_SIGNAL_END", "ID_RINGING_TOPIC": "PARAM_RINGING_END",
+    "ID_GLOW_TOPIC": "PARAM_GLOW_END", "ID_GENERAL_TOPIC": "PARAM_GENERAL_END",
+    "ID_CHROMA_TOPIC": "PARAM_CHROMA_END", "ID_STATIC_TOPIC": "PARAM_STATIC_END",
     "ID_TRACKING_TOPIC": "PARAM_TRACKING_END", "ID_HEAD_TOPIC": "PARAM_HEAD_END",
     "ID_TAPE_MATERIAL_TOPIC": "PARAM_TAPE_MATERIAL_END", "ID_PHYSICAL_TOPIC": "PARAM_PHYSICAL_END",
     "ID_PYVHS_TOPIC": "PARAM_PYVHS_END", "ID_OSD_TOPIC": "PARAM_OSD_END",
@@ -62,6 +64,9 @@ end_map = {
     "ID_TEAR_BAND5_TOPIC": "PARAM_TEAR_BAND5_END", "ID_OSD_LAYOUT_TOPIC": "PARAM_OSD_LAYOUT_END",
     "ID_OSD_COUNTER_TOPIC": "PARAM_OSD_COUNTER_END", "ID_OSD_LOCALIZATION_TOPIC": "PARAM_OSD_LOCALIZATION_END",
     "ID_OSD_WORDS_TOPIC": "PARAM_OSD_WORDS_END", "ID_GRAIN_TOPIC": "PARAM_GRAIN_END",
+    "ID_TAPE_SURFACE_DETAIL_TOPIC": "PARAM_TAPE_SURFACE_DETAIL_END",
+    "ID_OSD_TEXT_EDIT_TOPIC": "PARAM_OSD_TEXT_EDIT_END",
+    "ID_PLAYBACK_TOPIC": "PARAM_PLAYBACK_END",
 }
 aliases = {
     "ID_COMPOSITE": "PARAM_COMPOSITE_AMOUNT", "ID_SYNC": "PARAM_SYNC_AMOUNT",
@@ -135,5 +140,18 @@ if unwired:
 
 if "if(s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0)" not in SOURCE:
     fail("AGC Pump must activate the standalone RF instability stage even when used alone.")
+if "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb" not in SOURCE:
+    fail("Raster Decoder popup must reach the composite demodulator.")
+if "p.demodulator=CompositeDemodulator::ConsumerNotch;" in SOURCE:
+    fail("A hard-coded Consumer Notch assignment must not override the Raster Decoder popup.")
+for required in [
+    'PF_ADD_POPUP("Raster Decoder",3,1,kCompositeDecoderChoices,ID_DECODER_MODE)',
+    'PF_ADD_FLOAT_SLIDERX("Frame Repeat Frequency"',
+    'PF_ADD_FLOAT_SLIDERX("Frame Repeat Strength"',
+    'READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency)',
+    'READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength)',
+]:
+    if required not in SOURCE:
+        fail("Missing visible Playback/Decoder control or render mapping: " + required)
 
 print(f"AE host contract OK: {len(actual_params)} registered parameters + implicit input, exact enum order, PARAM_COUNT, CUSTOM_UI flags, and VHS6RIFT-compatible legacy render flags.")

@@ -43,14 +43,20 @@ bool processChromaChannelShift(ConstImageView src,ImageView dst,const ChromaChan
  return true;
 }
 bool processRgbChannelRegistration(ConstImageView src,ImageView dst,const RgbChannelRegistrationParams&p) noexcept {
- if(!valid(src,dst)||!std::isfinite(p.redOffsetPixels)||!std::isfinite(p.blueOffsetPixels))return false;
- const float ro=std::clamp(p.redOffsetPixels,-64.0f,64.0f),bo=std::clamp(p.blueOffsetPixels,-64.0f,64.0f);
- if(std::abs(ro)<1.0e-6f&&std::abs(bo)<1.0e-6f){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
+ if(!valid(src,dst)||!std::isfinite(p.redOffsetPixels)||!std::isfinite(p.greenOffsetPixels)||!std::isfinite(p.blueOffsetPixels))return false;
+ float ro=std::clamp(p.redOffsetPixels,-64.0f,64.0f),go=std::clamp(p.greenOffsetPixels,-64.0f,64.0f),bo=std::clamp(p.blueOffsetPixels,-64.0f,64.0f);
+ switch(p.mode){
+  case RgbRegistrationMode::RedCyan: go=0.0f;bo=0.0f;break;
+  case RgbRegistrationMode::GreenMagenta: ro=0.0f;bo=0.0f;break;
+  case RgbRegistrationMode::BlueYellow: ro=0.0f;go=0.0f;break;
+  default: break;
+ }
+ if(std::abs(ro)<1.0e-6f&&std::abs(go)<1.0e-6f&&std::abs(bo)<1.0e-6f){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
  for(int y=0;y<src.height;++y){const float* sr=src.rgba+y*src.rowStrideFloats;float* dr=dst.rgba+y*dst.rowStrideFloats;
   for(int x=0;x<src.width;++x){const float* px=sr+x*4;float* out=dr+x*4;const float alpha=px[3];
    if(alpha<=1.0e-6f){std::copy_n(px,4,out);continue;}
    out[0]=sampleChannel(src,y,float(x)+ro,0,p.premultipliedAlpha,alpha);
-   out[1]=px[1];
+   out[1]=sampleChannel(src,y,float(x)+go,1,p.premultipliedAlpha,alpha);
    out[2]=sampleChannel(src,y,float(x)+bo,2,p.premultipliedAlpha,alpha);
    out[3]=alpha;
   }

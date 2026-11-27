@@ -15,7 +15,9 @@ enum class StaticPatternMode : std::uint8_t {
     DarkFieldLumaStreaks = 7,
     MultiPhaseGreenLine = 8,
     TwoStageAngularRibbon = 9,
-    DiagonalSyncCollapse = 10
+    DiagonalSyncCollapse = 10,
+    ColoredSpeckles = 11,
+    VerticalColumns = 12
 };
 
 struct StaticParams {

@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - work/osd-directwrite-integration-map
+      - phase1-ui-signal-rebuild-2026-11-27
+      - phase2-signal-engine-audit-2026-11-27
       - main
       - build-on-main
   pull_request:
@@ -64,6 +66,13 @@ jobs:
           if ($item.Length -lt 65536) { throw "AEX is unexpectedly small ($($item.Length) bytes)." }
           Write-Host "AEX_READY=$($item.FullName)"
           Write-Host "AEX_SIZE=$($item.Length)"
+
+      - name: Upload direct AEX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VHS-90.aex
+          path: build/VHS-90.aex
+          if-no-files-found: error
 
       - name: Publish direct AEX download
         if: github.event_name != 'pull_request'

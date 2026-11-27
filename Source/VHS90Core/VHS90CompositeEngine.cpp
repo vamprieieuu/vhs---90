@@ -52,16 +52,8 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
         std::vector<float> tapeDamaged;
         std::vector<float> prefiltered;
         ConstImageView input=src;
-        std::vector<float> pyVhsGenerated;
-        if(p.pyVhsGenerationEnabled) {
-            pyVhsGenerated.resize(count*4);
-            ImageView pyVhsView{pyVhsGenerated.data(),w,h,w*4};
-            PyVhsGenerationParams vp=p.pyVhsGeneration;
-            vp.premultipliedAlpha=p.premultipliedAlpha;
-            vp.frame=p.frame;
-            if(!processPyVhsGeneration(input,pyVhsView,vp)) return false;
-            input={pyVhsGenerated.data(),w,h,w*4};
-        }
+
+        
         if(p.geometryEnabled) {
             geometricallyWarped.resize(count*4);
             ImageView geometryView{geometricallyWarped.data(),w,h,w*4};

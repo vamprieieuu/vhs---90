@@ -25,7 +25,7 @@ bool processAnalogGlow(ConstImageView src,ImageView dst,const AnalogGlowParams&p
   for(float&v:weights)v/=sum;
   std::vector<RGBf> masked(n),blurred(n),rowBuffer;rowBuffer.resize(static_cast<std::size_t>(w));
   for(int y=0;y<h;++y)for(int x=0;x<w;++x){const float*px=src.rgba+y*src.rowStrideFloats+x*4;const float a=px[3];float r=px[0],g=px[1],b=px[2];if(p.premultipliedAlpha&&a>1e-6f){r/=a;g/=a;b/=a;}
-   const float lum=.299f*r+.587f*g+.114f*b;const float mask=std::clamp((lum-.5294118f)/.4705882f,0.0f,1.0f);
+   const float lum=.299f*r+.587f*g+.114f*b;const float mask=std::clamp((lum-.42f)/.58f,0.0f,1.0f);
    masked[std::size_t(y)*w+x]={r*mask,g*mask,b*mask};
   }
   for(int y=0;y<h;++y){

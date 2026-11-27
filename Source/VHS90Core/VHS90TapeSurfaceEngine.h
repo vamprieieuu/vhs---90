@@ -44,6 +44,7 @@ struct TapeMaterialControls {
     float master=0.0f;
     float wear=100.0f, dropouts=100.0f, scratches=100.0f, creases=100.0f, edgeDamage=100.0f;
     float mold=100.0f, vaseline=100.0f, sticky=100.0f;
+    float surfaceRoughness=0.0f, pinholes=0.0f, flakes=0.0f;
     std::uint32_t cassetteSeed=1u, tapeSpeed=0u;
     float trackingOffsetTracks=0.0f;
     std::int64_t frame=0;

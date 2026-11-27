@@ -1,0 +1,3 @@
+#pragma once
+#define IDD_VHS90_OSD_TEXT_EDITOR 4100
+#define IDC_VHS90_OSD_TEXT_EDIT 4101

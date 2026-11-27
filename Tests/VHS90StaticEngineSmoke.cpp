@@ -64,6 +64,19 @@ int main() {
     }
     for(int i=0;i<4;++i) for(int j=i+1;j<4;++j) assert(patternOutputs[i]!=patternOutputs[j]);
 
+    // Particle-pattern modes are folded into the shared Static engine so no
+    // separate/duplicate Particle UI group is required.
+    std::vector<float> colored(src.size()), columns(src.size()), coloredAgain(src.size()), columnsAgain(src.size());
+    StaticParams pc=p; pc.mode=StaticPatternMode::ColoredSpeckles; pc.sourceMix=1.0f;
+    pc.density=0.9f; pc.lumaAmount=0.9f; pc.chromaAmount=0.85f; pc.frame=23;
+    ImageView pcv{colored.data(),w,h,w*4}, pcav{coloredAgain.data(),w,h,w*4};
+    assert(processStaticPattern(si,pcv,pc)); assert(processStaticPattern(si,pcav,pc));
+    assert(colored==coloredAgain); assert(colored!=src);
+    StaticParams pv=pc; pv.mode=StaticPatternMode::VerticalColumns; pv.streakLengthPx=15.0f;
+    ImageView pvv{columns.data(),w,h,w*4}, pvav{columnsAgain.data(),w,h,w*4};
+    assert(processStaticPattern(si,pvv,pv)); assert(processStaticPattern(si,pvav,pv));
+    assert(columns==columnsAgain); assert(columns!=src); assert(columns!=colored);
+
     std::vector<float> black(src.size()); ImageView dblack{black.data(),w,h,w*4};
     StaticParams pb; pb.mode=StaticPatternMode::StaticToBlackout; pb.sourceMix=0.0f;
     pb.blackoutProbability=1.0f; pb.baseLuma=0.2f; pb.frame=2;

@@ -6,6 +6,10 @@ import sys
 
 root = Path(__file__).resolve().parents[1]
 source = (root / "Source/VHS90Effect.cpp").read_text(encoding="utf-8")
+sync_engine = (root / "Source/VHS90Core/VHS90SyncEngine.cpp").read_text(encoding="utf-8")
+grade_engine = (root / "Source/VHS90Core/VHS90ImageGradeEngine.cpp").read_text(encoding="utf-8")
+rf_engine = (root / "Source/VHS90Core/VHS90RfInstabilityEngine.cpp").read_text(encoding="utf-8")
+physical_engine = (root / "Source/VHS90Core/VHS90PhysicalInterferenceEngine.cpp").read_text(encoding="utf-8")
 
 def enum_values(name):
     match = re.search(r"enum\s+" + re.escape(name) + r"\s*\{([\s\S]*?)\};", source)
@@ -38,27 +42,34 @@ assert len(disk_ids) == len(set(disk_ids)), "Duplicate ParamDiskID"
 assert len(registered_ids) == len(disk_ids), (
     f"UI registration count mismatch: {len(registered_ids)} vs {len(disk_ids)}"
 )
-# Grain is a newly introduced topic. Its disk ID is deliberately appended
-# to ParamDiskID so no existing serialized ID is renumbered, while its UI topic
-# is placed beside the Grain controls. Compare all legacy IDs in their original
-# order, and validate the appended topic exactly once.
+# Persistent disk IDs are explicit and independent of UI order. This allows
+# the visible groups to be reorganized without renumbering saved projects.
 assert registered_ids.count("ID_GRAIN_TOPIC") == 1, "Grain topic disk ID must be registered exactly once"
-assert [item for item in registered_ids if item != "ID_GRAIN_TOPIC"] == [
-    item for item in disk_ids if item != "ID_GRAIN_TOPIC"
-], "Legacy PF_ADD registration order differs from ParamDiskID order"
+assert len(registered_ids) == len(set(registered_ids)), "Duplicate registered disk ID"
+assert set(registered_ids) == set(disk_ids), "Registered UI disk IDs differ from persistent ParamDiskID set"
+disk_values = []
+for item in enum_values("ParamDiskID"):
+    parts = item.strip().split("=", 1)
+    assert len(parts) == 2 and parts[0].startswith("ID_") and parts[1].strip().isdigit(), (
+        f"ParamDiskID must use explicit stable numeric values: {item}"
+    )
+    disk_values.append(int(parts[1].strip()))
+assert len(disk_values) == len(set(disk_values)), "Duplicate persistent ParamDiskID numeric value"
 
 # Confirm the new UI controls are read in SmartFX and legacy paths.
 required_reads = [
     "CheckoutPopup(in_data,PARAM_VHS_STYLE,s.vhsStyle)",
     "CheckoutPopup(in_data,PARAM_CAMERA_PROFILE,s.cameraProfile)",
     "CheckoutPopup(in_data,PARAM_NTSCRS_LOOK,s.ntscRsLook)",
-    "CheckoutPopup(in_data,PARAM_COMPOSITE_DECODER,s.compositeDecoder)",
     "CheckoutPopup(in_data,PARAM_TRACKING_PROFILE,s.trackingProfile)",
     "CheckoutPopup(in_data,PARAM_TRACKING_PRESET_BASE,s.trackingPresetBase)",
     "CheckoutPopup(in_data,PARAM_TRACKING_PRESET_2,s.trackingLayerPreset[0])",
     "CheckoutPopup(in_data,PARAM_TRACKING_PRESET_3,s.trackingLayerPreset[1])",
     "CheckoutPopup(in_data,PARAM_TRACKING_PRESET_4,s.trackingLayerPreset[2])",
     "CheckoutPopup(in_data,PARAM_PATTERN_MODE,s.staticMode)",
+    "CheckoutPopup(in_data,PARAM_DECODER_MODE,s.compositeDecoder)",
+    "READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency)",
+    "READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength)",
     "READ_FLOAT(PARAM_PATTERN_ANGLE,staticAngle)",
     "READ_FLOAT(PARAM_PATTERN_WIDTH,staticRibbonWidth)",
     "READ_FLOAT(PARAM_PATTERN_GREEN,staticGreenLine)",
@@ -95,18 +106,6 @@ required_reads = [
     "READ_FLOAT(PARAM_TEAR_BAND5_CHROMA,tearBandChroma[3])",
     "READ_FLOAT(PARAM_TEAR_BAND5_SMEAR,tearBandSmear[3])",
     "READ_FLOAT(PARAM_TEAR_BAND5_DROPOUT,tearBandDropout[3])",
-    "CheckoutPopup(in_data,PARAM_PARTICLE_MODE,s.particleMode)",
-    "CheckoutPopup(in_data,PARAM_PARTICLE_DISTRIBUTION,s.particleDistribution)",
-    "READ_FLOAT(PARAM_PARTICLE_AMOUNT,particleAmount)",
-    "READ_FLOAT(PARAM_PARTICLE_DENSITY,particleDensity)",
-    "READ_FLOAT(PARAM_PARTICLE_SIZE,particleSize)",
-    "READ_FLOAT(PARAM_PARTICLE_LENGTH,particleLength)",
-    "READ_FLOAT(PARAM_PARTICLE_CHROMA,particleChroma)",
-    "READ_FLOAT(PARAM_PARTICLE_SPEED,particleSpeed)",
-    "READ_FLOAT(PARAM_PARTICLE_SEED,particleSeed)",
-    "READ_FLOAT(PARAM_PARTICLE_SOURCE_MIX,particleSourceMix)",
-    "READ_FLOAT(PARAM_PARTICLE_BRIGHTNESS,particleBrightness)",
-    "READ_FLOAT(PARAM_PARTICLE_CONTRAST,particleContrast)",
     "CheckoutPopup(in_data,PARAM_TEAR_CHROMA_MODE,s.tearChromaMode)",
     "READ_FLOAT(PARAM_TEAR_CHROMA_AMOUNT,tearChromaAmount)",
     "READ_FLOAT(PARAM_SPECTRAL_SMEAR,spectralSmear)",
@@ -138,26 +137,15 @@ required_reads = [
     "READ_FLOAT(PARAM_TRACK_LAYER4_Y,trackingLayerY[2])",
     "CheckoutPopup(in_data,PARAM_TRACK_LAYER4_PROFILE,s.trackingLayerProfile[2])",
     "CheckoutPopup(in_data,PARAM_TRACK_LAYER4_SHAPE,s.trackingLayerShape[2])",
-    "CheckoutCheckbox(in_data,PARAM_VHS_43_FRAME,s.vhs43Frame)",
-    "READ_FLOAT(PARAM_ROUNDED_OVERSCAN,roundedOverscan)",
-    "READ_FLOAT(PARAM_LENS_DISTORTION,lensDistortion)",
-    "READ_FLOAT(PARAM_DIGITAL_ZOOM,digitalZoom)",
-    "READ_FLOAT(PARAM_OSD_BATTERY,osdBattery)",
-    "READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency)",
-    "READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength)",
     "READ_FLOAT(PARAM_CHROMA_REG_RED,redChannelOffset)",
+    "READ_FLOAT(PARAM_CHROMA_REG_GREEN,greenChannelOffset)",
     "READ_FLOAT(PARAM_CHROMA_REG_BLUE,blueChannelOffset)",
+    "CheckoutPopup(in_data,PARAM_CHROMA_REG_MODE,s.chromaRegMode)",
     "READ_FLOAT(PARAM_VHS_STYLE_INTENSITY,vhsStyleIntensity)",
     "READ_FLOAT(PARAM_CAMERA_INTENSITY,cameraIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_INTENSITY,ntscRsIntensity)",
     "READ_FLOAT(PARAM_NTSCRS_PHASE_NOISE,ntscRsPhaseNoise)",
     "READ_FLOAT(PARAM_SIGNAL_HUE_NOISE,signalHueNoise)",
-    "READ_FLOAT(PARAM_DEVICE_CONNECTION_AMOUNT,deviceConnectionAmount)",
-    "READ_FLOAT(PARAM_DEVICE_CONNECTION_DENSITY,deviceConnectionDensity)",
-    "READ_FLOAT(PARAM_DEVICE_CONNECTION_SIZE,deviceConnectionSize)",
-    "READ_FLOAT(PARAM_DEVICE_CONNECTION_SPEED,deviceConnectionSpeed)",
-    "READ_FLOAT(PARAM_DEVICE_CONNECTION_DISTRIBUTION,deviceConnectionDistribution)",
-    "READ_FLOAT(PARAM_DEVICE_CONNECTION_SEED,deviceConnectionSeed)",
     "READ_FLOAT(PARAM_VHS6RIFT_GRAIN,vhs6RiftGrain)",
     "READ_FLOAT(PARAM_VHS6RIFT_GRAIN_SIZE,vhs6RiftGrainSize)",
     "READ_FLOAT(PARAM_VHS6RIFT_NOISE_DETAIL,vhs6RiftNoiseDetail)",
@@ -187,54 +175,48 @@ for needle in [
     "p.analogNoise.shadowBias=clamp01(s.vhs6RiftShadowBias/100.0f);",
     "p.analogNoise.noiseDetail=clamp01(s.vhs6RiftNoiseDetail/100.0f);",
     "p.analogNoise.hueNoiseAmount=clamp01(s.signalHueNoise/100.0f);",
-    "dp.amount=clamp01(s.deviceConnectionAmount/100.0f*master);",
-    "dp.seed=static_cast<std::uint32_t>(std::clamp(std::lround(s.deviceConnectionSeed),1l,32767l));",
     "s.signalHueNoise>0",
-    "processDeviceConnections(in,out,dp)",
     "p.geometry.edgeWaveFrequency=s.edgeWaveFrequency",
     "p.imageGrade.chromaEdgeEnhancement=clamp01(s.chromaEdgeEnhance/100.0f);",
     "p.imageGrade.chromaSharpenCutoffHz=s.tapeSpeed==3?560000.0f:(s.tapeSpeed==2?600000.0f:640000.0f);",
     "p.imageGrade.chromaIGain=s.chromaIGain/100.0f;p.imageGrade.chromaQGain=s.chromaQGain/100.0f;",
     "p.imageGrade.chromaIOffset=s.chromaIOffset/200.0f;p.imageGrade.chromaQOffset=s.chromaQOffset/200.0f;",
-    "p.imageGrade.chromaQuantization=s.chromaQuantization/400.0f;",
+    "p.imageGrade.chromaQuantization=s.chromaQuantization/2000.0f;",
     "rp.redOffsetPixels=s.redChannelOffset*master/100.0f;",
+    "rp.greenOffsetPixels=s.greenChannelOffset*master/100.0f;",
     "rp.blueOffsetPixels=s.blueChannelOffset*master/100.0f;",
+    "rp.mode=static_cast<RgbRegistrationMode>(std::clamp<A_long>(s.chromaRegMode-1,0,3));",
     "processRgbChannelRegistration(in,out,rp)",
     "r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingProfile-1,0,4));",
     "ApplyTrackingRecipe(r,s.trackingPresetBase);",
     "ApplyTrackingRecipe(r,s.trackingLayerPreset[0]);",
     "ApplyTrackingRecipe(r,s.trackingLayerPreset[1]);",
     "ApplyTrackingRecipe(r,s.trackingLayerPreset[2]);",
-    "p.mode=static_cast<StaticPatternMode>(std::clamp<A_long>(s.staticMode-1,0,10));",
+    "p.mode=static_cast<StaticPatternMode>(std::clamp<A_long>(s.staticMode-1,0,12));",
     "p.greenLineAmount=clamp01(s.staticGreenLine/100.0f);",
     "baseBand.centerY=clamp01((s.tearBandStartY+s.tearBandHeight*0.5f)/100.0f);",
     "b.intensity=clamp01(s.tearBandAmount[li]/100.0f);",
     "DamageRegion regions[5]; std::size_t count=0;",
     "r.seedOffset=0x1000u;",
-    "pp.mode=static_cast<ParticlePatternMode>(std::clamp<A_long>(s.particleMode-1,0,4));",
-    "pp.distribution=static_cast<ParticleDistribution>(std::clamp<A_long>(s.particleDistribution-1,0,4));",
-    "processParticlePattern(in,out,pp)",
     "tp.mode=static_cast<TearChromaMode>(std::clamp<A_long>(s.tearChromaMode-1,0,4));",
     "processTearChroma(in,out,tp)",
-    "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
     "p.geometry.vhs43Frame=s.vhs43Frame!=0;p.geometry.lensDistortion=s.lensDistortion/1000.0f;",
     "p.geometry.roundedOverscan=clamp01(s.roundedOverscan/100.0f);",
     "op.batteryAmount=clamp01(s.osdBattery/100.0f);op.showBattery=s.osdBattery>0.0f;",
     "b(s.osdPlay,v[36]>0.5f?100.0f:0.0f);b(s.osdTimestamp,v[36]>0.5f?100.0f:0.0f);b(s.osdBattery,v[36]>0.5f?75.0f:0.0f);",
     "||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f",
     "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
-    "bi(s.compositeDecoder,1);b(s.composite,100);b(s.lumaNoise,v[0]*100);",
+    "p.inputBandwidth.lumaCutoffHz=blendCutoff(4200000.0f,tapeBandwidth.lumaCutoffHz);",
+    "p.outputBandwidth.lumaCutoffHz=blendCutoff(4200000.0f,tapeBandwidth.lumaCutoffHz*0.90f);",
     "kLostSignalProfiles[13][45]",
     "b(s.lensDistortion,v[39]*1000.0f);bi(s.vhs43Frame,v[40]>0.5f?1.0f:0.0f);",
     "p.temporalGhost.frameRepeatFrequency=clamp01(s.frameRepeatFrequency/100.0f);",
     "p.temporalGhost.fieldWeave=clamp01(s.interlace/100.0f);p.temporalGhost.fieldParity=static_cast<int>(p.frame&1);",
     "if(previousInput && (s.temporalGhost>0||s.interlace>0||(s.frameRepeatFrequency>0&&s.frameRepeatStrength>0))",
     "b(s.frameRepeatFrequency,v[43]*100.0f);b(s.frameRepeatStrength,v[44]*100.0f);",
-    "b(s.pyVhsGeneration,1.0f+v[28]*0.8f);b(s.tapeSurface,std::max(v[29],std::max(v[34],v[35]))*100.0f);b(s.tapeWear,v[29]*100.0f);",
     "p.temporalGhost.frameRepeatStrength=clamp01(s.frameRepeatStrength/100.0f);",
     "p.temporalGhost.frame=s.frame;p.temporalGhost.seed=static_cast<std::uint32_t>(std::max(1.0f,s.tapeSeed));",
     "if((s->temporalGhost>0||s->interlace>0||(s->frameRepeatFrequency>0&&s->frameRepeatStrength>0))",
-    "if(s.vhsStyle<26){bi(s.vhs43Frame,0.0f);b(s.roundedOverscan,0.0f);b(s.lensDistortion,0.0f);b(s.digitalZoom,1.0f);b(s.osdBattery,0.0f);b(s.frameRepeatFrequency,0.0f);b(s.frameRepeatStrength,0.0f);}",
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
 
@@ -250,7 +232,7 @@ lost_signal_cases = set(range(26, 39))
 assert lost_signal_cases.issubset(style_cases), f"Missing Lost Signal VHS v1.9 profiles: {sorted(lost_signal_cases-style_cases)}"
 crates_cases = set(range(39, 55))
 assert crates_cases.issubset(style_cases), f"Missing Crates VHS Master recipes: {sorted(crates_cases-style_cases)}"
-assert "ApplyCratesMasterPreset(s,static_cast<int>(s.vhsStyle-39));" in source, "Crates presets must use the recovered source-value mapper"
+assert "ApplyCratesMasterPreset(s,static_cast<int>(styleRecipe-39));" in source, "Crates presets must use the recovered source-value mapper"
 assert "kCrates[16][44]" in source, "Crates mapper must retain all 16 source looks and 44 mapped source fields"
 crates_start = source.find("static constexpr float kCrates[16][44]={")
 assert crates_start >= 0, "Missing Crates 16x44 source-value table"
@@ -264,7 +246,39 @@ assert vhspro_cases.issubset(style_cases), f"Missing VHSPro recipes: {sorted(vhs
 vhscraft_cases = set(range(65, 73))
 assert vhscraft_cases.issubset(style_cases), f"Missing VHSCraft recipes: {sorted(vhscraft_cases-style_cases)}"
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
-assert style_choices and len(style_choices.group(1).split("|")) == 72, "VHS Style popup must expose all 72 entries"
+assert style_choices and len(style_choices.group(1).split("|")) == 32, "VHS Style popup must expose the curated 32 entries"
+assert 'PF_ADD_POPUP("VHS Style Preset",32,1,kVhsStyleChoices,ID_VHS_STYLE)' in source, "VHS Style popup count must match its labels"
+assert 'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER)' in source, "Master Strength must exceed 100 and expose the 300% range"
+assert 'PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,500,0,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION)' in source, "Saturation must expose the requested 500% range"
+assert "std::clamp(p.saturation,0.0f,5.0f)" in grade_engine, "Image Grade engine must preserve saturation drive through 500%"
+assert "const float humOffset=hum*" in rf_engine and "const float ripple=hum*" in rf_engine and "const float interference=hum*" in rf_engine and "const float humGain=1.0f+hum*" in rf_engine, "RF Hum must be neutral when its own control is zero"
+assert "const float pump=agc*" in rf_engine, "AGC Pump must be neutral when its own control is zero"
+assert "const float humOffset = 0.002f * loopDrive + 0.045f * hum;" in physical_engine and "const float humGain = 1.0f + 0.006f * loopDrive + 0.018f * hum;" in physical_engine, "Mains Hum must remain independent of Ground Loop voltage"
+assert "hum <= 0.0f && loopDrive <= 0.0f && rfDrive <= 0.0f" in physical_engine, "Ground Loop must remain active when it is the only physical-interference control"
+assert "const float hiComp=0.80f*am,loComp=0.88f*am;" in rf_engine, "AM nonlinearity must be neutral when its own control is zero"
+assert 'PF_ADD_FLOAT_SLIDERX("Exposure (EV)",-3,3,-3,3,0,2,PF_ValueDisplayFlag_NONE,0,ID_GRADE_EXPOSURE)' in source, "General Adjustments must expose a real EV exposure control"
+assert "osdFont=13, osdExtraLabel=1" in source, "New OSD instances must default to the bundled Rooyin Arabic font"
+assert 'PF_ADD_POPUP("OSD Font Family",15,13,kOsdFontChoices,ID_OSD_FONT)' in source, "OSD font popup must default to bundled Rooyin while preserving legacy font choices"
+assert '"RooyinFree"' in source and '"YR Sponge Arabic"' in source, "Bundled OSD fonts must remain addressable by their DirectWrite family names"
+assert 'PF_ADD_BUTTON("OSD Text Editor","Edit Text...",0,PF_ParamFlag_SUPERVISE,ID_OSD_TEXT_EDIT)' in source, "OSD text must have a visible supervised editor button"
+assert "case PF_Cmd_USER_CHANGED_PARAM: err=UserChangedParam(in_data,params,extra); break;" in source, "OSD editor button must reach its user-change handler"
+assert "PF_ChangeFlag_CHANGED_VALUE" in source and "VHS90CreateOsdText" in source, "OSD text editor must persist edits into the arbitrary-data stream"
+style_pos=source.find('PF_ADD_TOPIC("VHS Style & Presets",ID_VHS_STYLE_TOPIC)')
+master_pos=source.find('PF_ADD_FLOAT_SLIDERX("Master Strength"')
+signal_pos=source.find('PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC)')
+assert 0 <= style_pos < master_pos < signal_pos, "VHS Style / Presets must precede Master Strength and Signal"
+assert 'PF_ADD_TOPIC("Chroma",ID_CHROMA_TOPIC)' in source and 'PF_ADD_TOPIC("Ringing",ID_RINGING_TOPIC)' in source and 'PF_ADD_TOPIC("Glow",ID_GLOW_TOPIC)' in source and 'PF_ADD_TOPIC("General Adjustments",ID_GENERAL_TOPIC)' in source, "Dedicated Chroma, Ringing, Glow and General sections must remain present"
+assert 'PF_ADD_TOPIC("Tape",ID_TAPE_MATERIAL_TOPIC)' in source and 'PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE)' in source, "Unified Tape section must have an active master control"
+assert 'PF_ADD_FLOAT_SLIDERX("Luma Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_NOISE)' in source and 'PF_ADD_FLOAT_SLIDERX("Chroma Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_NOISE)' in source, "Grain noise controls must start neutral"
+assert 'PF_ADD_FLOAT_SLIDERX("Green Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_GREEN)' in source and 'PF_ADD_POPUP("RGB Channel Mode",4,1,kRgbChannelModeChoices,ID_CHROMA_REG_MODE)' in source, "Chroma Shift must expose independent RGB channel modes"
+assert 'PF_ADD_TOPIC("Mains Hum",ID_PHYSICAL_TOPIC)' in source and 'PF_ADD_FLOAT_SLIDERX("RF Hum"' in source, "Mains Hum and RF Hum must be distinct controls"
+assert 'PF_ADD_TOPIC("Tape Surface Detail",ID_TAPE_SURFACE_DETAIL_TOPIC)' in source, "Tape Surface Detail topic must be registered"
+assert all(x in source for x in ['PF_ADD_FLOAT_SLIDERX("Pinholes"', 'PF_ADD_FLOAT_SLIDERX("Oxide Flakes"', 'PF_ADD_FLOAT_SLIDERX("Surface Roughness"']), "Tape pinhole, flake and roughness controls must be exposed"
+assert all(x in source for x in ["READ_FLOAT(PARAM_TAPE_PINHOLES,tapePinholes)", "READ_FLOAT(PARAM_TAPE_FLAKES,tapeFlakes)", "READ_FLOAT(PARAM_TAPE_ROUGHNESS,tapeRoughness)", "tc.pinholes=s.tapePinholes", "tc.flakes=s.tapeFlakes", "tc.surfaceRoughness=s.tapeRoughness"]), "Tape surface detail controls must reach the render engine"
+assert "kVhsStyleRecipeMap[33]" in source and "switch(styleRecipe)" in source, "Compact labels must map to source recipe IDs"
+assert "p.noiseAmount*glitchBand" in sync_engine, "Sync Collapse noise must be gated by the active moving glitch band"
+assert "rgb.r*=exposure;rgb.g*=exposure;rgb.b*=exposure;" in grade_engine, "Exposure EV must be applied uniformly in RGB before YIQ grading"
+assert re.search(r"kVhsStyleRecipeMap\[33\]\s*=\s*\{\s*0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,\s*55,56,58,59,60,61,63,66,67,68,69,72", source), "Compact style mapping must retain the curated VHS6RIFT, Crates, VHSPro and VHSCraft source recipes"
 assert camera_cases == set(range(2, 13)), f"Missing VHS6RIFT and FXC6/Gen 7 camera profile cases: {sorted(set(range(2,13))-camera_cases)}"
 camera_choices = re.search(r'kCameraProfileChoices\[\]\s*=\s*"([^"]+)"', source)
 assert camera_choices and len(camera_choices.group(1).split("|")) == 12, "Camera Profile popup must expose Off plus 11 reference profiles"
@@ -281,7 +295,15 @@ assert lost_end > lost_start, "Unterminated Lost Signal VHS profile table"
 lost_rows = [line for line in source[lost_start:lost_end].splitlines() if line.lstrip().startswith("{")]
 assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 complete profiles, got {len(lost_rows)}"
 assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 45 for line in lost_rows), "Every Lost Signal VHS profile must define all 45 mapped values"
-print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
-print("PASS: 16 VHS6RIFT + 5 Add-on + 3 CVS + 13 Lost Signal + 16 Crates + 10 VHSPro + 8 VHSCraft = 71 named VHS Style recipes plus Custom (72 popup entries).")
+print(f"PASS: {len(active_indices)} AE parameter slots; persistent disk IDs are unique and stable across UI reordering.")
+print("PASS: curated 32-entry VHS Style menu maps to distinct source recipes; legacy recipe IDs remain supported for saved projects.")
 print("PASS: all 7 audited preset families have native menu entries; Crates maps 44 recovered source fields per look, while VHSPro/VHSCraft remain source-inspired where exact tuples were not recoverable.")
-print("PASS: camera profiles, NTSC-RS controls, VHS playback, decoder, frame geometry, camcorder OSD and deterministic frame-repeat controls remain wired.")
+print("PASS: camera profiles and NTSC-RS Signal Looks remain wired; retired Playback, Decoder, Frame, HUD and Signal Network groups are removed; Particle looks are folded into Static.")
+assert "p.mode=static_cast<StaticPatternMode>(std::clamp<A_long>(s.staticMode-1,0,12));" in source, "Static Pattern mode must be mapped through all supported modes"
+assert 'PF_ADD_POPUP("Raster Decoder",3,1,kCompositeDecoderChoices,ID_DECODER_MODE)' in source
+assert "p.demodulator=CompositeDemodulator::ConsumerNotch;" not in source, "Raster Decoder selection must not be overwritten"
+assert 'PF_ADD_FLOAT_SLIDERX("Frame Repeat Frequency"' in source
+assert 'PF_ADD_FLOAT_SLIDERX("Frame Repeat Strength"' in source
+assert 'kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|Top Strip|Bottom-Weighted Streaks|Monochrome Streaks|Split-Band Chromatic|Static to Blackout|Dark-Field Luma Streaks|Multi-Phase Green Line|Two-Stage Angular Ribbon|Diagonal Sync Collapse|Colored Speckles|Vertical Columns"' in source, "Static pattern menu must expose the two recovered procedural particle modes"
+assert 'PF_ADD_POPUP("Pattern Type",13,2,kStaticPatternChoices,ID_PATTERN_MODE)' in source, "All static modes must be selectable in Effect Controls"
+assert 'PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Pattern Type"' not in source, "Static pattern mode selector must not be hidden from Effect Controls"

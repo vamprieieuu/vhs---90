@@ -14,9 +14,44 @@ int main(){using namespace vhs90;constexpr int w=64,h=32;std::vector<float>s(w*h
  std::vector<float> one(s.size());
  ImageView oneView{one.data(),w,h,w*4};
  isolated.drift=.8f;assert(processRfInstability(si,oneView,isolated));assert(one!=s);
+ for(size_t k=0;k<one.size();k+=4){assert(one[k]>0.0f&&one[k]<1.0f);assert(one[k+1]>0.0f&&one[k+1]<1.0f);assert(one[k+2]>0.0f&&one[k+2]<1.0f);}
  isolated={};isolated.seed=17;isolated.frame=21;isolated.hum=.8f;
  assert(processRfInstability(si,oneView,isolated));assert(one!=s);
  isolated={};isolated.seed=17;isolated.frame=21;isolated.amNonlinearity=.8f;
+ assert(processRfInstability(si,oneView,isolated));assert(one!=s);
+ // Regression: Drift alone must remain an affine luma change; neither AM
+ // compression nor AGC pumping may leak in while their controls are zero.
+ // With only Drift enabled, the output must match its documented gain/bias
+ // transfer exactly; RF Hum must contribute no residual ripple or line offset.
+ std::vector<float> flatGray(s.size()),flatOut(s.size()),flatWhite(s.size()),whiteOut(s.size());
+ for(size_t k=0;k<s.size();k+=4){flatGray[k]=flatGray[k+1]=flatGray[k+2]=.45f;flatGray[k+3]=1.0f;flatWhite[k]=flatWhite[k+1]=flatWhite[k+2]=1.0f;flatWhite[k+3]=1.0f;}
+ ConstImageView flatGrayView{flatGray.data(),w,h,w*4},flatWhiteView{flatWhite.data(),w,h,w*4};
+ ImageView flatOutView{flatOut.data(),w,h,w*4},whiteOutView{whiteOut.data(),w,h,w*4};
+ isolated={};isolated.seed=17;isolated.frame=21;isolated.drift=.8f;
+ assert(processRfInstability(flatGrayView,flatOutView,isolated));
+ const int checkX=10,checkY=7;const size_t checkAt=(size_t(checkY)*w+checkX)*4;
+ const float phase=.0042f*float(isolated.frame)+.0039f*float(isolated.seed);
+ const float paired=float(std::min(checkY,(checkY+h/2)%h));
+ const float gain=1.0f+.22f*isolated.drift*std::sin(phase*.73f)+.075f*isolated.drift*std::sin(phase*.61f+.031f*paired);
+ const float bias=.035f*isolated.drift*std::sin(phase*.19f+.7f)+.014f*isolated.drift*std::sin(phase*.43f+.024f*paired);
+ const float wander=.017f*isolated.drift*std::sin(phase*.47f+.13f*paired+1.2f+.015f*float(checkX));
+ const float expectedGray=bias+wander+.45f*gain;
+ assert(std::fabs(flatOut[checkAt]-expectedGray)<.001f);
+ // Bright white input must not trigger any hidden AGC pump when AGC is zero.
+ assert(processRfInstability(flatWhiteView,whiteOutView,isolated));
+ const float expectedWhite=bias+wander+gain;
+ assert(std::fabs(whiteOut[checkAt]-expectedWhite)<.001f);
+ std::vector<float> twoLevels(s.size()),driftOnly(s.size());
+ for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){const auto k=(yy*w+xx)*4;const float v=xx<w/2?.20f:.95f;twoLevels[k]=twoLevels[k+1]=twoLevels[k+2]=v;twoLevels[k+3]=1.0f;}
+ ConstImageView twoLevelsView{twoLevels.data(),w,h,w*4};
+ isolated={};isolated.seed=17;isolated.frame=21;isolated.drift=.8f;
+ ImageView driftOnlyView{driftOnly.data(),w,h,w*4};
+ assert(processRfInstability(twoLevelsView,driftOnlyView,isolated));
+ const int sampleY=h/2,sampleLowX=w/4,sampleHighX=3*w/4;
+ const auto lowAt=(size_t(sampleY)*w+sampleLowX)*4,highAt=(size_t(sampleY)*w+sampleHighX)*4;
+ const float inputDelta=twoLevels[highAt]-twoLevels[lowAt];
+ const float outputDelta=driftOnly[highAt]-driftOnly[lowAt];
+ assert(outputDelta/inputDelta>0.99f);
  std::vector<float> levelPattern(s.size());
  for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){const auto k=(yy*w+xx)*4;const float v=xx<w/2?.18f:.96f;levelPattern[k]=levelPattern[k+1]=levelPattern[k+2]=v;levelPattern[k+3]=1.0f;}
  ConstImageView levelView{levelPattern.data(),w,h,w*4};
