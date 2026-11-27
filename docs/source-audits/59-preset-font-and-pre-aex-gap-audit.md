@@ -67,7 +67,7 @@ These include the source master slider, RGB bias/add-color and raw-signal switch
 - Signal: exposes a “Destruction” button plus signal/tape controls; the button is not a named factory preset list. Its full render routine was not completely recoverable from the supplied decompilation.
 - Universe VHS Transition: exposes Wipe/Slide Down/Slide Up and Color Noise/Bad Tracking/Very Bad Tracking/Degauss type menus, plus Choose Preset/Save Preset for user-saved presets. No bundled factory preset names/values were recovered. Its resource-backed transition patterns remain a separate procedural parity task, not 7 extra factory presets.
 - VHS Tape: no factory preset menu was recovered. It exposes NTSC/PAL, SP/LP/EP, playback states and OSD fields. The source has no font-family selector in its recovered strings and no matching C decompilation.
-- NTSCRT: all 45 JSON presets were semantically audited. They are not 45 interchangeable analog VHS looks: digital-only looks and five Screen Loop feedback looks were explicitly classified out of the analog VHS engine. Selected analog/timeline presets still need native AE recipe and keyframe conversion; the 45/45 audit is not a claim that 45 presets have been ported.
+- NTSCRT: the older source inventory reported 45 JSON presets, but the current checked-in repository snapshot contains 39 JSON files (34 top-level presets plus five Screen Loop feedback presets). They are not interchangeable analog VHS looks: digital-only looks and all five Screen Loop feedback looks are classified out of the analog VHS engine. Selected analog/timeline presets still need native AE recipe and keyframe conversion; the file inventory is not a claim that all presets have been ported.
 
 ## 2. Font and Text/OSD gap audit
 
