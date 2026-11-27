@@ -6,6 +6,7 @@ import sys
 
 root = Path(__file__).resolve().parents[1]
 source = (root / "Source/VHS90Effect.cpp").read_text(encoding="utf-8")
+sync_engine = (root / "Source/VHS90Core/VHS90SyncEngine.cpp").read_text(encoding="utf-8")
 
 def enum_values(name):
     match = re.search(r"enum\s+" + re.escape(name) + r"\s*\{([\s\S]*?)\};", source)
@@ -253,6 +254,7 @@ assert 'PF_ADD_FLOAT_SLIDERX("Luma Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PE
 assert 'PF_ADD_FLOAT_SLIDERX("Green Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_GREEN)' in source and 'PF_ADD_POPUP("RGB Channel Mode",4,1,kRgbChannelModeChoices,ID_CHROMA_REG_MODE)' in source, "Chroma Shift must expose independent RGB channel modes"
 assert 'PF_ADD_TOPIC("Mains Hum",ID_PHYSICAL_TOPIC)' in source and 'PF_ADD_FLOAT_SLIDERX("RF Hum"' in source, "Mains Hum and RF Hum must be distinct controls"
 assert "kVhsStyleRecipeMap[33]" in source and "switch(styleRecipe)" in source, "Compact labels must map to source recipe IDs"
+assert "p.noiseAmount*glitchBand" in sync_engine, "Sync Collapse noise must be gated by the active moving glitch band"
 assert re.search(r"kVhsStyleRecipeMap\[33\]\s*=\s*\{\s*0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,\s*55,56,58,59,60,61,63,66,67,68,69,72", source), "Compact style mapping must retain the curated VHS6RIFT, Crates, VHSPro and VHSCraft source recipes"
 assert camera_cases == set(range(2, 13)), f"Missing VHS6RIFT and FXC6/Gen 7 camera profile cases: {sorted(set(range(2,13))-camera_cases)}"
 camera_choices = re.search(r'kCameraProfileChoices\[\]\s*=\s*"([^"]+)"', source)
