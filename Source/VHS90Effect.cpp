@@ -59,7 +59,7 @@ enum ParamIndex {
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
     PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_OFFSET, PARAM_OSD_SHOW_COUNTER, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
     PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
-    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_PLAYBACK_TOPIC, PARAM_DECODER_MODE, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_PLAYBACK_END, PARAM_GROUND_LOOP_TOPIC, PARAM_GROUND_LOOP, PARAM_GROUND_LOOP_END, PARAM_COUNT
+    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_PLAYBACK_TOPIC, PARAM_DECODER_MODE, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_PLAYBACK_END, PARAM_GROUND_LOOP_TOPIC, PARAM_GROUND_LOOP, PARAM_GROUND_LOOP_END, PARAM_TRACK_LAYER_MOTION_TOPIC, PARAM_TRACK_LAYER2_ANGLE, PARAM_TRACK_LAYER2_MOTION_X, PARAM_TRACK_LAYER2_MOTION_Y, PARAM_TRACK_LAYER3_ANGLE, PARAM_TRACK_LAYER3_MOTION_X, PARAM_TRACK_LAYER3_MOTION_Y, PARAM_TRACK_LAYER4_ANGLE, PARAM_TRACK_LAYER4_MOTION_X, PARAM_TRACK_LAYER4_MOTION_Y, PARAM_TRACK_LAYER_MOTION_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_VHS_STYLE_TOPIC=136,
@@ -374,6 +374,16 @@ enum ParamDiskID {
     ID_FRAME_REPEAT_STRENGTH=359,
     ID_GROUND_LOOP_TOPIC=360,
     ID_GROUND_LOOP=361,
+    ID_TRACK_LAYER_MOTION_TOPIC=362,
+    ID_TRACK_LAYER2_ANGLE=363,
+    ID_TRACK_LAYER2_MOTION_X=364,
+    ID_TRACK_LAYER2_MOTION_Y=365,
+    ID_TRACK_LAYER3_ANGLE=366,
+    ID_TRACK_LAYER3_MOTION_X=367,
+    ID_TRACK_LAYER3_MOTION_Y=368,
+    ID_TRACK_LAYER4_ANGLE=369,
+    ID_TRACK_LAYER4_MOTION_X=370,
+    ID_TRACK_LAYER4_MOTION_Y=371,
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -420,7 +430,7 @@ struct RenderSettings {
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
     A_long trackingShape=3, trackingProfile=1, trackingPresetBase=1, trackingLayerPreset[3]={3,4,5};
     A_long trackingLayerProfile[3]={2,3,4}, trackingLayerShape[3]={1,1,1};
-    float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5};
+    float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5}, trackingLayerAngle[3]={0,0,0}, trackingLayerMotionX[3]={0,0,0}, trackingLayerMotionY[3]={0,0,0};
     
     A_long tearChromaMode=5;
     float tearBandCount=2.0f;
@@ -1221,6 +1231,19 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Ground Loop",ID_GROUND_LOOP_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Ground Loop (mV)",0,500,0,500,0,1,PF_ValueDisplayFlag_NONE,0,ID_GROUND_LOOP);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_GROUND_LOOP_TOPIC+100);
+
+    // Extra layers get the same region direction and motion controls as the primary layer.
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tracking Layer Direction / Motion",ID_TRACK_LAYER_MOTION_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 2 Angle",-180,180,-180,180,0,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER2_ANGLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 2 Motion X",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_MOTION_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 2 Motion Y",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_MOTION_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 3 Angle",-180,180,-180,180,0,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER3_ANGLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 3 Motion X",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_MOTION_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 3 Motion Y",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_MOTION_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 4 Angle",-180,180,-180,180,0,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER4_ANGLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 4 Motion X",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_MOTION_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 4 Motion Y",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_MOTION_Y);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACK_LAYER_MOTION_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -1268,6 +1291,9 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency);
     READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength);
     READ_FLOAT(PARAM_GROUND_LOOP,groundLoop);
+    READ_FLOAT(PARAM_TRACK_LAYER2_ANGLE,trackingLayerAngle[0]); READ_FLOAT(PARAM_TRACK_LAYER2_MOTION_X,trackingLayerMotionX[0]); READ_FLOAT(PARAM_TRACK_LAYER2_MOTION_Y,trackingLayerMotionY[0]);
+    READ_FLOAT(PARAM_TRACK_LAYER3_ANGLE,trackingLayerAngle[1]); READ_FLOAT(PARAM_TRACK_LAYER3_MOTION_X,trackingLayerMotionX[1]); READ_FLOAT(PARAM_TRACK_LAYER3_MOTION_Y,trackingLayerMotionY[1]);
+    READ_FLOAT(PARAM_TRACK_LAYER4_ANGLE,trackingLayerAngle[2]); READ_FLOAT(PARAM_TRACK_LAYER4_MOTION_X,trackingLayerMotionX[2]); READ_FLOAT(PARAM_TRACK_LAYER4_MOTION_Y,trackingLayerMotionY[2]);
     READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_TRACK_READ,trackRead);
     READ_FLOAT(PARAM_TRACK_MISALIGNMENT,trackMisalignment); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
     READ_FLOAT(PARAM_CHROMA_REG_RED,redChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_GREEN,greenChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_BLUE,blueChannelOffset); err=CheckoutPopup(in_data,PARAM_CHROMA_REG_MODE,s.chromaRegMode); if(err!=PF_Err_NONE) return err;
@@ -2013,6 +2039,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.trackingLayerShape[0]-1,0,2));
                 r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingLayerProfile[0]-1,0,4));
                 r.centerX=clamp01(s.trackingLayerX[0]/100.0f); r.centerY=clamp01(s.trackingLayerY[0]/100.0f);
+                r.angleRadians=s.trackingLayerAngle[0]*0.01745329251994329577f;
+                r.motionXPerSecond=s.trackingLayerMotionX[0]/100.0f; r.motionYPerSecond=s.trackingLayerMotionY[0]/100.0f;
                 r.width=clamp01(s.trackingLayerWidth[0]/100.0f); r.height=clamp01(s.trackingLayerHeight[0]/100.0f);
                 r.intensity=clamp01(s.trackingLayerAmount[0]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[0];
                 r.maxShiftPx=s.trackingLayerShift[0]; r.waveAmplitudePx=s.trackingLayerWave[0];
@@ -2024,6 +2052,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.trackingLayerShape[1]-1,0,2));
                 r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingLayerProfile[1]-1,0,4));
                 r.centerX=clamp01(s.trackingLayerX[1]/100.0f); r.centerY=clamp01(s.trackingLayerY[1]/100.0f);
+                r.angleRadians=s.trackingLayerAngle[1]*0.01745329251994329577f;
+                r.motionXPerSecond=s.trackingLayerMotionX[1]/100.0f; r.motionYPerSecond=s.trackingLayerMotionY[1]/100.0f;
                 r.width=clamp01(s.trackingLayerWidth[1]/100.0f); r.height=clamp01(s.trackingLayerHeight[1]/100.0f);
                 r.intensity=clamp01(s.trackingLayerAmount[1]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[1];
                 r.maxShiftPx=s.trackingLayerShift[1]; r.waveAmplitudePx=s.trackingLayerWave[1];
@@ -2035,6 +2065,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.trackingLayerShape[2]-1,0,2));
                 r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingLayerProfile[2]-1,0,4));
                 r.centerX=clamp01(s.trackingLayerX[2]/100.0f); r.centerY=clamp01(s.trackingLayerY[2]/100.0f);
+                r.angleRadians=s.trackingLayerAngle[2]*0.01745329251994329577f;
+                r.motionXPerSecond=s.trackingLayerMotionX[2]/100.0f; r.motionYPerSecond=s.trackingLayerMotionY[2]/100.0f;
                 r.width=clamp01(s.trackingLayerWidth[2]/100.0f); r.height=clamp01(s.trackingLayerHeight[2]/100.0f);
                 r.intensity=clamp01(s.trackingLayerAmount[2]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[2];
                 r.maxShiftPx=s.trackingLayerShift[2]; r.waveAmplitudePx=s.trackingLayerWave[2];
