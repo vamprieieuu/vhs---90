@@ -19,15 +19,16 @@ inline float clamp01(float v) noexcept{return std::clamp(v,0.0f,1.0f);}
 }
 bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p) noexcept {
  if(!valid(src,dst)||!std::isfinite(p.edgeEnhancement)||!std::isfinite(p.chromaEdgeEnhancement)||!std::isfinite(p.chromaSharpenCutoffHz)||p.chromaSharpenCutoffHz<=0.0f||!std::isfinite(p.fade)||!std::isfinite(p.blackLift)||
-    !std::isfinite(p.contrast)||!std::isfinite(p.brightness)||!std::isfinite(p.saturation)||
+    !std::isfinite(p.contrast)||!std::isfinite(p.brightness)||!std::isfinite(p.exposureEV)||!std::isfinite(p.saturation)||
     !std::isfinite(p.chromaIGain)||!std::isfinite(p.chromaQGain)||!std::isfinite(p.chromaIOffset)||!std::isfinite(p.chromaQOffset)||!std::isfinite(p.chromaQuantization)||
     !std::isfinite(p.vignette)||!std::isfinite(p.flicker))return false;
  const float edge=clamp01(p.edgeEnhancement),chromaEdge=clamp01(p.chromaEdgeEnhancement),fade=clamp01(p.fade),blackLift=clamp01(p.blackLift),contrast=std::clamp(p.contrast,0.0f,3.0f);
  const float sat=std::clamp(p.saturation,0.0f,3.0f),vignette=clamp01(p.vignette),flicker=clamp01(p.flicker);
+ const float exposure=std::exp2(std::clamp(p.exposureEV,-8.0f,8.0f));
  const float iGain=std::clamp(p.chromaIGain,0.0f,3.0f),qGain=std::clamp(p.chromaQGain,0.0f,3.0f);
  const float iOffset=std::clamp(p.chromaIOffset,-0.5f,0.5f),qOffset=std::clamp(p.chromaQOffset,-0.5f,0.5f);
  const float chromaStep=std::clamp(p.chromaQuantization,0.0f,0.06f);
- if(edge==0&&chromaEdge==0&&fade==0&&contrast==1&&p.brightness==0&&blackLift==0&&sat==1&&iGain==1&&qGain==1&&iOffset==0&&qOffset==0&&chromaStep==0&&vignette==0&&flicker==0){
+ if(edge==0&&chromaEdge==0&&fade==0&&contrast==1&&p.brightness==0&&p.exposureEV==0&&blackLift==0&&sat==1&&iGain==1&&qGain==1&&iOffset==0&&qOffset==0&&chromaStep==0&&vignette==0&&flicker==0){
   for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;
  }
  const float flickerValue=std::sin(float(p.frame)*0.73f)*flicker*0.10f+
@@ -73,7 +74,7 @@ bool processImageGrade(ConstImageView src,ImageView dst,const ImageGradeParams&p
     yiq.i+=(yiq.i-lowI3)*(0.85f*chromaEdge);
     yiq.q+=(yiq.q-lowQ3)*(0.85f*chromaEdge);
    }
-   yiq.y=yiq.y*fadeLuma+fadeLift;
+   yiq.y=(yiq.y*fadeLuma+fadeLift)*exposure;
    const float pedestal=(46.0f/255.0f)*blackLift; yiq.y=yiq.y*(1.0f-pedestal)+pedestal;
    yiq.i*=fadeSat;yiq.q*=fadeSat;
    yiq.y=(yiq.y-0.5f)*contrast+0.5f+p.brightness;
