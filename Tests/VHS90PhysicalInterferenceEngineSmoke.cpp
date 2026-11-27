@@ -29,6 +29,19 @@ int main() {
     assert(dst!=src); // Mains Hum works without enabling Ground Loop.
     for (float v:dst) assert(std::isfinite(v));
 
+    const auto humOnly=dst;
+
+    // A small nonzero Ground Loop voltage must not attenuate the independent
+    // Mains Hum control (the old coupled drive almost muted it at 1 mV).
+    p={}; p.mainsHumAmount=0.8f; p.groundLoopMillivolts=1.0f;
+    assert(vhs90::processPhysicalInterference(in,out,p));
+    double humBase=0.0,lowLoopDelta=0.0;
+    for(size_t i=0;i<dst.size();i+=4)for(int c=0;c<3;++c){
+        humBase+=std::fabs(double(humOnly[i+c])-double(src[i+c]));
+        lowLoopDelta+=std::fabs(double(dst[i+c])-double(humOnly[i+c]));
+    }
+    assert(humBase>0.0&&lowLoopDelta<humBase*0.05);
+
     p={}; p.mainsHumAmount=0.8f; p.groundLoopMillivolts=350.0f;
     assert(vhs90::processPhysicalInterference(in,out,p));
     assert(dst!=src);
