@@ -38,6 +38,21 @@ int main() {
     assert(processSyncCollapseLab(input,darkView,manual));
     assert(bright!=dark);
 
+    // Automatic bright/dark event probabilities are independently controllable.
+    std::vector<float> brightOnly(src.size()),darkOnly(src.size()),noEvents(src.size());
+    ImageView brightOnlyView{brightOnly.data(),w,h,w*4},darkOnlyView{darkOnly.data(),w,h,w*4},noEventsView{noEvents.data(),w,h,w*4};
+    SyncCollapseLabParams eventParams=p; eventParams.timeSeconds=0.5; eventParams.eventFrequencyHz=1.0f;
+    eventParams.eventDurationSeconds=10.0f; eventParams.bandIntensity=0.0f; eventParams.horizontalTearAmount=0.0f;
+    eventParams.horizontalDisplacementPx=0.0f; eventParams.dropoutsEnabled=false; eventParams.chromaEnabled=false;
+    eventParams.brightEventProbability=1.0f; eventParams.darkEventProbability=0.0f;
+    assert(processSyncCollapseLab(input,brightOnlyView,eventParams));
+    eventParams.brightEventProbability=0.0f; eventParams.darkEventProbability=1.0f;
+    assert(processSyncCollapseLab(input,darkOnlyView,eventParams));
+    assert(brightOnly!=darkOnly);
+    eventParams.brightEventProbability=0.0f; eventParams.darkEventProbability=0.0f;
+    assert(processSyncCollapseLab(input,noEventsView,eventParams));
+    assert(noEvents==src);
+
     // Frozen mode must ignore composition time and produce a stable still.
     std::vector<float> frozenA(src.size()),frozenB(src.size());
     ImageView frozenAv{frozenA.data(),w,h,w*4},frozenBv{frozenB.data(),w,h,w*4};
@@ -54,6 +69,16 @@ int main() {
     generatedParams.blendWithInput=0.0f;
     assert(processSyncCollapseLab(input,generatedView,generatedParams));
     assert(generated!=src);
+    std::vector<float> alternateSource=src,generatedFromAlternate(src.size());
+    for(std::size_t i=0;i<alternateSource.size();i+=4) {
+        alternateSource[i]=1.0f-alternateSource[i];
+        alternateSource[i+1]=1.0f-alternateSource[i+1];
+        alternateSource[i+2]=1.0f-alternateSource[i+2];
+    }
+    ConstImageView alternateInput{alternateSource.data(),w,h,w*4};
+    ImageView generatedAlternateView{generatedFromAlternate.data(),w,h,w*4};
+    assert(processSyncCollapseLab(alternateInput,generatedAlternateView,generatedParams));
+    assert(generatedFromAlternate==generated);
     generatedParams.blendWithInput=1.0f;
     assert(processSyncCollapseLab(input,identityView,generatedParams));
     assert(identity==src);
