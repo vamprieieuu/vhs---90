@@ -22,6 +22,8 @@ for raw in enum_match.group(1).split(","):
         enum_items.append(match.group(1))
 if not enum_items or enum_items[0] != "PARAM_INPUT" or enum_items[-1] != "PARAM_COUNT":
     fail("ParamIndex must start with PARAM_INPUT and end with PARAM_COUNT.")
+if enum_items[-4:-1] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
+    fail("Ground Loop parameters must be appended to preserve existing AE parameter indices.")
 expected_params = enum_items[1:-1]
 
 setup_match = re.search(r"static\s+PF_Err\s+ParamsSetup\s*\([^)]*\)\s*\{", SOURCE)
@@ -82,6 +84,9 @@ for topic_name in ("Waves / Static", "Grain", "Tracking Noise", "Head Switching"
     if "PF_PUI_NO_ECW_UI" in body:
         fail("Damage Lab topic must remain visible/editable: " + topic_name)
 
+if "READ_FLOAT(PARAM_GROUND_LOOP,groundLoop)" not in SOURCE:
+    fail("Ground Loop must be read from its AE parameter into RenderSettings.")
+
 for required in [
     'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100',
     'PF_ADD_FLOAT_SLIDERX("Bottom Edge Y",0,100,0,100,100',
@@ -93,6 +98,7 @@ for required in [
     'PF_ADD_FLOAT_SLIDERX("Static Amount",0,100',
     'PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100',
     'PF_ADD_FLOAT_SLIDERX("Mains Hum",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Ground Loop (mV)",0,500,0,500,0,1,PF_ValueDisplayFlag_NONE,0,ID_GROUND_LOOP)',
 ]:
     if required not in setup_body:
         fail("Missing required visible Damage Lab control: " + required)
