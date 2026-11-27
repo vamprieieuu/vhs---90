@@ -3,6 +3,14 @@
 namespace vhs90 {
 struct AnalogNoiseParams {
     float lumaAmount=0.0f;
+    // Unified Signal Noise controls; Grain remains independently adjustable.
+    float signalNoiseIntensity=1.0f;
+    float signalNoiseFrequency=1.0f;
+    float noiseSize=1.0f;
+    float noiseDensity=1.0f;
+    float noiseDistribution=0.0f;
+    float horizontalLineIntensity=0.0f;
+    float animationSpeed=1.0f;
     // VHS6RIFT procedural-noise controls (normalized UI values).
     float grainAmount=0.0f;
     float noiseDetail=0.5f;
