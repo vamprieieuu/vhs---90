@@ -142,7 +142,7 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
                 g=alphaG>1.0e-6f?g/alphaG:0.0f;
                 b=alphaB>1.0e-6f?b/alphaB:0.0f;
             }
-            const float generatedBase=0.025f+0.035f*hash(x/8,y/4,p.seed+0x13198a2eu,tick);
+            const float generatedBase=0.025f+0.035f*hash(int(std::lround((float(x)+rowShift)/8.0f)),y/4,p.seed+0x13198a2eu,tick);
             if(p.inputMode==SyncDamageInputMode::GeneratedSignal) r=g=b=generatedBase;
             const float sourceLuma=p.inputMode==SyncDamageInputMode::GeneratedSignal?generatedBase:luma(r,g,b);
             const float baseLuma=sourceLuma;
