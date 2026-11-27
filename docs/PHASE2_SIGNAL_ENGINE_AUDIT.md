@@ -22,6 +22,10 @@ Audit the parameter-to-engine-to-pixel path for RF Drift, RF Hum, AM Nonlinearit
 
 The image-domain RF path also had small baseline Hum terms in its offset, ripple, interference and gain equations. As a result, enabling Drift/AM could introduce hum-like modulation even with RF Hum at 0%. Each term is now multiplied by the Hum control, making the Hum stage mathematically neutral at zero. Added exact-transfer regression checks on flat gray and white fields under Drift-only operation; the white-field case also guards against hidden AGC pumping at zero.
 
+## Ground Loop-only fast-path defect
+
+The physical-interference neutral fast path previously ignored `groundLoopMillivolts`. A Ground Loop-only configuration therefore returned the untouched frame before its own line-bias contribution could run. The fast-path guard now includes `loopDrive`, and a regression test verifies Ground Loop changes the output when it is the only active physical control.
+
 ## Physical Mains Hum / Ground Loop decoupling
 
 A follow-up audit found that Mains Hum was technically active at zero Ground Loop, but any small nonzero Ground Loop voltage multiplied the Mains Hum amplitude by a very small loop-drive factor. Separated the dedicated Mains Hum term from the Ground Loop contribution: the former now responds directly to its own amount, while the latter contributes a smaller independent line-bias/gain term. Added a regression check showing that 1 mV Ground Loop changes the 80% Mains Hum output by less than 5% instead of nearly muting it.
