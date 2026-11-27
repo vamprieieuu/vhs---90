@@ -2236,6 +2236,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.vhs6RiftNoiseSeed=float(params[PARAM_VHS6RIFT_NOISE_SEED]->u.fs_d.value);
     s.vhs6RiftNoiseEnable=params[PARAM_VHS6RIFT_NOISE_ENABLE]->u.bd.value!=0;
     s.edgeWaveFrequency=float(params[PARAM_EDGE_WAVE_FREQUENCY]->u.fs_d.value); s.edgeWaveSpeed=float(params[PARAM_EDGE_WAVE_SPEED]->u.fs_d.value); s.edgeWaveDetail=float(params[PARAM_EDGE_WAVE_DETAIL]->u.fs_d.value);
+    s.particleMode=params[PARAM_PARTICLE_MODE]->u.pd.value; s.particleDistribution=params[PARAM_PARTICLE_DISTRIBUTION]->u.pd.value;
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
     s.frameRate=(in_data->time_step>0&&in_data->time_scale>0)?float(in_data->time_scale)/float(in_data->time_step):29.97f;
