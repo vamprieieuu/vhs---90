@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - work/osd-directwrite-integration-map
+      - phase1-ui-signal-rebuild-2026-11-27
       - main
       - build-on-main
   pull_request:
