@@ -129,6 +129,12 @@ bool processNtscQtSignal(ConstImageView src,ImageView dst,const NtscQtParams& ra
     p.preEmphasis=clampFinite(p.preEmphasis,0.0f,8.0f,0.0f);
     p.preEmphasisCutoffMHz=clampFinite(p.preEmphasisCutoffMHz,0.05f,6.0f,1.0f);
     if(p.fieldMode<0||p.fieldMode>2)return false;
+    if(!p.spectralRingingEnabled && p.preEmphasis<=0.0f) {
+        for(int y=0;y<src.height;++y)
+            std::copy_n(src.rgba+static_cast<std::ptrdiff_t>(y)*src.rowStrideFloats,
+                        src.width*4,dst.rgba+static_cast<std::ptrdiff_t>(y)*dst.rowStrideFloats);
+        return true;
+    }
     try {
         const int w=src.width,h=src.height;
         const std::size_t pixels=static_cast<std::size_t>(w)*static_cast<std::size_t>(h);
@@ -141,16 +147,18 @@ bool processNtscQtSignal(ConstImageView src,ImageView dst,const NtscQtParams& ra
             const std::size_t at=static_cast<std::size_t>(row)*w+x;
             y[at]=yiq.y;i[at]=yiq.i;q[at]=yiq.q;
         }
-        const int selectedRows=p.fieldMode==0?h:(h+(p.fieldMode==1?1:0))/2;
+        const int evenFieldRows=(h+1)/2;
+        const int oddFieldRows=h/2;
         for(int row=0;row<h;++row) {
             if(p.fieldMode==1&&(row&1))continue;
             if(p.fieldMode==2&&!(row&1))continue;
             const std::size_t base=static_cast<std::size_t>(row)*w;
             if(p.preEmphasis>0.0f)preEmphasize(y.data()+base,w,p.preEmphasis,p.preEmphasisCutoffMHz);
             if(p.spectralRingingEnabled) {
-                spectralMaskRow(y.data()+base,w,selectedRows,row,p);
-                spectralMaskRow(i.data()+base,w,selectedRows,row,p);
-                spectralMaskRow(q.data()+base,w,selectedRows,row,p);
+                const int fieldRows=(row&1)?oddFieldRows:evenFieldRows;
+                spectralMaskRow(y.data()+base,w,fieldRows,row,p);
+                spectralMaskRow(i.data()+base,w,fieldRows,row,p);
+                spectralMaskRow(q.data()+base,w,fieldRows,row,p);
             }
         }
         for(int row=0;row<h;++row)for(int x=0;x<w;++x) {
