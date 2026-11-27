@@ -17,6 +17,8 @@ int main(){using namespace vhs90;constexpr int w=64,h=32;std::vector<float>s(w*h
  assert(processImageGrade(si,colorAi,color));assert(processImageGrade(si,colorBi,color));assert(colorA==colorB&&colorA!=s);
  color.chromaQuantization=0.0f;assert(processImageGrade(si,colorBi,color));assert(colorA!=colorB);
  ImageGradeParams off;assert(processImageGrade(si,zi,off));assert(z==s);
+ ImageGradeParams exposure;exposure.exposureEV=1.0f;assert(processImageGrade(si,ai,exposure));assert(std::fabs(a[0]-.5f)<1e-5f);
+ exposure.exposureEV=-1.0f;assert(processImageGrade(si,bi,exposure));assert(std::fabs(b[0]-.125f)<1e-5f);assert(a!=b);
  std::vector<float>semi=s,out(s.size());for(size_t i=0;i<semi.size();i+=4){semi[i]*=.4f;semi[i+1]*=.4f;semi[i+2]*=.4f;semi[i+3]=.4f;}
  ConstImageView pi{semi.data(),w,h,w*4};ImageView po{out.data(),w,h,w*4};assert(processImageGrade(pi,po,p));
  for(size_t i=3;i<out.size();i+=4)assert(std::fabs(out[i]-.4f)<1e-6f);
