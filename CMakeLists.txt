@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 project(VHS90 LANGUAGES CXX)
 
+# Source files contain UTF-8 Arabic OSD strings; force MSVC to decode them as UTF-8.
+if(MSVC)
+    add_compile_options(/utf-8)
+endif()
+
 option(VHS90_BUILD_TESTS "Build host-independent VHS-90 CPU smoke tests" ON)
 option(VHS90_BUILD_AE_PLUGIN "Build the native Windows After Effects AEX target" OFF)
 option(VHS90_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer where supported" OFF)

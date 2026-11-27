@@ -56,6 +56,10 @@ for token in ("PARAM_VCR_SIGNAL_ENABLE", "PARAM_VCR_SIGNAL_AMOUNT", "PARAM_NTSCQ
 if "p.vcrSignalEnabled=true" not in SOURCE or "p.ntscQtEnabled=true" not in SOURCE:
     fail("NTSCRT / NTSC-QT render-stage wiring is missing")
 
+cmake_text = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
+if "add_compile_options(/utf-8)" not in cmake_text:
+    fail("MSVC source/execution character sets must be UTF-8 for Arabic OSD literals")
+
 if "PF_OutFlag2_SUPPORTS_THREADED_RENDERING" not in global_setup:
     fail("threaded-rendering flag is missing")
 
