@@ -81,8 +81,9 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
    RGB rgb{px[0],px[1],px[2]}; if(p.premultipliedAlpha) { rgb.r/=a;rgb.g/=a;rgb.b/=a; }
    YIQ q=rgbToYiq(rgb);
    const int nx=x/noiseCell,ny=y/noiseCell;
+   const float shadowWeight=(1.0f-std::clamp(q.y,0.0f,1.0f))*shadowBias+(1.0f-shadowBias);
    const float cluster=hash01(std::uint32_t(nx/4),std::uint32_t(ny/4),p.seed^0xA24BAED5u,noiseFrame);
-   const float localDensity=std::clamp(noiseDensity*(1.0f-noiseDistribution+noiseDistribution*(0.25f+1.5f*cluster)),0.0f,1.0f);
+   const float localDensity=std::clamp(noiseDensity*(1.0f-noiseDistribution+noiseDistribution*(0.25f+1.5f*cluster))*shadowWeight,0.0f,1.0f);
    const float noiseMask=hash01(std::uint32_t(nx),std::uint32_t(ny),p.seed^0x9FB21C65u,noiseFrame)<localDensity?1.0f:0.0f;
    if(co>0.0f&&noiseMask>0.0f) { const float n=gaussian(std::uint32_t(nx),std::uint32_t(ny),p.seed^0x1234ABCDu,noiseFrame); q.y+=n*co*0.035f*noiseMask; }
    if(loss>0.0f&&hash01(0u,std::uint32_t(y),p.seed^0xC4A05EEDu,p.frame)<loss) { q.i*=0.08f;q.q*=0.08f; }
@@ -98,7 +99,6 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
    rgb=yiqToRgb(q);
    // VHS6RIFT's original procedural grain remains an independent layer.
    if(grain>0.0f||ly>0.0f||ch>0.0f) {
-    const float shadowWeight=(1.0f-std::clamp(q.y,0.0f,1.0f))*shadowBias+(1.0f-shadowBias);
     const int gs=std::max(1,p.grainSize);
     const float particle=vhs6riftHash2D(x/gs,(y+frameGrain)/gs,p.seed+777u)-0.5f;
     const float grainAdd=particle*grain*0.4f*shadowWeight;
