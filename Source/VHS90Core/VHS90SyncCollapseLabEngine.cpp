@@ -11,7 +11,7 @@ inline float smoothEdge(float a,float b,float x) noexcept { return b<=a?(x<a?0.0
 inline float hash(int x,int y,std::uint32_t seed,std::int64_t tick) noexcept {
     return hash01(static_cast<std::uint32_t>(x),static_cast<std::uint32_t>(y),seed,tick);
 }
-inline float sample(ConstImageView src,float x,float y,int channel) noexcept {
+inline void samplePixel(ConstImageView src,float x,float y,float out[4]) noexcept {
     x=std::clamp(x,0.0f,float(src.width-1)); y=std::clamp(y,0.0f,float(src.height-1));
     const int x0=int(std::floor(x)),y0=int(std::floor(y));
     const int x1=std::min(src.width-1,x0+1),y1=std::min(src.height-1,y0+1);
@@ -20,9 +20,11 @@ inline float sample(ConstImageView src,float x,float y,int channel) noexcept {
     const float* p10=src.rgba+y0*src.rowStrideFloats+x1*4;
     const float* p01=src.rgba+y1*src.rowStrideFloats+x0*4;
     const float* p11=src.rgba+y1*src.rowStrideFloats+x1*4;
-    const float a=p00[channel]+(p10[channel]-p00[channel])*tx;
-    const float b=p01[channel]+(p11[channel]-p01[channel])*tx;
-    return a+(b-a)*ty;
+    for(int ch=0;ch<4;++ch) {
+        const float a=p00[ch]+(p10[ch]-p00[ch])*tx;
+        const float b=p01[ch]+(p11[ch]-p01[ch])*tx;
+        out[ch]=a+(b-a)*ty;
+    }
 }
 inline float luma(float r,float g,float b) noexcept { return 0.299f*r+0.587f*g+0.114f*b; }
 inline float lerp(float a,float b,float t) noexcept { return a+(b-a)*t; }
@@ -132,18 +134,21 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
             const float dropoutStrength=dropout?(dropoutType>0.58f?clamp01(p.streakBrightness):clamp01(p.darkDropoutAmount)):0.0f;
             const float rowShift=rowShiftBase*bandMask+rowTear+(dropout?(segmentRand-0.5f)*streakLength*0.65f:0.0f);
             const float sx=float(x)+rowShift;
-            const float rX=sx-rgbOffset-bleed*3.0f,bX=sx+rgbOffset+bleed*3.0f;
-            float r=sample(src,rX,float(y),0);
-            float g=sample(src,sx,float(y),1);
-            float b=sample(src,bX,float(y),2);
-            if(p.premultipliedAlpha) {
-                const float alphaR=sample(src,rX,float(y),3),alphaG=sample(src,sx,float(y),3),alphaB=sample(src,bX,float(y),3);
-                r=alphaR>1.0e-6f?r/alphaR:0.0f;
-                g=alphaG>1.0e-6f?g/alphaG:0.0f;
-                b=alphaB>1.0e-6f?b/alphaB:0.0f;
-            }
             const float generatedBase=0.025f+0.035f*hash(int(std::lround((float(x)+rowShift)/8.0f)),y/4,p.seed+0x13198a2eu,tick);
-            if(p.inputMode==SyncDamageInputMode::GeneratedSignal) r=g=b=generatedBase;
+            float r=generatedBase,g=generatedBase,b=generatedBase;
+            if(p.inputMode==SyncDamageInputMode::OverOriginal) {
+                const float rX=sx-rgbOffset-bleed*3.0f,bX=sx+rgbOffset+bleed*3.0f;
+                float sampleR[4],sampleG[4],sampleB[4];
+                samplePixel(src,rX,float(y),sampleR);
+                samplePixel(src,sx,float(y),sampleG);
+                samplePixel(src,bX,float(y),sampleB);
+                r=sampleR[0]; g=sampleG[1]; b=sampleB[2];
+                if(p.premultipliedAlpha) {
+                    r=sampleR[3]>1.0e-6f?r/sampleR[3]:0.0f;
+                    g=sampleG[3]>1.0e-6f?g/sampleG[3]:0.0f;
+                    b=sampleB[3]>1.0e-6f?b/sampleB[3]:0.0f;
+                }
+            }
             const float sourceLuma=p.inputMode==SyncDamageInputMode::GeneratedSignal?generatedBase:luma(r,g,b);
             const float baseLuma=sourceLuma;
             const float bandBlend=bandMask*bandDrive*(0.55f+0.45f*tear)*segmentMask;
