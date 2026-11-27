@@ -63,7 +63,7 @@ enum ParamIndex {
     PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
     PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_PLAYBACK_TOPIC, PARAM_DECODER_MODE, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_PLAYBACK_END, PARAM_GROUND_LOOP_TOPIC, PARAM_GROUND_LOOP, PARAM_GROUND_LOOP_END, PARAM_TRACK_LAYER_MOTION_TOPIC, PARAM_TRACK_LAYER2_ANGLE, PARAM_TRACK_LAYER2_MOTION_X, PARAM_TRACK_LAYER2_MOTION_Y, PARAM_TRACK_LAYER3_ANGLE, PARAM_TRACK_LAYER3_MOTION_X, PARAM_TRACK_LAYER3_MOTION_Y, PARAM_TRACK_LAYER4_ANGLE, PARAM_TRACK_LAYER4_MOTION_X, PARAM_TRACK_LAYER4_MOTION_Y, PARAM_TRACK_LAYER_MOTION_END, PARAM_SYNC_DAMAGE_TOPIC, PARAM_SYNC_DAMAGE_ENABLE, PARAM_SYNC_DAMAGE_TEAR_AMOUNT, PARAM_SYNC_DAMAGE_BAND_INTENSITY, PARAM_SYNC_DAMAGE_BAND_DENSITY, PARAM_SYNC_DAMAGE_BAND_HEIGHT, PARAM_SYNC_DAMAGE_BAND_IRREGULARITY, PARAM_SYNC_DAMAGE_DISPLACEMENT, PARAM_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION, PARAM_SYNC_DAMAGE_COVERAGE, PARAM_SYNC_DAMAGE_LUMA_ENABLE, PARAM_SYNC_DAMAGE_LUMA_INSTABILITY, PARAM_SYNC_DAMAGE_BRIGHT_FLASH, PARAM_SYNC_DAMAGE_DARK_COLLAPSE, PARAM_SYNC_DAMAGE_EVENT_FREQUENCY, PARAM_SYNC_DAMAGE_EVENT_DURATION, PARAM_SYNC_DAMAGE_BRIGHT_PROBABILITY, PARAM_SYNC_DAMAGE_DARK_PROBABILITY, PARAM_SYNC_DAMAGE_TRANSITION_SHARPNESS, PARAM_SYNC_DAMAGE_LOCAL_LUMA, PARAM_SYNC_DAMAGE_MANUAL_BRIGHT, PARAM_SYNC_DAMAGE_MANUAL_DARK, PARAM_SYNC_DAMAGE_DROPOUTS_ENABLE, PARAM_SYNC_DAMAGE_DROPOUT_DENSITY, PARAM_SYNC_DAMAGE_STREAK_LENGTH, PARAM_SYNC_DAMAGE_STREAK_BRIGHTNESS, PARAM_SYNC_DAMAGE_DARK_DROPOUT, PARAM_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION, PARAM_SYNC_DAMAGE_TEMPORAL_VARIATION, PARAM_SYNC_DAMAGE_CHROMA_ENABLE, PARAM_SYNC_DAMAGE_CHROMA_TINT, PARAM_SYNC_DAMAGE_MAGENTA_TINT, PARAM_SYNC_DAMAGE_GREEN_TINT, PARAM_SYNC_DAMAGE_RGB_OFFSET, PARAM_SYNC_DAMAGE_CHROMA_BLEED, PARAM_SYNC_DAMAGE_ANIMATION_MODE, PARAM_SYNC_DAMAGE_INPUT_MODE, PARAM_SYNC_DAMAGE_ANIMATION_SPEED, PARAM_SYNC_DAMAGE_RANDOM_SEED, PARAM_SYNC_DAMAGE_BLEND_INPUT, PARAM_SYNC_DAMAGE_EFFECT_AMOUNT, PARAM_SYNC_DAMAGE_END, PARAM_SNOW_TOPIC, PARAM_SNOW_ENABLE, PARAM_SNOW_INTENSITY, PARAM_SNOW_DENSITY, PARAM_SNOW_SIZE, PARAM_SNOW_DISTRIBUTION, PARAM_SNOW_CONTRAST, PARAM_SNOW_BRIGHTNESS, PARAM_SNOW_COLOR, PARAM_SNOW_MODE, PARAM_SNOW_TEMPORAL_VARIATION, PARAM_SNOW_RANDOMNESS, PARAM_SNOW_ANIMATION_SPEED, PARAM_SNOW_SEED, PARAM_BACKGROUND_NOISE_INTENSITY, PARAM_SNOW_END, PARAM_SIGNAL_NOISE_TOPIC, PARAM_SIGNAL_NOISE_INTENSITY, PARAM_SIGNAL_NOISE_FREQUENCY, PARAM_SIGNAL_NOISE_SIZE, PARAM_SIGNAL_NOISE_DENSITY, PARAM_SIGNAL_NOISE_DISTRIBUTION, PARAM_SIGNAL_NOISE_HORIZONTAL_LINES, PARAM_SIGNAL_NOISE_ANIMATION_SPEED, PARAM_SIGNAL_NOISE_END,
      PARAM_VCR_SIGNAL_TOPIC, PARAM_VCR_SIGNAL_ENABLE, PARAM_VCR_SIGNAL_AMOUNT, PARAM_VCR_SIGNAL_SPACING, PARAM_VCR_SIGNAL_GAP, PARAM_VCR_SIGNAL_NOISE, PARAM_VCR_SIGNAL_DROPOUT_THRESHOLD, PARAM_VCR_SIGNAL_DROPOUT_COMPENSATION, PARAM_VCR_SIGNAL_END,
-     PARAM_NTSCQT_TOPIC, PARAM_NTSCQT_RINGING_ENABLE, PARAM_NTSCQT_ALPHA, PARAM_NTSCQT_FREQUENCY_NOISE_SIZE, PARAM_NTSCQT_FREQUENCY_NOISE_AMPLITUDE, PARAM_NTSCQT_PREEMPHASIS, PARAM_NTSCQT_PREEMPHASIS_CUTOFF, PARAM_NTSCQT_END, PARAM_COUNT
+     PARAM_NTSCQT_TOPIC, PARAM_NTSCQT_RINGING_ENABLE, PARAM_NTSCQT_ALPHA, PARAM_NTSCQT_FREQUENCY_NOISE_SIZE, PARAM_NTSCQT_FREQUENCY_NOISE_AMPLITUDE, PARAM_NTSCQT_PREEMPHASIS, PARAM_NTSCQT_PREEMPHASIS_CUTOFF, PARAM_NTSCQT_RINGING_MODE, PARAM_NTSCQT_RINGING_POWER, PARAM_NTSCQT_RINGING_SHIFT, PARAM_NTSCQT_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_VHS_STYLE_TOPIC=136,
@@ -467,6 +467,9 @@ enum ParamDiskID {
     ID_NTSCQT_FREQUENCY_NOISE_AMPLITUDE=449,
     ID_NTSCQT_PREEMPHASIS=450,
     ID_NTSCQT_PREEMPHASIS_CUTOFF=451,
+    ID_NTSCQT_RINGING_MODE=452,
+    ID_NTSCQT_RINGING_POWER=453,
+    ID_NTSCQT_RINGING_SHIFT=454,
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -477,6 +480,7 @@ static char kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|T
 static char kSyncDamageAnimationChoices[]="Automatic Procedural|Manual / Keyframed|Frozen";
 static char kSyncDamageInputChoices[]="Apply Over Original|Generated Signal";
 static char kSnowColorChoices[]="Monochrome|Colored";
+static char kNtscQtRingingChoices[]="Horizontal Spectral Mask|RingPattern Response";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
 static char kVhsStyleChoices[]="Custom|VHS6RIFT - Clean VHS|VHS6RIFT - Vintage VHS|VHS6RIFT - Heavy VHS|VHS6RIFT - Bad Tracking|VHS6RIFT - Very Bad Tracking|VHS6RIFT - Unstable VCR|VHS6RIFT - Tape Damage|VHS6RIFT - Static Interference|VHS6RIFT - Color Bleed|VHS6RIFT - Color Shift|VHS6RIFT - Signal Loss|VHS6RIFT - Severe Analog Glitch|VHS Add-on - Soft Transfer|VHS Add-on - Classic Transfer|Lost Signal - Reference Analog|Crates VHS Master - Archive Standard|Crates VHS Master - Violet Transfer|Crates VHS Master - Signal Corruption|Crates VHS Master - Handheld Camcorder|VHS Pro - Neutral Playback|VHS Pro - Fresh Cassette|VHS Pro - Aged Cassette|VHS Pro - Tracking Failure|VHS Pro - Home Video Camera|VHS Pro - Chroma Bleed|VHS Pro - Multi-Generation Dub|VHS Craft - Clean|VHS Craft - Sharp|VHS Craft - Violet Glow|VHS Craft - Green Glow|VHS Craft - Tape Monochrome|VHS6RIFT - Moving Band Noise|VHS6RIFT - Bottom Tape Damage|VHS6RIFT - Ghosting|VHS6RIFT - Damaged Tape Playback|VHS Add-on - Heavy|VHS Add-on - Worn|VHS Add-on - Clean TV|CVS - VHS SP|CVS - VHS LP|CVS - VHS EP|LS - Real VHS|LS - Backrooms|LS - Poolrooms|LS - Liminal Night|LS - Subtle|LS - Found Footage|LS - Damaged Tape|LS - Rental Tape|LS - Camcorder 1996|LS - Broken Signal|LS - Composite Decode|LS - Analog Fog|Crates - Clean|Crates - Sharp|Crates - Soft|Crates - Green|Crates - Streaks|Crates - Cool|Crates - Warm|Crates - Blue Bloom|Crates - Echo|Crates - Retro|Crates - Hue Wobble|Crates - Black & White|VHSPro - Rental Copy|VHSPro - Broadcast|VHSPro - Music Video|VHSCraft - Standard|VHSCraft - Damaged Tape|VHSCraft - Camcorder";
@@ -508,7 +512,8 @@ struct RenderSettings {
     float signalNoiseIntensity=100, signalNoiseFrequency=1.0f, signalNoiseSize=1.0f, signalNoiseDensity=100, signalNoiseDistribution=0, signalNoiseHorizontalLines=0, signalNoiseAnimationSpeed=100;
     A_long vcrSignalEnable=0, vcrDropoutCompensation=1, ntscQtRingingEnable=0;
     float vcrSignalAmount=100, vcrSignalSpacing=0.3f, vcrSignalGap=0.3f, vcrSignalNoise=0.022f, vcrDropoutThreshold=0.42f;
-    float ntscQtAlpha=0.65f, ntscQtFrequencyNoiseSize=0.0f, ntscQtFrequencyNoiseAmplitude=2.0f, ntscQtPreEmphasis=0.0f, ntscQtPreEmphasisCutoff=1.0f;
+    A_long ntscQtRingingMode=1;
+    float ntscQtAlpha=0.65f, ntscQtFrequencyNoiseSize=0.0f, ntscQtFrequencyNoiseAmplitude=2.0f, ntscQtPreEmphasis=0.0f, ntscQtPreEmphasisCutoff=1.0f, ntscQtRingingPower=2.0f, ntscQtRingingShift=0.0f;
     A_long staticMode=2;
     A_long colorSystem=1, signalModel=1, tapeSpeed=1, compositeDecoder=1, vhs43Frame=0;
     float roundedOverscan=0.0f, lensDistortion=0.0f, digitalZoom=1.0f, osdBattery=0.0f;
@@ -1428,6 +1433,9 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frequency Noise Amplitude",0,5,0,5,2,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_FREQUENCY_NOISE_AMPLITUDE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Pre-Emphasis",0,8,0,8,0,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_PREEMPHASIS);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Pre-Emphasis Cutoff (MHz)",0.05,6,0.05,6,1,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_PREEMPHASIS_CUTOFF);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Spectral Ringing Mask",2,1,kNtscQtRingingChoices,ID_NTSCQT_RINGING_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RingPattern Power",1,8,1,8,2,0,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_RINGING_POWER);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RingPattern Shift",0,1,0,1,0,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_RINGING_SHIFT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_NTSCQT_TOPIC+100);
 
     out_data->num_params=PARAM_COUNT;
@@ -1524,6 +1532,8 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_NTSCQT_ALPHA,ntscQtAlpha); READ_FLOAT(PARAM_NTSCQT_FREQUENCY_NOISE_SIZE,ntscQtFrequencyNoiseSize);
     READ_FLOAT(PARAM_NTSCQT_FREQUENCY_NOISE_AMPLITUDE,ntscQtFrequencyNoiseAmplitude);
     READ_FLOAT(PARAM_NTSCQT_PREEMPHASIS,ntscQtPreEmphasis); READ_FLOAT(PARAM_NTSCQT_PREEMPHASIS_CUTOFF,ntscQtPreEmphasisCutoff);
+    err=CheckoutPopup(in_data,PARAM_NTSCQT_RINGING_MODE,s.ntscQtRingingMode); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_NTSCQT_RINGING_POWER,ntscQtRingingPower); READ_FLOAT(PARAM_NTSCQT_RINGING_SHIFT,ntscQtRingingShift);
     READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_TRACK_READ,trackRead);
     READ_FLOAT(PARAM_TRACK_MISALIGNMENT,trackMisalignment); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
     READ_FLOAT(PARAM_CHROMA_REG_RED,redChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_GREEN,greenChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_BLUE,blueChannelOffset); err=CheckoutPopup(in_data,PARAM_CHROMA_REG_MODE,s.chromaRegMode); if(err!=PF_Err_NONE) return err;
@@ -2003,6 +2013,9 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(s.ntscQtRingingEnable>0||s.ntscQtPreEmphasis>0.0f) {
                 p.ntscQtEnabled=true; p.ntscQt.amount=master;
                 p.ntscQt.spectralRingingEnabled=s.ntscQtRingingEnable>0;
+                p.ntscQt.useRingPattern=s.ntscQtRingingMode==2;
+                p.ntscQt.ringingPower=static_cast<int>(std::lround(s.ntscQtRingingPower));
+                p.ntscQt.ringingShift=s.ntscQtRingingShift;
                 p.ntscQt.alpha=s.ntscQtAlpha; p.ntscQt.frequencyNoiseSize=s.ntscQtFrequencyNoiseSize;
                 p.ntscQt.frequencyNoiseAmplitude=s.ntscQtFrequencyNoiseAmplitude;
                 p.ntscQt.preEmphasis=s.ntscQtPreEmphasis; p.ntscQt.preEmphasisCutoffMHz=s.ntscQtPreEmphasisCutoff;
@@ -2767,6 +2780,9 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.ntscQtFrequencyNoiseAmplitude=float(params[PARAM_NTSCQT_FREQUENCY_NOISE_AMPLITUDE]->u.fs_d.value);
     s.ntscQtPreEmphasis=float(params[PARAM_NTSCQT_PREEMPHASIS]->u.fs_d.value);
     s.ntscQtPreEmphasisCutoff=float(params[PARAM_NTSCQT_PREEMPHASIS_CUTOFF]->u.fs_d.value);
+    s.ntscQtRingingMode=params[PARAM_NTSCQT_RINGING_MODE]->u.pd.value;
+    s.ntscQtRingingPower=float(params[PARAM_NTSCQT_RINGING_POWER]->u.fs_d.value);
+    s.ntscQtRingingShift=float(params[PARAM_NTSCQT_RINGING_SHIFT]->u.fs_d.value);
     s.vhs6RiftGrain=float(params[PARAM_VHS6RIFT_GRAIN]->u.fs_d.value);
     s.vhs6RiftGrainSize=float(params[PARAM_VHS6RIFT_GRAIN_SIZE]->u.fs_d.value);
     s.vhs6RiftNoiseDetail=float(params[PARAM_VHS6RIFT_NOISE_DETAIL]->u.fs_d.value);

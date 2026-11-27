@@ -24,9 +24,20 @@ int main() {
         p.fieldMode=3;assert(!processNtscQtSignal(si,dz,p));
     }
     // NTSC-QT's separate 720-sample RingPattern frequency response.
-    p.spectralRingingEnabled=true;p.useRingPattern=true;p.ringingPower=4;p.ringingShift=0.0f;
-    assert(processNtscQtSignal(si,da,p));assert(processNtscQtSignal(si,db,p));assert(a==b);
-    p.ringingPower=6;assert(processNtscQtSignal(si,db,p));assert(a!=b);
+    {
+        constexpr int rw=32,rh=12;
+        std::vector<float> ringSrc(rw*rh*4),ringA(ringSrc.size()),ringB(ringSrc.size());
+        for(int y=0;y<rh;++y)for(int x=0;x<rw;++x) {
+            const std::size_t k=(static_cast<std::size_t>(y)*rw+x)*4;
+            const float v=0.5f+0.35f*std::sin(float(x)*0.63f)+0.08f*std::cos(float(y)*0.4f);
+            ringSrc[k]=v;ringSrc[k+1]=0.3f;ringSrc[k+2]=1.0f-v;ringSrc[k+3]=1.0f;
+        }
+        ConstImageView ri{ringSrc.data(),rw,rh,rw*4};
+        ImageView ra{ringA.data(),rw,rh,rw*4},rb{ringB.data(),rw,rh,rw*4};
+        NtscQtParams rp;rp.spectralRingingEnabled=true;rp.useRingPattern=true;rp.ringingPower=4;
+        assert(processNtscQtSignal(ri,ra,rp));assert(processNtscQtSignal(ri,rb,rp));assert(ringA==ringB);
+        rp.ringingPower=6;assert(processNtscQtSignal(ri,rb,rp));assert(ringA!=ringB);
+    }
 
     // Alpha and transparent pixels survive processing.
     constexpr int w=8,h=8;std::vector<float> src(w*h*4),dst(w*h*4);
