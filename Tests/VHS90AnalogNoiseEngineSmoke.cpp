@@ -38,4 +38,35 @@ int main(){using namespace vhs90;constexpr int w=48,h=24;std::vector<float>s(w*h
  std::vector<float> hueA(s.size()),hueB(s.size()),hueC(s.size());ImageView ha{hueA.data(),w,h,w*4},hb{hueB.data(),w,h,w*4},hc{hueC.data(),w,h,w*4};
  assert(processAnalogNoise(si,ha,hue));assert(processAnalogNoise(si,hb,hue));assert(hueA==hueB&&hueA!=s);
  hue.seed++;assert(processAnalogNoise(si,hc,hue));assert(hueA!=hueC);
+
+ // Unified Signal Noise master suppresses analog signal noise without disabling Grain.
+ AnalogNoiseParams signal; signal.lumaAmount=.9f;signal.chromaAmount=.8f;signal.compositeAmount=.6f;
+ signal.signalNoiseIntensity=0.0f;signal.seed=707;signal.frame=13;
+ std::vector<float> signalOff(s.size()),grainStill(s.size());ImageView signalOffView{signalOff.data(),w,h,w*4},grainStillView{grainStill.data(),w,h,w*4};
+ assert(processAnalogNoise(si,signalOffView,signal));assert(signalOff==s);
+ signal.grainAmount=.65f;assert(processAnalogNoise(si,grainStillView,signal));assert(grainStill!=s);
+
+ // Density zero removes the sparse signal-noise layer; Grain remains separately controlled.
+ signal.signalNoiseIntensity=1.0f;signal.grainAmount=0.0f;signal.noiseDensity=0.0f;
+ std::vector<float> densityOff(s.size());ImageView densityOffView{densityOff.data(),w,h,w*4};
+ assert(processAnalogNoise(si,densityOffView,signal));assert(densityOff==s);
+
+ // Frequency, size and distribution independently alter the spatial signal-noise field.
+ signal.noiseDensity=.58f;signal.noiseSize=1.0f;signal.signalNoiseFrequency=1.0f;signal.noiseDistribution=0.0f;
+ std::vector<float> signalBase(s.size()),signalFreq(s.size()),signalSize(s.size()),signalCluster(s.size());
+ ImageView signalBaseView{signalBase.data(),w,h,w*4},signalFreqView{signalFreq.data(),w,h,w*4},signalSizeView{signalSize.data(),w,h,w*4},signalClusterView{signalCluster.data(),w,h,w*4};
+ assert(processAnalogNoise(si,signalBaseView,signal));
+ signal.signalNoiseFrequency=5.0f;assert(processAnalogNoise(si,signalFreqView,signal));assert(signalBase!=signalFreq);
+ signal.signalNoiseFrequency=1.0f;signal.noiseSize=5.0f;assert(processAnalogNoise(si,signalSizeView,signal));assert(signalBase!=signalSize);
+ signal.noiseSize=1.0f;signal.noiseDistribution=1.0f;assert(processAnalogNoise(si,signalClusterView,signal));assert(signalBase!=signalCluster);
+
+ // Horizontal interference lines and signal-noise animation speed have independent effect.
+ AnalogNoiseParams lines;lines.horizontalLineIntensity=.85f;lines.signalNoiseIntensity=1.0f;lines.seed=81;lines.frame=7;
+ std::vector<float> linesA(s.size()),linesB(s.size()),linesOff(s.size());ImageView linesAView{linesA.data(),w,h,w*4},linesBView{linesB.data(),w,h,w*4},linesOffView{linesOff.data(),w,h,w*4};
+ assert(processAnalogNoise(si,linesAView,lines));assert(linesA!=s);
+ lines.signalNoiseIntensity=0.0f;assert(processAnalogNoise(si,linesOffView,lines));assert(linesOff==s);
+ AnalogNoiseParams speed;speed.lumaAmount=.9f;speed.noiseDensity=1.0f;speed.signalNoiseIntensity=1.0f;speed.frame=8;speed.animationSpeed=0.0f;
+ std::vector<float> speedSlow(s.size()),speedFast(s.size());ImageView speedSlowView{speedSlow.data(),w,h,w*4},speedFastView{speedFast.data(),w,h,w*4};
+ assert(processAnalogNoise(si,speedSlowView,speed));speed.animationSpeed=2.0f;
+ assert(processAnalogNoise(si,speedFastView,speed));assert(speedSlow!=speedFast);
  return 0;}
