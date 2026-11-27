@@ -57,9 +57,9 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
   const float lineBias=globalBias+0.014f*drift*std::sin(framePhase*0.43f+0.024f*paired);
   const float wanderPhase=framePhase*0.47f+0.13f*paired+1.2f;
   const float humLinePhase=humPhase+paired*(0.8f+4.2f*hum)*((2.0f*kPi)/std::max(1.0f,float(src.height)));
-  const float humOffset=(0.5f+8.8f*hum)*std::sin(humLinePhase+0.2f)+
-                        (0.2f+4.6f*hum)*std::sin(2.0f*humLinePhase+1.7f);
-  const float humGain=1.0f+(0.003f+0.042f*hum)*std::sin(humLinePhase+0.9f);
+  const float humOffset=hum*((0.5f+8.8f*hum)*std::sin(humLinePhase+0.2f)+
+                              (0.2f+4.6f*hum)*std::sin(2.0f*humLinePhase+1.7f));
+  const float humGain=1.0f+hum*(0.003f+0.042f*hum)*std::sin(humLinePhase+0.9f);
   const float shift=(0.10f+2.6f*drift)*(std::sin(framePhase*0.41f+0.059f*paired)+
                     0.35f*std::sin(framePhase*0.13f+0.017f*paired+1.1f));
   const float*sr=src.rgba+y*src.rowStrideFloats;float*dr=dst.rgba+y*dst.rowStrideFloats;
@@ -72,9 +72,9 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
    const float centered=yiq.y-p.blackPedestal;
    const float driftWander=0.017f*drift*std::sin(wanderPhase+0.015f*float(x));
    float luma=p.blackPedestal+lineBias+driftWander+centered*lineGain;
-   const float ripple=(0.12f+3.2f*hum)*std::sin(humLinePhase+0.0095f*float(x)+
+   const float ripple=hum*(0.12f+3.2f*hum)*std::sin(humLinePhase+0.0095f*float(x)+
                        0.25f*std::sin(framePhase*0.71f+0.0032f*float(x)));
-   const float interference=(0.03f+1.1f*hum)*std::sin((kPi*0.5f)*float(x)+0.63f*humLinePhase);
+   const float interference=hum*(0.03f+1.1f*hum)*std::sin((kPi*0.5f)*float(x)+0.63f*humLinePhase);
    luma=p.blackPedestal+(luma-p.blackPedestal)*humGain+humOffset*0.01f+ripple*0.01f+interference*0.01f;
    if(pump>0.0001f){const float linePump=pump*(0.86f+0.14f*std::sin(framePhase*0.53f+0.024f*float(y)));
     const float knee=0.24f+0.14f*(1.0f-agc);float centered=luma-p.blackPedestal;
