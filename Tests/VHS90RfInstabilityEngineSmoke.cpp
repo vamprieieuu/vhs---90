@@ -19,6 +19,19 @@ int main(){using namespace vhs90;constexpr int w=64,h=32;std::vector<float>s(w*h
  assert(processRfInstability(si,oneView,isolated));assert(one!=s);
  isolated={};isolated.seed=17;isolated.frame=21;isolated.amNonlinearity=.8f;
  assert(processRfInstability(si,oneView,isolated));assert(one!=s);
+ // Regression: Drift alone must remain an affine luma change; AM compression
+ // must not leak into the signal when its own control is zero.
+ std::vector<float> twoLevels(s.size()),driftOnly(s.size());
+ for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){const auto k=(yy*w+xx)*4;const float v=xx<w/2?.20f:.95f;twoLevels[k]=twoLevels[k+1]=twoLevels[k+2]=v;twoLevels[k+3]=1.0f;}
+ ConstImageView twoLevelsView{twoLevels.data(),w,h,w*4};
+ isolated={};isolated.seed=17;isolated.frame=21;isolated.drift=.8f;
+ ImageView driftOnlyView{driftOnly.data(),w,h,w*4};
+ assert(processRfInstability(twoLevelsView,driftOnlyView,isolated));
+ const int sampleY=h/2,sampleLowX=w/4,sampleHighX=3*w/4;
+ const auto lowAt=(size_t(sampleY)*w+sampleLowX)*4,highAt=(size_t(sampleY)*w+sampleHighX)*4;
+ const float inputDelta=twoLevels[highAt]-twoLevels[lowAt];
+ const float outputDelta=driftOnly[highAt]-driftOnly[lowAt];
+ assert(outputDelta/inputDelta>0.99f);
  std::vector<float> levelPattern(s.size());
  for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){const auto k=(yy*w+xx)*4;const float v=xx<w/2?.18f:.96f;levelPattern[k]=levelPattern[k+1]=levelPattern[k+2]=v;levelPattern[k+3]=1.0f;}
  ConstImageView levelView{levelPattern.data(),w,h,w*4};
