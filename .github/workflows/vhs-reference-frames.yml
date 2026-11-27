@@ -2,7 +2,7 @@ name: VHS reference frame extraction
 
 on:
   push:
-    branches: [main]
+    branches: [main, phase3-preset-camera-migration-2026-11-27]
     paths:
       - "VHS/Vhs cams/**"
       - "tools/extract_vhs_reference_frames.py"

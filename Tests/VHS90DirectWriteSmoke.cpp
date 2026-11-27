@@ -3,6 +3,8 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <cstdint>
+#include <fstream>
 int main() {
     using namespace vhs90;
     using namespace vhs90::win;
@@ -79,5 +81,35 @@ int main() {
         else assert(!changedPixel);
     }
     assert(insideChanged);
+
+    // Save a real pixel-level OSD render from the Windows DirectWrite backend.
+    // CI uploads this image so Arabic shaping, mixed RTL/LTR text and the two
+    // bundled font families can be inspected independently of the smoke assertions.
+    {
+        struct BitmapFileHeader { std::uint16_t type; std::uint32_t size; std::uint16_t r1,r2; std::uint32_t offset; };
+        struct BitmapInfoHeader {
+            std::uint32_t size; std::int32_t width,height; std::uint16_t planes,bits;
+            std::uint32_t compression,imageSize; std::int32_t xppm,yppm;
+            std::uint32_t used,important;
+        };
+        static_assert(sizeof(BitmapFileHeader)==14 && sizeof(BitmapInfoHeader)==40);
+        const std::uint32_t imageBytes=static_cast<std::uint32_t>(w*h*4);
+        BitmapFileHeader fh{0x4D42u,static_cast<std::uint32_t>(54u+imageBytes),0,0,54u};
+        BitmapInfoHeader ih{40u,w,h,1u,32u,0u,imageBytes,2835,2835,0u,0u};
+        std::ofstream bmp("vhs90-osd-arabic-smoke.bmp",std::ios::binary);
+        assert(bmp.good());
+        bmp.write(reinterpret_cast<const char*>(&fh),sizeof(fh));
+        bmp.write(reinterpret_cast<const char*>(&ih),sizeof(ih));
+        for(int yy=h-1;yy>=0;--yy) for(int xx=0;xx<w;++xx) {
+            const std::size_t p=(static_cast<std::size_t>(yy)*w+xx)*4;
+            const auto byte=[](float v)->std::uint8_t {
+                return static_cast<std::uint8_t>(std::lround(std::max(0.0f,std::min(1.0f,v))*255.0f));
+            };
+            const std::uint8_t bgra[4]={byte(pixels[p+2]),byte(pixels[p+1]),byte(pixels[p]),255u};
+            bmp.write(reinterpret_cast<const char*>(bgra),4);
+        }
+        bmp.flush();
+        assert(bmp.good());
+    }
     return 0;
 }
