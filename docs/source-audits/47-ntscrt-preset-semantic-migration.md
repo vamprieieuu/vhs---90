@@ -19,9 +19,9 @@ Normal looks contain description, digital, downscale, glitch, ntsc, shader, time
 | Preset | Semantic content | VHS-90 migration disposition |
 |---|---|---|
 | 2 second dirty VCR loop | 2 s/24 fps, 15 whole-state keys; VCR enabled, SP tape, wear/dropouts/scratches/creases, head contamination/mismatch and tracking offset; NTSC active, CRT off | High-value tape/deck/transport candidate. Convert NTSC snapshots only where matching DSP controls exist. |
-| 2 second glitch | 2 s/24 fps, 9 keys; receiver vertical/horizontal hold, ghost/signal and head-switch behavior; NTSC and CRT active | Partial receiver/sync/ghost mapping; convert timeline snapshots; CRT separate. |
-| 2 second glitches | 2 s/24 fps, 26 keys; rapid roll/tear/ghost/signal/search events; NTSC/CRT active | Multi-event receiver keyframes plus NTSC changes; preserve timing/easing. |
-| 2 second mild glitch | 2 s/12 fps, 15 keys; mild vertical hold/ghost and gentle NTSC edge/chroma changes | Partial receiver/NTSC mapping; AE keyframes required. |
+| 5 second glitch | Timeline glitch preset; inspect enabled receiver/NTSC/CRT stages and preserve all source key times/easing during any AE conversion | Timeline migration candidate; do not assume the stage values are identical to other glitch presets. |
+| 15 second glitches | Long-form timeline glitch preset; retain its own duration, enabled-stage map and keyframe timing rather than reusing a shorter loop recipe | Timeline migration candidate; source-specific snapshot conversion remains required. |
+| 5 seconds mild glitch | Mild timeline glitch preset; preserve the source frame rate, enabled stages, easing and full-state snapshots | Timeline migration candidate; convert only supported receiver/NTSC controls. |
 | 5 second blips | 5 s/30 fps, 16 keys; short receiver blips and NTSC softness/chroma/edge changes; shader disabled | Receiver and NTSC snapshot migration; keep shader disabled. |
 | 90s VHS bootleg | Static look; VCR generation, tension, head dirt/buildup, creases, dropout, scratches and transport; NTSC active; CRT off | High-value physical tape/deck/transport preset candidate. |
 | CD-ROM (low quality) | Digital-only Video 1/15-bit block codec, 240 px nearest downscale; no tape/NTSC/CRT | Exclude from analog VHS engine. |
@@ -29,20 +29,20 @@ Normal looks contain description, digital, downscale, glitch, ntsc, shader, time
 | Chunky webcam | Digital-only low-resolution compression/blur/chroma; no tape/NTSC/CRT | Exclude from analog VHS engine. |
 | Clean CRT | CRT shader only with 256 px area downscale; no tape/NTSC/receiver | CRT reference only; shader license applies. |
 | Clean VHS | NTSC stage only with moderate bandwidth/chroma/luma response; no VCR/receiver damage | Signal-chain reference, not tape/deck. Port only matching composite/chroma/luma kernels. |
-| Damaged VHS - strong | VCR generation 3, tension, head-switch, mold, scratches, sticky/edge/wear damage; NTSC and CRT active | High-value tape/deck candidate plus separate NTSC/CRT layers. |
+
 | Dirty VCR + CRT (vertical) | Portrait-oriented 160 px downscale, generation 3, heavy creases/dropouts/scratches and deck/head wear; NTSC/CRT active | VCR damage maps to physical engines; portrait/downscale belongs to host; NTSC/CRT separate. |
 | Dirty VCR | VCR wear, mold, scratches, vaseline, creases, head dirt/mismatch and dropouts; NTSC/CRT active | High-value static deck/tape candidate; use measured damage curves. |
 | Gentle waves loop | 2 s/24 fps; NTSC edge-wave/chroma behavior plus CRT; no VCR receiver stage | NTSC shader-style animation, not physical tape transport. |
 | Glitch 1 | 2 s/24 fps, 9 keys; NTSC edge wave/chroma loss/phase and head-switching changes; CRT bloom | Despite its name, glitch stage is disabled. NTSC/CRT animated look, not VCR. |
 | Glitch 2 | 2 s/24 fps, 10 keys; 128 px nearest downscale, heavy static/snow/tracking-noise NTSC parameters and CRT | NTSC noise/tracking animation, not VCR track reading. |
-| Glitch 3 | 2 s/24 fps, 10 keys; NTSC head-switch display position/height, tracking noise and color noise; CRT | NTSC display/edge tracking animation; translate coordinate model before mapping. |
+| Gltch 3 | NTSC head-switch display position/height, tracking noise and color-noise preset; preserve its exact source spelling and inspect the JSON timeline before porting | NTSC display/edge tracking candidate; translate coordinate model before mapping. |
 | Glitch loop 1 | 2 s/12 fps, 7 keys; NTSC softness/edge and CRT glow pulse | NTSC parameter animation; convert snapshots to AE keyframes. |
 | Glitch pop | 2 s/12 fps, 11 keys; short NTSC blur/chroma-loss/edge-wave pulses; CRT | NTSC animation only; preserve pulses and return-to-normal states. |
 | High Chroma static | Static NTSC colored static/noise on 256 px downscale with CRT | Signal/noise preset, not tape surface damage. |
 | Low Res | Static 128 px nearest downscale with NTSC chroma bleed and CRT | Host downscale plus NTSC signal reference; no VCR model. |
 | Medium VHS | Static moderate NTSC bandwidth/noise/chroma bleed and CRT | Signal-chain baseline, not physical tape/deck damage. |
 | Mild VHS | Static light NTSC softness/noise with CRT | Low-intensity signal-chain baseline. |
-| Noisy TV broadcast on VHS | VCR generation 3, EP, tension, head-switch and tape damage; NTSC active; CRT disabled; digital stage disabled despite serialized digital values | Physical tape/deck/transport candidate. Ignore disabled digital map. |
+
 | Obliterated | Static extreme NTSC smear/chroma bleed/noise with CRT; 5 s timeline enabled but zero keys | Static signal-chain preset; enabled timeline without keys has no animation data. |
 | Readable Text | Light NTSC VHS plus 384 px area downscale and sharper Lanczos CRT shader | Signal-chain + host downscale + shader; legibility-focused preset. |
 | Screen Loop/12 copies luma key | ntscrt-video-feedback camera-feedback look with key inversion, zoom/turn/drift | Exclude: separate Screen Loop renderer. |
@@ -54,7 +54,7 @@ Normal looks contain description, digital, downscale, glitch, ntsc, shader, time
 | Tracking Noise up | 2 s/24 fps, 10 NTSC/CRT keys; tracking-noise band grows from bottom with changing height/intensity/edge-wave/chroma | Region-based NTSC tracking-noise animation. VHS-90 arbitrary-position tracking region is conceptually relevant; translate its bottom-up motion curve explicitly. |
 | Two blips loop | 2 s/12 fps, 8 NTSC/CRT keys; two short edge-wave/blur pulses | NTSC parameter animation, not VCR damage. |
 | V Hold glitch | 2 s/12 fps, 8 keys; receiver vertical/horizontal hold, crinkle/dropouts/head clog/head-switch and fast search; NTSC/CRT active | Mixed receiver + NTSC animation; map receiver controls partially and preserve keyframes/easing. |
-| VHS with color loss | Generation-3 EP VCR, tension, wear/scratches/creases/dropouts, head wear/dirt, tracking and flutter; NTSC active, CRT off; digital disabled | High-value physical tape/deck/transport candidate plus NTSC color-loss stage. Ignore disabled digital values. |
+
 | Vertical Freak Out | 2 s/24 fps, 6 keys; receiver vertical roll, horizontal slip and head clog; NTSC/CRT active | Receiver/sync animation; map hold controls and translate keyframes. |
 | Vertical spike loop | 2 s/12 fps, 6 NTSC/CRT keys; vertical chroma smear/spikes and blur bursts | NTSC vertical chroma/edge animation, not VCR track geometry. |
 | Very wavy | 2 s/24 fps, 5 NTSC/CRT keys; strong slow edge waves, NTSC filter/noise and vertical scaling | NTSC edge-wave animation; port only if corresponding DSP stage exists. |
