@@ -1033,7 +1033,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_TOPIC+100);
 
 
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tear & Chroma",ID_TEAR_CHROMA_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear & Chroma Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_CHROMA_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tear & Chroma Mode",5,5,kTearChromaModeChoices,ID_TEAR_CHROMA_MODE);
