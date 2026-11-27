@@ -10,7 +10,6 @@
 #include "VHS90SignalKernels.h"
 #include "VHS90RegionEngine.h"
 #include "VHS90StaticEngine.h"
-#include "VHS90ParticlePatternEngine.h"
 #include "VHS90TearChromaEngine.h"
 #include "VHS90IIRFilter.h"
 #include "VHS90CompositeEngine.h"
@@ -19,7 +18,6 @@
 #include "VHS90OsdLocalization.h"
 #include "VHS90OsdArbitraryData.h"
 #include "VHS90DirectWriteText.h"
-#include "VHS90DeviceConnectionEngine.h"
 #include "VHS90SyncEngine.h"
 #include <algorithm>
 #include <cmath>
