@@ -47,6 +47,12 @@ int main() {
     assert(dst!=src);
     for (float v:dst) assert(std::isfinite(v));
 
+    // Ground Loop must not be discarded by the neutral fast path when it is
+    // the only active physical-interference control.
+    p={}; p.groundLoopMillivolts=500.0f;
+    assert(vhs90::processPhysicalInterference(in,out,p));
+    assert(dst!=src);
+
     p={}; p.rfPickupAmount=1.0f; p.rfFieldVPerM=25.0f;
     p.frame=17; p.seed=91;
     assert(vhs90::processPhysicalInterference(in,out,p));
