@@ -466,7 +466,10 @@ struct RenderSettings {
 };
 inline float clamp01(float x) noexcept { return std::max(0.0f,std::min(1.0f,x)); }
 
-static float masterDrive(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }\nstatic float masterMix(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }\n\nstatic float blendPreset(float current,float target,float intensity) noexcept {
+static float masterDrive(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }
+static float masterMix(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }
+
+static float blendPreset(float current,float target,float intensity) noexcept {
     const float t=clamp01(intensity/100.0f);
     return current+(target-current)*t;
 }
@@ -1439,8 +1442,9 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         ApplyVhsSourcePresets(s);
         const int w=input->width,h=input->height;
         if(w<=0||h<=0) return PF_Err_NONE;
-        const float master=clamp01(s.master/100.0f);
-        const float masterOverdrive=std::clamp(s.master/100.0f,0.0f,2.0f);
+        const float masterDriveValue=masterDrive(s.master);
+        const float master=clamp01(masterDriveValue);
+        const float masterOverdrive=std::clamp(masterDriveValue,0.0f,3.0f);
         const bool compositeStages=(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0.0f)||s.signalHueNoise>0.0f||s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.ntscRsPhaseNoise>0;
         const bool osdEnabled=s.osdAmount>0.0f;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.particleAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||osdEnabled;
