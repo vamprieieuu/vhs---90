@@ -195,6 +195,8 @@ for needle in [
     "b(s.osdPlay,v[36]>0.5f?100.0f:0.0f);b(s.osdTimestamp,v[36]>0.5f?100.0f:0.0f);b(s.osdBattery,v[36]>0.5f?75.0f:0.0f);",
     "||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f",
     "p.demodulator=CompositeDemodulator::ConsumerNotch;",
+    "p.inputBandwidth.lumaCutoffHz=blendCutoff(4200000.0f,tapeBandwidth.lumaCutoffHz);",
+    "p.outputBandwidth.lumaCutoffHz=blendCutoff(4200000.0f,tapeBandwidth.lumaCutoffHz*0.90f);",
     "kLostSignalProfiles[13][45]",
     "b(s.lensDistortion,v[39]*1000.0f);bi(s.vhs43Frame,v[40]>0.5f?1.0f:0.0f);",
     "p.temporalGhost.frameRepeatFrequency=clamp01(s.frameRepeatFrequency/100.0f);",
