@@ -56,7 +56,8 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
  const int noiseCell=std::clamp(int(std::lround(noiseSize/frequency)),1,64);
  const std::int64_t noiseFrame=static_cast<std::int64_t>(std::floor(double(p.frame)*animationSpeed));
 
- if(grain<=0.0f&&ly<=0.0f&&ch<=0.0f&&hueNoise<=0.0f&&co<=0.0f&&loss<=0.0f&&tape<=0.0f&&phaseNoise<=0.0f) {
+ const bool pixelSignalNoiseActive=noiseDensity>0.0f&&(ly>0.0f||ch>0.0f||hueNoise>0.0f||co>0.0f||phaseNoise>0.0f);
+ if(grain<=0.0f&&!pixelSignalNoiseActive&&loss<=0.0f&&tape<=0.0f) {
   for(int y=0;y<src.height;++y) std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);
   return true;
  }
