@@ -280,6 +280,12 @@ assert "rgb.r*=exposure;rgb.g*=exposure;rgb.b*=exposure;" in grade_engine, "Expo
 assert re.search(r"kLegacyVhsStyleRecipeMap\[33\]\s*=\s*\{\s*0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,\s*55,56,58,59,60,61,63,66,67,68,69,72", source), "Legacy style mapping must preserve all prior popup values"
 assert "if(s.extendedVhsStyle>1) ApplyVhsExtendedStylePreset(s);" not in source, "A second preset selector must not be required; all looks belong in the opening unified menu"
 
+camera_start = source.find("static void ApplyVhs6RiftCameraProfile")
+camera_end = source.find("static void ApplyNtscRsVhsLook", camera_start)
+ntsc_start = camera_end
+ntsc_end = source.find("static void ApplyVhsSourcePresets", ntsc_start)
+camera_cases = set(map(int, re.findall(r"case ([0-9]+):", source[camera_start:camera_end])))
+ntsc_cases = set(map(int, re.findall(r"case ([0-9]+):", source[ntsc_start:ntsc_end])))
 assert camera_cases == set(range(2, 13)), f"Missing VHS6RIFT and FXC6/Gen 7 camera profile cases: {sorted(set(range(2,13))-camera_cases)}"
 camera_choices = re.search(r'kCameraProfileChoices\[\]\s*=\s*"([^"]+)"', source)
 assert camera_choices and len(camera_choices.group(1).split("|")) == 12, "Camera Profile popup must expose Off plus 11 reference profiles"
