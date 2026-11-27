@@ -237,6 +237,15 @@ assert vhscraft_cases.issubset(style_cases), f"Missing VHSCraft recipes: {sorted
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
 assert style_choices and len(style_choices.group(1).split("|")) == 32, "VHS Style popup must expose the curated 32 entries"
 assert 'PF_ADD_POPUP("VHS Style Preset",32,1,kVhsStyleChoices,ID_VHS_STYLE)' in source, "VHS Style popup count must match its labels"
+assert 'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER)' in source, "Master Strength must exceed 100 and expose the 300% range"
+assert 'PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION)' in source, "Saturation range must match the engine's supported high-drive range"
+style_pos=source.find('PF_ADD_TOPIC("VHS Style & Presets",ID_VHS_STYLE_TOPIC)')
+master_pos=source.find('PF_ADD_FLOAT_SLIDERX("Master Strength"')
+signal_pos=source.find('PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC)')
+assert 0 <= style_pos < master_pos < signal_pos, "VHS Style / Presets must precede Master Strength and Signal"
+assert 'PF_ADD_TOPIC("Chroma",ID_CHROMA_TOPIC)' in source and 'PF_ADD_TOPIC("Ringing",ID_RINGING_TOPIC)' in source and 'PF_ADD_TOPIC("Glow",ID_GLOW_TOPIC)' in source and 'PF_ADD_TOPIC("General Adjustments",ID_GENERAL_TOPIC)' in source, "Dedicated Chroma, Ringing, Glow and General sections must remain present"
+assert 'PF_ADD_TOPIC("Tape",ID_TAPE_MATERIAL_TOPIC)' in source and 'PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE)' in source, "Unified Tape section must have an active master control"
+assert 'PF_ADD_TOPIC("Mains Hum",ID_PHYSICAL_TOPIC)' in source and 'PF_ADD_FLOAT_SLIDERX("RF Hum"' in source, "Mains Hum and RF Hum must be distinct controls"
 assert "kVhsStyleRecipeMap[33]" in source and "switch(styleRecipe)" in source, "Compact labels must map to source recipe IDs"
 assert re.search(r"kVhsStyleRecipeMap\[33\]\s*=\s*\{\s*0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,\s*55,56,58,59,60,61,63,66,67,68,69,72", source), "Compact style mapping must retain the curated VHS6RIFT, Crates, VHSPro and VHSCraft source recipes"
 assert camera_cases == set(range(2, 13)), f"Missing VHS6RIFT and FXC6/Gen 7 camera profile cases: {sorted(set(range(2,13))-camera_cases)}"
