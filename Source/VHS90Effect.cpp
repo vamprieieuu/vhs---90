@@ -18,6 +18,7 @@
 #include "VHS90OsdLocalization.h"
 #include "VHS90OsdArbitraryData.h"
 #include "VHS90DirectWriteText.h"
+#include "VHS90OsdTextDialog.h"
 #include "VHS90SyncEngine.h"
 #include <algorithm>
 #include <cmath>
@@ -58,7 +59,7 @@ enum ParamIndex {
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
     PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_OFFSET, PARAM_OSD_SHOW_COUNTER, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
     PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
-    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_COUNT
+    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_VHS_STYLE_TOPIC=136,
@@ -365,6 +366,8 @@ enum ParamDiskID {
     ID_TAPE_PINHOLES=351,
     ID_TAPE_FLAKES=352,
     ID_TAPE_ROUGHNESS=353,
+    ID_OSD_TEXT_EDIT_TOPIC=354,
+    ID_OSD_TEXT_EDIT=355,
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -1195,6 +1198,9 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Oxide Flakes",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_FLAKES);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Surface Roughness",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_ROUGHNESS);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TAPE_SURFACE_DETAIL_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("OSD Text Input",ID_OSD_TEXT_EDIT_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_BUTTON("OSD Text Editor","Edit Text...",0,PF_ParamFlag_SUPERVISE,ID_OSD_TEXT_EDIT);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_TEXT_EDIT_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -2322,6 +2328,25 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     if(err==PF_Err_NONE) err=RenderWorld(s,inWorld,outWorld,inFmt);
     return err;
 }
+
+static PF_Err UserChangedParam(PF_InData* in_data,PF_ParamDef* params[],void* extra) {
+    if(!in_data || !params || !extra) return PF_Err_BAD_CALLBACK_PARAM;
+    const auto* changed=static_cast<const PF_UserChangedParamExtra*>(extra);
+    if(changed->param_index!=PARAM_OSD_TEXT_EDIT) return PF_Err_NONE;
+    if(!params[PARAM_OSD_TEXT_DATA]) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+    std::string currentText;
+    PF_Err err=VHS90ReadOsdText(in_data,params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,currentText);
+    if(err!=PF_Err_NONE) return err;
+    std::string editedText;
+    if(!VHS90ShowOsdTextDialog(currentText,editedText)) return PF_Err_NONE;
+    PF_ArbitraryH replacement=nullptr;
+    err=VHS90CreateOsdText(in_data,editedText,&replacement);
+    if(err!=PF_Err_NONE) return err;
+    if(!replacement) return PF_Err_OUT_OF_MEMORY;
+    params[PARAM_OSD_TEXT_DATA]->u.arb_d.value=replacement;
+    params[PARAM_OSD_TEXT_DATA]->uu.change_flags |= PF_ChangeFlag_CHANGED_VALUE;
+    return PF_Err_NONE;
+}
 } // namespace
 
 extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in_data,PF_OutData* out_data,
@@ -2333,6 +2358,7 @@ extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in_data,PF_OutData*
             case PF_Cmd_ABOUT: PF_STRCPY(out_data->return_msg,"VHS-90 1.0.0 - Native procedural VHS / NTSC signal engine."); break;
             case PF_Cmd_GLOBAL_SETUP: err=GlobalSetup(in_data,out_data); break;
             case PF_Cmd_PARAMS_SETUP: err=ParamsSetup(in_data,out_data); break;
+            case PF_Cmd_USER_CHANGED_PARAM: err=UserChangedParam(in_data,params,extra); break;
             case PF_Cmd_ARBITRARY_CALLBACK: err=VHS90OsdArbitraryCallback(in_data,static_cast<PF_ArbParamsExtra*>(extra)); break;
             case PF_Cmd_RENDER: err=LegacyRender(in_data,out_data,params,output); break;
             case PF_Cmd_SMART_PRE_RENDER: err=SmartPreRender(in_data,static_cast<PF_PreRenderExtra*>(extra)); break;
