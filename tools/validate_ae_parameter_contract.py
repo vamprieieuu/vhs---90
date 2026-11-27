@@ -65,6 +65,38 @@ if tear_bands_start < 0 or tear_bands_end < 0:
 tear_bands_ui = setup_body[tear_bands_start:tear_bands_end]
 if "PF_PUI_NO_ECW_UI" in tear_bands_ui:
     fail("Tear Bands 2–5 must expose their independent controls in Effect Controls.")
+
+# The Damage Lab's primary spatial, static, tape-surface and head-switching
+# controls are user-facing controls, not hidden SmartFX-only parameters.
+def topic_body(topic_name: str) -> str:
+    start = setup_body.find('PF_ADD_TOPIC("' + topic_name + '"')
+    if start < 0:
+        fail("Missing Damage Lab topic: " + topic_name)
+    end = setup_body.find("PF_END_TOPIC(", start)
+    if end < 0:
+        fail("Unclosed Damage Lab topic: " + topic_name)
+    return setup_body[start:end]
+
+for topic_name in ("Waves / Static", "Grain", "Tracking Noise", "Head Switching", "Tape", "Mains Hum"):
+    body = topic_body(topic_name)
+    if "PF_PUI_NO_ECW_UI" in body:
+        fail("Damage Lab topic must remain visible/editable: " + topic_name)
+
+for required in [
+    'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100',
+    'PF_ADD_FLOAT_SLIDERX("Bottom Edge Y",0,100,0,100,100',
+    'PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_HEIGHT)',
+    'PF_ADD_FLOAT_SLIDERX("Horizontal Shift",0,100,0,100,24',
+    'PF_ADD_FLOAT_SLIDERX("Region Angle",-180,180',
+    'PF_ADD_FLOAT_SLIDERX("Motion X",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Static Amount",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Mains Hum",0,100',
+]:
+    if required not in setup_body:
+        fail("Missing required visible Damage Lab control: " + required)
+
 for band in range(2, 6):
     if f'PF_ADD_TOPIC("Tear Band {band}"' not in tear_bands_ui:
         fail(f"Missing Tear Band {band} topic.")
