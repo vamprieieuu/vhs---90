@@ -1921,7 +1921,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             working.swap(scratch);
         }
         if(master>0.0f&&s.staticAmount>0) {
-            StaticParams p; p.mode=static_cast<StaticPatternMode>(std::clamp<A_long>(s.staticMode-1,0,10));
+            StaticParams p; p.mode=static_cast<StaticPatternMode>(std::clamp<A_long>(s.staticMode-1,0,12));
             p.angleDegrees=s.staticAngle; p.ribbonWidth=clamp01(s.staticRibbonWidth/100.0f); p.greenLineAmount=clamp01(s.staticGreenLine/100.0f); p.phaseCount=static_cast<int>(std::lround(s.staticPhaseCount));
             p.intensity=clamp01(s.staticAmount/100.0f*master);
             p.sourceMix=1.0f; p.density=clamp01(s.staticDensity/100.0f); p.seed=0x905A71C1u;
