@@ -245,6 +245,7 @@ signal_pos=source.find('PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC)')
 assert 0 <= style_pos < master_pos < signal_pos, "VHS Style / Presets must precede Master Strength and Signal"
 assert 'PF_ADD_TOPIC("Chroma",ID_CHROMA_TOPIC)' in source and 'PF_ADD_TOPIC("Ringing",ID_RINGING_TOPIC)' in source and 'PF_ADD_TOPIC("Glow",ID_GLOW_TOPIC)' in source and 'PF_ADD_TOPIC("General Adjustments",ID_GENERAL_TOPIC)' in source, "Dedicated Chroma, Ringing, Glow and General sections must remain present"
 assert 'PF_ADD_TOPIC("Tape",ID_TAPE_MATERIAL_TOPIC)' in source and 'PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_SURFACE)' in source, "Unified Tape section must have an active master control"
+assert 'PF_ADD_FLOAT_SLIDERX("Luma Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_LUMA_NOISE)' in source and 'PF_ADD_FLOAT_SLIDERX("Chroma Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_NOISE)' in source, "Grain noise controls must start neutral"
 assert 'PF_ADD_TOPIC("Mains Hum",ID_PHYSICAL_TOPIC)' in source and 'PF_ADD_FLOAT_SLIDERX("RF Hum"' in source, "Mains Hum and RF Hum must be distinct controls"
 assert "kVhsStyleRecipeMap[33]" in source and "switch(styleRecipe)" in source, "Compact labels must map to source recipe IDs"
 assert re.search(r"kVhsStyleRecipeMap\[33\]\s*=\s*\{\s*0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,\s*55,56,58,59,60,61,63,66,67,68,69,72", source), "Compact style mapping must retain the curated VHS6RIFT, Crates, VHSPro and VHSCraft source recipes"
