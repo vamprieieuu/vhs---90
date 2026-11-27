@@ -58,7 +58,7 @@ enum ParamIndex {
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
     PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_OFFSET, PARAM_OSD_SHOW_COUNTER, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
     PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
-    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_COUNT
+    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_VHS_STYLE_TOPIC=136,
@@ -361,6 +361,10 @@ enum ParamDiskID {
     ID_CHROMA_REG_GREEN=9056,
     ID_CHROMA_REG_MODE=9057,
     ID_GRADE_EXPOSURE=9058,
+    ID_TAPE_SURFACE_DETAIL_TOPIC=350,
+    ID_TAPE_PINHOLES=351,
+    ID_TAPE_FLAKES=352,
+    ID_TAPE_ROUGHNESS=353,
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -417,7 +421,7 @@ struct RenderSettings {
     float tearBandAmount[4]={70,60,80,55}, tearBandY[4]={75,45,90,30}, tearBandHeightExtra[4]={15,12,8,10}, tearBandShift[4]={30,-24,40,-18}, tearBandFragmentation[4]={60,70,45,65}, tearBandChroma[4]={8,-6,12,-10}, tearBandSmear[4]={8,12,5,10}, tearBandDropout[4]={20,15,25,10};
     float headAmount=0, headY=100, headHeight=4, headShift=24;
     float headCondition=0;
-    float tapeWear=100, tapeDropouts=100, tapeScratches=100, tapeCreases=100, tapeEdge=100, tapeMold=100, tapeVaseline=100, tapeSticky=100, tapeSeed=1, backTension=0;
+    float tapeWear=100, tapeDropouts=100, tapeScratches=100, tapeCreases=100, tapeEdge=100, tapeMold=100, tapeVaseline=100, tapeSticky=100, tapePinholes=0, tapeFlakes=0, tapeRoughness=0, tapeSeed=1, backTension=0;
     float tapeNoise=0;
     float magnetMoment=0.0f, magnetDistance=6.0f, groundLoop=0.0f, mainsHum=0.0f, rfField=0.0f, rfPickup=0.0f;
         float osdAmount=0.0f, osdRec=100.0f, osdPlay=100.0f, osdTimestamp=100.0f, osdOpacity=82.0f, osdScale=100.0f, osdGlitch=50.0f, osdGhost=35.0f, osdRecBlink=1.4f, osdTimeSpeed=1.0f;
@@ -1186,6 +1190,11 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Word Group Horizontal Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_WORDS_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Word Group Vertical Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_WORDS_Y);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_WORDS_TOPIC+100);
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tape Surface Detail",ID_TAPE_SURFACE_DETAIL_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Pinholes",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_PINHOLES);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Oxide Flakes",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_FLAKES);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Surface Roughness",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TAPE_ROUGHNESS);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TAPE_SURFACE_DETAIL_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -1308,7 +1317,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_HEAD_CONDITION,headCondition);
     READ_FLOAT(PARAM_TAPE_WEAR,tapeWear); READ_FLOAT(PARAM_TAPE_DROPOUTS,tapeDropouts); READ_FLOAT(PARAM_TAPE_SCRATCHES,tapeScratches);
     READ_FLOAT(PARAM_TAPE_CREASES,tapeCreases); READ_FLOAT(PARAM_TAPE_EDGE,tapeEdge); READ_FLOAT(PARAM_TAPE_MOLD,tapeMold);
-    READ_FLOAT(PARAM_TAPE_VASELINE,tapeVaseline); READ_FLOAT(PARAM_TAPE_STICKY,tapeSticky); READ_FLOAT(PARAM_TAPE_SEED,tapeSeed); READ_FLOAT(PARAM_TAPE_BACK_TENSION,backTension);
+    READ_FLOAT(PARAM_TAPE_VASELINE,tapeVaseline); READ_FLOAT(PARAM_TAPE_STICKY,tapeSticky); READ_FLOAT(PARAM_TAPE_PINHOLES,tapePinholes); READ_FLOAT(PARAM_TAPE_FLAKES,tapeFlakes); READ_FLOAT(PARAM_TAPE_ROUGHNESS,tapeRoughness); READ_FLOAT(PARAM_TAPE_SEED,tapeSeed); READ_FLOAT(PARAM_TAPE_BACK_TENSION,backTension);
     READ_FLOAT(PARAM_MAINS_HUM,mainsHum);
     READ_FLOAT(PARAM_OSD_AMOUNT,osdAmount); READ_FLOAT(PARAM_OSD_REC,osdRec); READ_FLOAT(PARAM_OSD_PLAY,osdPlay); READ_FLOAT(PARAM_OSD_TIMESTAMP,osdTimestamp);
     READ_FLOAT(PARAM_OSD_OPACITY,osdOpacity); READ_FLOAT(PARAM_OSD_SCALE,osdScale); READ_FLOAT(PARAM_OSD_GLITCH,osdGlitch); READ_FLOAT(PARAM_OSD_GHOST,osdGhost);
@@ -1436,7 +1445,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         const float masterDriveValue=masterDrive(s.master);
         const float master=clamp01(masterDriveValue);
         const float masterOverdrive=std::clamp(masterDriveValue,0.0f,3.0f);
-        const bool compositeStages=(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0.0f)||s.signalHueNoise>0.0f||s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeExposure!=0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.ntscRsPhaseNoise>0;
+        const bool compositeStages=(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0.0f)||s.signalHueNoise>0.0f||s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeExposure!=0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapePinholes>0||s.tapeFlakes>0||s.tapeRoughness>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.ntscRsPhaseNoise>0;
         const bool osdEnabled=s.osdAmount>0.0f;
         const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.greenChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||osdEnabled;
         if(!any||(master<=0.0f&&!osdEnabled)) { CopyRegion(input,output,format); return PF_Err_NONE; }
@@ -1792,6 +1801,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 tc.master=s.tapeSurface; tc.wear=s.tapeWear; tc.dropouts=s.tapeDropouts;
                 tc.scratches=s.tapeScratches; tc.creases=s.tapeCreases; tc.edgeDamage=s.tapeEdge;
                 tc.mold=s.tapeMold; tc.vaseline=s.tapeVaseline; tc.sticky=s.tapeSticky;
+                tc.pinholes=s.tapePinholes; tc.flakes=s.tapeFlakes; tc.surfaceRoughness=s.tapeRoughness;
                 tc.cassetteSeed=static_cast<std::uint32_t>(std::max(1.0f,std::min(10000.0f,std::round(s.tapeSeed))));
                 tc.tapeSpeed=static_cast<std::uint32_t>(std::clamp(int(s.tapeSpeed)-1,0,2));
                 tc.trackingOffsetTracks=p.trackRead.trackingOffset; tc.frame=s.frame;
@@ -2135,7 +2145,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.headCondition=float(params[PARAM_HEAD_CONDITION]->u.fs_d.value);
     s.tapeWear=float(params[PARAM_TAPE_WEAR]->u.fs_d.value); s.tapeDropouts=float(params[PARAM_TAPE_DROPOUTS]->u.fs_d.value); s.tapeScratches=float(params[PARAM_TAPE_SCRATCHES]->u.fs_d.value);
     s.tapeCreases=float(params[PARAM_TAPE_CREASES]->u.fs_d.value); s.tapeEdge=float(params[PARAM_TAPE_EDGE]->u.fs_d.value); s.tapeMold=float(params[PARAM_TAPE_MOLD]->u.fs_d.value);
-    s.tapeVaseline=float(params[PARAM_TAPE_VASELINE]->u.fs_d.value); s.tapeSticky=float(params[PARAM_TAPE_STICKY]->u.fs_d.value); s.tapeSeed=float(params[PARAM_TAPE_SEED]->u.fs_d.value); s.backTension=float(params[PARAM_TAPE_BACK_TENSION]->u.fs_d.value);
+    s.tapeVaseline=float(params[PARAM_TAPE_VASELINE]->u.fs_d.value); s.tapeSticky=float(params[PARAM_TAPE_STICKY]->u.fs_d.value); s.tapePinholes=float(params[PARAM_TAPE_PINHOLES]->u.fs_d.value); s.tapeFlakes=float(params[PARAM_TAPE_FLAKES]->u.fs_d.value); s.tapeRoughness=float(params[PARAM_TAPE_ROUGHNESS]->u.fs_d.value); s.tapeSeed=float(params[PARAM_TAPE_SEED]->u.fs_d.value); s.backTension=float(params[PARAM_TAPE_BACK_TENSION]->u.fs_d.value);
     s.trackMisalignment=float(params[PARAM_TRACK_MISALIGNMENT]->u.fs_d.value);
     s.redChannelOffset=float(params[PARAM_CHROMA_REG_RED]->u.fs_d.value);
     s.greenChannelOffset=float(params[PARAM_CHROMA_REG_GREEN]->u.fs_d.value);
