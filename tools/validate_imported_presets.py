@@ -295,7 +295,7 @@ assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 4
 print(f"PASS: {len(active_indices)} AE parameter slots; persistent disk IDs are unique and stable across UI reordering.")
 print("PASS: curated 32-entry VHS Style menu maps to distinct source recipes; legacy recipe IDs remain supported for saved projects.")
 print("PASS: all 7 audited preset families have native menu entries; Crates maps 44 recovered source fields per look, while VHSPro/VHSCraft remain source-inspired where exact tuples were not recoverable.")
-print("PASS: camera profiles and NTSC-RS Signal Looks remain wired; retired Playback, Decoder, Frame, HUD, Particle and Signal Network groups are removed.")
+print("PASS: camera profiles and NTSC-RS Signal Looks remain wired; retired Playback, Decoder, Frame, HUD and Signal Network groups are removed; Particle looks are folded into Static.")
 assert "p.mode=static_cast<StaticPatternMode>(std::clamp<A_long>(s.staticMode-1,0,12));" in source, "Static Pattern mode must be mapped through all supported modes"
 assert 'kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|Top Strip|Bottom-Weighted Streaks|Monochrome Streaks|Split-Band Chromatic|Static to Blackout|Dark-Field Luma Streaks|Multi-Phase Green Line|Two-Stage Angular Ribbon|Diagonal Sync Collapse|Colored Speckles|Vertical Columns"' in source, "Static pattern menu must expose the two recovered procedural particle modes"
 assert 'PF_ADD_POPUP("Pattern Type",13,2,kStaticPatternChoices,ID_PATTERN_MODE)' in source, "All static modes must be selectable in Effect Controls"
