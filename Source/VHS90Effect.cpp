@@ -1226,8 +1226,6 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_2,s.trackingLayerPreset[0]); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_3,s.trackingLayerPreset[1]); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_4,s.trackingLayerPreset[2]); if(err!=PF_Err_NONE) return err;
-    err=CheckoutPopup(in_data,PARAM_PARTICLE_MODE,s.particleMode); if(err!=PF_Err_NONE) return err;
-    err=CheckoutPopup(in_data,PARAM_PARTICLE_DISTRIBUTION,s.particleDistribution); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_TEAR_CHROMA_AMOUNT,tearChromaAmount); READ_FLOAT(PARAM_SPECTRAL_SMEAR,spectralSmear);
     READ_FLOAT(PARAM_SPECTRAL_HUE_SPREAD,spectralHueSpread); READ_FLOAT(PARAM_CHROMA_SATURATION,chromaSaturation);
     READ_FLOAT(PARAM_SPECTRAL_CENTER_Y,spectralCenterY); READ_FLOAT(PARAM_SPECTRAL_COVERAGE,spectralCoverage);
@@ -1867,10 +1865,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         if(master>0.0f&&s.particleAmount>0.0f) {
             ParticlePatternParams pp;
             pp.intensity=clamp01(s.particleAmount/100.0f*master);
-            pp.mode=static_cast<ParticlePatternMode>(std::clamp<A_long>(s.particleMode-1,0,4));
             pp.density=clamp01(s.particleDensity/100.0f); pp.particleSizePx=s.particleSize;
             pp.streakLengthPx=s.particleLength;
-            pp.distribution=static_cast<ParticleDistribution>(std::clamp<A_long>(s.particleDistribution-1,0,4));
             pp.chromaAmount=clamp01(s.particleChroma/100.0f); pp.animationSpeed=std::max(0.0f,s.particleSpeed);
             pp.seed=static_cast<std::uint32_t>(std::clamp(std::lround(s.particleSeed),1l,32767l));
             pp.sourceMix=clamp01(s.particleSourceMix/100.0f); pp.brightness=s.particleBrightness/100.0f; pp.contrast=s.particleContrast/100.0f;
@@ -2259,7 +2255,6 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.vhs6RiftNoiseSeed=float(params[PARAM_VHS6RIFT_NOISE_SEED]->u.fs_d.value);
     s.vhs6RiftNoiseEnable=params[PARAM_VHS6RIFT_NOISE_ENABLE]->u.bd.value!=0;
     s.edgeWaveFrequency=float(params[PARAM_EDGE_WAVE_FREQUENCY]->u.fs_d.value); s.edgeWaveSpeed=float(params[PARAM_EDGE_WAVE_SPEED]->u.fs_d.value); s.edgeWaveDetail=float(params[PARAM_EDGE_WAVE_DETAIL]->u.fs_d.value);
-    s.particleMode=params[PARAM_PARTICLE_MODE]->u.pd.value; s.particleDistribution=params[PARAM_PARTICLE_DISTRIBUTION]->u.pd.value;
     s.frame=in_data->time_step!=0?in_data->current_time/in_data->time_step:in_data->current_time;
     s.timeSeconds=in_data->time_scale!=0?double(in_data->current_time)/double(in_data->time_scale):0.0;
     s.frameRate=(in_data->time_step>0&&in_data->time_scale>0)?float(in_data->time_scale)/float(in_data->time_step):29.97f;
