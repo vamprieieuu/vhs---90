@@ -29,3 +29,4 @@ print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all dis
 print("PASS: Phase-1 VHS Style popup is curated to 32 non-duplicate entries mapped to source-backed recipes; the full source recipe tables remain in the engine for later source-specific preset groups.")
 print("PASS: all 7 audited preset families have native menu entries; Crates maps 44 recovered source fields per look, while VHSPro/VHSCraft remain source-inspired where exact tuples were not recoverable.")
 print("PASS: camera profiles and NTSC-RS Signal Looks remain wired; retired Playback, Decoder, Frame, HUD, Particle and Signal Network groups are removed.")
+
