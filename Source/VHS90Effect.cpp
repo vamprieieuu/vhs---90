@@ -544,7 +544,6 @@ struct RenderSettings {
 inline float clamp01(float x) noexcept { return std::max(0.0f,std::min(1.0f,x)); }
 
 static float masterDrive(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }
-static float masterMix(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }
 
 static float blendPreset(float current,float target,float intensity) noexcept {
     const float t=clamp01(intensity/100.0f);
@@ -667,7 +666,7 @@ static void ApplyVhsStyleRecipe(RenderSettings& s,int styleRecipe) noexcept {
         b(s.gradeContrast,100.0f+v[22]*25.0f);b(s.gradeBrightness,-v[22]*8.0f);
         b(s.gradeSaturation,v[23]*100.0f);b(s.headAmount,v[24]*100.0f);
         b(s.headHeight,v[24]*50.0f);b(s.analogGlow,v[25]*100.0f);b(s.vignette,v[26]*100.0f);
-        const int format=int(v[27]+0.5f);bi(s.tapeSpeed,format==1?2:(format==2||format==4?3:1));
+        const int format=int(v[27]+0.5f);bi(s.tapeSpeed,format==1?2.0f:(format==2||format==4?3.0f:1.0f));
         b(s.tapeSurface,std::max(v[29],std::max(v[34],v[35]))*100.0f);b(s.tapeWear,v[29]*100.0f);
         b(s.interlace,v[30]*100.0f);b(s.trackingServo,4.0f+std::fabs(v[31])*60.0f);
         b(s.rfDrift,v[32]*100.0f);b(s.rfField,v[32]*100.0f);b(s.tapeTransport,v[33]*100.0f);
@@ -1738,8 +1737,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 vhs90::win::DirectWriteTextOptions options;
                 options.utf8Text=text.c_str(); options.utf8FontFamily=osdFont; options.fontWeight=osdFontWeight;
                 const double phase=double(s.frame)*0.7548776662466927+double(s.osdTextSeed)*0.000123;
-                const float jitterX=std::sin(phase*12.9898)*op.glitch*float(osdCell)*0.45f;
-                const float jitterY=std::cos(phase*78.233)*op.glitch*float(osdCell)*0.22f;
+                const float jitterX=float(std::sin(phase*12.9898))*op.glitch*float(osdCell)*0.45f;
+                const float jitterY=float(std::cos(phase*78.233))*op.glitch*float(osdCell)*0.22f;
                 options.x=std::max(0.0f,x+jitterX); options.y=std::max(0.0f,y+jitterY);
                 options.fontSize=std::max(8.0f,size);
                 options.maxWidth=std::max(1.0f,rightEdge>0.0f?rightEdge-options.x:float(w)-options.x);
@@ -2553,7 +2552,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.spectralSmear=float(params[PARAM_SPECTRAL_SMEAR]->u.fs_d.value); s.spectralHueSpread=float(params[PARAM_SPECTRAL_HUE_SPREAD]->u.fs_d.value);
     s.chromaSaturation=float(params[PARAM_CHROMA_SATURATION]->u.fs_d.value); s.spectralCenterY=float(params[PARAM_SPECTRAL_CENTER_Y]->u.fs_d.value);
     s.spectralCoverage=float(params[PARAM_SPECTRAL_COVERAGE]->u.fs_d.value); s.tearBandStartY=float(params[PARAM_TEAR_BAND_START_Y]->u.fs_d.value);
-    s.tearBandHeight=float(params[PARAM_TEAR_BAND_HEIGHT]->u.fs_d.value); s.tearBandCount=params[PARAM_TEAR_BAND_COUNT]->u.fs_d.value;
+    s.tearBandHeight=float(params[PARAM_TEAR_BAND_HEIGHT]->u.fs_d.value); s.tearBandCount=float(params[PARAM_TEAR_BAND_COUNT]->u.fs_d.value);
     s.tearDisplacement=float(params[PARAM_TEAR_DISPLACEMENT]->u.fs_d.value); s.tearFragmentation=float(params[PARAM_TEAR_FRAGMENTATION]->u.fs_d.value);
     s.tearChromaShift=float(params[PARAM_TEAR_CHROMA_SHIFT]->u.fs_d.value); s.tearSmear=float(params[PARAM_TEAR_SMEAR]->u.fs_d.value);
     s.tearDropout=float(params[PARAM_TEAR_DROPOUT]->u.fs_d.value); s.tearSeed=float(params[PARAM_TEAR_SEED]->u.fs_d.value);

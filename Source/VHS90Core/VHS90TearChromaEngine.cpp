@@ -100,7 +100,6 @@ bool processTearChroma(ConstImageView src,ImageView dst,const TearChromaParams&p
                 const float cy=band.centerY+band.motionYPerSecond*t;
                 const float cx=band.centerX+band.motionXPerSecond*t;
                 const float halfH=std::max(0.0f,band.height)*.5f;
-                const float dy=std::fabs(v-cy);
                 float mask=regionMask(v,cy,band.height,std::max(.001f,band.height*.12f));
                 if(mask<=0.0f||std::fabs(u-cx)>band.width*.5f)continue;
                 const std::uint32_t seed=p.seed^band.seedOffset^std::uint32_t(bi*0x9e3779b9u);
@@ -114,10 +113,10 @@ bool processTearChroma(ConstImageView src,ImageView dst,const TearChromaParams&p
                 const float shift=rowNoise*band.horizontalShiftPx+wave*band.waveAmplitudePx+jump;
                 const float sx=float(x)+shift;
                 const float smear=std::max(0.0f,band.smearPx);
-                float sr=sample(src,sx-smear*.5f,y,0),sg=sample(src,sx,y,1),sb=sample(src,sx+smear*.5f,y,2);
+                float sr=sample(src,sx-smear*.5f,float(y),0),sg=sample(src,sx,float(y),1),sb=sample(src,sx+smear*.5f,float(y),2);
                 if(std::fabs(band.chromaShiftPx)>1.0e-5f) {
-                    sr=sample(src,sx-band.chromaShiftPx,y,0);
-                    sb=sample(src,sx+band.chromaShiftPx,y,2);
+                    sr=sample(src,sx-band.chromaShiftPx,float(y),0);
+                    sb=sample(src,sx+band.chromaShiftPx,float(y),2);
                 }
                 const float drop=hashCell(x/seg,y/2,seed+0x27d4eb2fu,tick);
                 if(drop<clamp01(band.dropoutProbability)) {
