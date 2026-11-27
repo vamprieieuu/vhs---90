@@ -22,6 +22,8 @@
 #include "VHS90HeadConditionEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include "VHS90PhysicalInterferenceEngine.h"
+#include "VHS90VcrSignalEngine.h"
+#include "VHS90NtscQtEngine.h"
 #include <cstdint>
 
 namespace vhs90 {
