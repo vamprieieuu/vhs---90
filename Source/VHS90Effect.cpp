@@ -390,7 +390,7 @@ static char kOsdExtraLabelChoices[]="Off|TAPE|ERROR|P01|RES|FORWARD|EJECT|SEARCH
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35, staticAngle=24, staticRibbonWidth=12, staticGreenLine=75, staticPhaseCount=3;
     A_long staticMode=2;
-    A_long colorSystem=1, signalModel=1, tapeSpeed=1, vhs43Frame=0;
+    A_long colorSystem=1, signalModel=1, tapeSpeed=1, compositeDecoder=1, vhs43Frame=0;
     float roundedOverscan=0.0f, lensDistortion=0.0f, digitalZoom=1.0f, osdBattery=0.0f;
     float frameRepeatFrequency=0.0f, frameRepeatStrength=0.0f;
     float tapeDetail=100.0f, trackRead=0.0f, trackMisalignment=0.0f, chromaShift=0.0f, redChannelOffset=0.0f, blueChannelOffset=0.0f;
@@ -816,7 +816,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Impulse Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_IMPULSE_NOISE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Signal Dropouts",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_DROPOUTS);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Ghost Gain",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_MULTIPATH_GAIN);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Ghost Delay",1,64,1,64,12,1,PF_ValueDisplayFlag_NONE,0,ID_MULTIPATH_DELAY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Ghost Delay",1,200,1,200,24,1,PF_ValueDisplayFlag_NONE,0,ID_MULTIPATH_DELAY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF Ghost Ensemble",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_MULTIPATH_ENSEMBLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Signal Ghosting",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SIGNAL_GHOST);
 
