@@ -7,6 +7,19 @@ int main(){using namespace vhs90;constexpr int w=160,h=64;std::vector<float>s(w*
  ConstImageView si{s.data(),w,h,w*4};ImageView zi{z.data(),w,h,w*4},ai{a.data(),w,h,w*4},bi{b.data(),w,h,w*4};
  DropoutParams p;assert(processDropouts(si,zi,p));assert(z==s);p.amount=.8f;p.seed=42;p.frame=8;
  assert(processDropouts(si,ai,p));assert(processDropouts(si,bi,p));assert(a==b&&a!=s);
+ // Horizontal and vertical scale controls must independently change dropout geometry.
+ std::vector<float> shortBands(s.size()),longBands(s.size()),thinBands(s.size()),thickBands(s.size());
+ ImageView shv{shortBands.data(),w,h,w*4},lov{longBands.data(),w,h,w*4},thv{thinBands.data(),w,h,w*4},tkv{thickBands.data(),w,h,w*4};
+ DropoutParams shortP=p; shortP.horizontalScale=0.35f;
+ DropoutParams longP=p; longP.horizontalScale=2.0f;
+ assert(processDropouts(si,shv,shortP)); assert(processDropouts(si,lov,longP));
+ assert(shortBands!=longBands);
+ DropoutParams thinP=p; thinP.verticalScale=0.5f;
+ DropoutParams thickP=p; thickP.verticalScale=2.0f;
+ assert(processDropouts(si,thv,thinP)); assert(processDropouts(si,tkv,thickP));
+ assert(thinBands!=thickBands);
+ DropoutParams invalid=p; invalid.horizontalScale=0.0f;
+ assert(!processDropouts(si,shv,invalid));
  std::size_t changed=0;for(size_t i=0;i<a.size();i+=4)if(std::fabs(a[i]-s[i])>1e-5f||std::fabs(a[i+1]-s[i+1])>1e-5f||std::fabs(a[i+2]-s[i+2])>1e-5f)++changed;
  assert(changed>0&&changed<std::size_t(w*h)*3/4);
  for(size_t i=3;i<a.size();i+=4)assert(a[i]==1.0f);
