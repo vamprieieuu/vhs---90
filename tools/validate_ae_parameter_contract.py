@@ -55,6 +55,21 @@ if "PF_PUI_NO_ECW_UI" in tracking_layers_ui:
 if 'PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE)' not in setup_body:
     fail("The primary Tracking Type selector must remain visible/editable in Effect Controls.")
 
+# Multi-band Tear is a five-region engine. Bands 2–5 must not be registered as
+# empty Effect Controls topics: their independent geometry/signal controls are
+# part of the editable Damage Lab workflow.
+tear_bands_start = setup_body.find('PF_ADD_TOPIC("Tear Band 2"')
+tear_bands_end = setup_body.find("PF_END_TOPIC(ID_TEAR_BAND5_TOPIC+100)", tear_bands_start)
+if tear_bands_start < 0 or tear_bands_end < 0:
+    fail("Multi-band Tear controls (Bands 2–5) are missing.")
+tear_bands_ui = setup_body[tear_bands_start:tear_bands_end]
+if "PF_PUI_NO_ECW_UI" in tear_bands_ui:
+    fail("Tear Bands 2–5 must expose their independent controls in Effect Controls.")
+for band in range(2, 6):
+    if f'PF_ADD_TOPIC("Tear Band {band}"' not in tear_bands_ui:
+        fail(f"Missing Tear Band {band} topic.")
+
+
 tracking_presets_start = setup_body.find('PF_ADD_TOPIC("Tracking Presets"')
 tracking_presets_end = setup_body.find("PF_END_TOPIC(ID_TRACKING_PRESETS_TOPIC+100)", tracking_presets_start)
 if tracking_presets_start < 0 or tracking_presets_end < 0:
