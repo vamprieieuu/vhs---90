@@ -2,6 +2,7 @@
 #include "VHS90TextEditorResource.h"
 #include <windows.h>
 #include <string>
+#include <utility>
 
 namespace {
 struct DialogState {
