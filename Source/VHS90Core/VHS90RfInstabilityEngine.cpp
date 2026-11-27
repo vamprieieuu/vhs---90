@@ -25,7 +25,7 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
  }
  const float framePhase=0.0042f*float(p.frame)+0.0039f*float(p.seed);
  const float globalGain=1.0f+0.22f*drift*std::sin(framePhase*0.73f);
- const float globalBias=9.0f*drift*std::sin(framePhase*0.19f+0.7f);
+ const float globalBias=0.035f*drift*std::sin(framePhase*0.19f+0.7f);
  const float humPeriod=3.0f-1.0f*hum;
  const float humPhase=framePhase+float(p.frame)*(2.0f*kPi/std::max(1.0f,30.0f*humPeriod));
  float brightEnergy=0.0f,transientEnergy=0.0f,peakLevel=0.0f;std::size_t energyCount=0;
@@ -42,15 +42,15 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
  const float brightDrive=std::clamp(brightEnergy*invCount/0.26f,0.0f,1.0f);
  const float transDrive=std::clamp(transientEnergy*invCount/0.07f,0.0f,1.0f);
  const float peakDrive=std::clamp((peakLevel-0.96f)/0.26f,0.0f,1.0f);
- const float eventDrive=std::clamp(0.50f*brightDrive+0.35f*transDrive+0.30f*peakDrive-0.40f,0.0f,1.0f);
+ const float eventDrive=std::clamp(0.10f+0.52f*brightDrive+0.32f*transDrive+0.28f*peakDrive,0.0f,1.0f);
  const float pulse=std::max(0.0f,std::sin(framePhase*0.47f+0.6f))*(0.78f+0.22f*std::sin(framePhase*0.19f+1.4f));
- const float pump=(0.06f+0.46f*agc)*std::clamp((eventDrive-0.08f)/(0.95f-0.08f),0.0f,1.0f)*pulse;
- const float hiKnee=0.68f-0.20f*am,loKnee=0.40f-0.12f*am;
- const float hiComp=0.010f+0.085f*am,loComp=0.013f+0.110f*am;
+ const float pump=(0.04f+0.55f*agc)*std::clamp((eventDrive-0.03f)/0.80f,0.0f,1.0f)*pulse;
+ const float hiKnee=0.50f-0.20f*am,loKnee=0.32f-0.12f*am;
+ const float hiComp=0.15f+0.65f*am,loComp=0.18f+0.70f*am;
  for(int y=0;y<src.height;++y) {
   const float paired=float(std::min(y,(y+src.height/2)%src.height));
   const float lineGain=globalGain+0.075f*drift*std::sin(framePhase*0.61f+0.031f*paired);
-  const float lineBias=globalBias+3.5f*drift*std::sin(framePhase*0.43f+0.024f*paired);
+  const float lineBias=globalBias+0.014f*drift*std::sin(framePhase*0.43f+0.024f*paired);
   const float wanderPhase=framePhase*0.47f+0.13f*paired+1.2f;
   const float humLinePhase=humPhase+paired*(0.8f+4.2f*hum)*((2.0f*kPi)/std::max(1.0f,float(src.height)));
   const float humOffset=(0.5f+8.8f*hum)*std::sin(humLinePhase+0.2f)+
@@ -66,7 +66,7 @@ bool processRfInstability(ConstImageView src,ImageView dst,const RfInstabilityPa
    if(p.premultipliedAlpha){rgb.r/=alpha;rgb.g/=alpha;rgb.b/=alpha;}
    YIQ yiq=rgbToYiq(rgb);
    const float centered=yiq.y-p.blackPedestal;
-   const float driftWander=4.2f*drift*std::sin(wanderPhase+0.015f*float(x));
+   const float driftWander=0.017f*drift*std::sin(wanderPhase+0.015f*float(x));
    float luma=p.blackPedestal+lineBias+driftWander+centered*lineGain;
    const float ripple=(0.12f+3.2f*hum)*std::sin(humLinePhase+0.0095f*float(x)+
                        0.25f*std::sin(framePhase*0.71f+0.0032f*float(x)));
