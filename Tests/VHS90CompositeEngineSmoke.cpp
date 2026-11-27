@@ -31,6 +31,24 @@ int main() {
     assert(processCompositeRoundTrip(si,zo,pZero));
     assert(zeroOut==src);
 
+    // Composite Signal must reduce luma bandwidth as well as chroma bandwidth.
+    std::vector<float> lumaStripes(src.size()),lumaDecoded(src.size());
+    for(int y=0;y<h;++y)for(int x=0;x<w;++x){const size_t k=(size_t(y)*w+x)*4;const float v=(x&1)?0.15f:0.85f;lumaStripes[k]=lumaStripes[k+1]=lumaStripes[k+2]=v;lumaStripes[k+3]=1.0f;}
+    ConstImageView lumaStripeView{lumaStripes.data(),w,h,w*4};ImageView lumaDecodedView{lumaDecoded.data(),w,h,w*4};
+    CompositeParams bandwidth;bandwidth.strength=1.0f;bandwidth.compositeSignalStrength=1.0f;
+    bandwidth.inputBandwidthEnabled=true;bandwidth.outputBandwidthEnabled=true;
+    bandwidth.inputBandwidth.lumaCutoffHz=2400000.0f;bandwidth.outputBandwidth.lumaCutoffHz=2160000.0f;
+    bandwidth.frame=4;bandwidth.demodulator=CompositeDemodulator::Box;
+    assert(processCompositeRoundTrip(lumaStripeView,lumaDecodedView,bandwidth));
+    double inputContrast=0.0,outputContrast=0.0;
+    for(int y=0;y<h;++y)for(int x=1;x<w;++x){const size_t a=(size_t(y)*w+x-1)*4,b=(size_t(y)*w+x)*4;
+        inputContrast+=std::fabs(lumaStripes[a]-lumaStripes[b]);
+        const YIQ ya=rgbToYiq({lumaDecoded[a],lumaDecoded[a+1],lumaDecoded[a+2]});
+        const YIQ yb=rgbToYiq({lumaDecoded[b],lumaDecoded[b+1],lumaDecoded[b+2]});
+        outputContrast+=std::fabs(ya.y-yb.y);
+    }
+    assert(outputContrast<inputContrast*.80);
+
     std::vector<float> phase0(src.size()), phase180(src.size());
     ImageView d0{phase0.data(),w,h,w*4}, d180{phase180.data(),w,h,w*4};
     CompositeParams pp=p; pp.phase=CompositePhase::Degrees0;
