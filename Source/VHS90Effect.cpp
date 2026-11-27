@@ -59,7 +59,7 @@ enum ParamIndex {
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
     PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_OFFSET, PARAM_OSD_SHOW_COUNTER, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
     PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
-    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_PLAYBACK_TOPIC, PARAM_DECODER_MODE, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_PLAYBACK_END, PARAM_EXTENDED_VHS_PRESET_TOPIC, PARAM_EXTENDED_VHS_PRESET, PARAM_EXTENDED_VHS_PRESET_END, PARAM_COUNT
+    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_PLAYBACK_TOPIC, PARAM_DECODER_MODE, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_PLAYBACK_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_VHS_STYLE_TOPIC=136,
@@ -372,8 +372,6 @@ enum ParamDiskID {
     ID_DECODER_MODE=357,
     ID_FRAME_REPEAT_FREQUENCY=358,
     ID_FRAME_REPEAT_STRENGTH=359,
-    ID_EXTENDED_VHS_PRESET_TOPIC=360,
-    ID_EXTENDED_VHS_PRESET=361,
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -383,8 +381,7 @@ static char kTearChromaModeChoices[]="Spectral Chroma Smear|Localized Headbleed|
 static char kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|Top Strip|Bottom-Weighted Streaks|Monochrome Streaks|Split-Band Chromatic|Static to Blackout|Dark-Field Luma Streaks|Multi-Phase Green Line|Two-Stage Angular Ribbon|Diagonal Sync Collapse|Colored Speckles|Vertical Columns";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
-static char kVhsStyleChoices[]="Custom|VHS6RIFT - Clean VHS|VHS6RIFT - Vintage VHS|VHS6RIFT - Heavy VHS|VHS6RIFT - Bad Tracking|VHS6RIFT - Very Bad Tracking|VHS6RIFT - Unstable VCR|VHS6RIFT - Tape Damage|VHS6RIFT - Static Interference|VHS6RIFT - Color Bleed|VHS6RIFT - Color Shift|VHS6RIFT - Signal Loss|VHS6RIFT - Severe Analog Glitch|VHS Add-on - Soft Transfer|VHS Add-on - Classic Transfer|Lost Signal - Reference Analog|Crates VHS Master - Archive Standard|Crates VHS Master - Violet Transfer|Crates VHS Master - Signal Corruption|Crates VHS Master - Handheld Camcorder|VHS Pro - Neutral Playback|VHS Pro - Fresh Cassette|VHS Pro - Aged Cassette|VHS Pro - Tracking Failure|VHS Pro - Home Video Camera|VHS Pro - Chroma Bleed|VHS Pro - Multi-Generation Dub|VHS Craft - Clean|VHS Craft - Sharp|VHS Craft - Violet Glow|VHS Craft - Green Glow|VHS Craft - Tape Monochrome";
-static char kExtendedVhsStyleChoices[]="Custom|VHS6RIFT - Moving Band Noise|VHS6RIFT - Bottom Tape Damage|VHS6RIFT - Ghosting|VHS6RIFT - Damaged Tape Playback|VHS Add-on - Heavy Transfer|VHS Add-on - Worn Tape|VHS Add-on - Clean TV|Composite VHS - SP|Composite VHS - LP|Composite VHS - EP|Lost Signal - Real VHS|Lost Signal - Backrooms|Lost Signal - Poolrooms|Lost Signal - Liminal Night|Lost Signal - Subtle|Lost Signal - Found Footage|Lost Signal - Damaged Tape|Lost Signal - Rental Tape|Lost Signal - Camcorder 1996|Lost Signal - Broken Signal|Lost Signal - Composite Decode|Lost Signal - Analog Fog|Crates - Clean Transfer|Crates - Sharp Transfer|Crates - Soft Transfer|Crates - Green Transfer|Crates - Streaks|Crates - Cool Transfer|Crates - Warm Transfer|Crates - Blue Bloom|Crates - Echo|Crates - Retro Deck|Crates - Hue Wobble|Crates - Monochrome|VHS Pro - Rental Cassette|VHS Pro - Broadcast Deck|VHS Pro - Music Video|VHS Craft - Neutral|VHS Craft - Worn Cassette|VHS Craft - Handheld Cinema";
+static char kVhsStyleChoices[]="Custom|VHS6RIFT - Clean VHS|VHS6RIFT - Vintage VHS|VHS6RIFT - Heavy VHS|VHS6RIFT - Bad Tracking|VHS6RIFT - Very Bad Tracking|VHS6RIFT - Unstable VCR|VHS6RIFT - Tape Damage|VHS6RIFT - Static Interference|VHS6RIFT - Color Bleed|VHS6RIFT - Color Shift|VHS6RIFT - Signal Loss|VHS6RIFT - Severe Analog Glitch|VHS Add-on - Soft Transfer|VHS Add-on - Classic Transfer|Lost Signal - Reference Analog|Crates VHS Master - Archive Standard|Crates VHS Master - Violet Transfer|Crates VHS Master - Signal Corruption|Crates VHS Master - Handheld Camcorder|VHS Pro - Neutral Playback|VHS Pro - Fresh Cassette|VHS Pro - Aged Cassette|VHS Pro - Tracking Failure|VHS Pro - Home Video Camera|VHS Pro - Chroma Bleed|VHS Pro - Multi-Generation Dub|VHS Craft - Clean|VHS Craft - Sharp|VHS Craft - Violet Glow|VHS Craft - Green Glow|VHS Craft - Tape Monochrome|VHS6RIFT - Moving Band Noise|VHS6RIFT - Bottom Tape Damage|VHS6RIFT - Ghosting|VHS6RIFT - Damaged Tape Playback|VHS Add-on - Heavy|VHS Add-on - Worn|VHS Add-on - Clean TV|CVS - VHS SP|CVS - VHS LP|CVS - VHS EP|LS - Real VHS|LS - Backrooms|LS - Poolrooms|LS - Liminal Night|LS - Subtle|LS - Found Footage|LS - Damaged Tape|LS - Rental Tape|LS - Camcorder 1996|LS - Broken Signal|LS - Composite Decode|LS - Analog Fog|Crates - Clean|Crates - Sharp|Crates - Soft|Crates - Green|Crates - Streaks|Crates - Cool|Crates - Warm|Crates - Blue Bloom|Crates - Echo|Crates - Retro|Crates - Hue Wobble|Crates - Black & White|VHSPro - Rental Copy|VHSPro - Broadcast|VHSPro - Music Video|VHSCraft - Standard|VHSCraft - Damaged Tape|VHSCraft - Camcorder";
 static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300|FXC6 Direct Capture|Gen 7 Reference";
 static char kRgbChannelModeChoices[]="RGB Split|Red/Cyan|Green/Magenta|Blue/Yellow";
 static char kNtscRsLookChoices[]="Custom|NTSCRT Natural Composite|NTSCRT Home SP|NTSCRT LP Tape|NTSCRT EP Tape|NTSCRT Tracking Snow|NTSCRT Chroma Loss|NTSCRT Edge Wave|NTSCRT Field Blend|NTSCRT Composite Smear|NTSCRT Chroma Instability";
@@ -448,7 +445,7 @@ struct RenderSettings {
     float signalHueNoise=0.0f;
         float ntscRsPhaseNoise=0.0f, edgeWaveFrequency=0.05f, edgeWaveSpeed=4.0f, edgeWaveDetail=2.0f;
     float osdRecColorR=255.0f, osdRecColorG=46.0f, osdRecColorB=46.0f;
-    A_long vhsStyle=1, extendedVhsStyle=1, cameraProfile=1, ntscRsLook=1;
+    A_long vhsStyle=1, cameraProfile=1, ntscRsLook=1;
     float vhsStyleIntensity=100.0f, cameraIntensity=100.0f, ntscRsIntensity=100.0f;
     bool previousFrameAvailable=false;
     std::int64_t frame=0;
@@ -718,19 +715,15 @@ static void ApplyVhsStyleRecipe(RenderSettings& s,int styleRecipe) noexcept {
 static constexpr int kLegacyVhsStyleRecipeMap[33]={
     0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,55,56,58,59,60,61,63,66,67,68,69,72
 };
-static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
-    // Preserve the original popup's numeric IDs, including legacy values 33–72.
-    const int selected=std::clamp<int>(s.vhsStyle,1,72);
-    const int styleRecipe=selected<=32?kLegacyVhsStyleRecipeMap[selected]:selected;
-    ApplyVhsStyleRecipe(s,styleRecipe);
-}
 static constexpr int kExtendedVhsStyleRecipeMap[41]={
     0,8,10,14,17,20,21,22,23,24,25,27,28,29,30,31,32,33,34,35,36,37,38,40,41,43,44,46,47,48,49,50,51,53,54,57,62,64,65,70,71
 };
-static void ApplyVhsExtendedStylePreset(RenderSettings& s) noexcept {
-    const int selected=std::clamp<int>(s.extendedVhsStyle,1,41);
-    if(selected<=1)return;
-    ApplyVhsStyleRecipe(s,kExtendedVhsStyleRecipeMap[selected]);
+static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
+    // The original first 32 popup values are preserved for saved projects.
+    // Values 33–72 append all 40 source-derived recipes previously omitted.
+    const int selected=std::clamp<int>(s.vhsStyle,1,72);
+    const int styleRecipe=selected<=32?kLegacyVhsStyleRecipeMap[selected]:kExtendedVhsStyleRecipeMap[selected-32];
+    ApplyVhsStyleRecipe(s,styleRecipe);
 }
 static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
     const float i=clamp01(s.cameraIntensity/100.0f);
@@ -824,8 +817,7 @@ static void ApplyNtscRsVhsLook(RenderSettings& s) noexcept {
     }
 }
 static void ApplyVhsSourcePresets(RenderSettings& s) noexcept {
-    if(s.extendedVhsStyle>1) ApplyVhsExtendedStylePreset(s);
-    else ApplyVhs6RiftStylePreset(s);
+    ApplyVhs6RiftStylePreset(s);
     ApplyVhs6RiftCameraProfile(s);
     ApplyNtscRsVhsLook(s);
 }
@@ -846,7 +838,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     PF_Err err=PF_Err_NONE;
     PF_ParamDef def;
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Style & Presets",ID_VHS_STYLE_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",32,1,kVhsStyleChoices,ID_VHS_STYLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",72,1,kVhsStyleChoices,ID_VHS_STYLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Style Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS_STYLE_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile Preset",12,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
@@ -1222,9 +1214,6 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Frequency",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_FREQUENCY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Strength",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_STRENGTH);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PLAYBACK_TOPIC+100);
-    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Expanded VHS Preset Library",ID_EXTENDED_VHS_PRESET_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Additional VHS Style Preset",41,1,kExtendedVhsStyleChoices,ID_EXTENDED_VHS_PRESET);
-    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_EXTENDED_VHS_PRESET_TOPIC+100);
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -1370,7 +1359,6 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     s.osdRecColorR=float(recColor.u.cd.value.red); s.osdRecColorG=float(recColor.u.cd.value.green); s.osdRecColorB=float(recColor.u.cd.value.blue);
     err=PF_CHECKIN_PARAM(in_data,&recColor); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_VHS_STYLE,s.vhsStyle); if(err!=PF_Err_NONE) return err;
-    err=CheckoutPopup(in_data,PARAM_EXTENDED_VHS_PRESET,s.extendedVhsStyle); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_VHS_STYLE_INTENSITY,vhsStyleIntensity);
     err=CheckoutPopup(in_data,PARAM_CAMERA_PROFILE,s.cameraProfile); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_CAMERA_INTENSITY,cameraIntensity);
@@ -2335,7 +2323,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     { const PF_Err textErr=VHS90ReadOsdText(in_data,params[PARAM_OSD_TEXT_DATA]->u.arb_d.value,s.osdText); if(textErr!=PF_Err_NONE) return textErr; }
     s.osdCounterX=float(params[PARAM_OSD_COUNTER_X]->u.fs_d.value); s.osdCounterY=float(params[PARAM_OSD_COUNTER_Y]->u.fs_d.value);
     s.osdRecColorR=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.red); s.osdRecColorG=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.green); s.osdRecColorB=float(params[PARAM_OSD_REC_COLOR]->u.cd.value.blue);
-    s.vhsStyle=params[PARAM_VHS_STYLE]->u.pd.value; s.extendedVhsStyle=params[PARAM_EXTENDED_VHS_PRESET]->u.pd.value; s.vhsStyleIntensity=float(params[PARAM_VHS_STYLE_INTENSITY]->u.fs_d.value);
+    s.vhsStyle=params[PARAM_VHS_STYLE]->u.pd.value; s.vhsStyleIntensity=float(params[PARAM_VHS_STYLE_INTENSITY]->u.fs_d.value);
     s.cameraProfile=params[PARAM_CAMERA_PROFILE]->u.pd.value; s.cameraIntensity=float(params[PARAM_CAMERA_INTENSITY]->u.fs_d.value);
     s.ntscRsLook=params[PARAM_NTSCRS_LOOK]->u.pd.value; s.ntscRsIntensity=float(params[PARAM_NTSCRS_INTENSITY]->u.fs_d.value);
     s.ntscRsPhaseNoise=float(params[PARAM_NTSCRS_PHASE_NOISE]->u.fs_d.value);
