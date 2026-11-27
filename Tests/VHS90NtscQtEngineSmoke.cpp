@@ -23,6 +23,11 @@ int main() {
         p.preEmphasis=0.0f;assert(processNtscQtSignal(si,dz,p));assert(z==src);
         p.fieldMode=3;assert(!processNtscQtSignal(si,dz,p));
     }
+    // NTSC-QT's separate 720-sample RingPattern frequency response.
+    p.spectralRingingEnabled=true;p.useRingPattern=true;p.ringingPower=4;p.ringingShift=0.0f;
+    assert(processNtscQtSignal(si,da,p));assert(processNtscQtSignal(si,db,p));assert(a==b);
+    p.ringingPower=6;assert(processNtscQtSignal(si,db,p));assert(a!=b);
+
     // Alpha and transparent pixels survive processing.
     constexpr int w=8,h=8;std::vector<float> src(w*h*4),dst(w*h*4);
     for(std::size_t k=0;k<src.size();k+=4){src[k]=0.7f;src[k+1]=0.2f;src[k+2]=0.4f;src[k+3]=(k%8==0)?0.0f:1.0f;}

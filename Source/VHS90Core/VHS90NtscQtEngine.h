@@ -8,6 +8,9 @@ struct NtscQtParams {
     // and Y-only pre-emphasis amount 0..8 at a 1 MHz default cutoff.
     bool spectralRingingEnabled = false;
     float amount = 1.0f;
+    bool useRingPattern = false;
+    int ringingPower = 2;
+    float ringingShift = 0.0f;
     float alpha = 0.65f;
     float frequencyNoiseSize = 0.0f;
     float frequencyNoiseAmplitude = 2.0f;
@@ -20,9 +23,8 @@ struct NtscQtParams {
     bool premultipliedAlpha = true;
 };
 
-// Horizontal-frequency spectral mask (NTSC-QT ringing variant A) and the
-// source's separate pre-modulation luma pre-emphasis. RingPattern/variant B
-// is intentionally not substituted with the spatial VHS ringing engine.
+// Both NTSC-QT spectral ringing masks (alpha/noise mask and RingPattern response)
+// plus the source's separate pre-modulation luma pre-emphasis.
 bool processNtscQtSignal(ConstImageView src, ImageView dst,
                          const NtscQtParams& params) noexcept;
 } // namespace vhs90

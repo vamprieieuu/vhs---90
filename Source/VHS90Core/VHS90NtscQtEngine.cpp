@@ -1,4 +1,5 @@
 #include "VHS90NtscQtEngine.h"
+#include "VHS90NtscQtRingPattern.generated.h"
 #include <algorithm>
 #include <cmath>
 #include <complex>
@@ -82,21 +83,43 @@ void spectralMaskRow(float* row,int width,int fieldRows,int rowIndex,
     fft(spectrum,false);
     const int crow=fieldRows/2,ccol=width/2;
     const int maskH=std::min(crow,std::max(0,int(1.0f+p.alpha*float(crow))));
+    std::vector<double> ringMask;
+    if(p.useRingPattern) {
+        const int scaledWidth=std::max(width,int(double(width)*(1.0+double(p.ringingShift))));
+        std::vector<double> resized(static_cast<std::size_t>(scaledWidth));
+        for(int x=0;x<scaledWidth;++x) {
+            const double srcX=std::clamp((double(x)+0.5)*720.0/double(scaledWidth)-0.5,0.0,719.0);
+            const int x0=int(std::floor(srcX)),x1=std::min(x0+1,719);
+            const double f=srcX-double(x0);
+            resized[static_cast<std::size_t>(x)]=double(detail::kNtscQtRingPattern[static_cast<std::size_t>(x0)])+
+                (double(detail::kNtscQtRingPattern[static_cast<std::size_t>(x1)])-
+                 double(detail::kNtscQtRingPattern[static_cast<std::size_t>(x0)]))*f;
+        }
+        const int crop=scaledWidth/2-width/2;
+        ringMask.resize(static_cast<std::size_t>(width));
+        for(int x=0;x<width;++x)ringMask[static_cast<std::size_t>(x)]=
+            std::pow(resized[static_cast<std::size_t>(crop+x)],double(p.ringingPower));
+    }
     const int start=int(float(ccol)*(1.0f-p.frequencyNoiseSize));
     const int stop=int(float(ccol)*(1.0f+p.frequencyNoiseSize));
     for(int k=0;k<width;++k) {
         const int centered=(k<=width/2)?k:k-width;
         const int shiftedIndex=centered+ccol;
-        const bool keep=(shiftedIndex>=ccol-maskH && shiftedIndex<ccol+maskH);
-        const bool noiseBand=p.frequencyNoiseSize>0.0f &&
-            (shiftedIndex<start || shiftedIndex>=stop);
-        const double noise=noiseBand?double(p.frequencyNoiseAmplitude)*0.5:0.0;
-        const double nr=uniform(p.seed,p.frame,rowIndex,k,0);
-        const double ni=uniform(p.seed,p.frame,rowIndex,k,1);
-        const double mr=(keep?1.0:0.0)+nr*noise-noise*0.5;
-        const double mi=(keep?1.0:0.0)+ni*noise-noise*0.5;
-        spectrum[static_cast<std::size_t>(k)]=C(spectrum[static_cast<std::size_t>(k)].real()*mr,
-                                                spectrum[static_cast<std::size_t>(k)].imag()*mi);
+        if(p.useRingPattern) {
+            const double mask=ringMask[static_cast<std::size_t>(std::clamp(shiftedIndex,0,width-1))];
+            spectrum[static_cast<std::size_t>(k)]*=mask;
+        } else {
+            const bool keep=(shiftedIndex>=ccol-maskH && shiftedIndex<ccol+maskH);
+            const bool noiseBand=p.frequencyNoiseSize>0.0f &&
+                (shiftedIndex<start || shiftedIndex>=stop);
+            const double noise=noiseBand?double(p.frequencyNoiseAmplitude)*0.5:0.0;
+            const double nr=uniform(p.seed,p.frame,rowIndex,k,0);
+            const double ni=uniform(p.seed,p.frame,rowIndex,k,1);
+            const double mr=(keep?1.0:0.0)+nr*noise-noise*0.5;
+            const double mi=(keep?1.0:0.0)+ni*noise-noise*0.5;
+            spectrum[static_cast<std::size_t>(k)]=C(spectrum[static_cast<std::size_t>(k)].real()*mr,
+                                                    spectrum[static_cast<std::size_t>(k)].imag()*mi);
+        }
     }
     fft(spectrum,true);
     for(int x=0;x<width;++x)row[x]=static_cast<float>(spectrum[static_cast<std::size_t>(x)].real());
@@ -128,6 +151,8 @@ bool processNtscQtSignal(ConstImageView src,ImageView dst,const NtscQtParams& ra
     p.frequencyNoiseAmplitude=clampFinite(p.frequencyNoiseAmplitude,0.0f,5.0f,2.0f);
     p.preEmphasis=clampFinite(p.preEmphasis,0.0f,8.0f,0.0f);
     p.amount=clampFinite(p.amount,0.0f,1.0f,1.0f);
+    p.ringingPower=std::clamp(p.ringingPower,1,8);
+    p.ringingShift=clampFinite(p.ringingShift,0.0f,1.0f,0.0f);
     p.preEmphasisCutoffMHz=clampFinite(p.preEmphasisCutoffMHz,0.05f,6.0f,1.0f);
     if(p.fieldMode<0||p.fieldMode>2)return false;
     if(p.amount<=0.0f || (!p.spectralRingingEnabled && p.preEmphasis<=0.0f)) {
