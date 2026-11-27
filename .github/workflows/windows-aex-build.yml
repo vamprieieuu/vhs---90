@@ -48,6 +48,12 @@ jobs:
           }
           Write-Host "Checked-in SDK/font availability verified."
 
+      - name: Validate Legacy, SmartFX, MFR and OSD source contracts
+        shell: pwsh
+        run: |
+          python tools/validate_ae_render_contract.py
+          if ($LASTEXITCODE -ne 0) { throw "After Effects render contract validation failed." }
+
       - name: Validate After Effects host contract
         shell: pwsh
         run: |

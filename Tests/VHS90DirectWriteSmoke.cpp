@@ -86,12 +86,14 @@ int main() {
     // CI uploads this image so Arabic shaping, mixed RTL/LTR text and the two
     // bundled font families can be inspected independently of the smoke assertions.
     {
+        #pragma pack(push,1)
         struct BitmapFileHeader { std::uint16_t type; std::uint32_t size; std::uint16_t r1,r2; std::uint32_t offset; };
         struct BitmapInfoHeader {
             std::uint32_t size; std::int32_t width,height; std::uint16_t planes,bits;
             std::uint32_t compression,imageSize; std::int32_t xppm,yppm;
             std::uint32_t used,important;
         };
+        #pragma pack(pop)
         static_assert(sizeof(BitmapFileHeader)==14 && sizeof(BitmapInfoHeader)==40);
         const std::uint32_t imageBytes=static_cast<std::uint32_t>(w*h*4);
         BitmapFileHeader fh{0x4D42u,static_cast<std::uint32_t>(54u+imageBytes),0,0,54u};
