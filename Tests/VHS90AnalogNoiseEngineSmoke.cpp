@@ -69,4 +69,14 @@ int main(){using namespace vhs90;constexpr int w=48,h=24;std::vector<float>s(w*h
  std::vector<float> speedSlow(s.size()),speedFast(s.size());ImageView speedSlowView{speedSlow.data(),w,h,w*4},speedFastView{speedFast.data(),w,h,w*4};
  assert(processAnalogNoise(si,speedSlowView,speed));speed.animationSpeed=2.0f;
  assert(processAnalogNoise(si,speedFastView,speed));assert(speedSlow!=speedFast);
+
+ // Shadow Bias must affect the unified Signal Noise mask, not only VHS6RIFT grain.
+ AnalogNoiseParams shadow;shadow.compositeAmount=.8f;shadow.signalNoiseIntensity=1.0f;
+ shadow.noiseDensity=.60f;shadow.noiseSize=4.0f;shadow.signalNoiseFrequency=1.0f;
+ shadow.noiseDistribution=0.0f;shadow.shadowBias=0.0f;shadow.seed=707;shadow.frame=13;
+ std::vector<float> shadowFull(s.size()),shadowBiased(s.size());
+ ImageView shadowFullView{shadowFull.data(),w,h,w*4},shadowBiasedView{shadowBiased.data(),w,h,w*4};
+ assert(processAnalogNoise(si,shadowFullView,shadow));
+ shadow.shadowBias=1.0f;assert(processAnalogNoise(si,shadowBiasedView,shadow));
+ assert(shadowFull!=shadowBiased);
  return 0;}
