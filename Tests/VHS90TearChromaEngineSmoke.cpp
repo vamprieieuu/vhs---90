@@ -17,6 +17,23 @@ int main() {
     bands[1].centerY=.78f; bands[1].chromaShiftPx=5.0f; bands[1].horizontalShiftPx=18.0f;
     TearChromaParams spectral=p;spectral.mode=TearChromaMode::SpectralSmear;spectral.bandCount=0;
     assert(processTearChroma(si,ci,spectral));assert(c!=src&&c!=a);
+
+    // All five exposed modes must be deterministic and mathematically distinct.
+    std::vector<float> modeOutputs[5];
+    for(int mode=0;mode<5;++mode) {
+        modeOutputs[mode].resize(src.size());
+        TearChromaParams variant=p; variant.mode=static_cast<TearChromaMode>(mode);
+        variant.bandCount=2; variant.seed=0x5511u; variant.frame=23; variant.timeSeconds=0.61;
+        variant.spectralIntensity=0.9f; variant.spectralCoverage=0.8f;
+        ImageView modeView{modeOutputs[mode].data(),w,h,w*4};
+        assert(processTearChroma(si,modeView,variant));
+        assert(modeOutputs[mode]!=src);
+        std::vector<float> repeated(src.size()); ImageView repeatedView{repeated.data(),w,h,w*4};
+        assert(processTearChroma(si,repeatedView,variant));
+        assert(repeated==modeOutputs[mode]);
+    }
+    for(int left=0;left<5;++left)for(int right=left+1;right<5;++right)
+        assert(modeOutputs[left]!=modeOutputs[right]);
     std::vector<float> alpha=src,alphaOut(src.size());for(size_t i=3;i<alpha.size();i+=4)alpha[i]=.0f;
     ConstImageView al{alpha.data(),w,h,w*4};ImageView alo{alphaOut.data(),w,h,w*4};assert(processTearChroma(al,alo,p));
     for(size_t i=3;i<alphaOut.size();i+=4)assert(alphaOut[i]==0.0f);

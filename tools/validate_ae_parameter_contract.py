@@ -22,6 +22,28 @@ for raw in enum_match.group(1).split(","):
         enum_items.append(match.group(1))
 if not enum_items or enum_items[0] != "PARAM_INPUT" or enum_items[-1] != "PARAM_COUNT":
     fail("ParamIndex must start with PARAM_INPUT and end with PARAM_COUNT.")
+if enum_items[-102:-99] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
+    fail("Ground Loop parameters must remain appended after all legacy AE parameters.")
+if enum_items[-99:-88] != ["PARAM_TRACK_LAYER_MOTION_TOPIC", "PARAM_TRACK_LAYER2_ANGLE", "PARAM_TRACK_LAYER2_MOTION_X", "PARAM_TRACK_LAYER2_MOTION_Y", "PARAM_TRACK_LAYER3_ANGLE", "PARAM_TRACK_LAYER3_MOTION_X", "PARAM_TRACK_LAYER3_MOTION_Y", "PARAM_TRACK_LAYER4_ANGLE", "PARAM_TRACK_LAYER4_MOTION_X", "PARAM_TRACK_LAYER4_MOTION_Y", "PARAM_TRACK_LAYER_MOTION_END"]:
+    fail("Tracking layer direction/motion parameters must remain appended after the previous AE controls.")
+expected_signal_noise_tail = ["PARAM_SIGNAL_NOISE_TOPIC", "PARAM_SIGNAL_NOISE_INTENSITY", "PARAM_SIGNAL_NOISE_FREQUENCY", "PARAM_SIGNAL_NOISE_SIZE", "PARAM_SIGNAL_NOISE_DENSITY", "PARAM_SIGNAL_NOISE_DISTRIBUTION", "PARAM_SIGNAL_NOISE_HORIZONTAL_LINES", "PARAM_SIGNAL_NOISE_ANIMATION_SPEED", "PARAM_SIGNAL_NOISE_END"]
+if enum_items[-30:-21] != expected_signal_noise_tail:
+    fail("Signal Noise Engine parameters must be appended without renumbering legacy AE parameters.")
+
+expected_vcr_tail = ["PARAM_VCR_SIGNAL_TOPIC", "PARAM_VCR_SIGNAL_ENABLE", "PARAM_VCR_SIGNAL_AMOUNT", "PARAM_VCR_SIGNAL_SPACING", "PARAM_VCR_SIGNAL_GAP", "PARAM_VCR_SIGNAL_NOISE", "PARAM_VCR_SIGNAL_DROPOUT_THRESHOLD", "PARAM_VCR_SIGNAL_DROPOUT_COMPENSATION", "PARAM_VCR_SIGNAL_END"]
+if enum_items[-21:-12] != expected_vcr_tail:
+    fail("NTSCRT VCR controls must be appended after Signal Noise without renumbering existing parameters.")
+expected_ntscqt_tail = ["PARAM_NTSCQT_TOPIC", "PARAM_NTSCQT_RINGING_ENABLE", "PARAM_NTSCQT_ALPHA", "PARAM_NTSCQT_FREQUENCY_NOISE_SIZE", "PARAM_NTSCQT_FREQUENCY_NOISE_AMPLITUDE", "PARAM_NTSCQT_PREEMPHASIS", "PARAM_NTSCQT_PREEMPHASIS_CUTOFF", "PARAM_NTSCQT_RINGING_MODE", "PARAM_NTSCQT_RINGING_POWER", "PARAM_NTSCQT_RINGING_SHIFT", "PARAM_NTSCQT_END"]
+if enum_items[-12:-1] != expected_ntscqt_tail:
+    fail("NTSC-QT controls must remain the final appended parameter group.")
+
+expected_snow_tail = ["PARAM_SNOW_TOPIC", "PARAM_SNOW_ENABLE", "PARAM_SNOW_INTENSITY", "PARAM_SNOW_DENSITY", "PARAM_SNOW_SIZE", "PARAM_SNOW_DISTRIBUTION", "PARAM_SNOW_CONTRAST", "PARAM_SNOW_BRIGHTNESS", "PARAM_SNOW_COLOR", "PARAM_SNOW_MODE", "PARAM_SNOW_TEMPORAL_VARIATION", "PARAM_SNOW_RANDOMNESS", "PARAM_SNOW_ANIMATION_SPEED", "PARAM_SNOW_SEED", "PARAM_BACKGROUND_NOISE_INTENSITY", "PARAM_SNOW_END"]
+if enum_items[-46:-30] != expected_snow_tail:
+    fail("Snow and background-noise parameters must be appended without renumbering legacy AE parameters.")
+
+expected_sync_damage_tail = ["PARAM_SYNC_DAMAGE_TOPIC", "PARAM_SYNC_DAMAGE_ENABLE", "PARAM_SYNC_DAMAGE_TEAR_AMOUNT", "PARAM_SYNC_DAMAGE_BAND_INTENSITY", "PARAM_SYNC_DAMAGE_BAND_DENSITY", "PARAM_SYNC_DAMAGE_BAND_HEIGHT", "PARAM_SYNC_DAMAGE_BAND_IRREGULARITY", "PARAM_SYNC_DAMAGE_DISPLACEMENT", "PARAM_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION", "PARAM_SYNC_DAMAGE_COVERAGE", "PARAM_SYNC_DAMAGE_LUMA_ENABLE", "PARAM_SYNC_DAMAGE_LUMA_INSTABILITY", "PARAM_SYNC_DAMAGE_BRIGHT_FLASH", "PARAM_SYNC_DAMAGE_DARK_COLLAPSE", "PARAM_SYNC_DAMAGE_EVENT_FREQUENCY", "PARAM_SYNC_DAMAGE_EVENT_DURATION", "PARAM_SYNC_DAMAGE_BRIGHT_PROBABILITY", "PARAM_SYNC_DAMAGE_DARK_PROBABILITY", "PARAM_SYNC_DAMAGE_TRANSITION_SHARPNESS", "PARAM_SYNC_DAMAGE_LOCAL_LUMA", "PARAM_SYNC_DAMAGE_MANUAL_BRIGHT", "PARAM_SYNC_DAMAGE_MANUAL_DARK", "PARAM_SYNC_DAMAGE_DROPOUTS_ENABLE", "PARAM_SYNC_DAMAGE_DROPOUT_DENSITY", "PARAM_SYNC_DAMAGE_STREAK_LENGTH", "PARAM_SYNC_DAMAGE_STREAK_BRIGHTNESS", "PARAM_SYNC_DAMAGE_DARK_DROPOUT", "PARAM_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION", "PARAM_SYNC_DAMAGE_TEMPORAL_VARIATION", "PARAM_SYNC_DAMAGE_CHROMA_ENABLE", "PARAM_SYNC_DAMAGE_CHROMA_TINT", "PARAM_SYNC_DAMAGE_MAGENTA_TINT", "PARAM_SYNC_DAMAGE_GREEN_TINT", "PARAM_SYNC_DAMAGE_RGB_OFFSET", "PARAM_SYNC_DAMAGE_CHROMA_BLEED", "PARAM_SYNC_DAMAGE_ANIMATION_MODE", "PARAM_SYNC_DAMAGE_INPUT_MODE", "PARAM_SYNC_DAMAGE_ANIMATION_SPEED", "PARAM_SYNC_DAMAGE_RANDOM_SEED", "PARAM_SYNC_DAMAGE_BLEND_INPUT", "PARAM_SYNC_DAMAGE_EFFECT_AMOUNT", "PARAM_SYNC_DAMAGE_END"]
+if enum_items[-88:-46] != expected_sync_damage_tail:
+    fail("Sync Collapse & Luma Dropout controls must be appended without renumbering legacy AE parameters.")
 expected_params = enum_items[1:-1]
 
 setup_match = re.search(r"static\s+PF_Err\s+ParamsSetup\s*\([^)]*\)\s*\{", SOURCE)
@@ -41,6 +63,227 @@ for pos in range(brace_start, len(SOURCE)):
 if brace_end is None:
     fail("ParamsSetup braces are unbalanced.")
 setup_body = SOURCE[brace_start:brace_end]
+
+# The additional Damage Lab tracking layers are intended to be independently
+# editable in Effect Controls. Hiding their registrations would leave the
+# render controls wired but inaccessible to users.
+tracking_layers_start = setup_body.find('PF_ADD_TOPIC("Tracking Layer 2"')
+tracking_layers_end = setup_body.find("PF_END_TOPIC(ID_TRACK_LAYER4_TOPIC+100)", tracking_layers_start)
+if tracking_layers_start < 0 or tracking_layers_end < 0:
+    fail("Tracking Layers 2–4 UI registration block is missing.")
+tracking_layers_ui = setup_body[tracking_layers_start:tracking_layers_end]
+if "PF_PUI_NO_ECW_UI" in tracking_layers_ui:
+    fail("Tracking Layers 2–4 controls must remain visible/editable in Effect Controls.")
+if 'PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE)' not in setup_body:
+    fail("The primary Tracking Type selector must remain visible/editable in Effect Controls.")
+
+# Multi-band Tear is a five-region engine. Bands 2–5 must not be registered as
+# empty Effect Controls topics: their independent geometry/signal controls are
+# part of the editable Damage Lab workflow.
+tear_bands_start = setup_body.find('PF_ADD_TOPIC("Tear Band 2"')
+tear_bands_end = setup_body.find("PF_END_TOPIC(ID_TEAR_BAND5_TOPIC+100)", tear_bands_start)
+if tear_bands_start < 0 or tear_bands_end < 0:
+    fail("Multi-band Tear controls (Bands 2–5) are missing.")
+tear_bands_ui = setup_body[tear_bands_start:tear_bands_end]
+if "PF_PUI_NO_ECW_UI" in tear_bands_ui:
+    fail("Tear Bands 2–5 must expose their independent controls in Effect Controls.")
+
+# The Damage Lab's primary spatial, static, tape-surface and head-switching
+# controls are user-facing controls, not hidden SmartFX-only parameters.
+def topic_body(topic_name: str) -> str:
+    start = setup_body.find('PF_ADD_TOPIC("' + topic_name + '"')
+    if start < 0:
+        fail("Missing Damage Lab topic: " + topic_name)
+    end = setup_body.find("PF_END_TOPIC(", start)
+    if end < 0:
+        fail("Unclosed Damage Lab topic: " + topic_name)
+    return setup_body[start:end]
+
+for topic_name in ("Waves / Static", "Grain", "Tracking Noise", "Head Switching", "Tape", "Mains Hum"):
+    body = topic_body(topic_name)
+    if "PF_PUI_NO_ECW_UI" in body:
+        fail("Damage Lab topic must remain visible/editable: " + topic_name)
+
+if "READ_FLOAT(PARAM_GROUND_LOOP,groundLoop)" not in SOURCE:
+    fail("Ground Loop must be read from its AE parameter into RenderSettings.")
+for token in (
+    "PARAM_SYNC_DAMAGE_TEAR_AMOUNT", "PARAM_SYNC_DAMAGE_BAND_INTENSITY", "PARAM_SYNC_DAMAGE_BAND_DENSITY",
+    "PARAM_SYNC_DAMAGE_BAND_HEIGHT", "PARAM_SYNC_DAMAGE_BAND_IRREGULARITY", "PARAM_SYNC_DAMAGE_DISPLACEMENT",
+    "PARAM_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION", "PARAM_SYNC_DAMAGE_COVERAGE", "PARAM_SYNC_DAMAGE_LUMA_INSTABILITY",
+    "PARAM_SYNC_DAMAGE_BRIGHT_FLASH", "PARAM_SYNC_DAMAGE_DARK_COLLAPSE", "PARAM_SYNC_DAMAGE_EVENT_FREQUENCY",
+    "PARAM_SYNC_DAMAGE_EVENT_DURATION", "PARAM_SYNC_DAMAGE_BRIGHT_PROBABILITY", "PARAM_SYNC_DAMAGE_DARK_PROBABILITY", "PARAM_SYNC_DAMAGE_TRANSITION_SHARPNESS", "PARAM_SYNC_DAMAGE_LOCAL_LUMA",
+    "PARAM_SYNC_DAMAGE_MANUAL_BRIGHT", "PARAM_SYNC_DAMAGE_MANUAL_DARK", "PARAM_SYNC_DAMAGE_DROPOUT_DENSITY",
+    "PARAM_SYNC_DAMAGE_STREAK_LENGTH", "PARAM_SYNC_DAMAGE_STREAK_BRIGHTNESS", "PARAM_SYNC_DAMAGE_DARK_DROPOUT",
+    "PARAM_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION", "PARAM_SYNC_DAMAGE_TEMPORAL_VARIATION", "PARAM_SYNC_DAMAGE_CHROMA_TINT",
+    "PARAM_SYNC_DAMAGE_MAGENTA_TINT", "PARAM_SYNC_DAMAGE_GREEN_TINT", "PARAM_SYNC_DAMAGE_RGB_OFFSET",
+    "PARAM_SYNC_DAMAGE_CHROMA_BLEED", "PARAM_SYNC_DAMAGE_ANIMATION_SPEED", "PARAM_SYNC_DAMAGE_RANDOM_SEED",
+    "PARAM_SYNC_DAMAGE_BLEND_INPUT", "PARAM_SYNC_DAMAGE_EFFECT_AMOUNT",
+):
+    if f"READ_FLOAT({token}," not in SOURCE:
+        fail("Sync Collapse & Luma Dropout float control is not read: " + token)
+for token in ("PARAM_SYNC_DAMAGE_ENABLE", "PARAM_SYNC_DAMAGE_LUMA_ENABLE", "PARAM_SYNC_DAMAGE_DROPOUTS_ENABLE", "PARAM_SYNC_DAMAGE_CHROMA_ENABLE"):
+    if f"CheckoutCheckbox(in_data,{token}," not in SOURCE:
+        fail("Sync Collapse & Luma Dropout checkbox is not read: " + token)
+for token in ("PARAM_SYNC_DAMAGE_ANIMATION_MODE", "PARAM_SYNC_DAMAGE_INPUT_MODE"):
+    if f"CheckoutPopup(in_data,{token}," not in SOURCE:
+        fail("Sync Collapse & Luma Dropout popup is not read: " + token)
+for token in ("PARAM_SIGNAL_NOISE_INTENSITY", "PARAM_SIGNAL_NOISE_FREQUENCY", "PARAM_SIGNAL_NOISE_SIZE", "PARAM_SIGNAL_NOISE_DENSITY", "PARAM_SIGNAL_NOISE_DISTRIBUTION", "PARAM_SIGNAL_NOISE_HORIZONTAL_LINES", "PARAM_SIGNAL_NOISE_ANIMATION_SPEED"):
+    if f"READ_FLOAT({token}," not in SOURCE:
+        fail("Signal Noise Engine control is not read into RenderSettings: " + token)
+if "CheckoutCheckbox(in_data,PARAM_SNOW_ENABLE," not in SOURCE:
+    fail("Snow Enable checkbox is not read into RenderSettings.")
+if "CheckoutPopup(in_data,PARAM_SNOW_MODE," not in SOURCE:
+    fail("Snow Color Mode popup is not read into RenderSettings.")
+for token in ("PARAM_SNOW_INTENSITY", "PARAM_SNOW_DENSITY", "PARAM_SNOW_SIZE", "PARAM_SNOW_DISTRIBUTION", "PARAM_SNOW_CONTRAST", "PARAM_SNOW_BRIGHTNESS", "PARAM_SNOW_COLOR", "PARAM_SNOW_TEMPORAL_VARIATION", "PARAM_SNOW_RANDOMNESS", "PARAM_SNOW_ANIMATION_SPEED", "PARAM_SNOW_SEED", "PARAM_BACKGROUND_NOISE_INTENSITY"):
+    if f"READ_FLOAT({token}," not in SOURCE:
+        fail("Snow/Background Noise control is not read: " + token)
+for layer in (2, 3, 4):
+    for field in ("ANGLE", "MOTION_X", "MOTION_Y"):
+        token = f"READ_FLOAT(PARAM_TRACK_LAYER{layer}_{field},"
+        if token not in SOURCE:
+            fail("Tracking layer direction/motion control is not wired: " + token)
+
+# Keep the visible mode menus synchronized with the native engine enums.
+tear_choices = re.search(r'kTearChromaModeChoices\[\]\s*=\s*"([^"]+)"', SOURCE)
+static_choices = re.search(r'kStaticPatternChoices\[\]\s*=\s*"([^"]+)"', SOURCE)
+if not tear_choices or len(tear_choices.group(1).split("|")) != 5:
+    fail("Tear & Chroma must expose exactly five native engine modes.")
+if not static_choices or len(static_choices.group(1).split("|")) != 13:
+    fail("Procedural Static must expose exactly thirteen native engine modes.")
+if 'PF_ADD_POPUP("Tear & Chroma Mode",5,5,kTearChromaModeChoices,ID_TEAR_CHROMA_MODE)' not in setup_body:
+    fail("The five Tear & Chroma modes must remain visible in Effect Controls.")
+if 'PF_ADD_POPUP("Pattern Type",13,2,kStaticPatternChoices,ID_PATTERN_MODE)' not in setup_body:
+    fail("All thirteen procedural static modes must remain visible in Effect Controls.")
+
+for required in [
+    'PF_ADD_CHECKBOX("Enable Sync Collapse","Enable",0,0,ID_SYNC_DAMAGE_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Horizontal Tear Amount",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Band Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Band Density",1,32',
+    'PF_ADD_FLOAT_SLIDERX("Band Height",1,100',
+    'PF_ADD_FLOAT_SLIDERX("Band Irregularity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Horizontal Displacement (px)",0,160',
+    'PF_ADD_FLOAT_SLIDERX("Boundary Fragmentation",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Full-Frame Coverage",0,100',
+    'PF_ADD_CHECKBOX("Enable Luma Instability","Enable",1,0,ID_SYNC_DAMAGE_LUMA_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Luma Instability",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Bright Flash Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Dark Collapse Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Event Frequency (Hz)",0.1,10',
+    'PF_ADD_FLOAT_SLIDERX("Event Duration (s)",0.05,2',
+    'PF_ADD_FLOAT_SLIDERX("Bright Event Probability",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Dark Event Probability",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Transition Sharpness",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Local Band Luma Variation",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Manual Bright Pulse",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Manual Dark Collapse",0,100',
+    'PF_ADD_CHECKBOX("Enable Fine Dropouts","Enable",1,0,ID_SYNC_DAMAGE_DROPOUTS_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Dropout Streak Density",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Streak Length (px)",2,120',
+    'PF_ADD_FLOAT_SLIDERX("Streak Brightness",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Dark Dropout Amount",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Horizontal Fragmentation",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Temporal Variation",0,100',
+    'PF_ADD_CHECKBOX("Enable Chromatic Variation","Enable",1,0,ID_SYNC_DAMAGE_CHROMA_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Subtle Chroma Tint",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Magenta Tint",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Green Tint",0,100',
+    'PF_ADD_FLOAT_SLIDERX("RGB Offset (px)",0,8',
+    'PF_ADD_FLOAT_SLIDERX("Chroma Bleed",0,100',
+    'PF_ADD_POPUP("Animation Mode",3,1,kSyncDamageAnimationChoices',
+    'PF_ADD_POPUP("Input Mode",2,1,kSyncDamageInputChoices',
+    'PF_ADD_FLOAT_SLIDERX("Animation Speed",0,400',
+    'PF_ADD_FLOAT_SLIDERX("Random Seed",1,32767',
+    'PF_ADD_FLOAT_SLIDERX("Blend With Input",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Effect Amount",0,100',
+]:
+    if required not in setup_body:
+        fail("Missing Sync Collapse & Luma Dropout control: " + required)
+sync_topic = topic_body("Sync Collapse & Luma Dropout")
+if "PF_PUI_NO_ECW_UI" in sync_topic:
+    fail("Sync Collapse & Luma Dropout controls must remain visible in Effect Controls.")
+
+for required in [
+    'PF_ADD_TOPIC("Snow & Background Noise",ID_SNOW_TOPIC)',
+    'PF_ADD_CHECKBOX("Enable Snow","Enable",0,0,ID_SNOW_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Snow Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Density",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Size (px)",0.35,16',
+    'PF_ADD_FLOAT_SLIDERX("Snow Distribution",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Contrast",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Brightness",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Color",0,100',
+    'PF_ADD_POPUP("Snow Color Mode",2,1,kSnowColorChoices',
+    'PF_ADD_FLOAT_SLIDERX("Snow Temporal Variation",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Randomness",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Animation Speed",0,400',
+    'PF_ADD_FLOAT_SLIDERX("Snow Seed",1,32767',
+    'PF_ADD_FLOAT_SLIDERX("Background Noise Intensity",0,100',
+]:
+    if required not in setup_body:
+        fail("Missing Snow or Background Noise control: " + required)
+snow_topic = topic_body("Snow & Background Noise")
+if "PF_PUI_NO_ECW_UI" in snow_topic:
+    fail("Snow and Background Noise controls must remain visible in Effect Controls.")
+
+for required in [
+    'PF_ADD_TOPIC("Signal Noise Engine",ID_SIGNAL_NOISE_TOPIC)',
+    'PF_ADD_FLOAT_SLIDERX("Signal Noise Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Signal Noise Frequency",0.1,10',
+    'PF_ADD_FLOAT_SLIDERX("Signal Noise Size (px)",0.25,16',
+    'PF_ADD_FLOAT_SLIDERX("Signal Noise Density",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Signal Noise Distribution",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Horizontal Line Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Signal Noise Animation Speed",0,400',
+]:
+    if required not in setup_body:
+        fail("Missing Signal Noise Engine control: " + required)
+signal_topic = topic_body("Signal Noise Engine")
+if "PF_PUI_NO_ECW_UI" in signal_topic:
+    fail("Signal Noise Engine controls must remain visible in Effect Controls.")
+
+for required in [
+    'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100',
+    'PF_ADD_FLOAT_SLIDERX("Bottom Edge Y",0,100,0,100,100',
+    'PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_HEAD_HEIGHT)',
+    'PF_ADD_FLOAT_SLIDERX("Horizontal Shift",0,100,0,100,24',
+    'PF_ADD_FLOAT_SLIDERX("Region Angle",-180,180',
+    'PF_ADD_FLOAT_SLIDERX("Motion X",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Motion Y",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Static Amount",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Tape Material Master",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Mains Hum",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Ground Loop (mV)",0,500,0,500,0,1,PF_ValueDisplayFlag_NONE,0,ID_GROUND_LOOP)',
+    'PF_ADD_FLOAT_SLIDERX("Layer 2 Angle",-180,180',
+    'PF_ADD_FLOAT_SLIDERX("Layer 2 Motion X",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 2 Motion Y",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 3 Angle",-180,180',
+    'PF_ADD_FLOAT_SLIDERX("Layer 3 Motion X",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 3 Motion Y",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 4 Angle",-180,180',
+    'PF_ADD_FLOAT_SLIDERX("Layer 4 Motion X",-100,100',
+    'PF_ADD_FLOAT_SLIDERX("Layer 4 Motion Y",-100,100',
+]:
+    if required not in setup_body:
+        fail("Missing required visible Damage Lab control: " + required)
+
+for band in range(2, 6):
+    if f'PF_ADD_TOPIC("Tear Band {band}"' not in tear_bands_ui:
+        fail(f"Missing Tear Band {band} topic.")
+
+
+tracking_presets_start = setup_body.find('PF_ADD_TOPIC("Tracking Presets"')
+tracking_presets_end = setup_body.find("PF_END_TOPIC(ID_TRACKING_PRESETS_TOPIC+100)", tracking_presets_start)
+if tracking_presets_start < 0 or tracking_presets_end < 0:
+    fail("Tracking recipe selector topic is missing.")
+tracking_presets_ui = setup_body[tracking_presets_start:tracking_presets_end]
+if "PF_PUI_NO_ECW_UI" in tracking_presets_ui:
+    fail("All four VHS Damage Lab tracking recipe selectors must remain visible/editable.")
+for selector in ("Base Tracking Preset", "Layer 2 Preset", "Layer 3 Preset", "Layer 4 Preset"):
+    if 'PF_ADD_POPUP("' + selector + '"' not in tracking_presets_ui:
+        fail("Missing visible tracking recipe selector: " + selector)
+
+
 calls = re.findall(r"\b(PF_ADD_[A-Z0-9_]+|PF_END_TOPIC)\s*\(([^;\n]*)\)\s*;", setup_body)
 if any(macro == "PF_ADD_LAYER" for macro, _ in calls):
     fail("Do not add a second Source layer: AE already supplies PARAM_INPUT at index 0.")
@@ -53,6 +296,7 @@ end_map = {
     "ID_TAPE_MATERIAL_TOPIC": "PARAM_TAPE_MATERIAL_END", "ID_PHYSICAL_TOPIC": "PARAM_PHYSICAL_END",
     "ID_PYVHS_TOPIC": "PARAM_PYVHS_END", "ID_OSD_TOPIC": "PARAM_OSD_END",
     "ID_VHS_STYLE_TOPIC": "PARAM_VHS_STYLE_END", "ID_NTSCRS_TOPIC": "PARAM_NTSCRS_END",
+    "ID_VCR_SIGNAL_TOPIC": "PARAM_VCR_SIGNAL_END", "ID_NTSCQT_TOPIC": "PARAM_NTSCQT_END",
     "ID_DEVICE_CONNECTION_TOPIC": "PARAM_DEVICE_CONNECTION_END", "ID_VHS_PLAYBACK_TOPIC": "PARAM_VHS_PLAYBACK_END",
     "ID_COMPOSITE_DECODER_TOPIC": "PARAM_COMPOSITE_DECODER_END", "ID_VHS_FRAME_TOPIC": "PARAM_VHS_FRAME_END",
     "ID_CAMCORDER_HUD_TOPIC": "PARAM_CAMCORDER_HUD_END", "ID_FRAME_REPEAT_TOPIC": "PARAM_FRAME_REPEAT_END",
@@ -66,7 +310,8 @@ end_map = {
     "ID_OSD_WORDS_TOPIC": "PARAM_OSD_WORDS_END", "ID_GRAIN_TOPIC": "PARAM_GRAIN_END",
     "ID_TAPE_SURFACE_DETAIL_TOPIC": "PARAM_TAPE_SURFACE_DETAIL_END",
     "ID_OSD_TEXT_EDIT_TOPIC": "PARAM_OSD_TEXT_EDIT_END",
-    "ID_PLAYBACK_TOPIC": "PARAM_PLAYBACK_END",
+    "ID_PLAYBACK_TOPIC": "PARAM_PLAYBACK_END", "ID_GROUND_LOOP_TOPIC": "PARAM_GROUND_LOOP_END", "ID_TRACK_LAYER_MOTION_TOPIC": "PARAM_TRACK_LAYER_MOTION_END", "ID_SYNC_DAMAGE_TOPIC": "PARAM_SYNC_DAMAGE_END", "ID_SNOW_TOPIC": "PARAM_SNOW_END", "ID_SIGNAL_NOISE_TOPIC": "PARAM_SIGNAL_NOISE_END",
+    "ID_EXTENDED_VHS_PRESET_TOPIC": "PARAM_EXTENDED_VHS_PRESET_END",
 }
 aliases = {
     "ID_COMPOSITE": "PARAM_COMPOSITE_AMOUNT", "ID_SYNC": "PARAM_SYNC_AMOUNT",

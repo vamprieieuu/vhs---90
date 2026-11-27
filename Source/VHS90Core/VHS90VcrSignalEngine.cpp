@@ -97,4 +97,118 @@ std::array<float,5> buildVcrInputTrap() noexcept {
 int vcrInputChromaDelaySamples() noexcept {
  return int(std::lround(2.0*std::sqrt(2.0)/(kTau*kInputChromaMHz)*kVcrSampleRateMHz));
 }
+
+namespace {
+constexpr double kVcrTau=6.283185307179586476925286766559;
+constexpr double kEmphasisZero=1.0/(kVcrTau*1.3);
+constexpr double kEmphasisPole=5.0/(kVcrTau*1.3);
+std::uint32_t vcrMix(std::uint32_t x) noexcept {
+    x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;x^=x>>16;return x;
+}
+double vcrUniform(std::uint32_t seed,std::int64_t frame,int line,std::size_t sample,std::uint32_t lane) noexcept {
+    const std::uint32_t f=static_cast<std::uint32_t>(frame)^static_cast<std::uint32_t>(static_cast<std::uint64_t>(frame)>>32);
+    std::uint32_t h=seed^vcrMix(f+0x9e3779b9u)^vcrMix(static_cast<std::uint32_t>(line)*0x85ebca6bu);
+    h^=vcrMix(static_cast<std::uint32_t>(sample)*0xc2b2ae35u+lane*0x27d4eb2du);
+    return (double(vcrMix(h)&0x00ffffffu)+0.5)/16777216.0;
+}
+double vcrGaussian(std::uint32_t seed,std::int64_t frame,int line,std::size_t sample) noexcept {
+    const double a=std::max(1.0e-12,vcrUniform(seed,frame,line,sample,0));
+    const double b=vcrUniform(seed^0x51a7u,frame,line,sample,1);
+    return std::sqrt(-2.0*std::log(a))*std::cos(kVcrTau*b);
+}
+void firstOrder(const float* in,std::size_t n,const std::array<float,3>& c,float* out) noexcept {
+    double x1=n?in[0]:0.0,y1=x1;
+    for(std::size_t i=0;i<n;++i){const double x=in[i];const double y=double(c[0])*x+double(c[1])*x1-double(c[2])*y1;out[i]=float(y);x1=x;y1=y;}
+}
+void biquadPass(const float* in,std::size_t n,const std::array<float,5>& c,float* out,bool reverse) noexcept {
+    double x1=0.0,x2=0.0,y1=0.0,y2=0.0;
+    if(n){const double edge=reverse?in[n-1]:in[0];x1=x2=y1=y2=edge;}
+    for(std::size_t step=0;step<n;++step){
+        const std::size_t i=reverse?n-1-step:step;
+        const double x=in[i];
+        const double y=double(c[0])*x+double(c[1])*x1+double(c[2])*x2-double(c[3])*y1-double(c[4])*y2;
+        out[i]=float(y);x2=x1;x1=x;y2=y1;y1=y;
+    }
+}
+void zeroPhaseBiquad(std::vector<float>& data,const std::array<float,5>& c,std::vector<float>& scratch) {
+    biquadPass(data.data(),data.size(),c,scratch.data(),false);
+    biquadPass(scratch.data(),scratch.size(),c,data.data(),true);
+}
+}
+bool processVcrSignalLine(const float* y,const float* inI,const float* inQ,
+                          const float* spacing,std::size_t count,const VcrSignalParams& raw,
+                          float* outY,float* outI,float* outQ) noexcept {
+    if(!y||!inI||!inQ||!spacing||!outY||!outI||!outQ||count<2)return false;
+    VcrSignalParams p=raw;
+    if(!std::isfinite(p.amount)||!std::isfinite(p.spacingUm)||!std::isfinite(p.gapUm)||
+       !std::isfinite(p.noise)||!std::isfinite(p.dropoutThreshold)||p.gapUm<0.0f||
+       p.spacingUm<0.0f||p.noise<0.0f||p.dropoutThreshold<0.0f||p.dropoutThreshold>1.0f||
+       p.colorPhaseQuarterTurns<-3||p.colorPhaseQuarterTurns>3)return false;
+    p.amount=std::clamp(p.amount,0.0f,1.0f);
+    if(p.amount<=0.0f){std::copy_n(y,count,outY);std::copy_n(inI,count,outI);std::copy_n(inQ,count,outQ);return true;}
+    try {
+        std::vector<float> emphasis(count),rf(count),rfSpaced(count),fmR(count),fmI(count);
+        std::vector<float> cu(count),cuSpaced(count),mixI(count),mixQ(count);
+        std::vector<float> demod(count),low(count),scratch(count),spacingClamped(count);
+        const auto em=buildVcrShelf(kEmphasisZero,kEmphasisPole);
+        const auto de=buildVcrShelf(kEmphasisPole,kEmphasisZero);
+        const auto lumaLp=buildVcrLowPass(3.0);
+        const auto chromaLp=buildVcrLowPass(0.55);
+        firstOrder(y,count,em,emphasis.data());
+        double phase=kVcrTau*vcrUniform(p.seed,p.frame,p.lineIndex,0,9);
+        const double dt=1.0/kVcrSampleRateMHz;
+        const double cuStep=kVcrTau*(40.0/63.556)/kVcrSampleRateMHz;
+        for(std::size_t i=0;i<count;++i){
+            const double ire=std::clamp(double(emphasis[i]),-82.0,226.0);
+            const double mhz=3.4+(ire+40.0)/140.0;
+            phase+=kVcrTau*mhz*dt;
+            rf[i]=float(std::cos(phase)+double(p.noise)*vcrGaussian(p.seed,p.frame,p.lineIndex,i));
+            const double angle=cuStep*double(i)+double(p.colorPhaseQuarterTurns)*(kVcrTau/4.0);
+            cu[i]=0.55f*(inI[i]*float(std::cos(angle))+inQ[i]*float(std::sin(angle)));
+            spacingClamped[i]=std::clamp(spacing[i]+p.spacingUm,0.0f,kVcrMaxSpacingUm);
+        }
+        if(!applyVcrSpacingBank(rf.data(),spacingClamped.data(),count,p.gapUm,rfSpaced.data())||
+           !applyVcrSpacingBank(cu.data(),spacingClamped.data(),count,p.gapUm,cuSpaced.data())||
+           !applyVcrFmBandpass(rfSpaced.data(),count,fmR.data(),fmI.data()))return false;
+        double envelope=0.0,peak=0.0;
+        for(std::size_t i=0;i<std::min<std::size_t>(count,120);++i)
+            peak=std::max(peak,std::hypot(double(fmR[i]),double(fmI[i])));
+        peak=std::max(peak,1.0e-6);
+        bool dropout=false;int hold=0;float lastGood=0.0f;
+        double prevR=fmR[0],prevI=fmI[0];
+        for(std::size_t i=0;i<count;++i){
+            const double re=fmR[i],im=fmI[i];
+            const double dphi=std::atan2(prevR*im-prevI*re,prevR*re+prevI*im);
+            prevR=re;prevI=im;
+            const double mhz=std::clamp(dphi/(kVcrTau*dt),1.0,7.5);
+            double decoded=(mhz-3.4)*140.0-40.0;
+            const double mag=std::hypot(re,im);
+            envelope+=0.12*(mag-envelope);
+            const double on=std::max(0.9*double(p.noise),double(p.dropoutThreshold)*peak);
+            const double off=std::max(1.36*double(p.noise),1.22*double(p.dropoutThreshold)*peak);
+            if(dropout){if(envelope>off){if(--hold<=0)dropout=false;}else hold=14;}
+            else if(envelope<on){dropout=true;hold=14;}
+            if(dropout&&p.dropoutCompensation)decoded=lastGood;
+            else lastGood=float(decoded);
+            demod[i]=float(decoded);
+            const double angle=cuStep*double(i)+double(p.colorPhaseQuarterTurns)*(kVcrTau/4.0);
+            mixI[i]=2.0f*cuSpaced[i]*float(std::cos(angle))/0.55f;
+            mixQ[i]=2.0f*cuSpaced[i]*float(std::sin(angle))/0.55f;
+        }
+        biquadPass(demod.data(),count,lumaLp,low.data(),false);
+        biquadPass(low.data(),count,lumaLp,scratch.data(),true);
+        firstOrder(scratch.data(),count,de,low.data());
+        for(int round=0;round<2;++round){
+            zeroPhaseBiquad(mixI,chromaLp,scratch);
+            zeroPhaseBiquad(mixQ,chromaLp,scratch);
+        }
+        for(std::size_t i=0;i<count;++i){
+            outY[i]=y[i]+(low[i]-y[i])*p.amount;
+            outI[i]=inI[i]+(mixI[i]-inI[i])*p.amount;
+            outQ[i]=inQ[i]+(mixQ[i]-inQ[i])*p.amount;
+        }
+        return true;
+    } catch(...) { return false; }
+}
+
 } // namespace vhs90

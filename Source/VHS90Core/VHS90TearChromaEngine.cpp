@@ -90,12 +90,16 @@ bool processTearChroma(ConstImageView src,ImageView dst,const TearChromaParams&p
                 }
             }
             const bool bandsEnabled=p.mode!=TearChromaMode::SpectralSmear;
+            std::size_t appliedBands=0;
             for(std::size_t bi=0;bandsEnabled&&bi<p.bandCount;++bi) {
                 const TearBand& band=p.bands[bi];if(!band.enabled||band.intensity<=0.0f)continue;
+                // Localized Headbleed is a single spatial defect; Multi-Band Tear
+                // and Spectral + Lower Tear deliberately process every enabled band.
+                if(p.mode==TearChromaMode::LocalizedHeadbleed&&appliedBands>0)break;
+                ++appliedBands;
                 const float cy=band.centerY+band.motionYPerSecond*t;
                 const float cx=band.centerX+band.motionXPerSecond*t;
                 const float halfH=std::max(0.0f,band.height)*.5f;
-                const float dy=std::fabs(v-cy);
                 float mask=regionMask(v,cy,band.height,std::max(.001f,band.height*.12f));
                 if(mask<=0.0f||std::fabs(u-cx)>band.width*.5f)continue;
                 const std::uint32_t seed=p.seed^band.seedOffset^std::uint32_t(bi*0x9e3779b9u);
@@ -109,10 +113,10 @@ bool processTearChroma(ConstImageView src,ImageView dst,const TearChromaParams&p
                 const float shift=rowNoise*band.horizontalShiftPx+wave*band.waveAmplitudePx+jump;
                 const float sx=float(x)+shift;
                 const float smear=std::max(0.0f,band.smearPx);
-                float sr=sample(src,sx-smear*.5f,y,0),sg=sample(src,sx,y,1),sb=sample(src,sx+smear*.5f,y,2);
+                float sr=sample(src,sx-smear*.5f,float(y),0),sg=sample(src,sx,float(y),1),sb=sample(src,sx+smear*.5f,float(y),2);
                 if(std::fabs(band.chromaShiftPx)>1.0e-5f) {
-                    sr=sample(src,sx-band.chromaShiftPx,y,0);
-                    sb=sample(src,sx+band.chromaShiftPx,y,2);
+                    sr=sample(src,sx-band.chromaShiftPx,float(y),0);
+                    sb=sample(src,sx+band.chromaShiftPx,float(y),2);
                 }
                 const float drop=hashCell(x/seg,y/2,seed+0x27d4eb2fu,tick);
                 if(drop<clamp01(band.dropoutProbability)) {

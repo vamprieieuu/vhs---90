@@ -220,18 +220,10 @@ for needle in [
 ]:
     assert needle in source, f"Missing preset/render wiring: {needle}"
 
-style_cases = set(map(int, re.findall(r"case (\d+):", source[source.find("static void ApplyVhs6RiftStylePreset"):source.find("static void ApplyVhs6RiftCameraProfile")])))
-camera_cases = set(map(int, re.findall(r"case (\d+):", source[source.find("static void ApplyVhs6RiftCameraProfile"):source.find("static void ApplyNtscRsVhsLook")])))
-ntsc_cases = set(map(int, re.findall(r"case (\d+):", source[source.find("static void ApplyNtscRsVhsLook"):source.find("static void ApplyVhsSourcePresets")])))
-assert set(range(2, 18)).issubset(style_cases), f"Missing VHS6RIFT style preset cases: {sorted(set(range(2,18))-style_cases)}"
-addon_cases = set(range(18, 23))
-assert addon_cases.issubset(style_cases), f"Missing VHS Effect Add-on preset cases: {sorted(addon_cases-style_cases)}"
-cvs_cases = set(range(23, 26))
-assert cvs_cases.issubset(style_cases), f"Missing Composite Video Simulator VHS SP/LP/EP cases: {sorted(cvs_cases-style_cases)}"
-lost_signal_cases = set(range(26, 39))
-assert lost_signal_cases.issubset(style_cases), f"Missing Lost Signal VHS v1.9 profiles: {sorted(lost_signal_cases-style_cases)}"
-crates_cases = set(range(39, 55))
-assert crates_cases.issubset(style_cases), f"Missing Crates VHS Master recipes: {sorted(crates_cases-style_cases)}"
+recipe_start = source.find("static void ApplyVhsStyleRecipe(RenderSettings& s,int styleRecipe)")
+recipe_end = source.find("static constexpr int kLegacyVhsStyleRecipeMap", recipe_start)
+recipe_cases = set(map(int, re.findall(r"case (\d+):", source[recipe_start:recipe_end])))
+assert set(range(2, 73)).issubset(recipe_cases), f"Missing native style recipe cases: {sorted(set(range(2,73))-recipe_cases)}"
 assert "ApplyCratesMasterPreset(s,static_cast<int>(styleRecipe-39));" in source, "Crates presets must use the recovered source-value mapper"
 assert "kCrates[16][44]" in source, "Crates mapper must retain all 16 source looks and 44 mapped source fields"
 crates_start = source.find("static constexpr float kCrates[16][44]={")
@@ -241,13 +233,20 @@ assert crates_end > crates_start, "Unterminated Crates source-value table"
 crates_rows = [line for line in source[crates_start:crates_end].splitlines() if line.lstrip().startswith("{")]
 assert len(crates_rows) == 16, f"Crates table must contain 16 source presets, got {len(crates_rows)}"
 assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 44 for line in crates_rows), "Every Crates preset must define all 44 mapped source values"
-vhspro_cases = set(range(55, 65))
-assert vhspro_cases.issubset(style_cases), f"Missing VHSPro recipes: {sorted(vhspro_cases-style_cases)}"
-vhscraft_cases = set(range(65, 73))
-assert vhscraft_cases.issubset(style_cases), f"Missing VHSCraft recipes: {sorted(vhscraft_cases-style_cases)}"
+legacy_map = re.search(r"kLegacyVhsStyleRecipeMap\[33\]=\s*\{([^}]+)\}", source)
+assert legacy_map, "Missing legacy VHS style compatibility map"
+legacy_values = [int(x.strip()) for x in legacy_map.group(1).split(",")]
+assert len(legacy_values) == 33 and legacy_values[0] == 0 and legacy_values[1] == 1, "Legacy style map must preserve Custom and all 32 prior popup choices"
+assert legacy_values[2:] == [2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,55,56,58,59,60,61,63,66,67,68,69,72], "Legacy style map must preserve the exact historic source recipe IDs"
+extended_map = re.search(r"kExtendedVhsStyleRecipeMap\[41\]=\s*\{([^}]+)\}", source)
+assert extended_map, "Missing expanded VHS style recipe map"
+extended_values = [int(x.strip()) for x in extended_map.group(1).split(",")]
+assert len(extended_values) == 41 and extended_values[0] == 0, "Expanded style map must contain Custom plus 40 additional recipes"
+assert sorted(extended_values[1:]) == sorted(set(range(2,73))-set(legacy_values[2:])), "Expanded styles must expose every remaining source recipe exactly once"
+assert "kExtendedVhsStyleRecipeMap[selected-32]" in source and "selected<=32?kLegacyVhsStyleRecipeMap[selected]" in source, "Unified VHS menu must map old and appended recipe IDs correctly"
 style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
-assert style_choices and len(style_choices.group(1).split("|")) == 32, "VHS Style popup must expose the curated 32 entries"
-assert 'PF_ADD_POPUP("VHS Style Preset",32,1,kVhsStyleChoices,ID_VHS_STYLE)' in source, "VHS Style popup count must match its labels"
+assert style_choices and len(style_choices.group(1).split("|")) == 72, "Unified VHS Style popup must expose 71 named looks plus Custom"
+assert 'PF_ADD_POPUP("VHS Style Preset",72,1,kVhsStyleChoices,ID_VHS_STYLE)' in source, "Unified VHS Style popup count must match all 72 labels"
 assert 'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER)' in source, "Master Strength must exceed 100 and expose the 300% range"
 assert 'PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,500,0,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION)' in source, "Saturation must expose the requested 500% range"
 assert "std::clamp(p.saturation,0.0f,5.0f)" in grade_engine, "Image Grade engine must preserve saturation drive through 500%"
@@ -275,10 +274,18 @@ assert 'PF_ADD_TOPIC("Mains Hum",ID_PHYSICAL_TOPIC)' in source and 'PF_ADD_FLOAT
 assert 'PF_ADD_TOPIC("Tape Surface Detail",ID_TAPE_SURFACE_DETAIL_TOPIC)' in source, "Tape Surface Detail topic must be registered"
 assert all(x in source for x in ['PF_ADD_FLOAT_SLIDERX("Pinholes"', 'PF_ADD_FLOAT_SLIDERX("Oxide Flakes"', 'PF_ADD_FLOAT_SLIDERX("Surface Roughness"']), "Tape pinhole, flake and roughness controls must be exposed"
 assert all(x in source for x in ["READ_FLOAT(PARAM_TAPE_PINHOLES,tapePinholes)", "READ_FLOAT(PARAM_TAPE_FLAKES,tapeFlakes)", "READ_FLOAT(PARAM_TAPE_ROUGHNESS,tapeRoughness)", "tc.pinholes=s.tapePinholes", "tc.flakes=s.tapeFlakes", "tc.surfaceRoughness=s.tapeRoughness"]), "Tape surface detail controls must reach the render engine"
-assert "kVhsStyleRecipeMap[33]" in source and "switch(styleRecipe)" in source, "Compact labels must map to source recipe IDs"
+assert "kLegacyVhsStyleRecipeMap[33]" in source and "kExtendedVhsStyleRecipeMap[41]" in source and "switch(styleRecipe)" in source, "Unified menu must map legacy and appended recipe IDs"
 assert "p.noiseAmount*glitchBand" in sync_engine, "Sync Collapse noise must be gated by the active moving glitch band"
 assert "rgb.r*=exposure;rgb.g*=exposure;rgb.b*=exposure;" in grade_engine, "Exposure EV must be applied uniformly in RGB before YIQ grading"
-assert re.search(r"kVhsStyleRecipeMap\[33\]\s*=\s*\{\s*0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,\s*55,56,58,59,60,61,63,66,67,68,69,72", source), "Compact style mapping must retain the curated VHS6RIFT, Crates, VHSPro and VHSCraft source recipes"
+assert re.search(r"kLegacyVhsStyleRecipeMap\[33\]\s*=\s*\{\s*0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,\s*55,56,58,59,60,61,63,66,67,68,69,72", source), "Legacy style mapping must preserve all prior popup values"
+assert "if(s.extendedVhsStyle>1) ApplyVhsExtendedStylePreset(s);" not in source, "A second preset selector must not be required; all looks belong in the opening unified menu"
+
+camera_start = source.find("static void ApplyVhs6RiftCameraProfile")
+camera_end = source.find("static void ApplyNtscRsVhsLook", camera_start)
+ntsc_start = camera_end
+ntsc_end = source.find("static void ApplyVhsSourcePresets", ntsc_start)
+camera_cases = set(map(int, re.findall(r"case ([0-9]+):", source[camera_start:camera_end])))
+ntsc_cases = set(map(int, re.findall(r"case ([0-9]+):", source[ntsc_start:ntsc_end])))
 assert camera_cases == set(range(2, 13)), f"Missing VHS6RIFT and FXC6/Gen 7 camera profile cases: {sorted(set(range(2,13))-camera_cases)}"
 camera_choices = re.search(r'kCameraProfileChoices\[\]\s*=\s*"([^"]+)"', source)
 assert camera_choices and len(camera_choices.group(1).split("|")) == 12, "Camera Profile popup must expose Off plus 11 reference profiles"
@@ -296,8 +303,8 @@ lost_rows = [line for line in source[lost_start:lost_end].splitlines() if line.l
 assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 complete profiles, got {len(lost_rows)}"
 assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 45 for line in lost_rows), "Every Lost Signal VHS profile must define all 45 mapped values"
 print(f"PASS: {len(active_indices)} AE parameter slots; persistent disk IDs are unique and stable across UI reordering.")
-print("PASS: curated 32-entry VHS Style menu maps to distinct source recipes; legacy recipe IDs remain supported for saved projects.")
-print("PASS: all 7 audited preset families have native menu entries; Crates maps 44 recovered source fields per look, while VHSPro/VHSCraft remain source-inspired where exact tuples were not recoverable.")
+print("PASS: unified 72-entry VHS Style menu preserves the original 32 values and appends 40 additional recipes.")
+print("PASS: all 71 source-derived VHS style recipes are selectable from one opening menu; source-tuple and visual-parity limits remain documented.")
 print("PASS: camera profiles and NTSC-RS Signal Looks remain wired; retired Playback, Decoder, Frame, HUD and Signal Network groups are removed; Particle looks are folded into Static.")
 assert "p.mode=static_cast<StaticPatternMode>(std::clamp<A_long>(s.staticMode-1,0,12));" in source, "Static Pattern mode must be mapped through all supported modes"
 assert 'PF_ADD_POPUP("Raster Decoder",3,1,kCompositeDecoderChoices,ID_DECODER_MODE)' in source

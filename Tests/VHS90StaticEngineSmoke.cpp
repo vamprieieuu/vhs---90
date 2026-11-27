@@ -49,6 +49,22 @@ int main() {
     assert(std::fabs(split[upperSplit]-src[upperSplit])>1e-5f);
     assert(std::fabs(split[lowerSplit]-src[lowerSplit])>1e-5f);
 
+    // Every exposed static pattern index (0..12) must render deterministically and affect pixels.
+    for(int mode=0;mode<13;++mode) {
+        StaticParams all=p; all.mode=static_cast<StaticPatternMode>(mode);
+        all.animated=true; all.frame=17; all.density=1.0f; all.intensity=1.0f;
+        all.sourceMix=1.0f; all.lumaAmount=0.95f; all.chromaAmount=0.85f;
+        all.topBandHeight=1.0f; all.splitPosition=0.5f; all.bottomExponent=0.35f;
+        all.ribbonWidth=0.5f; all.phaseCount=4; all.greenLineAmount=1.0f;
+        all.blackoutProbability=1.0f; all.seed=0x9013u;
+        std::vector<float> modeA(src.size(),0.0f),modeB(src.size(),0.0f);
+        ImageView modeViewA{modeA.data(),w,h,w*4},modeViewB{modeB.data(),w,h,w*4};
+        assert(processStaticPattern(si,modeViewA,all));
+        assert(processStaticPattern(si,modeViewB,all));
+        assert(modeA==modeB);
+        assert(modeA!=src);
+    }
+
     // Four Damage Lab procedural pattern identities remain distinct from generic static modes.
     std::vector<float> patternOutputs[4];
     const StaticPatternMode advancedModes[4]={StaticPatternMode::DarkFieldLumaStreaks,StaticPatternMode::MultiPhaseGreenLine,StaticPatternMode::TwoStageAngularRibbon,StaticPatternMode::DiagonalSyncCollapse};

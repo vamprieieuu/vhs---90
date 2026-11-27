@@ -6,6 +6,7 @@ on:
       - work/osd-directwrite-integration-map
       - phase1-ui-signal-rebuild-2026-11-27
       - phase2-signal-engine-audit-2026-11-27
+      - phase3-preset-camera-migration-2026-11-27
       - main
       - build-on-main
   pull_request:
@@ -47,6 +48,12 @@ jobs:
           }
           Write-Host "Checked-in SDK/font availability verified."
 
+      - name: Validate Legacy, SmartFX, MFR and OSD source contracts
+        shell: pwsh
+        run: |
+          python tools/validate_ae_render_contract.py
+          if ($LASTEXITCODE -ne 0) { throw "After Effects render contract validation failed." }
+
       - name: Validate After Effects host contract
         shell: pwsh
         run: |
@@ -56,6 +63,13 @@ jobs:
       - name: Configure, build and test
         shell: pwsh
         run: .\\build.ps1 -BuildDir build -Configuration Release
+
+      - name: Upload Arabic OSD visual smoke frame
+        uses: actions/upload-artifact@v4
+        with:
+          name: VHS-90-OSD-Arabic-Visual-Smoke
+          path: build/vhs90-osd-arabic-smoke.bmp
+          if-no-files-found: error
 
       - name: Verify single-file output
         shell: pwsh

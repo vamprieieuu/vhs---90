@@ -19,7 +19,7 @@ The archive does **not** contain a plugin/file named `Quicks Master` or `Quick M
 
 ### 1.1 VHS Style popup
 
-The native `VHS Style Preset` popup now contains 72 entries: 71 named recipes plus Custom.
+The native `VHS Style Preset` popup now contains 72 entries in one selector at the top of Effect Controls: 71 named recipes plus Custom. Phase 3 reconciled the previous UI mismatch where only 32 labels were reachable and the remaining 40 recipes were placed in a second selector at the bottom of the interface. The first 32 popup values and their recipe IDs remain unchanged for existing projects; values 33–72 now append the remaining 40 source-derived recipes.
 
 | Source family | Recovered named looks | VHS-90 menu range | Migration state |
 |---|---:|---:|---|
@@ -32,7 +32,14 @@ The native `VHS Style Preset` popup now contains 72 entries: 71 named recipes pl
 | VHSCraft | 8 | 65–72 | Newly represented as source-inspired native recipes |
 | **Total** | **71** | **2–72** | **71 named recipes + Custom** |
 
-Source plugin labels were renamed in the VHS-90 menu. The menu no longer exposes the source family labels for Add-on, CVS or Lost Signal. Camera Profiles (Off + 11 profiles) and NTSC-RS-derived Looks (Custom + 10 looks) remain separate menus; they are not included in the 72-entry VHS Style count.
+Source-family prefixes are retained where useful for provenance and to disambiguate similarly named looks. The Camera Profile popup (Off + 11 profiles, including the two VHS Cams references FXC6 Direct Capture and Gen 7 Reference) and NTSC-RS-derived Looks (Custom + 10 looks) remain separate controls; they are not included in the 72-entry VHS Style count.
+
+
+### 1.5 Phase 3 unified menu wiring
+
+The first 32 entries remain in their previous order and retain their old numeric values. The appended 40 entries complete the source-family ranges above. The adapter maps popup values 2–32 through the legacy recipe table and values 33–72 through the appended recipe table; both paths converge on the same native ApplyVhsStyleRecipe function and existing Style Intensity blend. There is now one VHS Style Preset popup, not a second appended preset group. The existing Camera Profile popup remains adjacent to the opening style controls and retains Off plus all 11 hardware/reference profiles.
+
+The additional entries correspond to the previously omitted VHS6RIFT styles (Moving Band Noise, Bottom Tape Damage, Ghosting, Damaged Tape Playback), VHS Effect Add-on (Heavy, Worn, Clean TV), CVS SP/LP/EP, Lost Signal's 12 remaining profiles, the 12 remaining Crates looks, VHSPro Rental Copy/Broadcast/Music Video, and VHSCraft Standard/Damaged Tape/Camcorder. Existing old preset values are preserved. Source-inspired mappings that lack full source tuples remain explicitly labeled as adaptations rather than exact reproductions.
 
 ### 1.2 Crates VHS Master — source-value recovery
 
@@ -60,7 +67,7 @@ These include the source master slider, RGB bias/add-color and raw-signal switch
 - Signal: exposes a “Destruction” button plus signal/tape controls; the button is not a named factory preset list. Its full render routine was not completely recoverable from the supplied decompilation.
 - Universe VHS Transition: exposes Wipe/Slide Down/Slide Up and Color Noise/Bad Tracking/Very Bad Tracking/Degauss type menus, plus Choose Preset/Save Preset for user-saved presets. No bundled factory preset names/values were recovered. Its resource-backed transition patterns remain a separate procedural parity task, not 7 extra factory presets.
 - VHS Tape: no factory preset menu was recovered. It exposes NTSC/PAL, SP/LP/EP, playback states and OSD fields. The source has no font-family selector in its recovered strings and no matching C decompilation.
-- NTSCRT: all 45 JSON presets were semantically audited. They are not 45 interchangeable analog VHS looks: digital-only looks and five Screen Loop feedback looks were explicitly classified out of the analog VHS engine. Selected analog/timeline presets still need native AE recipe and keyframe conversion; the 45/45 audit is not a claim that 45 presets have been ported.
+- NTSCRT: the older source inventory reported 45 JSON presets, but the current checked-in repository snapshot contains 39 JSON files (34 top-level presets plus five Screen Loop feedback presets). They are not interchangeable analog VHS looks: digital-only looks and all five Screen Loop feedback looks are classified out of the analog VHS engine. Selected analog/timeline presets still need native AE recipe and keyframe conversion; the file inventory is not a claim that all presets have been ported.
 
 ## 2. Font and Text/OSD gap audit
 

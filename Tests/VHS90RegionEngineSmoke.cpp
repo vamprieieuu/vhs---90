@@ -160,6 +160,52 @@ int main() {
     assert(processDamageRegions(profileInput,stackBv,stackParams));
     assert(stackA==stackB && stackA!=profileSource);
 
+    // Each independent Tracking Noise layer can rotate and move its own mask over time.
+    DamageRegion moving=full; moving.kind=RegionKind::TrackingNoise;
+    moving.shape=RegionShape::Rectangle; moving.centerX=0.25f; moving.centerY=0.55f;
+    moving.width=0.28f; moving.height=0.32f; moving.angleRadians=0.35f;
+    moving.motionXPerSecond=0.35f; moving.motionYPerSecond=-0.15f;
+    moving.maxShiftPx=0.0f; moving.waveAmplitudePx=0.0f; moving.servoDriftPx=0.0f;
+    moving.tearProbability=0.0f; moving.dropoutProbability=0.0f;
+    moving.noiseAmount=0.6f; moving.noiseDensity=1.0f; moving.chromaShiftPx=0.0f;
+    RegionEngineParams movingA; movingA.regions=&moving; movingA.regionCount=1;
+    movingA.seed=0x5511u; movingA.frame=12; movingA.timeSeconds=0.0;
+    RegionEngineParams movingB=movingA; movingB.timeSeconds=1.0;
+    std::vector<float> movingOutA(src.size(),0.0f),movingOutB(src.size(),0.0f);
+    ImageView movingViewA{movingOutA.data(),w,h,w*4},movingViewB{movingOutB.data(),w,h,w*4};
+    assert(processDamageRegions(profileInput,movingViewA,movingA));
+    assert(processDamageRegions(profileInput,movingViewB,movingB));
+    assert(movingOutA!=movingOutB);
+
+    // Rotation changes the spatial mask independently of temporal motion.
+    DamageRegion angleBase=moving; angleBase.motionXPerSecond=0.0f; angleBase.motionYPerSecond=0.0f;
+    angleBase.angleRadians=0.0f;
+    RegionEngineParams angleParams; angleParams.regions=&angleBase; angleParams.regionCount=1;
+    angleParams.seed=0x7711u; angleParams.frame=19; angleParams.timeSeconds=0.0;
+    std::vector<float> angleOut0(src.size(),0.0f),angleOut45(src.size(),0.0f);
+    ImageView angleView0{angleOut0.data(),w,h,w*4},angleView45{angleOut45.data(),w,h,w*4};
+    assert(processDamageRegions(profileInput,angleView0,angleParams));
+    angleBase.angleRadians=0.7853981633974483f;
+    assert(processDamageRegions(profileInput,angleView45,angleParams));
+    assert(angleOut0!=angleOut45);
+
+    // X and Y motion each move the region mask independently.
+    DamageRegion motionBase=moving; motionBase.angleRadians=0.0f;
+    motionBase.motionXPerSecond=0.0f; motionBase.motionYPerSecond=0.0f;
+    RegionEngineParams motionParams; motionParams.regions=&motionBase; motionParams.regionCount=1;
+    motionParams.seed=0x8811u; motionParams.frame=21; motionParams.timeSeconds=0.0;
+    std::vector<float> motionOut0(src.size(),0.0f),motionOutX(src.size(),0.0f),motionOutY(src.size(),0.0f);
+    ImageView motionView0{motionOut0.data(),w,h,w*4},motionViewX{motionOutX.data(),w,h,w*4},motionViewY{motionOutY.data(),w,h,w*4};
+    assert(processDamageRegions(profileInput,motionView0,motionParams));
+    motionParams.timeSeconds=1.0;
+    motionBase.motionXPerSecond=0.35f;
+    assert(processDamageRegions(profileInput,motionViewX,motionParams));
+    motionBase.motionXPerSecond=0.0f; motionBase.motionYPerSecond=-0.30f;
+    assert(processDamageRegions(profileInput,motionViewY,motionParams));
+    assert(motionOut0!=motionOutX);
+    assert(motionOut0!=motionOutY);
+    assert(motionOutX!=motionOutY);
+
     // Signed chroma displacement must work in both directions.
     std::vector<float> chromaSrc(src.size()),chromaOut(src.size(),0.0f);
     for(int y=0;y<h;++y) for(int x=0;x<w;++x) {

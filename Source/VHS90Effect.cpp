@@ -20,6 +20,8 @@
 #include "VHS90DirectWriteText.h"
 #include "VHS90OsdTextDialog.h"
 #include "VHS90SyncEngine.h"
+#include "VHS90SyncCollapseLabEngine.h"
+#include "VHS90SnowEngine.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -59,7 +61,9 @@ enum ParamIndex {
     PARAM_OSD_STATUS_X, PARAM_OSD_STATUS_Y, PARAM_OSD_TIMESTAMP_X, PARAM_OSD_TIMESTAMP_Y, PARAM_OSD_LAYOUT_END,
     PARAM_OSD_COUNTER_TOPIC, PARAM_OSD_COUNTER_FORMAT, PARAM_OSD_COUNTER_AMOUNT, PARAM_OSD_COUNTER_X, PARAM_OSD_COUNTER_Y, PARAM_OSD_COUNTER_OFFSET, PARAM_OSD_SHOW_COUNTER, PARAM_OSD_COUNTER_END, PARAM_OSD_TEXT_DATA, PARAM_OSD_LOCALIZATION_TOPIC,
     PARAM_OSD_LANGUAGE, PARAM_OSD_DIGITS, PARAM_OSD_DATE_LAYOUT, PARAM_OSD_CLOCK_MODE, PARAM_OSD_MONTH_STYLE, PARAM_OSD_CLOCK_RUNS, PARAM_OSD_FONT, PARAM_OSD_EXTRA_LABEL, PARAM_OSD_EXTRA_X, PARAM_OSD_EXTRA_Y, PARAM_OSD_LOCALIZATION_END,
-    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_PLAYBACK_TOPIC, PARAM_DECODER_MODE, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_PLAYBACK_END, PARAM_COUNT
+    PARAM_OSD_WORDS_TOPIC, PARAM_OSD_SHOW_TEXT, PARAM_OSD_SHOW_REC_LABEL, PARAM_OSD_SHOW_PLAY_LABEL, PARAM_OSD_SHOW_PAUSE_LABEL, PARAM_OSD_SHOW_STOP_LABEL, PARAM_OSD_SHOW_FF_LABEL, PARAM_OSD_SHOW_REW_LABEL, PARAM_OSD_SHOW_SPEED_LABEL, PARAM_OSD_SHOW_TAPE_LABEL, PARAM_OSD_SHOW_ERROR_LABEL, PARAM_OSD_SHOW_PROGRAM_LABEL, PARAM_OSD_SHOW_RES_LABEL, PARAM_OSD_SHOW_FORWARD_LABEL, PARAM_OSD_TEXT_GLOW, PARAM_OSD_TEXT_SIZE, PARAM_OSD_TEXT_GLOW_AMOUNT, PARAM_OSD_TEXT_SEED, PARAM_OSD_TEXT_OPACITY, PARAM_OSD_SHOW_DATE, PARAM_OSD_WORDS_X, PARAM_OSD_WORDS_Y, PARAM_OSD_WORDS_END, PARAM_TAPE_SURFACE_DETAIL_TOPIC, PARAM_TAPE_PINHOLES, PARAM_TAPE_FLAKES, PARAM_TAPE_ROUGHNESS, PARAM_TAPE_SURFACE_DETAIL_END, PARAM_OSD_TEXT_EDIT_TOPIC, PARAM_OSD_TEXT_EDIT, PARAM_OSD_TEXT_EDIT_END, PARAM_PLAYBACK_TOPIC, PARAM_DECODER_MODE, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_PLAYBACK_END, PARAM_GROUND_LOOP_TOPIC, PARAM_GROUND_LOOP, PARAM_GROUND_LOOP_END, PARAM_TRACK_LAYER_MOTION_TOPIC, PARAM_TRACK_LAYER2_ANGLE, PARAM_TRACK_LAYER2_MOTION_X, PARAM_TRACK_LAYER2_MOTION_Y, PARAM_TRACK_LAYER3_ANGLE, PARAM_TRACK_LAYER3_MOTION_X, PARAM_TRACK_LAYER3_MOTION_Y, PARAM_TRACK_LAYER4_ANGLE, PARAM_TRACK_LAYER4_MOTION_X, PARAM_TRACK_LAYER4_MOTION_Y, PARAM_TRACK_LAYER_MOTION_END, PARAM_SYNC_DAMAGE_TOPIC, PARAM_SYNC_DAMAGE_ENABLE, PARAM_SYNC_DAMAGE_TEAR_AMOUNT, PARAM_SYNC_DAMAGE_BAND_INTENSITY, PARAM_SYNC_DAMAGE_BAND_DENSITY, PARAM_SYNC_DAMAGE_BAND_HEIGHT, PARAM_SYNC_DAMAGE_BAND_IRREGULARITY, PARAM_SYNC_DAMAGE_DISPLACEMENT, PARAM_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION, PARAM_SYNC_DAMAGE_COVERAGE, PARAM_SYNC_DAMAGE_LUMA_ENABLE, PARAM_SYNC_DAMAGE_LUMA_INSTABILITY, PARAM_SYNC_DAMAGE_BRIGHT_FLASH, PARAM_SYNC_DAMAGE_DARK_COLLAPSE, PARAM_SYNC_DAMAGE_EVENT_FREQUENCY, PARAM_SYNC_DAMAGE_EVENT_DURATION, PARAM_SYNC_DAMAGE_BRIGHT_PROBABILITY, PARAM_SYNC_DAMAGE_DARK_PROBABILITY, PARAM_SYNC_DAMAGE_TRANSITION_SHARPNESS, PARAM_SYNC_DAMAGE_LOCAL_LUMA, PARAM_SYNC_DAMAGE_MANUAL_BRIGHT, PARAM_SYNC_DAMAGE_MANUAL_DARK, PARAM_SYNC_DAMAGE_DROPOUTS_ENABLE, PARAM_SYNC_DAMAGE_DROPOUT_DENSITY, PARAM_SYNC_DAMAGE_STREAK_LENGTH, PARAM_SYNC_DAMAGE_STREAK_BRIGHTNESS, PARAM_SYNC_DAMAGE_DARK_DROPOUT, PARAM_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION, PARAM_SYNC_DAMAGE_TEMPORAL_VARIATION, PARAM_SYNC_DAMAGE_CHROMA_ENABLE, PARAM_SYNC_DAMAGE_CHROMA_TINT, PARAM_SYNC_DAMAGE_MAGENTA_TINT, PARAM_SYNC_DAMAGE_GREEN_TINT, PARAM_SYNC_DAMAGE_RGB_OFFSET, PARAM_SYNC_DAMAGE_CHROMA_BLEED, PARAM_SYNC_DAMAGE_ANIMATION_MODE, PARAM_SYNC_DAMAGE_INPUT_MODE, PARAM_SYNC_DAMAGE_ANIMATION_SPEED, PARAM_SYNC_DAMAGE_RANDOM_SEED, PARAM_SYNC_DAMAGE_BLEND_INPUT, PARAM_SYNC_DAMAGE_EFFECT_AMOUNT, PARAM_SYNC_DAMAGE_END, PARAM_SNOW_TOPIC, PARAM_SNOW_ENABLE, PARAM_SNOW_INTENSITY, PARAM_SNOW_DENSITY, PARAM_SNOW_SIZE, PARAM_SNOW_DISTRIBUTION, PARAM_SNOW_CONTRAST, PARAM_SNOW_BRIGHTNESS, PARAM_SNOW_COLOR, PARAM_SNOW_MODE, PARAM_SNOW_TEMPORAL_VARIATION, PARAM_SNOW_RANDOMNESS, PARAM_SNOW_ANIMATION_SPEED, PARAM_SNOW_SEED, PARAM_BACKGROUND_NOISE_INTENSITY, PARAM_SNOW_END, PARAM_SIGNAL_NOISE_TOPIC, PARAM_SIGNAL_NOISE_INTENSITY, PARAM_SIGNAL_NOISE_FREQUENCY, PARAM_SIGNAL_NOISE_SIZE, PARAM_SIGNAL_NOISE_DENSITY, PARAM_SIGNAL_NOISE_DISTRIBUTION, PARAM_SIGNAL_NOISE_HORIZONTAL_LINES, PARAM_SIGNAL_NOISE_ANIMATION_SPEED, PARAM_SIGNAL_NOISE_END,
+     PARAM_VCR_SIGNAL_TOPIC, PARAM_VCR_SIGNAL_ENABLE, PARAM_VCR_SIGNAL_AMOUNT, PARAM_VCR_SIGNAL_SPACING, PARAM_VCR_SIGNAL_GAP, PARAM_VCR_SIGNAL_NOISE, PARAM_VCR_SIGNAL_DROPOUT_THRESHOLD, PARAM_VCR_SIGNAL_DROPOUT_COMPENSATION, PARAM_VCR_SIGNAL_END,
+     PARAM_NTSCQT_TOPIC, PARAM_NTSCQT_RINGING_ENABLE, PARAM_NTSCQT_ALPHA, PARAM_NTSCQT_FREQUENCY_NOISE_SIZE, PARAM_NTSCQT_FREQUENCY_NOISE_AMPLITUDE, PARAM_NTSCQT_PREEMPHASIS, PARAM_NTSCQT_PREEMPHASIS_CUTOFF, PARAM_NTSCQT_RINGING_MODE, PARAM_NTSCQT_RINGING_POWER, PARAM_NTSCQT_RINGING_SHIFT, PARAM_NTSCQT_END, PARAM_COUNT
 };
 enum ParamDiskID {
     ID_VHS_STYLE_TOPIC=136,
@@ -372,6 +376,100 @@ enum ParamDiskID {
     ID_DECODER_MODE=357,
     ID_FRAME_REPEAT_FREQUENCY=358,
     ID_FRAME_REPEAT_STRENGTH=359,
+    ID_GROUND_LOOP_TOPIC=360,
+    ID_GROUND_LOOP=361,
+    ID_TRACK_LAYER_MOTION_TOPIC=362,
+    ID_TRACK_LAYER2_ANGLE=363,
+    ID_TRACK_LAYER2_MOTION_X=364,
+    ID_TRACK_LAYER2_MOTION_Y=365,
+    ID_TRACK_LAYER3_ANGLE=366,
+    ID_TRACK_LAYER3_MOTION_X=367,
+    ID_TRACK_LAYER3_MOTION_Y=368,
+    ID_TRACK_LAYER4_ANGLE=369,
+    ID_TRACK_LAYER4_MOTION_X=370,
+    ID_TRACK_LAYER4_MOTION_Y=371,
+    ID_SYNC_DAMAGE_TOPIC=372,
+    ID_SYNC_DAMAGE_ENABLE=373,
+    ID_SYNC_DAMAGE_TEAR_AMOUNT=374,
+    ID_SYNC_DAMAGE_BAND_INTENSITY=375,
+    ID_SYNC_DAMAGE_BAND_DENSITY=376,
+    ID_SYNC_DAMAGE_BAND_HEIGHT=377,
+    ID_SYNC_DAMAGE_BAND_IRREGULARITY=378,
+    ID_SYNC_DAMAGE_DISPLACEMENT=379,
+    ID_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION=380,
+    ID_SYNC_DAMAGE_COVERAGE=381,
+    ID_SYNC_DAMAGE_LUMA_ENABLE=382,
+    ID_SYNC_DAMAGE_LUMA_INSTABILITY=383,
+    ID_SYNC_DAMAGE_BRIGHT_FLASH=384,
+    ID_SYNC_DAMAGE_DARK_COLLAPSE=385,
+    ID_SYNC_DAMAGE_EVENT_FREQUENCY=386,
+    ID_SYNC_DAMAGE_EVENT_DURATION=387,
+    ID_SYNC_DAMAGE_BRIGHT_PROBABILITY=411,
+    ID_SYNC_DAMAGE_DARK_PROBABILITY=412,
+    ID_SYNC_DAMAGE_TRANSITION_SHARPNESS=388,
+    ID_SYNC_DAMAGE_LOCAL_LUMA=389,
+    ID_SYNC_DAMAGE_MANUAL_BRIGHT=390,
+    ID_SYNC_DAMAGE_MANUAL_DARK=391,
+    ID_SYNC_DAMAGE_DROPOUTS_ENABLE=392,
+    ID_SYNC_DAMAGE_DROPOUT_DENSITY=393,
+    ID_SYNC_DAMAGE_STREAK_LENGTH=394,
+    ID_SYNC_DAMAGE_STREAK_BRIGHTNESS=395,
+    ID_SYNC_DAMAGE_DARK_DROPOUT=396,
+    ID_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION=397,
+    ID_SYNC_DAMAGE_TEMPORAL_VARIATION=398,
+    ID_SYNC_DAMAGE_CHROMA_ENABLE=399,
+    ID_SYNC_DAMAGE_CHROMA_TINT=400,
+    ID_SYNC_DAMAGE_MAGENTA_TINT=401,
+    ID_SYNC_DAMAGE_GREEN_TINT=402,
+    ID_SYNC_DAMAGE_RGB_OFFSET=403,
+    ID_SYNC_DAMAGE_CHROMA_BLEED=404,
+    ID_SYNC_DAMAGE_ANIMATION_MODE=405,
+    ID_SYNC_DAMAGE_INPUT_MODE=406,
+    ID_SYNC_DAMAGE_ANIMATION_SPEED=407,
+    ID_SYNC_DAMAGE_RANDOM_SEED=408,
+    ID_SYNC_DAMAGE_BLEND_INPUT=409,
+    ID_SYNC_DAMAGE_EFFECT_AMOUNT=410,
+    ID_SNOW_TOPIC=413,
+    ID_SNOW_ENABLE=414,
+    ID_SNOW_INTENSITY=415,
+    ID_SNOW_DENSITY=416,
+    ID_SNOW_SIZE=417,
+    ID_SNOW_DISTRIBUTION=418,
+    ID_SNOW_CONTRAST=419,
+    ID_SNOW_BRIGHTNESS=420,
+    ID_SNOW_COLOR=421,
+    ID_SNOW_MODE=422,
+    ID_SNOW_TEMPORAL_VARIATION=423,
+    ID_SNOW_RANDOMNESS=424,
+    ID_SNOW_ANIMATION_SPEED=425,
+    ID_SNOW_SEED=426,
+    ID_BACKGROUND_NOISE_INTENSITY=427,
+    ID_SIGNAL_NOISE_TOPIC=428,
+    ID_SIGNAL_NOISE_INTENSITY=429,
+    ID_SIGNAL_NOISE_FREQUENCY=430,
+    ID_SIGNAL_NOISE_SIZE=431,
+    ID_SIGNAL_NOISE_DENSITY=432,
+    ID_SIGNAL_NOISE_DISTRIBUTION=433,
+    ID_SIGNAL_NOISE_HORIZONTAL_LINES=434,
+    ID_SIGNAL_NOISE_ANIMATION_SPEED=435,
+    ID_VCR_SIGNAL_TOPIC=436,
+    ID_VCR_SIGNAL_ENABLE=437,
+    ID_VCR_SIGNAL_AMOUNT=438,
+    ID_VCR_SIGNAL_SPACING=439,
+    ID_VCR_SIGNAL_GAP=440,
+    ID_VCR_SIGNAL_NOISE=441,
+    ID_VCR_SIGNAL_DROPOUT_THRESHOLD=442,
+    ID_VCR_SIGNAL_DROPOUT_COMPENSATION=443,
+    ID_NTSCQT_TOPIC=445,
+    ID_NTSCQT_RINGING_ENABLE=446,
+    ID_NTSCQT_ALPHA=447,
+    ID_NTSCQT_FREQUENCY_NOISE_SIZE=448,
+    ID_NTSCQT_FREQUENCY_NOISE_AMPLITUDE=449,
+    ID_NTSCQT_PREEMPHASIS=450,
+    ID_NTSCQT_PREEMPHASIS_CUTOFF=451,
+    ID_NTSCQT_RINGING_MODE=452,
+    ID_NTSCQT_RINGING_POWER=453,
+    ID_NTSCQT_RINGING_SHIFT=454,
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -379,9 +477,13 @@ static char kTrackingProfileChoices[]="Servo Sweep|RF Wave|Composite Ribbon|Tape
 static char kTrackingPresetChoices[]="Custom|Fine Sweep|Fragmented Sweep|RF Snowline|Composite Flagging|Tape Flutter|Four-Edge Crawl|Full-Frame Breakdown";
 static char kTearChromaModeChoices[]="Spectral Chroma Smear|Localized Headbleed|Chroma Streaks & Interleave|Multi-Band Tear|Spectral + Lower Tear";
 static char kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|Top Strip|Bottom-Weighted Streaks|Monochrome Streaks|Split-Band Chromatic|Static to Blackout|Dark-Field Luma Streaks|Multi-Phase Green Line|Two-Stage Angular Ribbon|Diagonal Sync Collapse|Colored Speckles|Vertical Columns";
+static char kSyncDamageAnimationChoices[]="Automatic Procedural|Manual / Keyframed|Frozen";
+static char kSyncDamageInputChoices[]="Apply Over Original|Generated Signal";
+static char kSnowColorChoices[]="Monochrome|Colored";
+static char kNtscQtRingingChoices[]="Horizontal Spectral Mask|RingPattern Response";
 static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
-static char kVhsStyleChoices[]="Custom|VHS6RIFT - Clean VHS|VHS6RIFT - Vintage VHS|VHS6RIFT - Heavy VHS|VHS6RIFT - Bad Tracking|VHS6RIFT - Very Bad Tracking|VHS6RIFT - Unstable VCR|VHS6RIFT - Tape Damage|VHS6RIFT - Static Interference|VHS6RIFT - Color Bleed|VHS6RIFT - Color Shift|VHS6RIFT - Signal Loss|VHS6RIFT - Severe Analog Glitch|VHS Add-on - Soft Transfer|VHS Add-on - Classic Transfer|Lost Signal - Reference Analog|Crates VHS Master - Archive Standard|Crates VHS Master - Violet Transfer|Crates VHS Master - Signal Corruption|Crates VHS Master - Handheld Camcorder|VHS Pro - Neutral Playback|VHS Pro - Fresh Cassette|VHS Pro - Aged Cassette|VHS Pro - Tracking Failure|VHS Pro - Home Video Camera|VHS Pro - Chroma Bleed|VHS Pro - Multi-Generation Dub|VHS Craft - Clean|VHS Craft - Sharp|VHS Craft - Violet Glow|VHS Craft - Green Glow|VHS Craft - Tape Monochrome";
+static char kVhsStyleChoices[]="Custom|VHS6RIFT - Clean VHS|VHS6RIFT - Vintage VHS|VHS6RIFT - Heavy VHS|VHS6RIFT - Bad Tracking|VHS6RIFT - Very Bad Tracking|VHS6RIFT - Unstable VCR|VHS6RIFT - Tape Damage|VHS6RIFT - Static Interference|VHS6RIFT - Color Bleed|VHS6RIFT - Color Shift|VHS6RIFT - Signal Loss|VHS6RIFT - Severe Analog Glitch|VHS Add-on - Soft Transfer|VHS Add-on - Classic Transfer|Lost Signal - Reference Analog|Crates VHS Master - Archive Standard|Crates VHS Master - Violet Transfer|Crates VHS Master - Signal Corruption|Crates VHS Master - Handheld Camcorder|VHS Pro - Neutral Playback|VHS Pro - Fresh Cassette|VHS Pro - Aged Cassette|VHS Pro - Tracking Failure|VHS Pro - Home Video Camera|VHS Pro - Chroma Bleed|VHS Pro - Multi-Generation Dub|VHS Craft - Clean|VHS Craft - Sharp|VHS Craft - Violet Glow|VHS Craft - Green Glow|VHS Craft - Tape Monochrome|VHS6RIFT - Moving Band Noise|VHS6RIFT - Bottom Tape Damage|VHS6RIFT - Ghosting|VHS6RIFT - Damaged Tape Playback|VHS Add-on - Heavy|VHS Add-on - Worn|VHS Add-on - Clean TV|CVS - VHS SP|CVS - VHS LP|CVS - VHS EP|LS - Real VHS|LS - Backrooms|LS - Poolrooms|LS - Liminal Night|LS - Subtle|LS - Found Footage|LS - Damaged Tape|LS - Rental Tape|LS - Camcorder 1996|LS - Broken Signal|LS - Composite Decode|LS - Analog Fog|Crates - Clean|Crates - Sharp|Crates - Soft|Crates - Green|Crates - Streaks|Crates - Cool|Crates - Warm|Crates - Blue Bloom|Crates - Echo|Crates - Retro|Crates - Hue Wobble|Crates - Black & White|VHSPro - Rental Copy|VHSPro - Broadcast|VHSPro - Music Video|VHSCraft - Standard|VHSCraft - Damaged Tape|VHSCraft - Camcorder";
 static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300|FXC6 Direct Capture|Gen 7 Reference";
 static char kRgbChannelModeChoices[]="RGB Split|Red/Cyan|Green/Magenta|Blue/Yellow";
 static char kNtscRsLookChoices[]="Custom|NTSCRT Natural Composite|NTSCRT Home SP|NTSCRT LP Tape|NTSCRT EP Tape|NTSCRT Tracking Snow|NTSCRT Chroma Loss|NTSCRT Edge Wave|NTSCRT Field Blend|NTSCRT Composite Smear|NTSCRT Chroma Instability";
@@ -400,6 +502,18 @@ static char kOsdExtraLabelChoices[]="Off|TAPE|ERROR|P01|RES|FORWARD|EJECT|SEARCH
 
 struct RenderSettings {
     float master=100, composite=0, sync=0, staticAmount=0, staticDensity=35, staticAngle=24, staticRibbonWidth=12, staticGreenLine=75, staticPhaseCount=3;
+    A_long syncDamageEnable=0, syncDamageLumaEnable=1, syncDamageDropoutsEnable=1, syncDamageChromaEnable=1, syncDamageAnimationMode=1, syncDamageInputMode=1;
+    float syncDamageTearAmount=85, syncDamageBandIntensity=85, syncDamageBandDensity=7, syncDamageBandHeight=55, syncDamageBandIrregularity=82, syncDamageDisplacement=22, syncDamageBoundaryFragmentation=62, syncDamageCoverage=100;
+    float syncDamageLumaInstability=90, syncDamageBrightFlash=85, syncDamageDarkCollapse=85, syncDamageEventFrequency=1.7f, syncDamageEventDuration=0.30f, syncDamageBrightProbability=50, syncDamageDarkProbability=50, syncDamageTransitionSharpness=90, syncDamageLocalLuma=70, syncDamageManualBright=0, syncDamageManualDark=0;
+    float syncDamageDropoutDensity=65, syncDamageStreakLength=18, syncDamageStreakBrightness=75, syncDamageDarkDropout=70, syncDamageHorizontalFragmentation=65, syncDamageTemporalVariation=85;
+    float syncDamageChromaTint=20, syncDamageMagentaTint=20, syncDamageGreenTint=20, syncDamageRgbOffset=0.35f, syncDamageChromaBleed=18, syncDamageAnimationSpeed=100, syncDamageRandomSeed=1, syncDamageBlendInput=80, syncDamageEffectAmount=100;
+    A_long snowEnable=0, snowMode=1;
+    float snowIntensity=70, snowDensity=48, snowSize=1.6f, snowDistribution=45, snowContrast=82, snowBrightness=68, snowColor=35, snowTemporalVariation=80, snowRandomness=90, snowAnimationSpeed=100, snowSeed=1, backgroundNoiseIntensity=0;
+    float signalNoiseIntensity=100, signalNoiseFrequency=1.0f, signalNoiseSize=1.0f, signalNoiseDensity=100, signalNoiseDistribution=0, signalNoiseHorizontalLines=0, signalNoiseAnimationSpeed=100;
+    A_long vcrSignalEnable=0, vcrDropoutCompensation=1, ntscQtRingingEnable=0;
+    float vcrSignalAmount=100, vcrSignalSpacing=0.3f, vcrSignalGap=0.3f, vcrSignalNoise=0.022f, vcrDropoutThreshold=0.42f;
+    A_long ntscQtRingingMode=1;
+    float ntscQtAlpha=0.65f, ntscQtFrequencyNoiseSize=0.0f, ntscQtFrequencyNoiseAmplitude=2.0f, ntscQtPreEmphasis=0.0f, ntscQtPreEmphasisCutoff=1.0f, ntscQtRingingPower=2.0f, ntscQtRingingShift=0.0f;
     A_long staticMode=2;
     A_long colorSystem=1, signalModel=1, tapeSpeed=1, compositeDecoder=1, vhs43Frame=0;
     float roundedOverscan=0.0f, lensDistortion=0.0f, digitalZoom=1.0f, osdBattery=0.0f;
@@ -418,7 +532,7 @@ struct RenderSettings {
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
     A_long trackingShape=3, trackingProfile=1, trackingPresetBase=1, trackingLayerPreset[3]={3,4,5};
     A_long trackingLayerProfile[3]={2,3,4}, trackingLayerShape[3]={1,1,1};
-    float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5};
+    float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5}, trackingLayerAngle[3]={0,0,0}, trackingLayerMotionX[3]={0,0,0}, trackingLayerMotionY[3]={0,0,0};
     
     A_long tearChromaMode=5;
     float tearBandCount=2.0f;
@@ -455,7 +569,6 @@ struct RenderSettings {
 inline float clamp01(float x) noexcept { return std::max(0.0f,std::min(1.0f,x)); }
 
 static float masterDrive(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }
-static float masterMix(float value) noexcept { return std::clamp(value/100.0f,0.0f,3.0f); }
 
 static float blendPreset(float current,float target,float intensity) noexcept {
     const float t=clamp01(intensity/100.0f);
@@ -540,16 +653,8 @@ static void ApplyCratesMasterPreset(RenderSettings& s,int preset) noexcept {
     b(s.ringing,std::clamp(v[40]*0.5f,0.0f,100.0f));b(s.edgeEnhance,std::clamp(v[41]*0.5f,0.0f,100.0f));
     b(s.gradeBrightness,v[42]-100.0f);b(s.gradeContrast,v[43]);
 }
-static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
+static void ApplyVhsStyleRecipe(RenderSettings& s,int styleRecipe) noexcept {
     const float i=clamp01(s.vhsStyleIntensity/100.0f);
-    // Compact 32-entry menu maps to the original source recipes. Values above
-    // 32 are retained as legacy recipe IDs so older projects keep their look.
-    static constexpr int kVhsStyleRecipeMap[33]={
-        0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,
-        55,56,58,59,60,61,63,66,67,68,69,72
-    };
-    const int selected=std::clamp<int>(s.vhsStyle,1,72);
-    const int styleRecipe=selected<=32?kVhsStyleRecipeMap[selected]:selected;
     if(styleRecipe<=1||i<=0.0f)return;
     auto b=[&](float& v,float target){v=blendPreset(v,target,s.vhsStyleIntensity);};
     auto bi=[&](A_long& v,float target){v=static_cast<A_long>(std::lround(blendPreset(float(v),target,s.vhsStyleIntensity)));};
@@ -586,7 +691,7 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
         b(s.gradeContrast,100.0f+v[22]*25.0f);b(s.gradeBrightness,-v[22]*8.0f);
         b(s.gradeSaturation,v[23]*100.0f);b(s.headAmount,v[24]*100.0f);
         b(s.headHeight,v[24]*50.0f);b(s.analogGlow,v[25]*100.0f);b(s.vignette,v[26]*100.0f);
-        const int format=int(v[27]+0.5f);bi(s.tapeSpeed,format==1?2:(format==2||format==4?3:1));
+        const int format=int(v[27]+0.5f);bi(s.tapeSpeed,format==1?2.0f:(format==2||format==4?3.0f:1.0f));
         b(s.tapeSurface,std::max(v[29],std::max(v[34],v[35]))*100.0f);b(s.tapeWear,v[29]*100.0f);
         b(s.interlace,v[30]*100.0f);b(s.trackingServo,4.0f+std::fabs(v[31])*60.0f);
         b(s.rfDrift,v[32]*100.0f);b(s.rfField,v[32]*100.0f);b(s.tapeTransport,v[33]*100.0f);
@@ -719,6 +824,20 @@ static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
     }
     if(styleRecipe<26){bi(s.vhs43Frame,0.0f);b(s.roundedOverscan,0.0f);b(s.lensDistortion,0.0f);b(s.digitalZoom,1.0f);b(s.osdBattery,0.0f);b(s.frameRepeatFrequency,0.0f);b(s.frameRepeatStrength,0.0f);}
 }
+
+static constexpr int kLegacyVhsStyleRecipeMap[33]={
+    0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,55,56,58,59,60,61,63,66,67,68,69,72
+};
+static constexpr int kExtendedVhsStyleRecipeMap[41]={
+    0,8,10,14,17,20,21,22,23,24,25,27,28,29,30,31,32,33,34,35,36,37,38,40,41,43,44,46,47,48,49,50,51,53,54,57,62,64,65,70,71
+};
+static void ApplyVhs6RiftStylePreset(RenderSettings& s) noexcept {
+    // The original first 32 popup values are preserved for saved projects.
+    // Values 33–72 append all 40 source-derived recipes previously omitted.
+    const int selected=std::clamp<int>(s.vhsStyle,1,72);
+    const int styleRecipe=selected<=32?kLegacyVhsStyleRecipeMap[selected]:kExtendedVhsStyleRecipeMap[selected-32];
+    ApplyVhsStyleRecipe(s,styleRecipe);
+}
 static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
     const float i=clamp01(s.cameraIntensity/100.0f);
     if(s.cameraProfile<=1||i<=0.0f)return;
@@ -832,7 +951,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     PF_Err err=PF_Err_NONE;
     PF_ParamDef def;
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Style & Presets",ID_VHS_STYLE_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",32,1,kVhsStyleChoices,ID_VHS_STYLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("VHS Style Preset",72,1,kVhsStyleChoices,ID_VHS_STYLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Style Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VHS_STYLE_INTENSITY);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Camera Profile Preset",12,1,kCameraProfileChoices,ID_CAMERA_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Camera Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_CAMERA_INTENSITY);
@@ -1027,7 +1146,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_OSD_TOPIC+100);
 
 
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tear & Chroma",ID_TEAR_CHROMA_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear & Chroma Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_CHROMA_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tear & Chroma Mode",5,5,kTearChromaModeChoices,ID_TEAR_CHROMA_MODE);
@@ -1047,49 +1166,49 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Random Seed",1,32767,1,32767,1,0,PF_ValueDisplayFlag_NONE,0,ID_TEAR_SEED);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TEAR_CHROMA_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tracking Layer 2",ID_TRACK_LAYER2_TOPIC);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_AMOUNT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACK_LAYER2_PROFILE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Region Shape",3,1,kTrackingShapeChoices,ID_TRACK_LAYER2_SHAPE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_X);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,25,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_Y);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_WIDTH);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_HEIGHT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_SERVO);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Displacement",0,200,0,200,24,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER2_SHIFT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Wave Intensity",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_WAVE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_TEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACK_LAYER2_PROFILE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Region Shape",3,1,kTrackingShapeChoices,ID_TRACK_LAYER2_SHAPE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,25,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_WIDTH);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_SERVO);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Displacement",0,200,0,200,24,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER2_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Wave Intensity",0,100,0,100,4,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_WAVE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_TEAR);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACK_LAYER2_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tracking Layer 3",ID_TRACK_LAYER3_TOPIC);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_AMOUNT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Tracking Type",5,2,kTrackingProfileChoices,ID_TRACK_LAYER3_PROFILE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Region Shape",3,1,kTrackingShapeChoices,ID_TRACK_LAYER3_SHAPE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_X);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_Y);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_WIDTH);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_HEIGHT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_SERVO);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Displacement",0,200,0,200,36,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER3_SHIFT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Wave Intensity",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_WAVE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,25,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_TEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Type",5,2,kTrackingProfileChoices,ID_TRACK_LAYER3_PROFILE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Region Shape",3,1,kTrackingShapeChoices,ID_TRACK_LAYER3_SHAPE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_WIDTH);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_SERVO);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Displacement",0,200,0,200,36,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER3_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Wave Intensity",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_WAVE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,25,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_TEAR);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACK_LAYER3_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tracking Layer 4",ID_TRACK_LAYER4_TOPIC);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_AMOUNT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Tracking Type",5,3,kTrackingProfileChoices,ID_TRACK_LAYER4_PROFILE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Region Shape",3,1,kTrackingShapeChoices,ID_TRACK_LAYER4_SHAPE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_X);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_Y);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_WIDTH);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_HEIGHT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_SERVO);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Displacement",0,200,0,200,12,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER4_SHIFT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Wave Intensity",0,100,0,100,2,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_WAVE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_TEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Type",5,3,kTrackingProfileChoices,ID_TRACK_LAYER4_PROFILE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Region Shape",3,1,kTrackingShapeChoices,ID_TRACK_LAYER4_SHAPE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center X",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Width",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_WIDTH);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Servo Drift",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_SERVO);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Displacement",0,200,0,200,12,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER4_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Wave Intensity",0,100,0,100,2,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_WAVE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_TEAR);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACK_LAYER4_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tracking Presets",ID_TRACKING_PRESETS_TOPIC);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Base Tracking Preset",8,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Layer 2 Preset",8,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Layer 3 Preset",8,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Layer 4 Preset",8,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Base Tracking Preset",8,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Layer 2 Preset",8,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Layer 3 Preset",8,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Layer 4 Preset",8,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACKING_PRESETS_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Procedural Static Pattern",ID_PATTERN_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Pattern Type",13,2,kStaticPatternChoices,ID_PATTERN_MODE);
@@ -1099,44 +1218,44 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Phase Count",2,8,2,8,3,0,PF_ValueDisplayFlag_NONE,0,ID_PATTERN_PHASE_COUNT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PATTERN_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tear Band 2",ID_TEAR_BAND2_TOPIC);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Band Amount",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_AMOUNT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_Y);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,15,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_HEIGHT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Horizontal Shift",-200,200,-200,200,30,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND2_SHIFT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Fragmentation",0,100,0,100,60,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_FRAGMENTATION);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Chroma Shift",-100,100,-100,100,8,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND2_CHROMA);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Smear",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_SMEAR);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Dropout",0,100,0,100,20,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_DROPOUT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Band Amount",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,15,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Shift",-200,200,-200,200,30,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND2_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Fragmentation",0,100,0,100,60,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_FRAGMENTATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",-100,100,-100,100,8,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND2_CHROMA);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Smear",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_SMEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dropout",0,100,0,100,20,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND2_DROPOUT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TEAR_BAND2_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tear Band 3",ID_TEAR_BAND3_TOPIC);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Band Amount",0,100,0,100,60,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_AMOUNT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,45,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_Y);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_HEIGHT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Horizontal Shift",-200,200,-200,200,-24,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND3_SHIFT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Fragmentation",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_FRAGMENTATION);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Chroma Shift",-100,100,-100,100,-6,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND3_CHROMA);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Smear",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_SMEAR);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Dropout",0,100,0,100,15,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_DROPOUT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Band Amount",0,100,0,100,60,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,45,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Shift",-200,200,-200,200,-24,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND3_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Fragmentation",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_FRAGMENTATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",-100,100,-100,100,-6,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND3_CHROMA);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Smear",0,100,0,100,12,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_SMEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dropout",0,100,0,100,15,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND3_DROPOUT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TEAR_BAND3_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tear Band 4",ID_TEAR_BAND4_TOPIC);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Band Amount",0,100,0,100,80,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_AMOUNT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,90,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_Y);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_HEIGHT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Horizontal Shift",-200,200,-200,200,40,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND4_SHIFT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Fragmentation",0,100,0,100,45,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_FRAGMENTATION);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Chroma Shift",-100,100,-100,100,12,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND4_CHROMA);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Smear",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_SMEAR);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Dropout",0,100,0,100,25,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_DROPOUT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Band Amount",0,100,0,100,80,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,90,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,8,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Shift",-200,200,-200,200,40,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND4_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Fragmentation",0,100,0,100,45,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_FRAGMENTATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",-100,100,-100,100,12,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND4_CHROMA);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Smear",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_SMEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dropout",0,100,0,100,25,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND4_DROPOUT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TEAR_BAND4_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tear Band 5",ID_TEAR_BAND5_TOPIC);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Band Amount",0,100,0,100,55,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_AMOUNT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,30,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_Y);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_HEIGHT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Horizontal Shift",-200,200,-200,200,-18,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND5_SHIFT);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Fragmentation",0,100,0,100,65,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_FRAGMENTATION);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Chroma Shift",-100,100,-100,100,-10,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND5_CHROMA);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Smear",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_SMEAR);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_FLOAT_SLIDERX("Dropout",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_DROPOUT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Band Amount",0,100,0,100,55,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Center Y",0,100,0,100,30,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Height",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Shift",-200,200,-200,200,-18,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND5_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Fragmentation",0,100,0,100,65,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_FRAGMENTATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",-100,100,-100,100,-10,1,PF_ValueDisplayFlag_NONE,0,ID_TEAR_BAND5_CHROMA);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Smear",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_SMEAR);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dropout",0,100,0,100,10,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_BAND5_DROPOUT);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TEAR_BAND5_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Tape OSD Layout",ID_OSD_LAYOUT_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Deck Transport",5,1,kOsdDeckModeChoices,ID_OSD_DECK_MODE);
@@ -1208,6 +1327,117 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Frequency",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_FREQUENCY);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Strength",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_STRENGTH);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PLAYBACK_TOPIC+100);
+
+    // Appended to preserve all existing serialized AE parameter indices.
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Ground Loop",ID_GROUND_LOOP_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Ground Loop (mV)",0,500,0,500,0,1,PF_ValueDisplayFlag_NONE,0,ID_GROUND_LOOP);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_GROUND_LOOP_TOPIC+100);
+
+    // Extra layers get the same region direction and motion controls as the primary layer.
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tracking Layer Direction / Motion",ID_TRACK_LAYER_MOTION_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 2 Angle",-180,180,-180,180,0,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER2_ANGLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 2 Motion X",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_MOTION_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 2 Motion Y",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER2_MOTION_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 3 Angle",-180,180,-180,180,0,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER3_ANGLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 3 Motion X",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_MOTION_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 3 Motion Y",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER3_MOTION_Y);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 4 Angle",-180,180,-180,180,0,1,PF_ValueDisplayFlag_NONE,0,ID_TRACK_LAYER4_ANGLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 4 Motion X",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_MOTION_X);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Layer 4 Motion Y",-100,100,-100,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_MOTION_Y);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACK_LAYER_MOTION_TOPIC+100);
+
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Sync Collapse & Luma Dropout",ID_SYNC_DAMAGE_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Sync Collapse","Enable",0,0,ID_SYNC_DAMAGE_ENABLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Tear Amount",0,100,0,100,85,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_TEAR_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Band Intensity",0,100,0,100,85,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_BAND_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Band Density",1,32,1,32,7,0,PF_ValueDisplayFlag_NONE,0,ID_SYNC_DAMAGE_BAND_DENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Band Height",1,100,1,100,55,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_BAND_HEIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Band Irregularity",0,100,0,100,82,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_BAND_IRREGULARITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Displacement (px)",0,160,0,160,22,1,PF_ValueDisplayFlag_NONE,0,ID_SYNC_DAMAGE_DISPLACEMENT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Boundary Fragmentation",0,100,0,100,62,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Full-Frame Coverage",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_COVERAGE);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Luma Instability","Enable",1,0,ID_SYNC_DAMAGE_LUMA_ENABLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Luma Instability",0,100,0,100,90,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_LUMA_INSTABILITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Bright Flash Intensity",0,100,0,100,85,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_BRIGHT_FLASH);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dark Collapse Intensity",0,100,0,100,85,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_DARK_COLLAPSE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Event Frequency (Hz)",0.1,10,0.1,10,1.7,1,PF_ValueDisplayFlag_NONE,0,ID_SYNC_DAMAGE_EVENT_FREQUENCY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Event Duration (s)",0.05,2,0.05,2,0.30,2,PF_ValueDisplayFlag_NONE,0,ID_SYNC_DAMAGE_EVENT_DURATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Bright Event Probability",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_BRIGHT_PROBABILITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dark Event Probability",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_DARK_PROBABILITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Transition Sharpness",0,100,0,100,90,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_TRANSITION_SHARPNESS);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Local Band Luma Variation",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_LOCAL_LUMA);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Manual Bright Pulse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_MANUAL_BRIGHT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Manual Dark Collapse",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_MANUAL_DARK);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Fine Dropouts","Enable",1,0,ID_SYNC_DAMAGE_DROPOUTS_ENABLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dropout Streak Density",0,100,0,100,65,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_DROPOUT_DENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Streak Length (px)",2,120,2,120,18,1,PF_ValueDisplayFlag_NONE,0,ID_SYNC_DAMAGE_STREAK_LENGTH);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Streak Brightness",0,100,0,100,75,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_STREAK_BRIGHTNESS);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dark Dropout Amount",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_DARK_DROPOUT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Fragmentation",0,100,0,100,65,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Temporal Variation",0,100,0,100,85,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_TEMPORAL_VARIATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Chromatic Variation","Enable",1,0,ID_SYNC_DAMAGE_CHROMA_ENABLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Subtle Chroma Tint",0,100,0,100,20,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_CHROMA_TINT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Magenta Tint",0,100,0,100,20,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_MAGENTA_TINT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Green Tint",0,100,0,100,20,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_GREEN_TINT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RGB Offset (px)",0,8,0,8,0.35,2,PF_ValueDisplayFlag_NONE,0,ID_SYNC_DAMAGE_RGB_OFFSET);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Bleed",0,100,0,100,18,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_CHROMA_BLEED);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Animation Mode",3,1,kSyncDamageAnimationChoices,ID_SYNC_DAMAGE_ANIMATION_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Input Mode",2,1,kSyncDamageInputChoices,ID_SYNC_DAMAGE_INPUT_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Animation Speed",0,400,0,400,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_ANIMATION_SPEED);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Random Seed",1,32767,1,32767,1,0,PF_ValueDisplayFlag_NONE,0,ID_SYNC_DAMAGE_RANDOM_SEED);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Blend With Input",0,100,0,100,80,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_BLEND_INPUT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Effect Amount",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_SYNC_DAMAGE_EFFECT_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SYNC_DAMAGE_TOPIC+100);
+
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Snow & Background Noise",ID_SNOW_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Snow","Enable",0,0,ID_SNOW_ENABLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Intensity",0,100,0,100,70,1,PF_ValueDisplayFlag_PERCENT,0,ID_SNOW_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Density",0,100,0,100,48,1,PF_ValueDisplayFlag_PERCENT,0,ID_SNOW_DENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Size (px)",0.35,16,0.35,16,1.6,1,PF_ValueDisplayFlag_NONE,0,ID_SNOW_SIZE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Distribution",0,100,0,100,45,1,PF_ValueDisplayFlag_PERCENT,0,ID_SNOW_DISTRIBUTION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Contrast",0,100,0,100,82,1,PF_ValueDisplayFlag_PERCENT,0,ID_SNOW_CONTRAST);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Brightness",0,100,0,100,68,1,PF_ValueDisplayFlag_PERCENT,0,ID_SNOW_BRIGHTNESS);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Color",0,100,0,100,35,1,PF_ValueDisplayFlag_PERCENT,0,ID_SNOW_COLOR);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Snow Color Mode",2,1,kSnowColorChoices,ID_SNOW_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Temporal Variation",0,100,0,100,80,1,PF_ValueDisplayFlag_PERCENT,0,ID_SNOW_TEMPORAL_VARIATION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Randomness",0,100,0,100,90,1,PF_ValueDisplayFlag_PERCENT,0,ID_SNOW_RANDOMNESS);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Animation Speed",0,400,0,400,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_SNOW_ANIMATION_SPEED);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Snow Seed",1,32767,1,32767,1,0,PF_ValueDisplayFlag_NONE,0,ID_SNOW_SEED);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Background Noise Intensity",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_BACKGROUND_NOISE_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SNOW_TOPIC+100);
+
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Signal Noise Engine",ID_SIGNAL_NOISE_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Signal Noise Intensity",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_SIGNAL_NOISE_INTENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Signal Noise Frequency",0.1,10,0.1,10,1.0,1,PF_ValueDisplayFlag_NONE,0,ID_SIGNAL_NOISE_FREQUENCY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Signal Noise Size (px)",0.25,16,0.25,16,1.0,1,PF_ValueDisplayFlag_NONE,0,ID_SIGNAL_NOISE_SIZE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Signal Noise Density",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_SIGNAL_NOISE_DENSITY);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Signal Noise Distribution",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SIGNAL_NOISE_DISTRIBUTION);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Horizontal Line Intensity",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SIGNAL_NOISE_HORIZONTAL_LINES);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Signal Noise Animation Speed",0,400,0,400,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_SIGNAL_NOISE_ANIMATION_SPEED);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_SIGNAL_NOISE_TOPIC+100);
+
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("NTSCRT VCR Record / Playback",ID_VCR_SIGNAL_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable VCR Signal Chain","Enable",0,0,ID_VCR_SIGNAL_ENABLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("VCR Signal Amount",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_VCR_SIGNAL_AMOUNT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Head Spacing (um)",0,4,0,4,0.3,2,PF_ValueDisplayFlag_NONE,0,ID_VCR_SIGNAL_SPACING);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Head Gap (um)",0,2,0,2,0.3,2,PF_ValueDisplayFlag_NONE,0,ID_VCR_SIGNAL_GAP);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RF / Head Noise",0,0.1,0,0.1,0.022,3,PF_ValueDisplayFlag_NONE,0,ID_VCR_SIGNAL_NOISE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Dropout Threshold",0,1,0,1,0.42,2,PF_ValueDisplayFlag_NONE,0,ID_VCR_SIGNAL_DROPOUT_THRESHOLD);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Dropout Compensation","Enable",1,0,ID_VCR_SIGNAL_DROPOUT_COMPENSATION);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_VCR_SIGNAL_TOPIC+100);
+
+    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("NTSC-QT Spectral Processing",ID_NTSCQT_TOPIC);
+    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Enable Spectral Ringing","Enable",0,0,ID_NTSCQT_RINGING_ENABLE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Spectral Ringing Alpha",0,1,0,1,0.65,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_ALPHA);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frequency Noise Size",0,1,0,1,0,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_FREQUENCY_NOISE_SIZE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frequency Noise Amplitude",0,5,0,5,2,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_FREQUENCY_NOISE_AMPLITUDE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Composite Pre-Emphasis",0,8,0,8,0,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_PREEMPHASIS);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Pre-Emphasis Cutoff (MHz)",0.05,6,0.05,6,1,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_PREEMPHASIS_CUTOFF);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Spectral Ringing Mask",2,1,kNtscQtRingingChoices,ID_NTSCQT_RINGING_MODE);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RingPattern Power",1,8,1,8,2,0,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_RINGING_POWER);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("RingPattern Shift",0,1,0,1,0,2,PF_ValueDisplayFlag_NONE,0,ID_NTSCQT_RINGING_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_NTSCQT_TOPIC+100);
+
     out_data->num_params=PARAM_COUNT;
     return err;
 }
@@ -1254,6 +1484,56 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_DECODER_MODE,s.compositeDecoder); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency);
     READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength);
+    READ_FLOAT(PARAM_GROUND_LOOP,groundLoop);
+    READ_FLOAT(PARAM_TRACK_LAYER2_ANGLE,trackingLayerAngle[0]); READ_FLOAT(PARAM_TRACK_LAYER2_MOTION_X,trackingLayerMotionX[0]); READ_FLOAT(PARAM_TRACK_LAYER2_MOTION_Y,trackingLayerMotionY[0]);
+    READ_FLOAT(PARAM_TRACK_LAYER3_ANGLE,trackingLayerAngle[1]); READ_FLOAT(PARAM_TRACK_LAYER3_MOTION_X,trackingLayerMotionX[1]); READ_FLOAT(PARAM_TRACK_LAYER3_MOTION_Y,trackingLayerMotionY[1]);
+    READ_FLOAT(PARAM_TRACK_LAYER4_ANGLE,trackingLayerAngle[2]); READ_FLOAT(PARAM_TRACK_LAYER4_MOTION_X,trackingLayerMotionX[2]); READ_FLOAT(PARAM_TRACK_LAYER4_MOTION_Y,trackingLayerMotionY[2]);
+    err=CheckoutCheckbox(in_data,PARAM_SYNC_DAMAGE_ENABLE,s.syncDamageEnable); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_SYNC_DAMAGE_TEAR_AMOUNT,syncDamageTearAmount); READ_FLOAT(PARAM_SYNC_DAMAGE_BAND_INTENSITY,syncDamageBandIntensity);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_BAND_DENSITY,syncDamageBandDensity); READ_FLOAT(PARAM_SYNC_DAMAGE_BAND_HEIGHT,syncDamageBandHeight);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_BAND_IRREGULARITY,syncDamageBandIrregularity); READ_FLOAT(PARAM_SYNC_DAMAGE_DISPLACEMENT,syncDamageDisplacement);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION,syncDamageBoundaryFragmentation); READ_FLOAT(PARAM_SYNC_DAMAGE_COVERAGE,syncDamageCoverage);
+    err=CheckoutCheckbox(in_data,PARAM_SYNC_DAMAGE_LUMA_ENABLE,s.syncDamageLumaEnable); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_SYNC_DAMAGE_LUMA_INSTABILITY,syncDamageLumaInstability); READ_FLOAT(PARAM_SYNC_DAMAGE_BRIGHT_FLASH,syncDamageBrightFlash);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_DARK_COLLAPSE,syncDamageDarkCollapse); READ_FLOAT(PARAM_SYNC_DAMAGE_EVENT_FREQUENCY,syncDamageEventFrequency);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_EVENT_DURATION,syncDamageEventDuration); READ_FLOAT(PARAM_SYNC_DAMAGE_BRIGHT_PROBABILITY,syncDamageBrightProbability); READ_FLOAT(PARAM_SYNC_DAMAGE_DARK_PROBABILITY,syncDamageDarkProbability); READ_FLOAT(PARAM_SYNC_DAMAGE_TRANSITION_SHARPNESS,syncDamageTransitionSharpness);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_LOCAL_LUMA,syncDamageLocalLuma); READ_FLOAT(PARAM_SYNC_DAMAGE_MANUAL_BRIGHT,syncDamageManualBright);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_MANUAL_DARK,syncDamageManualDark);
+    err=CheckoutCheckbox(in_data,PARAM_SYNC_DAMAGE_DROPOUTS_ENABLE,s.syncDamageDropoutsEnable); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_SYNC_DAMAGE_DROPOUT_DENSITY,syncDamageDropoutDensity); READ_FLOAT(PARAM_SYNC_DAMAGE_STREAK_LENGTH,syncDamageStreakLength);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_STREAK_BRIGHTNESS,syncDamageStreakBrightness); READ_FLOAT(PARAM_SYNC_DAMAGE_DARK_DROPOUT,syncDamageDarkDropout);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION,syncDamageHorizontalFragmentation); READ_FLOAT(PARAM_SYNC_DAMAGE_TEMPORAL_VARIATION,syncDamageTemporalVariation);
+    err=CheckoutCheckbox(in_data,PARAM_SYNC_DAMAGE_CHROMA_ENABLE,s.syncDamageChromaEnable); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_SYNC_DAMAGE_CHROMA_TINT,syncDamageChromaTint); READ_FLOAT(PARAM_SYNC_DAMAGE_MAGENTA_TINT,syncDamageMagentaTint);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_GREEN_TINT,syncDamageGreenTint); READ_FLOAT(PARAM_SYNC_DAMAGE_RGB_OFFSET,syncDamageRgbOffset);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_CHROMA_BLEED,syncDamageChromaBleed);
+    err=CheckoutPopup(in_data,PARAM_SYNC_DAMAGE_ANIMATION_MODE,s.syncDamageAnimationMode); if(err!=PF_Err_NONE) return err;
+    err=CheckoutPopup(in_data,PARAM_SYNC_DAMAGE_INPUT_MODE,s.syncDamageInputMode); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_SYNC_DAMAGE_ANIMATION_SPEED,syncDamageAnimationSpeed); READ_FLOAT(PARAM_SYNC_DAMAGE_RANDOM_SEED,syncDamageRandomSeed);
+    READ_FLOAT(PARAM_SYNC_DAMAGE_BLEND_INPUT,syncDamageBlendInput); READ_FLOAT(PARAM_SYNC_DAMAGE_EFFECT_AMOUNT,syncDamageEffectAmount);
+    err=CheckoutCheckbox(in_data,PARAM_SNOW_ENABLE,s.snowEnable); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_SNOW_INTENSITY,snowIntensity); READ_FLOAT(PARAM_SNOW_DENSITY,snowDensity);
+    READ_FLOAT(PARAM_SNOW_SIZE,snowSize); READ_FLOAT(PARAM_SNOW_DISTRIBUTION,snowDistribution);
+    READ_FLOAT(PARAM_SNOW_CONTRAST,snowContrast); READ_FLOAT(PARAM_SNOW_BRIGHTNESS,snowBrightness);
+    READ_FLOAT(PARAM_SNOW_COLOR,snowColor); err=CheckoutPopup(in_data,PARAM_SNOW_MODE,s.snowMode); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_SNOW_TEMPORAL_VARIATION,snowTemporalVariation); READ_FLOAT(PARAM_SNOW_RANDOMNESS,snowRandomness);
+    READ_FLOAT(PARAM_SNOW_ANIMATION_SPEED,snowAnimationSpeed); READ_FLOAT(PARAM_SNOW_SEED,snowSeed);
+    READ_FLOAT(PARAM_BACKGROUND_NOISE_INTENSITY,backgroundNoiseIntensity);
+    READ_FLOAT(PARAM_SIGNAL_NOISE_INTENSITY,signalNoiseIntensity); READ_FLOAT(PARAM_SIGNAL_NOISE_FREQUENCY,signalNoiseFrequency);
+    READ_FLOAT(PARAM_SIGNAL_NOISE_SIZE,signalNoiseSize); READ_FLOAT(PARAM_SIGNAL_NOISE_DENSITY,signalNoiseDensity);
+    READ_FLOAT(PARAM_SIGNAL_NOISE_DISTRIBUTION,signalNoiseDistribution); READ_FLOAT(PARAM_SIGNAL_NOISE_HORIZONTAL_LINES,signalNoiseHorizontalLines);
+    READ_FLOAT(PARAM_SIGNAL_NOISE_ANIMATION_SPEED,signalNoiseAnimationSpeed);
+    err=CheckoutCheckbox(in_data,PARAM_VCR_SIGNAL_ENABLE,s.vcrSignalEnable); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_VCR_SIGNAL_AMOUNT,vcrSignalAmount); READ_FLOAT(PARAM_VCR_SIGNAL_SPACING,vcrSignalSpacing);
+    READ_FLOAT(PARAM_VCR_SIGNAL_GAP,vcrSignalGap); READ_FLOAT(PARAM_VCR_SIGNAL_NOISE,vcrSignalNoise);
+    READ_FLOAT(PARAM_VCR_SIGNAL_DROPOUT_THRESHOLD,vcrDropoutThreshold);
+    err=CheckoutCheckbox(in_data,PARAM_VCR_SIGNAL_DROPOUT_COMPENSATION,s.vcrDropoutCompensation); if(err!=PF_Err_NONE) return err;
+    err=CheckoutCheckbox(in_data,PARAM_NTSCQT_RINGING_ENABLE,s.ntscQtRingingEnable); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_NTSCQT_ALPHA,ntscQtAlpha); READ_FLOAT(PARAM_NTSCQT_FREQUENCY_NOISE_SIZE,ntscQtFrequencyNoiseSize);
+    READ_FLOAT(PARAM_NTSCQT_FREQUENCY_NOISE_AMPLITUDE,ntscQtFrequencyNoiseAmplitude);
+    READ_FLOAT(PARAM_NTSCQT_PREEMPHASIS,ntscQtPreEmphasis); READ_FLOAT(PARAM_NTSCQT_PREEMPHASIS_CUTOFF,ntscQtPreEmphasisCutoff);
+    err=CheckoutPopup(in_data,PARAM_NTSCQT_RINGING_MODE,s.ntscQtRingingMode); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_NTSCQT_RINGING_POWER,ntscQtRingingPower); READ_FLOAT(PARAM_NTSCQT_RINGING_SHIFT,ntscQtRingingShift);
     READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_TRACK_READ,trackRead);
     READ_FLOAT(PARAM_TRACK_MISALIGNMENT,trackMisalignment); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
     READ_FLOAT(PARAM_CHROMA_REG_RED,redChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_GREEN,greenChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_BLUE,blueChannelOffset); err=CheckoutPopup(in_data,PARAM_CHROMA_REG_MODE,s.chromaRegMode); if(err!=PF_Err_NONE) return err;
@@ -1461,9 +1741,9 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         const float masterDriveValue=masterDrive(s.master);
         const float master=clamp01(masterDriveValue);
         const float masterOverdrive=std::clamp(masterDriveValue,0.0f,3.0f);
-        const bool compositeStages=(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0.0f)||s.signalHueNoise>0.0f||s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeExposure!=0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapePinholes>0||s.tapeFlakes>0||s.tapeRoughness>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.ntscRsPhaseNoise>0;
+        const bool compositeStages=(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0.0f)||s.signalHueNoise>0.0f||s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeExposure!=0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapePinholes>0||s.tapeFlakes>0||s.tapeRoughness>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.ntscRsPhaseNoise>0||s.signalNoiseHorizontalLines>0||s.vcrSignalEnable>0||s.ntscQtRingingEnable>0||s.ntscQtPreEmphasis>0;
         const bool osdEnabled=s.osdAmount>0.0f;
-        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.greenChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||osdEnabled;
+        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.greenChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||s.syncDamageEnable>0||s.snowEnable>0||s.backgroundNoiseIntensity>0||osdEnabled;
         if(!any||(master<=0.0f&&!osdEnabled)) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
@@ -1516,8 +1796,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 vhs90::win::DirectWriteTextOptions options;
                 options.utf8Text=text.c_str(); options.utf8FontFamily=osdFont; options.fontWeight=osdFontWeight;
                 const double phase=double(s.frame)*0.7548776662466927+double(s.osdTextSeed)*0.000123;
-                const float jitterX=std::sin(phase*12.9898)*op.glitch*float(osdCell)*0.45f;
-                const float jitterY=std::cos(phase*78.233)*op.glitch*float(osdCell)*0.22f;
+                const float jitterX=float(std::sin(phase*12.9898))*op.glitch*float(osdCell)*0.45f;
+                const float jitterY=float(std::cos(phase*78.233))*op.glitch*float(osdCell)*0.22f;
                 options.x=std::max(0.0f,x+jitterX); options.y=std::max(0.0f,y+jitterY);
                 options.fontSize=std::max(8.0f,size);
                 options.maxWidth=std::max(1.0f,rightEdge>0.0f?rightEdge-options.x:float(w)-options.x);
@@ -1723,6 +2003,24 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(s.composite<=0) { p.outputBandwidth.iCutoffHz=0.0f; p.outputBandwidth.qCutoffHz=0.0f; p.outputBandwidth.lumaCutoffHz=0.0f; }
             p.palMode=(s.colorSystem==2);
             if(s.ringing>0) { p.ringingEnabled=true; p.ringing.strength=clamp01(s.ringing/100.0f); p.ringing.power=s.ringingPower; }
+            if(s.vcrSignalEnable>0) {
+                p.vcrSignalEnabled=true; p.vcrSignal.amount=clamp01(s.vcrSignalAmount/100.0f)*master;
+                p.vcrSignal.spacingUm=s.vcrSignalSpacing; p.vcrSignal.gapUm=s.vcrSignalGap;
+                p.vcrSignal.noise=s.vcrSignalNoise; p.vcrSignal.dropoutThreshold=s.vcrDropoutThreshold;
+                p.vcrSignal.dropoutCompensation=s.vcrDropoutCompensation!=0;
+                p.vcrSignal.seed=static_cast<std::uint32_t>(std::max(1.0f,s.tapeSeed)); p.vcrSignal.frame=s.frame;
+            }
+            if(s.ntscQtRingingEnable>0||s.ntscQtPreEmphasis>0.0f) {
+                p.ntscQtEnabled=true; p.ntscQt.amount=master;
+                p.ntscQt.spectralRingingEnabled=s.ntscQtRingingEnable>0;
+                p.ntscQt.useRingPattern=s.ntscQtRingingMode==2;
+                p.ntscQt.ringingPower=static_cast<int>(std::lround(s.ntscQtRingingPower));
+                p.ntscQt.ringingShift=s.ntscQtRingingShift;
+                p.ntscQt.alpha=s.ntscQtAlpha; p.ntscQt.frequencyNoiseSize=s.ntscQtFrequencyNoiseSize;
+                p.ntscQt.frequencyNoiseAmplitude=s.ntscQtFrequencyNoiseAmplitude;
+                p.ntscQt.preEmphasis=s.ntscQtPreEmphasis; p.ntscQt.preEmphasisCutoffMHz=s.ntscQtPreEmphasisCutoff;
+                p.ntscQt.seed=0x90A11E5Eu; p.ntscQt.frame=s.frame;
+            }
             if(s.crtEqualizer>0) { p.crtEqualizerEnabled=true; p.crtEqualizer.amount=clamp01(s.crtEqualizer/100.0f); }
             // The full raw-waveform simulator currently models NTSC 525/60 only.
             p.waveformCompositeEnabled=(s.signalModel==2 && s.colorSystem==1);
@@ -1898,8 +2196,15 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.rfInstability.amNonlinearity=clamp01(s.rfAm/100.0f);
                 p.rfInstability.agcPump=clamp01(s.agcPump/100.0f);
             }
-            if(s.lumaNoise>0||s.chromaNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.ntscRsPhaseNoise>0||s.signalHueNoise>0||(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0)) {
+            if(s.lumaNoise>0||s.chromaNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.ntscRsPhaseNoise>0||s.signalNoiseHorizontalLines>0||s.signalHueNoise>0||(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0)) {
                 p.analogNoiseEnabled=true; p.analogNoise.seed=static_cast<std::uint32_t>(std::clamp(std::lround(s.vhs6RiftNoiseSeed),1l,32767l)); p.analogNoise.frame=s.frame;
+                p.analogNoise.signalNoiseIntensity=clamp01(s.signalNoiseIntensity/100.0f*master);
+                p.analogNoise.signalNoiseFrequency=std::clamp(s.signalNoiseFrequency,0.1f,10.0f);
+                p.analogNoise.noiseSize=std::clamp(s.signalNoiseSize,0.25f,16.0f);
+                p.analogNoise.noiseDensity=clamp01(s.signalNoiseDensity/100.0f);
+                p.analogNoise.noiseDistribution=clamp01(s.signalNoiseDistribution/100.0f);
+                p.analogNoise.horizontalLineIntensity=clamp01(s.signalNoiseHorizontalLines/100.0f*master);
+                p.analogNoise.animationSpeed=std::clamp(s.signalNoiseAnimationSpeed/100.0f,0.0f,4.0f);
                 p.analogNoise.proceduralNoiseEnabled=s.vhs6RiftNoiseEnable;
                 p.analogNoise.grainAmount=clamp01(s.vhs6RiftGrain/100.0f); p.analogNoise.grainSize=std::clamp(int(std::lround(s.vhs6RiftGrainSize)),1,5);
                 p.analogNoise.noiseDetail=clamp01(s.vhs6RiftNoiseDetail/100.0f); p.analogNoise.shadowBias=clamp01(s.vhs6RiftShadowBias/100.0f);
@@ -1980,6 +2285,74 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(!processSyncCollapse(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
+        if(master>0.0f&&s.syncDamageEnable>0) {
+            SyncCollapseLabParams p;
+            p.enabled=true;
+            p.lumaEnabled=s.syncDamageLumaEnable!=0;
+            p.dropoutsEnabled=s.syncDamageDropoutsEnable!=0;
+            p.chromaEnabled=s.syncDamageChromaEnable!=0;
+            p.animationMode=static_cast<SyncDamageAnimationMode>(std::clamp<A_long>(s.syncDamageAnimationMode-1,0,2));
+            p.inputMode=static_cast<SyncDamageInputMode>(std::clamp<A_long>(s.syncDamageInputMode-1,0,1));
+            p.effectAmount=clamp01(s.syncDamageEffectAmount/100.0f*master);
+            p.horizontalTearAmount=clamp01(s.syncDamageTearAmount/100.0f);
+            p.bandIntensity=clamp01(s.syncDamageBandIntensity/100.0f);
+            p.bandDensity=std::clamp(s.syncDamageBandDensity,1.0f,32.0f);
+            p.bandHeight=clamp01(s.syncDamageBandHeight/100.0f);
+            p.bandIrregularity=clamp01(s.syncDamageBandIrregularity/100.0f);
+            p.horizontalDisplacementPx=std::clamp(s.syncDamageDisplacement,0.0f,160.0f);
+            p.boundaryFragmentation=clamp01(s.syncDamageBoundaryFragmentation/100.0f);
+            p.fullFrameCoverage=clamp01(s.syncDamageCoverage/100.0f);
+            p.lumaInstability=clamp01(s.syncDamageLumaInstability/100.0f);
+            p.brightFlashIntensity=clamp01(s.syncDamageBrightFlash/100.0f);
+            p.darkCollapseIntensity=clamp01(s.syncDamageDarkCollapse/100.0f);
+            p.eventFrequencyHz=std::clamp(s.syncDamageEventFrequency,0.1f,10.0f);
+            p.eventDurationSeconds=std::clamp(s.syncDamageEventDuration,0.05f,2.0f);
+            p.brightEventProbability=clamp01(s.syncDamageBrightProbability/100.0f);
+            p.darkEventProbability=clamp01(s.syncDamageDarkProbability/100.0f);
+            p.transitionSharpness=clamp01(s.syncDamageTransitionSharpness/100.0f);
+            p.localBandLumaVariation=clamp01(s.syncDamageLocalLuma/100.0f);
+            p.manualBrightPulse=clamp01(s.syncDamageManualBright/100.0f);
+            p.manualDarkCollapse=clamp01(s.syncDamageManualDark/100.0f);
+            p.dropoutStreakDensity=clamp01(s.syncDamageDropoutDensity/100.0f);
+            p.streakLengthPx=std::clamp(s.syncDamageStreakLength,2.0f,120.0f);
+            p.streakBrightness=clamp01(s.syncDamageStreakBrightness/100.0f);
+            p.darkDropoutAmount=clamp01(s.syncDamageDarkDropout/100.0f);
+            p.horizontalFragmentation=clamp01(s.syncDamageHorizontalFragmentation/100.0f);
+            p.temporalVariation=clamp01(s.syncDamageTemporalVariation/100.0f);
+            p.subtleChromaTint=clamp01(s.syncDamageChromaTint/100.0f);
+            p.magentaTint=clamp01(s.syncDamageMagentaTint/100.0f);
+            p.greenTint=clamp01(s.syncDamageGreenTint/100.0f);
+            p.rgbOffsetPx=std::clamp(s.syncDamageRgbOffset,0.0f,8.0f);
+            p.chromaBleed=clamp01(s.syncDamageChromaBleed/100.0f);
+            p.animationSpeed=std::clamp(s.syncDamageAnimationSpeed/100.0f,0.0f,4.0f);
+            p.seed=static_cast<std::uint32_t>(std::clamp<A_long>(static_cast<A_long>(std::lround(s.syncDamageRandomSeed)),1,32767));
+            p.blendWithInput=clamp01(s.syncDamageBlendInput/100.0f);
+            p.frame=s.frame; p.timeSeconds=s.timeSeconds; p.premultipliedAlpha=true;
+            ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
+            if(!processSyncCollapseLab(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            working.swap(scratch);
+        }
+        if(master>0.0f&&(s.snowEnable>0||s.backgroundNoiseIntensity>0.0f)) {
+            SnowParams p;
+            p.enabled=s.snowEnable!=0;
+            p.colored=s.snowMode==2;
+            p.intensity=clamp01(s.snowIntensity/100.0f*master);
+            p.density=clamp01(s.snowDensity/100.0f);
+            p.sizePx=std::clamp(s.snowSize,0.35f,16.0f);
+            p.distribution=clamp01(s.snowDistribution/100.0f);
+            p.contrast=clamp01(s.snowContrast/100.0f);
+            p.brightness=clamp01(s.snowBrightness/100.0f);
+            p.color=clamp01(s.snowColor/100.0f);
+            p.temporalVariation=clamp01(s.snowTemporalVariation/100.0f);
+            p.randomness=clamp01(s.snowRandomness/100.0f);
+            p.animationSpeed=std::clamp(s.snowAnimationSpeed/100.0f,0.0f,4.0f);
+            p.backgroundNoiseIntensity=clamp01(s.backgroundNoiseIntensity/100.0f*master);
+            p.seed=static_cast<std::uint32_t>(std::clamp<A_long>(static_cast<A_long>(std::lround(s.snowSeed)),1,32767));
+            p.frame=s.frame; p.timeSeconds=s.timeSeconds; p.premultipliedAlpha=true;
+            ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
+            if(!processSnow(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            working.swap(scratch);
+        }
         if(master>0.0f&&(s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0)) {
             DamageRegion regions[5]; std::size_t count=0;
             if(s.trackingAmount>0) {
@@ -1999,6 +2372,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.trackingLayerShape[0]-1,0,2));
                 r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingLayerProfile[0]-1,0,4));
                 r.centerX=clamp01(s.trackingLayerX[0]/100.0f); r.centerY=clamp01(s.trackingLayerY[0]/100.0f);
+                r.angleRadians=s.trackingLayerAngle[0]*0.01745329251994329577f;
+                r.motionXPerSecond=s.trackingLayerMotionX[0]/100.0f; r.motionYPerSecond=s.trackingLayerMotionY[0]/100.0f;
                 r.width=clamp01(s.trackingLayerWidth[0]/100.0f); r.height=clamp01(s.trackingLayerHeight[0]/100.0f);
                 r.intensity=clamp01(s.trackingLayerAmount[0]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[0];
                 r.maxShiftPx=s.trackingLayerShift[0]; r.waveAmplitudePx=s.trackingLayerWave[0];
@@ -2010,6 +2385,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.trackingLayerShape[1]-1,0,2));
                 r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingLayerProfile[1]-1,0,4));
                 r.centerX=clamp01(s.trackingLayerX[1]/100.0f); r.centerY=clamp01(s.trackingLayerY[1]/100.0f);
+                r.angleRadians=s.trackingLayerAngle[1]*0.01745329251994329577f;
+                r.motionXPerSecond=s.trackingLayerMotionX[1]/100.0f; r.motionYPerSecond=s.trackingLayerMotionY[1]/100.0f;
                 r.width=clamp01(s.trackingLayerWidth[1]/100.0f); r.height=clamp01(s.trackingLayerHeight[1]/100.0f);
                 r.intensity=clamp01(s.trackingLayerAmount[1]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[1];
                 r.maxShiftPx=s.trackingLayerShift[1]; r.waveAmplitudePx=s.trackingLayerWave[1];
@@ -2021,6 +2398,8 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 r.shape=static_cast<RegionShape>(std::clamp<A_long>(s.trackingLayerShape[2]-1,0,2));
                 r.trackingProfile=static_cast<TrackingProfile>(std::clamp<A_long>(s.trackingLayerProfile[2]-1,0,4));
                 r.centerX=clamp01(s.trackingLayerX[2]/100.0f); r.centerY=clamp01(s.trackingLayerY[2]/100.0f);
+                r.angleRadians=s.trackingLayerAngle[2]*0.01745329251994329577f;
+                r.motionXPerSecond=s.trackingLayerMotionX[2]/100.0f; r.motionYPerSecond=s.trackingLayerMotionY[2]/100.0f;
                 r.width=clamp01(s.trackingLayerWidth[2]/100.0f); r.height=clamp01(s.trackingLayerHeight[2]/100.0f);
                 r.intensity=clamp01(s.trackingLayerAmount[2]/100.0f*master); r.servoDriftPx=s.trackingLayerServo[2];
                 r.maxShiftPx=s.trackingLayerShift[2]; r.waveAmplitudePx=s.trackingLayerWave[2];
@@ -2250,7 +2629,7 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.spectralSmear=float(params[PARAM_SPECTRAL_SMEAR]->u.fs_d.value); s.spectralHueSpread=float(params[PARAM_SPECTRAL_HUE_SPREAD]->u.fs_d.value);
     s.chromaSaturation=float(params[PARAM_CHROMA_SATURATION]->u.fs_d.value); s.spectralCenterY=float(params[PARAM_SPECTRAL_CENTER_Y]->u.fs_d.value);
     s.spectralCoverage=float(params[PARAM_SPECTRAL_COVERAGE]->u.fs_d.value); s.tearBandStartY=float(params[PARAM_TEAR_BAND_START_Y]->u.fs_d.value);
-    s.tearBandHeight=float(params[PARAM_TEAR_BAND_HEIGHT]->u.fs_d.value); s.tearBandCount=params[PARAM_TEAR_BAND_COUNT]->u.fs_d.value;
+    s.tearBandHeight=float(params[PARAM_TEAR_BAND_HEIGHT]->u.fs_d.value); s.tearBandCount=float(params[PARAM_TEAR_BAND_COUNT]->u.fs_d.value);
     s.tearDisplacement=float(params[PARAM_TEAR_DISPLACEMENT]->u.fs_d.value); s.tearFragmentation=float(params[PARAM_TEAR_FRAGMENTATION]->u.fs_d.value);
     s.tearChromaShift=float(params[PARAM_TEAR_CHROMA_SHIFT]->u.fs_d.value); s.tearSmear=float(params[PARAM_TEAR_SMEAR]->u.fs_d.value);
     s.tearDropout=float(params[PARAM_TEAR_DROPOUT]->u.fs_d.value); s.tearSeed=float(params[PARAM_TEAR_SEED]->u.fs_d.value);
@@ -2272,18 +2651,21 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.trackingLayerWidth[0]=float(params[PARAM_TRACK_LAYER2_WIDTH]->u.fs_d.value); s.trackingLayerHeight[0]=float(params[PARAM_TRACK_LAYER2_HEIGHT]->u.fs_d.value);
     s.trackingLayerServo[0]=float(params[PARAM_TRACK_LAYER2_SERVO]->u.fs_d.value); s.trackingLayerShift[0]=float(params[PARAM_TRACK_LAYER2_SHIFT]->u.fs_d.value);
     s.trackingLayerWave[0]=float(params[PARAM_TRACK_LAYER2_WAVE]->u.fs_d.value); s.trackingLayerTear[0]=float(params[PARAM_TRACK_LAYER2_TEAR]->u.fs_d.value);
+    s.trackingLayerAngle[0]=float(params[PARAM_TRACK_LAYER2_ANGLE]->u.fs_d.value); s.trackingLayerMotionX[0]=float(params[PARAM_TRACK_LAYER2_MOTION_X]->u.fs_d.value); s.trackingLayerMotionY[0]=float(params[PARAM_TRACK_LAYER2_MOTION_Y]->u.fs_d.value);
     s.trackingLayerAmount[1]=float(params[PARAM_TRACK_LAYER3_AMOUNT]->u.fs_d.value);
     s.trackingLayerProfile[1]=params[PARAM_TRACK_LAYER3_PROFILE]->u.pd.value; s.trackingLayerShape[1]=params[PARAM_TRACK_LAYER3_SHAPE]->u.pd.value;
     s.trackingLayerX[1]=float(params[PARAM_TRACK_LAYER3_X]->u.fs_d.value); s.trackingLayerY[1]=float(params[PARAM_TRACK_LAYER3_Y]->u.fs_d.value);
     s.trackingLayerWidth[1]=float(params[PARAM_TRACK_LAYER3_WIDTH]->u.fs_d.value); s.trackingLayerHeight[1]=float(params[PARAM_TRACK_LAYER3_HEIGHT]->u.fs_d.value);
     s.trackingLayerServo[1]=float(params[PARAM_TRACK_LAYER3_SERVO]->u.fs_d.value); s.trackingLayerShift[1]=float(params[PARAM_TRACK_LAYER3_SHIFT]->u.fs_d.value);
     s.trackingLayerWave[1]=float(params[PARAM_TRACK_LAYER3_WAVE]->u.fs_d.value); s.trackingLayerTear[1]=float(params[PARAM_TRACK_LAYER3_TEAR]->u.fs_d.value);
+    s.trackingLayerAngle[1]=float(params[PARAM_TRACK_LAYER3_ANGLE]->u.fs_d.value); s.trackingLayerMotionX[1]=float(params[PARAM_TRACK_LAYER3_MOTION_X]->u.fs_d.value); s.trackingLayerMotionY[1]=float(params[PARAM_TRACK_LAYER3_MOTION_Y]->u.fs_d.value);
     s.trackingLayerAmount[2]=float(params[PARAM_TRACK_LAYER4_AMOUNT]->u.fs_d.value);
     s.trackingLayerProfile[2]=params[PARAM_TRACK_LAYER4_PROFILE]->u.pd.value; s.trackingLayerShape[2]=params[PARAM_TRACK_LAYER4_SHAPE]->u.pd.value;
     s.trackingLayerX[2]=float(params[PARAM_TRACK_LAYER4_X]->u.fs_d.value); s.trackingLayerY[2]=float(params[PARAM_TRACK_LAYER4_Y]->u.fs_d.value);
     s.trackingLayerWidth[2]=float(params[PARAM_TRACK_LAYER4_WIDTH]->u.fs_d.value); s.trackingLayerHeight[2]=float(params[PARAM_TRACK_LAYER4_HEIGHT]->u.fs_d.value);
     s.trackingLayerServo[2]=float(params[PARAM_TRACK_LAYER4_SERVO]->u.fs_d.value); s.trackingLayerShift[2]=float(params[PARAM_TRACK_LAYER4_SHIFT]->u.fs_d.value);
     s.trackingLayerWave[2]=float(params[PARAM_TRACK_LAYER4_WAVE]->u.fs_d.value); s.trackingLayerTear[2]=float(params[PARAM_TRACK_LAYER4_TEAR]->u.fs_d.value);
+    s.trackingLayerAngle[2]=float(params[PARAM_TRACK_LAYER4_ANGLE]->u.fs_d.value); s.trackingLayerMotionX[2]=float(params[PARAM_TRACK_LAYER4_MOTION_X]->u.fs_d.value); s.trackingLayerMotionY[2]=float(params[PARAM_TRACK_LAYER4_MOTION_Y]->u.fs_d.value);
     s.headAmount=float(params[PARAM_HEAD_AMOUNT]->u.fs_d.value);
     s.headY=float(params[PARAM_HEAD_BOTTOM_Y]->u.fs_d.value);
     s.headHeight=float(params[PARAM_HEAD_HEIGHT]->u.fs_d.value);
@@ -2323,6 +2705,84 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.ntscRsPhaseNoise=float(params[PARAM_NTSCRS_PHASE_NOISE]->u.fs_d.value);
     s.signalHueNoise=float(params[PARAM_SIGNAL_HUE_NOISE]->u.fs_d.value);
     s.mainsHum=float(params[PARAM_MAINS_HUM]->u.fs_d.value);
+    s.groundLoop=float(params[PARAM_GROUND_LOOP]->u.fs_d.value);
+    s.syncDamageEnable=params[PARAM_SYNC_DAMAGE_ENABLE]->u.bd.value?1:0;
+    s.syncDamageTearAmount=float(params[PARAM_SYNC_DAMAGE_TEAR_AMOUNT]->u.fs_d.value);
+    s.syncDamageBandIntensity=float(params[PARAM_SYNC_DAMAGE_BAND_INTENSITY]->u.fs_d.value);
+    s.syncDamageBandDensity=float(params[PARAM_SYNC_DAMAGE_BAND_DENSITY]->u.fs_d.value);
+    s.syncDamageBandHeight=float(params[PARAM_SYNC_DAMAGE_BAND_HEIGHT]->u.fs_d.value);
+    s.syncDamageBandIrregularity=float(params[PARAM_SYNC_DAMAGE_BAND_IRREGULARITY]->u.fs_d.value);
+    s.syncDamageDisplacement=float(params[PARAM_SYNC_DAMAGE_DISPLACEMENT]->u.fs_d.value);
+    s.syncDamageBoundaryFragmentation=float(params[PARAM_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION]->u.fs_d.value);
+    s.syncDamageCoverage=float(params[PARAM_SYNC_DAMAGE_COVERAGE]->u.fs_d.value);
+    s.syncDamageLumaEnable=params[PARAM_SYNC_DAMAGE_LUMA_ENABLE]->u.bd.value?1:0;
+    s.syncDamageLumaInstability=float(params[PARAM_SYNC_DAMAGE_LUMA_INSTABILITY]->u.fs_d.value);
+    s.syncDamageBrightFlash=float(params[PARAM_SYNC_DAMAGE_BRIGHT_FLASH]->u.fs_d.value);
+    s.syncDamageDarkCollapse=float(params[PARAM_SYNC_DAMAGE_DARK_COLLAPSE]->u.fs_d.value);
+    s.syncDamageEventFrequency=float(params[PARAM_SYNC_DAMAGE_EVENT_FREQUENCY]->u.fs_d.value);
+    s.syncDamageEventDuration=float(params[PARAM_SYNC_DAMAGE_EVENT_DURATION]->u.fs_d.value);
+    s.syncDamageBrightProbability=float(params[PARAM_SYNC_DAMAGE_BRIGHT_PROBABILITY]->u.fs_d.value);
+    s.syncDamageDarkProbability=float(params[PARAM_SYNC_DAMAGE_DARK_PROBABILITY]->u.fs_d.value);
+    s.syncDamageTransitionSharpness=float(params[PARAM_SYNC_DAMAGE_TRANSITION_SHARPNESS]->u.fs_d.value);
+    s.syncDamageLocalLuma=float(params[PARAM_SYNC_DAMAGE_LOCAL_LUMA]->u.fs_d.value);
+    s.syncDamageManualBright=float(params[PARAM_SYNC_DAMAGE_MANUAL_BRIGHT]->u.fs_d.value);
+    s.syncDamageManualDark=float(params[PARAM_SYNC_DAMAGE_MANUAL_DARK]->u.fs_d.value);
+    s.syncDamageDropoutsEnable=params[PARAM_SYNC_DAMAGE_DROPOUTS_ENABLE]->u.bd.value?1:0;
+    s.syncDamageDropoutDensity=float(params[PARAM_SYNC_DAMAGE_DROPOUT_DENSITY]->u.fs_d.value);
+    s.syncDamageStreakLength=float(params[PARAM_SYNC_DAMAGE_STREAK_LENGTH]->u.fs_d.value);
+    s.syncDamageStreakBrightness=float(params[PARAM_SYNC_DAMAGE_STREAK_BRIGHTNESS]->u.fs_d.value);
+    s.syncDamageDarkDropout=float(params[PARAM_SYNC_DAMAGE_DARK_DROPOUT]->u.fs_d.value);
+    s.syncDamageHorizontalFragmentation=float(params[PARAM_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION]->u.fs_d.value);
+    s.syncDamageTemporalVariation=float(params[PARAM_SYNC_DAMAGE_TEMPORAL_VARIATION]->u.fs_d.value);
+    s.syncDamageChromaEnable=params[PARAM_SYNC_DAMAGE_CHROMA_ENABLE]->u.bd.value?1:0;
+    s.syncDamageChromaTint=float(params[PARAM_SYNC_DAMAGE_CHROMA_TINT]->u.fs_d.value);
+    s.syncDamageMagentaTint=float(params[PARAM_SYNC_DAMAGE_MAGENTA_TINT]->u.fs_d.value);
+    s.syncDamageGreenTint=float(params[PARAM_SYNC_DAMAGE_GREEN_TINT]->u.fs_d.value);
+    s.syncDamageRgbOffset=float(params[PARAM_SYNC_DAMAGE_RGB_OFFSET]->u.fs_d.value);
+    s.syncDamageChromaBleed=float(params[PARAM_SYNC_DAMAGE_CHROMA_BLEED]->u.fs_d.value);
+    s.syncDamageAnimationMode=params[PARAM_SYNC_DAMAGE_ANIMATION_MODE]->u.pd.value;
+    s.syncDamageInputMode=params[PARAM_SYNC_DAMAGE_INPUT_MODE]->u.pd.value;
+    s.syncDamageAnimationSpeed=float(params[PARAM_SYNC_DAMAGE_ANIMATION_SPEED]->u.fs_d.value);
+    s.syncDamageRandomSeed=float(params[PARAM_SYNC_DAMAGE_RANDOM_SEED]->u.fs_d.value);
+    s.syncDamageBlendInput=float(params[PARAM_SYNC_DAMAGE_BLEND_INPUT]->u.fs_d.value);
+    s.syncDamageEffectAmount=float(params[PARAM_SYNC_DAMAGE_EFFECT_AMOUNT]->u.fs_d.value);
+    s.snowEnable=params[PARAM_SNOW_ENABLE]->u.bd.value?1:0;
+    s.snowIntensity=float(params[PARAM_SNOW_INTENSITY]->u.fs_d.value);
+    s.snowDensity=float(params[PARAM_SNOW_DENSITY]->u.fs_d.value);
+    s.snowSize=float(params[PARAM_SNOW_SIZE]->u.fs_d.value);
+    s.snowDistribution=float(params[PARAM_SNOW_DISTRIBUTION]->u.fs_d.value);
+    s.snowContrast=float(params[PARAM_SNOW_CONTRAST]->u.fs_d.value);
+    s.snowBrightness=float(params[PARAM_SNOW_BRIGHTNESS]->u.fs_d.value);
+    s.snowColor=float(params[PARAM_SNOW_COLOR]->u.fs_d.value);
+    s.snowMode=params[PARAM_SNOW_MODE]->u.pd.value;
+    s.snowTemporalVariation=float(params[PARAM_SNOW_TEMPORAL_VARIATION]->u.fs_d.value);
+    s.snowRandomness=float(params[PARAM_SNOW_RANDOMNESS]->u.fs_d.value);
+    s.snowAnimationSpeed=float(params[PARAM_SNOW_ANIMATION_SPEED]->u.fs_d.value);
+    s.snowSeed=float(params[PARAM_SNOW_SEED]->u.fs_d.value);
+    s.backgroundNoiseIntensity=float(params[PARAM_BACKGROUND_NOISE_INTENSITY]->u.fs_d.value);
+    s.signalNoiseIntensity=float(params[PARAM_SIGNAL_NOISE_INTENSITY]->u.fs_d.value);
+    s.signalNoiseFrequency=float(params[PARAM_SIGNAL_NOISE_FREQUENCY]->u.fs_d.value);
+    s.signalNoiseSize=float(params[PARAM_SIGNAL_NOISE_SIZE]->u.fs_d.value);
+    s.signalNoiseDensity=float(params[PARAM_SIGNAL_NOISE_DENSITY]->u.fs_d.value);
+    s.signalNoiseDistribution=float(params[PARAM_SIGNAL_NOISE_DISTRIBUTION]->u.fs_d.value);
+    s.signalNoiseHorizontalLines=float(params[PARAM_SIGNAL_NOISE_HORIZONTAL_LINES]->u.fs_d.value);
+    s.signalNoiseAnimationSpeed=float(params[PARAM_SIGNAL_NOISE_ANIMATION_SPEED]->u.fs_d.value);
+    s.vcrSignalEnable=params[PARAM_VCR_SIGNAL_ENABLE]->u.bd.value?1:0;
+    s.vcrSignalAmount=float(params[PARAM_VCR_SIGNAL_AMOUNT]->u.fs_d.value);
+    s.vcrSignalSpacing=float(params[PARAM_VCR_SIGNAL_SPACING]->u.fs_d.value);
+    s.vcrSignalGap=float(params[PARAM_VCR_SIGNAL_GAP]->u.fs_d.value);
+    s.vcrSignalNoise=float(params[PARAM_VCR_SIGNAL_NOISE]->u.fs_d.value);
+    s.vcrDropoutThreshold=float(params[PARAM_VCR_SIGNAL_DROPOUT_THRESHOLD]->u.fs_d.value);
+    s.vcrDropoutCompensation=params[PARAM_VCR_SIGNAL_DROPOUT_COMPENSATION]->u.bd.value?1:0;
+    s.ntscQtRingingEnable=params[PARAM_NTSCQT_RINGING_ENABLE]->u.bd.value?1:0;
+    s.ntscQtAlpha=float(params[PARAM_NTSCQT_ALPHA]->u.fs_d.value);
+    s.ntscQtFrequencyNoiseSize=float(params[PARAM_NTSCQT_FREQUENCY_NOISE_SIZE]->u.fs_d.value);
+    s.ntscQtFrequencyNoiseAmplitude=float(params[PARAM_NTSCQT_FREQUENCY_NOISE_AMPLITUDE]->u.fs_d.value);
+    s.ntscQtPreEmphasis=float(params[PARAM_NTSCQT_PREEMPHASIS]->u.fs_d.value);
+    s.ntscQtPreEmphasisCutoff=float(params[PARAM_NTSCQT_PREEMPHASIS_CUTOFF]->u.fs_d.value);
+    s.ntscQtRingingMode=params[PARAM_NTSCQT_RINGING_MODE]->u.pd.value;
+    s.ntscQtRingingPower=float(params[PARAM_NTSCQT_RINGING_POWER]->u.fs_d.value);
+    s.ntscQtRingingShift=float(params[PARAM_NTSCQT_RINGING_SHIFT]->u.fs_d.value);
     s.vhs6RiftGrain=float(params[PARAM_VHS6RIFT_GRAIN]->u.fs_d.value);
     s.vhs6RiftGrainSize=float(params[PARAM_VHS6RIFT_GRAIN_SIZE]->u.fs_d.value);
     s.vhs6RiftNoiseDetail=float(params[PARAM_VHS6RIFT_NOISE_DETAIL]->u.fs_d.value);

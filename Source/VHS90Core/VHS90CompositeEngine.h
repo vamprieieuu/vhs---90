@@ -22,6 +22,8 @@
 #include "VHS90HeadConditionEngine.h"
 #include "VHS90TapeTransportEngine.h"
 #include "VHS90PhysicalInterferenceEngine.h"
+#include "VHS90VcrSignalEngine.h"
+#include "VHS90NtscQtEngine.h"
 #include <cstdint>
 
 namespace vhs90 {
@@ -78,6 +80,10 @@ struct CompositeParams {
     RingingParams ringing{};
     bool chromaChannelShiftEnabled = false;
     ChromaChannelShiftParams chromaChannelShift{};
+    bool vcrSignalEnabled = false;
+    VcrSignalParams vcrSignal{};
+    bool ntscQtEnabled = false;
+    NtscQtParams ntscQt{};
     bool waveformCompositeEnabled = false;
     NtscWaveformParams waveformComposite{};
     bool temporalGhostEnabled = false;

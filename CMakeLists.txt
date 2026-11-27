@@ -1,10 +1,29 @@
 cmake_minimum_required(VERSION 3.20)
 project(VHS90 LANGUAGES CXX)
 
+# Source files contain UTF-8 Arabic OSD strings; force MSVC to decode them as UTF-8.
+if(MSVC)
+    add_compile_options(/utf-8)
+endif()
+
 option(VHS90_BUILD_TESTS "Build host-independent VHS-90 CPU smoke tests" ON)
 option(VHS90_BUILD_AE_PLUGIN "Build the native Windows After Effects AEX target" OFF)
 option(VHS90_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer where supported" OFF)
 set(AE_SDK_ROOT "$ENV{AE_SDK_ROOT}" CACHE PATH "Root directory of the Adobe After Effects SDK")
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+set(VHS90_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(VHS90_NTSCQT_RING_HEADER "${VHS90_GENERATED_DIR}/VHS90NtscQtRingPattern.generated.h")
+add_custom_command(
+    OUTPUT "${VHS90_NTSCQT_RING_HEADER}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${VHS90_GENERATED_DIR}"
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/generate_ntscqt_ringpattern.py"
+            --input "${CMAKE_CURRENT_SOURCE_DIR}/VHS/github repos/ntscqt-1.5.0/ntscqt-1.5.0/app/ringPattern.npy"
+            --output "${VHS90_NTSCQT_RING_HEADER}"
+    DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/generate_ntscqt_ringpattern.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/VHS/github repos/ntscqt-1.5.0/ntscqt-1.5.0/app/ringPattern.npy"
+    VERBATIM
+)
 
 add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90SignalKernels.cpp
@@ -13,6 +32,8 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90IIRFilter.cpp
     Source/VHS90Core/VHS90CompositeEngine.cpp
     Source/VHS90Core/VHS90SyncEngine.cpp
+    Source/VHS90Core/VHS90SyncCollapseLabEngine.cpp
+    Source/VHS90Core/VHS90SnowEngine.cpp
     Source/VHS90Core/VHS90TapeSurfaceEngine.cpp
     Source/VHS90Core/VHS90TapeTransportEngine.cpp
     Source/VHS90Core/VHS90BloomEngine.cpp
@@ -35,6 +56,8 @@ add_library(VHS90Core STATIC
     Source/VHS90Core/VHS90TrackReadEngine.cpp
     Source/VHS90Core/VHS90HeadConditionEngine.cpp
     Source/VHS90Core/VHS90VcrSignalEngine.cpp
+    Source/VHS90Core/VHS90NtscQtEngine.cpp
+    ${VHS90_NTSCQT_RING_HEADER}
     Source/VHS90Core/VHS90PhysicalInterferenceEngine.cpp
     Source/VHS90Core/VHS90OsdEngine.cpp
     Source/VHS90Core/VHS90OsdTextData.cpp
@@ -49,6 +72,7 @@ add_library(VHS90Core STATIC
 )
 target_include_directories(VHS90Core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Source/VHS90Core
+    ${VHS90_GENERATED_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AnalogNTSC/include
 )
 target_compile_features(VHS90Core PUBLIC cxx_std_17)
@@ -67,7 +91,7 @@ endif()
 
 if(VHS90_BUILD_TESTS)
     enable_testing()
-    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine AnalogGeometryEngine AnalogNoiseEngine RfInstabilityEngine ImpulseNoiseEngine MultipathEchoEngine ReceiverInstabilityEngine ImageGradeEngine TapeDetailEngine ChromaShiftEngine WaveformEngine RingingEngine DropoutEngine SignalGhostEngine AnalogGlowEngine CrtEqualizerEngine TrackReadEngine HeadConditionEngine VcrSignalEngine PhysicalInterferenceEngine OsdEngine OsdTextData OsdLocalization TearChromaEngine)
+    foreach(test_name IN ITEMS SignalKernels RegionEngine StaticEngine IIRFilter CompositeEngine SyncEngine SyncCollapseLabEngine SnowEngine TapeSurfaceEngine TapeTransportEngine BloomEngine TemporalEngine AnalogGeometryEngine AnalogNoiseEngine RfInstabilityEngine ImpulseNoiseEngine MultipathEchoEngine ReceiverInstabilityEngine ImageGradeEngine TapeDetailEngine ChromaShiftEngine WaveformEngine RingingEngine DropoutEngine SignalGhostEngine AnalogGlowEngine CrtEqualizerEngine TrackReadEngine HeadConditionEngine VcrSignalEngine NtscQtEngine PhysicalInterferenceEngine OsdEngine OsdTextData OsdLocalization TearChromaEngine)
         add_executable(VHS90${test_name}Smoke Tests/VHS90${test_name}Smoke.cpp)
         target_link_libraries(VHS90${test_name}Smoke PRIVATE VHS90Core)
         # The smoke tests use assert(); keep those checks active in Release too.
