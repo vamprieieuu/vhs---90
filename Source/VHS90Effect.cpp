@@ -1640,6 +1640,18 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(s.chromaShift>0) { p.chromaChannelShiftEnabled=true; p.chromaChannelShift.shiftPixels=s.chromaShift; } p.compositeSignalStrength=clamp01(s.composite/100.0f); p.frame=s.frame;
             p.inputBandwidthEnabled=(s.composite>0);
             p.outputBandwidthEnabled=(s.composite>0||s.verticalLuma>0);
+            if(s.composite>0) {
+                const float compositeDrive=clamp01(s.composite/100.0f);
+                const VHS90TapeSpeed tapeSpeed=(s.tapeSpeed==1)?VHS90TapeSpeed::SP:((s.tapeSpeed==2)?VHS90TapeSpeed::LP:VHS90TapeSpeed::EP);
+                const YiqBandwidthParams tapeBandwidth=makeVhsTapeBandwidth(tapeSpeed);
+                const auto blendCutoff=[compositeDrive](float clean,float tape){return clean+(tape-clean)*compositeDrive;};
+                p.inputBandwidth.lumaCutoffHz=blendCutoff(4200000.0f,tapeBandwidth.lumaCutoffHz);
+                p.inputBandwidth.iCutoffHz=blendCutoff(1300000.0f,tapeBandwidth.iCutoffHz);
+                p.inputBandwidth.qCutoffHz=blendCutoff(600000.0f,tapeBandwidth.qCutoffHz);
+                p.outputBandwidth.lumaCutoffHz=blendCutoff(4200000.0f,tapeBandwidth.lumaCutoffHz*0.90f);
+                p.outputBandwidth.iCutoffHz=blendCutoff(1300000.0f,tapeBandwidth.iCutoffHz*0.90f);
+                p.outputBandwidth.qCutoffHz=blendCutoff(600000.0f,tapeBandwidth.qCutoffHz*0.90f);
+            }
             if(s.composite<=0) { p.outputBandwidth.iCutoffHz=0.0f; p.outputBandwidth.qCutoffHz=0.0f; p.outputBandwidth.lumaCutoffHz=0.0f; }
             p.palMode=(s.colorSystem==2);
             if(s.ringing>0) { p.ringingEnabled=true; p.ringing.strength=clamp01(s.ringing/100.0f); p.ringing.power=s.ringingPower; }
