@@ -20,11 +20,11 @@ Audit the parameter-to-engine-to-pixel path for RF Drift, RF Hum, AM Nonlinearit
 
 ## Defect found and corrected
 
-The image-domain RF engine applied a nonzero baseline AM compression curve even when `amNonlinearity == 0`. This meant enabling RF Drift or RF Hum could also compress highlights, despite AM Nonlinearity being disabled.
+The image-domain RF engine applied a nonzero baseline AM compression curve even when `amNonlinearity == 0`, and a baseline AGC pump contribution even when `agcPump == 0`. Enabling RF Drift or RF Hum could therefore also compress highlights or pump bright areas while those independent controls were disabled.
 
 Correction:
-- AM compression gain is now proportional to the AM control.
-- The compression curve is skipped completely at zero AM.
+- AM compression gain is now proportional to the AM control, and the compression curve is skipped completely at zero AM.
+- AGC pump amplitude is now multiplied by its own control, making it exactly neutral at zero AGC.
 - Added a regression test using two flat luma levels under Drift-only processing to ensure the transfer remains affine and does not inherit AM compression.
 
 ## Validation still required
