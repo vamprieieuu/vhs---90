@@ -43,6 +43,18 @@ Correction:
 - AGC pump amplitude is now multiplied by its own control, making it exactly neutral at zero AGC.
 - Added a regression test using two flat luma levels under Drift-only processing to ensure the transfer remains affine and does not inherit AM compression.
 
+## Retired UI groups and static-pattern recovery
+
+A UI/source audit was performed for the retired Playback, Decoder, Frame, HUD, Particle and Signal Network group names:
+
+- **HUD:** replaced by the dedicated Camcorder OSD, VHS Tape OSD Layout, Tape Counter, Localization and VHS Text Words groups. The arbitrary-data text parameter and native text editor are part of that OSD path.
+- **Signal Network:** no separate network-style group remains; RF, sync, chroma, composite and physical interference controls are routed directly through the Signal and Signal Looks groups and the composite engine.
+- **Particle:** the standalone `VHS90ParticlePatternEngine` was orphaned (not part of the CMake core target, tests or AE render path). Rather than reintroduce a duplicate Particle section, its two distinctive procedural looks were added to the existing Static engine: **Colored Speckles** and **Vertical Columns**. The existing eleven static modes remain in their original order; the new two are appended as modes 12 and 13. The Pattern Type popup and its associated angle/ribbon/green-line/phase controls are now visible in Effect Controls. Added deterministic tests for both new modes; colored-speckle density is explicitly honored.
+- **Decoder:** the old dedicated UI group is absent. The current render path selects Consumer Notch directly; One-Line Comb and Two-Line Comb implementations remain in the core engine but there is no active AE selector. The old popup-choice string and unused RenderSettings field are stale remnants, not a working user control. Do not claim selectable decoder modes until a compatibility-safe UI route is implemented.
+- **Playback / Frame:** there is no separate Playback or Frame group. Previous Frame Ghost is still registered but hidden from Effect Controls; temporal frame-repeat fields are preset-driven and currently have no dedicated visible controls. Geometry / Interlace / Vertical Roll / Scanlines remain in Signal. Treat temporal controls as a future UI decision rather than claiming a complete visible playback panel.
+
+No legacy parameter indices or disk IDs were moved to expose the static controls; only the existing static popup's choice count and appended enum values changed.
+
 ## Validation still required
 
 - Run the full Linux core suite and Windows x64/MSVC build on this branch.
