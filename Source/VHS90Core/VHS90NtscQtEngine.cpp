@@ -135,6 +135,62 @@ void preEmphasize(float* row,int width,float amount,float cutoffMHz) {
         row[x]=static_cast<float>(sample+(sample-previous)*double(amount));
     }
 }
+void spectralMaskField(float* plane,int width,int height,int parity,const NtscQtParams& p) {
+    const int rows=(height-parity+1)/2;
+    if(rows<=0||width<=0)return;
+    std::vector<C> spectrum(static_cast<std::size_t>(rows)*static_cast<std::size_t>(width));
+    for(int y=0;y<rows;++y) {
+        const int sourceY=parity+y*2;
+        for(int x=0;x<width;++x)
+            spectrum[static_cast<std::size_t>(y)*width+x]=C(plane[static_cast<std::size_t>(sourceY)*width+x],0.0);
+        std::vector<C> line(spectrum.begin()+static_cast<std::ptrdiff_t>(y)*width,
+                            spectrum.begin()+static_cast<std::ptrdiff_t>(y+1)*width);
+        fft(line,false);
+        std::copy(line.begin(),line.end(),spectrum.begin()+static_cast<std::ptrdiff_t>(y)*width);
+    }
+    std::vector<C> column(static_cast<std::size_t>(rows));
+    for(int x=0;x<width;++x) {
+        for(int y=0;y<rows;++y)column[static_cast<std::size_t>(y)]=spectrum[static_cast<std::size_t>(y)*width+x];
+        fft(column,false);
+        for(int y=0;y<rows;++y)spectrum[static_cast<std::size_t>(y)*width+x]=column[static_cast<std::size_t>(y)];
+    }
+    const int crow=rows/2,ccol=width/2;
+    const int maskH=std::min(crow,std::max(0,int(1.0f+p.alpha*float(crow))));
+    const int start=int(float(ccol)*(1.0f-p.frequencyNoiseSize));
+    const int stop=int(float(ccol)*(1.0f+p.frequencyNoiseSize));
+    for(int fy=0;fy<rows;++fy) {
+        const int centeredY=(fy<=rows/2)?fy:fy-rows;
+        const int shiftedY=centeredY+crow;
+        for(int fx=0;fx<width;++fx) {
+            const int centeredX=(fx<=width/2)?fx:fx-width;
+            const int shiftedX=centeredX+ccol;
+            const bool keep=(shiftedX>=ccol-maskH && shiftedX<ccol+maskH);
+            const bool noiseBand=p.frequencyNoiseSize>0.0f &&
+                (shiftedX<start || shiftedX>=stop);
+            const double noise=noiseBand?double(p.frequencyNoiseAmplitude)*0.5:0.0;
+            const double nr=uniform(p.seed,p.frame,shiftedY,shiftedX,0);
+            const double ni=uniform(p.seed,p.frame,shiftedY,shiftedX,1);
+            const double mr=(keep?1.0:0.0)+nr*noise-noise*0.5;
+            const double mi=(keep?1.0:0.0)+ni*noise-noise*0.5;
+            C& value=spectrum[static_cast<std::size_t>(fy)*width+fx];
+            value=C(value.real()*mr,value.imag()*mi);
+        }
+    }
+    for(int x=0;x<width;++x) {
+        for(int y=0;y<rows;++y)column[static_cast<std::size_t>(y)]=spectrum[static_cast<std::size_t>(y)*width+x];
+        fft(column,true);
+        for(int y=0;y<rows;++y)spectrum[static_cast<std::size_t>(y)*width+x]=column[static_cast<std::size_t>(y)];
+    }
+    for(int y=0;y<rows;++y) {
+        std::vector<C> line(spectrum.begin()+static_cast<std::ptrdiff_t>(y)*width,
+                            spectrum.begin()+static_cast<std::ptrdiff_t>(y+1)*width);
+        fft(line,true);
+        const int destY=parity+y*2;
+        for(int x=0;x<width;++x)
+            plane[static_cast<std::size_t>(destY)*width+x]=static_cast<float>(line[static_cast<std::size_t>(x)].real());
+    }
+}
+
 inline float clampFinite(float v,float lo,float hi,float fallback) noexcept {
     return std::isfinite(v)?std::clamp(v,lo,hi):fallback;
 }
@@ -180,11 +236,28 @@ bool processNtscQtSignal(ConstImageView src,ImageView dst,const NtscQtParams& ra
             if(p.fieldMode==2&&!(row&1))continue;
             const std::size_t base=static_cast<std::size_t>(row)*w;
             if(p.preEmphasis>0.0f)preEmphasize(y.data()+base,w,p.preEmphasis,p.preEmphasisCutoffMHz);
-            if(p.spectralRingingEnabled) {
-                const int fieldRows=(row&1)?oddFieldRows:evenFieldRows;
-                spectralMaskRow(y.data()+base,w,fieldRows,row,p);
-                spectralMaskRow(i.data()+base,w,fieldRows,row,p);
-                spectralMaskRow(q.data()+base,w,fieldRows,row,p);
+        }
+        if(p.spectralRingingEnabled) {
+            if(p.useRingPattern || p.frequencyNoiseSize<=0.0f) {
+                for(int row=0;row<h;++row) {
+                    if(p.fieldMode==1&&(row&1))continue;
+                    if(p.fieldMode==2&&!(row&1))continue;
+                    const std::size_t base=static_cast<std::size_t>(row)*w;
+                    spectralMaskRow(y.data()+base,w,(row&1)?oddFieldRows:evenFieldRows,row,p);
+                    spectralMaskRow(i.data()+base,w,(row&1)?oddFieldRows:evenFieldRows,row,p);
+                    spectralMaskRow(q.data()+base,w,(row&1)?oddFieldRows:evenFieldRows,row,p);
+                }
+            } else {
+                if(p.fieldMode==0||p.fieldMode==1) {
+                    spectralMaskField(y.data(),w,h,0,p);
+                    spectralMaskField(i.data(),w,h,0,p);
+                    spectralMaskField(q.data(),w,h,0,p);
+                }
+                if(p.fieldMode==0||p.fieldMode==2) {
+                    spectralMaskField(y.data(),w,h,1,p);
+                    spectralMaskField(i.data(),w,h,1,p);
+                    spectralMaskField(q.data(),w,h,1,p);
+                }
             }
         }
         for(int row=0;row<h;++row)for(int x=0;x<w;++x) {
