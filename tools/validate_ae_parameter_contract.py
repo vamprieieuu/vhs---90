@@ -22,10 +22,13 @@ for raw in enum_match.group(1).split(","):
         enum_items.append(match.group(1))
 if not enum_items or enum_items[0] != "PARAM_INPUT" or enum_items[-1] != "PARAM_COUNT":
     fail("ParamIndex must start with PARAM_INPUT and end with PARAM_COUNT.")
-if enum_items[-15:-12] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
+if enum_items[-55:-52] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
     fail("Ground Loop parameters must remain appended after all legacy AE parameters.")
-if enum_items[-12:-1] != ["PARAM_TRACK_LAYER_MOTION_TOPIC", "PARAM_TRACK_LAYER2_ANGLE", "PARAM_TRACK_LAYER2_MOTION_X", "PARAM_TRACK_LAYER2_MOTION_Y", "PARAM_TRACK_LAYER3_ANGLE", "PARAM_TRACK_LAYER3_MOTION_X", "PARAM_TRACK_LAYER3_MOTION_Y", "PARAM_TRACK_LAYER4_ANGLE", "PARAM_TRACK_LAYER4_MOTION_X", "PARAM_TRACK_LAYER4_MOTION_Y", "PARAM_TRACK_LAYER_MOTION_END"]:
-    fail("Tracking layer direction/motion parameters must be appended after legacy AE parameters.")
+if enum_items[-52:-41] != ["PARAM_TRACK_LAYER_MOTION_TOPIC", "PARAM_TRACK_LAYER2_ANGLE", "PARAM_TRACK_LAYER2_MOTION_X", "PARAM_TRACK_LAYER2_MOTION_Y", "PARAM_TRACK_LAYER3_ANGLE", "PARAM_TRACK_LAYER3_MOTION_X", "PARAM_TRACK_LAYER3_MOTION_Y", "PARAM_TRACK_LAYER4_ANGLE", "PARAM_TRACK_LAYER4_MOTION_X", "PARAM_TRACK_LAYER4_MOTION_Y", "PARAM_TRACK_LAYER_MOTION_END"]:
+    fail("Tracking layer direction/motion parameters must remain appended after the previous AE controls.")
+expected_sync_damage_tail = ["PARAM_SYNC_DAMAGE_TOPIC", "PARAM_SYNC_DAMAGE_ENABLE", "PARAM_SYNC_DAMAGE_TEAR_AMOUNT", "PARAM_SYNC_DAMAGE_BAND_INTENSITY", "PARAM_SYNC_DAMAGE_BAND_DENSITY", "PARAM_SYNC_DAMAGE_BAND_HEIGHT", "PARAM_SYNC_DAMAGE_BAND_IRREGULARITY", "PARAM_SYNC_DAMAGE_DISPLACEMENT", "PARAM_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION", "PARAM_SYNC_DAMAGE_COVERAGE", "PARAM_SYNC_DAMAGE_LUMA_ENABLE", "PARAM_SYNC_DAMAGE_LUMA_INSTABILITY", "PARAM_SYNC_DAMAGE_BRIGHT_FLASH", "PARAM_SYNC_DAMAGE_DARK_COLLAPSE", "PARAM_SYNC_DAMAGE_EVENT_FREQUENCY", "PARAM_SYNC_DAMAGE_EVENT_DURATION", "PARAM_SYNC_DAMAGE_TRANSITION_SHARPNESS", "PARAM_SYNC_DAMAGE_LOCAL_LUMA", "PARAM_SYNC_DAMAGE_MANUAL_BRIGHT", "PARAM_SYNC_DAMAGE_MANUAL_DARK", "PARAM_SYNC_DAMAGE_DROPOUTS_ENABLE", "PARAM_SYNC_DAMAGE_DROPOUT_DENSITY", "PARAM_SYNC_DAMAGE_STREAK_LENGTH", "PARAM_SYNC_DAMAGE_STREAK_BRIGHTNESS", "PARAM_SYNC_DAMAGE_DARK_DROPOUT", "PARAM_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION", "PARAM_SYNC_DAMAGE_TEMPORAL_VARIATION", "PARAM_SYNC_DAMAGE_CHROMA_ENABLE", "PARAM_SYNC_DAMAGE_CHROMA_TINT", "PARAM_SYNC_DAMAGE_MAGENTA_TINT", "PARAM_SYNC_DAMAGE_GREEN_TINT", "PARAM_SYNC_DAMAGE_RGB_OFFSET", "PARAM_SYNC_DAMAGE_CHROMA_BLEED", "PARAM_SYNC_DAMAGE_ANIMATION_MODE", "PARAM_SYNC_DAMAGE_INPUT_MODE", "PARAM_SYNC_DAMAGE_ANIMATION_SPEED", "PARAM_SYNC_DAMAGE_RANDOM_SEED", "PARAM_SYNC_DAMAGE_BLEND_INPUT", "PARAM_SYNC_DAMAGE_EFFECT_AMOUNT", "PARAM_SYNC_DAMAGE_END"]
+if enum_items[-41:-1] != expected_sync_damage_tail:
+    fail("Sync Collapse & Luma Dropout controls must be appended without renumbering legacy AE parameters.")
 expected_params = enum_items[1:-1]
 
 setup_match = re.search(r"static\s+PF_Err\s+ParamsSetup\s*\([^)]*\)\s*\{", SOURCE)
@@ -88,6 +91,27 @@ for topic_name in ("Waves / Static", "Grain", "Tracking Noise", "Head Switching"
 
 if "READ_FLOAT(PARAM_GROUND_LOOP,groundLoop)" not in SOURCE:
     fail("Ground Loop must be read from its AE parameter into RenderSettings.")
+for token in (
+    "PARAM_SYNC_DAMAGE_TEAR_AMOUNT", "PARAM_SYNC_DAMAGE_BAND_INTENSITY", "PARAM_SYNC_DAMAGE_BAND_DENSITY",
+    "PARAM_SYNC_DAMAGE_BAND_HEIGHT", "PARAM_SYNC_DAMAGE_BAND_IRREGULARITY", "PARAM_SYNC_DAMAGE_DISPLACEMENT",
+    "PARAM_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION", "PARAM_SYNC_DAMAGE_COVERAGE", "PARAM_SYNC_DAMAGE_LUMA_INSTABILITY",
+    "PARAM_SYNC_DAMAGE_BRIGHT_FLASH", "PARAM_SYNC_DAMAGE_DARK_COLLAPSE", "PARAM_SYNC_DAMAGE_EVENT_FREQUENCY",
+    "PARAM_SYNC_DAMAGE_EVENT_DURATION", "PARAM_SYNC_DAMAGE_TRANSITION_SHARPNESS", "PARAM_SYNC_DAMAGE_LOCAL_LUMA",
+    "PARAM_SYNC_DAMAGE_MANUAL_BRIGHT", "PARAM_SYNC_DAMAGE_MANUAL_DARK", "PARAM_SYNC_DAMAGE_DROPOUT_DENSITY",
+    "PARAM_SYNC_DAMAGE_STREAK_LENGTH", "PARAM_SYNC_DAMAGE_STREAK_BRIGHTNESS", "PARAM_SYNC_DAMAGE_DARK_DROPOUT",
+    "PARAM_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION", "PARAM_SYNC_DAMAGE_TEMPORAL_VARIATION", "PARAM_SYNC_DAMAGE_CHROMA_TINT",
+    "PARAM_SYNC_DAMAGE_MAGENTA_TINT", "PARAM_SYNC_DAMAGE_GREEN_TINT", "PARAM_SYNC_DAMAGE_RGB_OFFSET",
+    "PARAM_SYNC_DAMAGE_CHROMA_BLEED", "PARAM_SYNC_DAMAGE_ANIMATION_SPEED", "PARAM_SYNC_DAMAGE_RANDOM_SEED",
+    "PARAM_SYNC_DAMAGE_BLEND_INPUT", "PARAM_SYNC_DAMAGE_EFFECT_AMOUNT",
+):
+    if f"READ_FLOAT({token}," not in SOURCE:
+        fail("Sync Collapse & Luma Dropout float control is not read: " + token)
+for token in ("PARAM_SYNC_DAMAGE_ENABLE", "PARAM_SYNC_DAMAGE_LUMA_ENABLE", "PARAM_SYNC_DAMAGE_DROPOUTS_ENABLE", "PARAM_SYNC_DAMAGE_CHROMA_ENABLE"):
+    if f"CheckoutCheckbox(in_data,{token}," not in SOURCE:
+        fail("Sync Collapse & Luma Dropout checkbox is not read: " + token)
+for token in ("PARAM_SYNC_DAMAGE_ANIMATION_MODE", "PARAM_SYNC_DAMAGE_INPUT_MODE"):
+    if f"CheckoutPopup(in_data,{token}," not in SOURCE:
+        fail("Sync Collapse & Luma Dropout popup is not read: " + token)
 for layer in (2, 3, 4):
     for field in ("ANGLE", "MOTION_X", "MOTION_Y"):
         token = f"READ_FLOAT(PARAM_TRACK_LAYER{layer}_{field},"
@@ -105,6 +129,52 @@ if 'PF_ADD_POPUP("Tear & Chroma Mode",5,5,kTearChromaModeChoices,ID_TEAR_CHROMA_
     fail("The five Tear & Chroma modes must remain visible in Effect Controls.")
 if 'PF_ADD_POPUP("Pattern Type",13,2,kStaticPatternChoices,ID_PATTERN_MODE)' not in setup_body:
     fail("All thirteen procedural static modes must remain visible in Effect Controls.")
+
+for required in [
+    'PF_ADD_CHECKBOX("Enable Sync Collapse","Enable",0,0,ID_SYNC_DAMAGE_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Horizontal Tear Amount",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Band Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Band Density",1,32',
+    'PF_ADD_FLOAT_SLIDERX("Band Height",1,100',
+    'PF_ADD_FLOAT_SLIDERX("Band Irregularity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Horizontal Displacement (px)",0,160',
+    'PF_ADD_FLOAT_SLIDERX("Boundary Fragmentation",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Full-Frame Coverage",0,100',
+    'PF_ADD_CHECKBOX("Enable Luma Instability","Enable",1,0,ID_SYNC_DAMAGE_LUMA_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Luma Instability",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Bright Flash Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Dark Collapse Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Event Frequency (Hz)",0.1,10',
+    'PF_ADD_FLOAT_SLIDERX("Event Duration (s)",0.05,2',
+    'PF_ADD_FLOAT_SLIDERX("Transition Sharpness",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Local Band Luma Variation",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Manual Bright Pulse",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Manual Dark Collapse",0,100',
+    'PF_ADD_CHECKBOX("Enable Fine Dropouts","Enable",1,0,ID_SYNC_DAMAGE_DROPOUTS_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Dropout Streak Density",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Streak Length (px)",2,120',
+    'PF_ADD_FLOAT_SLIDERX("Streak Brightness",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Dark Dropout Amount",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Horizontal Fragmentation",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Temporal Variation",0,100',
+    'PF_ADD_CHECKBOX("Enable Chromatic Variation","Enable",1,0,ID_SYNC_DAMAGE_CHROMA_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Subtle Chroma Tint",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Magenta Tint",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Green Tint",0,100',
+    'PF_ADD_FLOAT_SLIDERX("RGB Offset (px)",0,8',
+    'PF_ADD_FLOAT_SLIDERX("Chroma Bleed",0,100',
+    'PF_ADD_POPUP("Animation Mode",3,1,kSyncDamageAnimationChoices',
+    'PF_ADD_POPUP("Input Mode",2,1,kSyncDamageInputChoices',
+    'PF_ADD_FLOAT_SLIDERX("Animation Speed",0,400',
+    'PF_ADD_FLOAT_SLIDERX("Random Seed",1,32767',
+    'PF_ADD_FLOAT_SLIDERX("Blend With Input",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Effect Amount",0,100',
+]:
+    if required not in setup_body:
+        fail("Missing Sync Collapse & Luma Dropout control: " + required)
+sync_topic = topic_body("Sync Collapse & Luma Dropout")
+if "PF_PUI_NO_ECW_UI" in sync_topic:
+    fail("Sync Collapse & Luma Dropout controls must remain visible in Effect Controls.")
 
 for required in [
     'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100',
@@ -173,7 +243,7 @@ end_map = {
     "ID_OSD_WORDS_TOPIC": "PARAM_OSD_WORDS_END", "ID_GRAIN_TOPIC": "PARAM_GRAIN_END",
     "ID_TAPE_SURFACE_DETAIL_TOPIC": "PARAM_TAPE_SURFACE_DETAIL_END",
     "ID_OSD_TEXT_EDIT_TOPIC": "PARAM_OSD_TEXT_EDIT_END",
-    "ID_PLAYBACK_TOPIC": "PARAM_PLAYBACK_END", "ID_GROUND_LOOP_TOPIC": "PARAM_GROUND_LOOP_END", "ID_TRACK_LAYER_MOTION_TOPIC": "PARAM_TRACK_LAYER_MOTION_END",
+    "ID_PLAYBACK_TOPIC": "PARAM_PLAYBACK_END", "ID_GROUND_LOOP_TOPIC": "PARAM_GROUND_LOOP_END", "ID_TRACK_LAYER_MOTION_TOPIC": "PARAM_TRACK_LAYER_MOTION_END", "ID_SYNC_DAMAGE_TOPIC": "PARAM_SYNC_DAMAGE_END",
     "ID_EXTENDED_VHS_PRESET_TOPIC": "PARAM_EXTENDED_VHS_PRESET_END",
 }
 aliases = {
