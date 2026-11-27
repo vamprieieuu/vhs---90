@@ -1602,7 +1602,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         if(compositeStages&&master>0.0f) {
             CompositeParams p;
             p.strength=master;
-            p.demodulator=CompositeDemodulator::ConsumerNotch;
+            p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);
             p.geometry.roundedOverscan=clamp01(s.roundedOverscan/100.0f);
             p.demodulator=CompositeDemodulator::ConsumerNotch;
             if(s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0) {
