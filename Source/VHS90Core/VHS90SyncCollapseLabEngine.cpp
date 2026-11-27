@@ -165,7 +165,9 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
             const float sourceR=p.premultipliedAlpha&&alpha>1.0e-6f?original[0]/alpha:original[0];
             const float sourceG=p.premultipliedAlpha&&alpha>1.0e-6f?original[1]/alpha:original[1];
             const float sourceB=p.premultipliedAlpha&&alpha>1.0e-6f?original[2]/alpha:original[2];
-            const float outR=lerp(r,sourceR,blendInput),outG=lerp(g,sourceG,blendInput),outB=lerp(b,sourceB,blendInput);
+            const float outR=blendInput>=1.0f?sourceR:(blendInput<=0.0f?r:lerp(r,sourceR,blendInput));
+            const float outG=blendInput>=1.0f?sourceG:(blendInput<=0.0f?g:lerp(g,sourceG,blendInput));
+            const float outB=blendInput>=1.0f?sourceB:(blendInput<=0.0f?b:lerp(b,sourceB,blendInput));
             const float finalR=p.premultipliedAlpha?outR*alpha:outR;
             const float finalG=p.premultipliedAlpha?outG*alpha:outG;
             const float finalB=p.premultipliedAlpha?outB*alpha:outB;
