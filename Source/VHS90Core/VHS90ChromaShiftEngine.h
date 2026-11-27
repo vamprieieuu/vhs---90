@@ -1,5 +1,6 @@
 #pragma once
 #include "VHS90SignalKernels.h"
+#include <cstdint>
 namespace vhs90 {
 struct ChromaChannelShiftParams {
     float shiftPixels=0.0f;
