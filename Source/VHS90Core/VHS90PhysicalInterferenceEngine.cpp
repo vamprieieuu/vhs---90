@@ -74,7 +74,9 @@ bool processPhysicalInterference(ConstImageView src, ImageView dst,
     const float headGain = magneticHeadSignalGain(p);
     const float erase = magneticTapeEraseFraction(p);
     const float signalGain = std::clamp(headGain * (1.0f - 0.82f * erase), 0.0f, 1.0f);
-    const float humDrive = std::clamp(std::fabs(p.groundLoopMillivolts) / 500.0f, 0.0f, 1.0f);
+    const float loopDrive = std::clamp(std::fabs(p.groundLoopMillivolts) / 500.0f, 0.0f, 1.0f);
+    // Mains Hum is an independent control; a zero Ground Loop setting must not mute it.
+    const float humDrive = loopDrive > 0.0f ? loopDrive : 1.0f;
     const float rfDrive = std::clamp(std::fabs(p.rfFieldVPerM) / 40.0f, 0.0f, 1.0f) * rf;
 
     if (signalGain >= 0.999999f && hum <= 0.0f && humDrive <= 0.0f && rfDrive <= 0.0f) {
