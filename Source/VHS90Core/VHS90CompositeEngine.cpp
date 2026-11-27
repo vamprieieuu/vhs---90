@@ -128,21 +128,34 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
 
         std::vector<float> vcrProcessed;
         if(p.vcrSignalEnabled) {
+            constexpr int samplesPerNtscLine=1820;
             vcrProcessed.resize(count*4);
             ImageView vcrView{vcrProcessed.data(),w,h,w*4};
+            std::vector<float> lineY(samplesPerNtscLine),lineI(samplesPerNtscLine),lineQ(samplesPerNtscLine);
+            std::vector<float> lineSpacing(samplesPerNtscLine,0.0f);
+            std::vector<float> outY(samplesPerNtscLine),outI(samplesPerNtscLine),outQ(samplesPerNtscLine);
             for(int row=0;row<h;++row) {
-                std::vector<float> lineY(w),lineI(w),lineQ(w),lineSpacing(w,0.0f);
-                std::vector<float> outY(w),outI(w),outQ(w);
-                for(int x=0;x<w;++x) {
-                    const RGB rgb=readStraight(input,x,row,p.premultipliedAlpha);
-                    const YIQ yiq=rgbToYiq(rgb);
-                    lineY[x]=7.5f+92.5f*yiq.y;lineI[x]=yiq.i;lineQ[x]=yiq.q;
+                for(int sample=0;sample<samplesPerNtscLine;++sample) {
+                    const float sx=(float(sample)+0.5f)*float(w)/float(samplesPerNtscLine)-0.5f;
+                    const int x0=std::clamp(int(std::floor(sx)),0,w-1),x1=std::min(x0+1,w-1);
+                    const float f=std::clamp(sx-float(x0),0.0f,1.0f);
+                    const YIQ a=rgbToYiq(readStraight(input,x0,row,p.premultipliedAlpha));
+                    const YIQ b=rgbToYiq(readStraight(input,x1,row,p.premultipliedAlpha));
+                    lineY[sample]=7.5f+92.5f*(a.y+(b.y-a.y)*f);
+                    lineI[sample]=a.i+(b.i-a.i)*f;
+                    lineQ[sample]=a.q+(b.q-a.q)*f;
                 }
                 VcrSignalParams vp=p.vcrSignal;vp.lineIndex=row;
-                if(!processVcrSignalLine(lineY.data(),lineI.data(),lineQ.data(),lineSpacing.data(),lineY.size(),vp,
-                                         outY.data(),outI.data(),outQ.data()))return false;
+                if(!processVcrSignalLine(lineY.data(),lineI.data(),lineQ.data(),lineSpacing.data(),
+                                         lineY.size(),vp,outY.data(),outI.data(),outQ.data()))return false;
                 for(int x=0;x<w;++x) {
-                    const YIQ yiq{(outY[x]-7.5f)/92.5f,outI[x],outQ[x]};
+                    const float sampleX=(float(x)+0.5f)*float(samplesPerNtscLine)/float(w)-0.5f;
+                    const int s0=std::clamp(int(std::floor(sampleX)),0,samplesPerNtscLine-1);
+                    const int s1=std::min(s0+1,samplesPerNtscLine-1);
+                    const float f=std::clamp(sampleX-float(s0),0.0f,1.0f);
+                    const YIQ yiq{((outY[s0]+(outY[s1]-outY[s0])*f)-7.5f)/92.5f,
+                                  outI[s0]+(outI[s1]-outI[s0])*f,
+                                  outQ[s0]+(outQ[s1]-outQ[s0])*f};
                     const RGB rgb=yiqToRgb(yiq);
                     float* dstPixel=vcrView.rgba+static_cast<std::ptrdiff_t>(row)*vcrView.rowStrideFloats+x*4;
                     const float* srcPixel=input.rgba+static_cast<std::ptrdiff_t>(row)*input.rowStrideFloats+x*4;

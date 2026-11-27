@@ -148,7 +148,7 @@ bool processVcrSignalLine(const float* y,const float* inI,const float* inQ,
     if(p.amount<=0.0f){std::copy_n(y,count,outY);std::copy_n(inI,count,outI);std::copy_n(inQ,count,outQ);return true;}
     try {
         std::vector<float> emphasis(count),rf(count),rfSpaced(count),fmR(count),fmI(count);
-        std::vector<float> cu(count),cuSpaced(count),mixI(count),mixQ(count),lpI(count),lpQ(count);
+        std::vector<float> cu(count),cuSpaced(count),mixI(count),mixQ(count);
         std::vector<float> demod(count),low(count),scratch(count),spacingClamped(count);
         const auto em=buildVcrShelf(kEmphasisZero,kEmphasisPole);
         const auto de=buildVcrShelf(kEmphasisPole,kEmphasisZero);
