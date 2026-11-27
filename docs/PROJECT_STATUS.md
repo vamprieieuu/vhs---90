@@ -1,15 +1,28 @@
 # VHS-90 — Project Status
 
-Updated: 2026-11-20
+Updated: 2026-11-28
 
-Latest verified source-pipeline fix: `eb8969184c2d80638cfcb1165dd1984ca02015c2` — moved Image Grade after decoded-frame creation so the composite pipeline no longer references `decodedView` before initialization.
+Latest verified native build: commit `a0207fabfdca96039daffea63ee910dfdf34c113` — Windows x64 / MSVC 2022 AEX build, AE parameter-contract validation and 36/36 Windows CTest tests passed; Linux CTest passed 35/35. The direct AEX is 882,688 bytes (SHA-256 `fe5bd3b1fb434c69c9b8928078cff5b8e151fac35caa36b6ff58b249a02d870b`).
 
 ## Current state
 
 - Plugin name: VHS-90.
 - The repository contains scoped audits of the supplied source archive and an expanding set of host-independent C++ processing modules. The 15 `github repos/` sources are being treated as a separate audit/migration queue. The first three folders (Analog-NTSC, BarashNTSC, ComfyUI RetroTape) now have complete file-by-file audits and portable algorithm migrations at source level; the remaining 12 folders are still in progress.
 - An initial native AE host adapter now exists in `Source/VHS90Effect.cpp`, with PiPL identity/flags, an optional Windows/MSVC CMake target, a PiPL generation script and `build.ps1`.
-- The host adapter has not yet been compiled with MSVC against a local AE SDK or loaded in After Effects. There is no verified AEX artifact and no claim of AE load/render success.
+- The native AE adapter has now compiled successfully with Windows x64 / MSVC 2022 against the checked-in VHS6RIFT Adobe SDK/PiPL tools and bundled Rooyin/Sponge fonts. A verified single-file `VHS-90.aex` has been produced and published. It has **not** yet been loaded or rendered inside After Effects; no AE GUI/MFR success is claimed.
+
+## Current verified release checkpoint — 2026-11-28
+
+- Active development branch: `phase3-preset-camera-migration-2026-11-27`; current commit: `a0207fabfdca96039daffea63ee910dfdf34c113`.
+- Draft PR #6 remains open against `phase2-signal-engine-audit-2026-11-27`; it is mergeable but intentionally not merged pending host/visual acceptance.
+- Windows workflow run `46081478106`: PASS. Checked-in VHS6RIFT SDK, PiPLtool and both bundled font files verified; AE parameter-contract validator passed; MSVC build and PiPL generation passed; all 36 Windows CTest tests passed; root output `build/VHS-90.aex` verified at 882,688 bytes.
+- Linux workflow run `46081478092`: PASS, 35/35 CTest tests. PR validation run `46081482646`: PASS, 35/35 CTest tests.
+- Direct release asset: [VHS-90.aex](https://github.com/vamprieieuu/vhs---90/releases/download/vhs90-aex-a0207fabfdca/VHS-90.aex). SHA-256: `fe5bd3b1fb434c69c9b8928078cff5b8e151fac35caa36b6ff58b249a02d870b`.
+- The latest warning-cleanup commit made float conversions explicit, removed an unused helper/local, and corrected a test fill literal. Remaining compiler notices are from the Adobe SDK's legacy `strncpy` use and the intentional `/UNDEBUG` override that keeps smoke-test assertions enabled; GitHub Actions also reports upstream Node.js action deprecation notices.
+- Damage Lab source integration now includes independent Snow/Background Noise, Sync Collapse & Luma Dropout, unified Signal Noise controls, Tracking region rotation/motion coverage, and distinct Localized Headbleed vs Multi-Band Tear behavior. The corresponding Linux and Windows smoke suites pass; this does not establish visual parity.
+- **Still open:** load the AEX in the target After Effects version, apply it to real footage, verify save/reopen and parameter behavior, exercise Legacy and SmartFX/MFR/out-of-order rendering, verify Arabic/English OSD in-host, and compare controlled renders against the supplied VHS camera references. NTSCRT timeline/keyframe parity and NTSC-QT pre-emphasis/spectral ringing remain source-port follow-ups.
+
+The sections below are dated implementation/audit history. Their older build and readiness statements describe the state at the date shown and are superseded by the current checkpoint above.
 
 ## Work completed in this pass
 
@@ -60,18 +73,16 @@ Latest verified source-pipeline fix: `eb8969184c2d80638cfcb1165dd1984ca02015c2` 
 - VHS6RIFT native harness compile attempt: FAIL, with SDK fallback/ABI/API declaration errors.
 - No Windows/MSVC build or After Effects runtime test has been performed.
 
-## Next engineering gates
+## Current release gates
 
-1. Compile the new AE host adapter on Windows x64 with MSVC 2022 and the exact AE SDK; fix every compiler/linker/PiPL error.
-2. Verify AE 23.2.1 loads the AEX, applies it, previews, renders, changes parameter values and survives repeated renders/MFR.
-3. Verify SmartFX full-frame checkout and output-region cropping at full resolution, downsampled previews, non-zero origins and cropped/tiled renders.
-4. Verify ARGB32, ARGB64 and ARGB128 output, premultiplied alpha, transparent edges and HDR float values.
-5. Continue porting the high-value source algorithms: full composite sync/burst/AFC/PLL, dropout/blackout/hold, tape-surface defects, OSD/font shaping and Blue Screen mode.
-6. Complete the remaining source/reference audits and connect the modules to unified presets and the final UI.
-7. Compare actual AE renders against the supplied reference clips/stills before marking visual matching complete.
-8. Complete the full audit and applicable code port for each of the 15 bundled GitHub repositories one folder at a time. Analog-NTSC is the first repository in this 15-folder queue to reach a complete 31/31 file audit and an integrated raw-waveform NTSC mode (CI 20/20). BarashNTSC is the second repository with a complete 10/10 file audit and its portable algorithm set connected, including previous-frame ghost through a second SmartFX checkout ID. Core CI passed 20/20; Windows AE SDK build and live MFR validation remain pending. ComfyUI RetroTape is the third folder with a complete 25/25 file audit and its portable signal kernels migrated; core CI passed 24/24 at run `44605607911`. Host-specific ComfyUI/Python/CUDA UI and preview infrastructure is excluded. Static AE parameter count is 78/78. NTSCRT has a new expanded audit checkpoint at `docs/source-audits/41-ntscrt-expanded-audit.md`: current upstream tree 359 files / 59 directories, partial source review and one integrated physical track-read kernel (CI 26/26); it is not yet complete. Five repository folders have reached their current audit/port completion checkpoint; NTSCRT is the sixth folder under active partial audit, and the remaining nine folders are still queued. The `vhs-main` folder is confirmed (28 files) and has two detailed source-audit reports; its OFX/Metal host layer is not directly portable, but its PAL, geometry, scanline, bandwidth, OSD ordering and bloom concepts are being selectively ported. The upstream remote URL remains unverified from the recovered context.
+1. Load the published AEX in the target After Effects release (AE 2023/24 as appropriate), apply it to footage, save/reopen the project, and confirm there is no crash or black frame.
+2. Exercise Legacy and SmartFX paths, ARGB32/64/128, premultiplied alpha, transparent edges, HDR float values, cropped/tiled output, downsampled previews, MFR and out-of-order frames.
+3. Verify the Arabic/English OSD editor, DirectWrite shaping, RTL order, date/digit localization, font persistence and all VHS Tape deck labels in the AE host.
+4. Compare controlled before/after renders against the supplied VHS camera clips and plugin references; tune visual intensity/temporal behavior only from those renders.
+5. Continue the remaining source-specific gaps: NTSCRT timeline/keyframe conversion and full record/playback parity, NTSC-QT pre-emphasis/spectral ringing, and documented VHSPro/VHSCraft exact tuple/temporal-state limitations.
+6. Keep PR #6 Draft until the host and visual gates are accepted; then review the phase branch/base integration before merging.
 
-Do not call VHS-90 test-ready until the Windows build and in-host validation gates pass.
+The native compile and CPU test gates pass, but VHS-90 is **not yet AE-host verified or visually accepted**.
 
 
 ## NTSCRT integration update — 2026-11-20 (current)
