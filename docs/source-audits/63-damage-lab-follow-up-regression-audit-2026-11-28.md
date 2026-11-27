@@ -46,3 +46,35 @@ This follow-up pass re-opened the native Damage Lab implementation and smoke tes
 - Actual visual calibration of Tracking Noise, Head Switching, Tear Chroma, Static, tape-surface defects, Dropouts, RF instability and combined effects remains open until an AE render/capture is available.
 - No pixel-perfect claim is made from C++ smoke tests.
 - Stage 1 remains open until the AE visual pass is completed; Stage 2 must not be treated as started/closed by this report.
+
+
+## Additional source-reference implementation: Sync Collapse & Luma Dropout
+
+The source folder `VHS/vhs damage lap/Procedural Pattern Engine/Procedural Static Generator` contains a separate specification for a dedicated Sync Collapse & Luma Dropout engine. The previous generic Sync engine did not implement the full requested three-part system (horizontal sync-collapse bands, luma event pulses, and fine horizontal dropout streaks). A dedicated engine was therefore added rather than overloading the older Sync Collapse effect.
+
+Implemented files:
+- `Source/VHS90Core/VHS90SyncCollapseLabEngine.h`
+- `Source/VHS90Core/VHS90SyncCollapseLabEngine.cpp`
+- `Tests/VHS90SyncCollapseLabEngineSmoke.cpp`
+
+Integration:
+- Registered in CMake and called from the main render pipeline.
+- Added a visible `Sync Collapse & Luma Dropout` Effect Controls topic with controls for band geometry, luma events, bright/dark event probabilities, keyframed manual pulses, fine dropouts, restrained chromatic tint, animation/input modes, seed, blend-with-input and effect amount.
+- Added parameter reads to both SmartFX `ReadSettings` and the active LegacyRender path.
+- All new AE parameter IDs are appended after existing parameters; previous serialized parameter indices are not renumbered.
+- Generated Signal mode no longer depends on source RGB; source blending is explicit. Original alpha is preserved and premultiplied sampling is handled per shifted channel.
+- Horizontal displacement is constrained to the damaged band region, leaving the outer frame geometry stable.
+
+Additional smoke coverage:
+- Deterministic output and temporal variation.
+- Independent manual bright and dark keyframed pulses.
+- Independent automatic bright/dark event probabilities.
+- Frozen mode stability across different composition times.
+- Generated signal independence from source image values.
+- Exact full-input blend identity and disabled/zero-strength bypasses.
+- Transparent-pixel and premultiplied-alpha preservation.
+
+Validation:
+- Linux CTest on commit `ca98630dd8a8d8552d3681ae6a4f3bf3eee49f6b`: 34/34 passed.
+- Windows x64/MSVC build for that commit is still in progress at the time of this note.
+- Actual After Effects visual comparison remains pending; compilation and smoke tests do not close the visual-validation gate.
