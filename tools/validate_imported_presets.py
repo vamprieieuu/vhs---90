@@ -67,6 +67,9 @@ required_reads = [
     "CheckoutPopup(in_data,PARAM_TRACKING_PRESET_3,s.trackingLayerPreset[1])",
     "CheckoutPopup(in_data,PARAM_TRACKING_PRESET_4,s.trackingLayerPreset[2])",
     "CheckoutPopup(in_data,PARAM_PATTERN_MODE,s.staticMode)",
+    "CheckoutPopup(in_data,PARAM_DECODER_MODE,s.compositeDecoder)",
+    "READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency)",
+    "READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength)",
     "READ_FLOAT(PARAM_PATTERN_ANGLE,staticAngle)",
     "READ_FLOAT(PARAM_PATTERN_WIDTH,staticRibbonWidth)",
     "READ_FLOAT(PARAM_PATTERN_GREEN,staticGreenLine)",
@@ -202,7 +205,7 @@ for needle in [
     "op.batteryAmount=clamp01(s.osdBattery/100.0f);op.showBattery=s.osdBattery>0.0f;",
     "b(s.osdPlay,v[36]>0.5f?100.0f:0.0f);b(s.osdTimestamp,v[36]>0.5f?100.0f:0.0f);b(s.osdBattery,v[36]>0.5f?75.0f:0.0f);",
     "||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f",
-    "p.demodulator=CompositeDemodulator::ConsumerNotch;",
+    "p.demodulator=s.compositeDecoder==3?CompositeDemodulator::TwoLineComb:(s.compositeDecoder==2?CompositeDemodulator::OneLineComb:CompositeDemodulator::ConsumerNotch);",
     "p.inputBandwidth.lumaCutoffHz=blendCutoff(4200000.0f,tapeBandwidth.lumaCutoffHz);",
     "p.outputBandwidth.lumaCutoffHz=blendCutoff(4200000.0f,tapeBandwidth.lumaCutoffHz*0.90f);",
     "kLostSignalProfiles[13][45]",
@@ -297,6 +300,10 @@ print("PASS: curated 32-entry VHS Style menu maps to distinct source recipes; le
 print("PASS: all 7 audited preset families have native menu entries; Crates maps 44 recovered source fields per look, while VHSPro/VHSCraft remain source-inspired where exact tuples were not recoverable.")
 print("PASS: camera profiles and NTSC-RS Signal Looks remain wired; retired Playback, Decoder, Frame, HUD and Signal Network groups are removed; Particle looks are folded into Static.")
 assert "p.mode=static_cast<StaticPatternMode>(std::clamp<A_long>(s.staticMode-1,0,12));" in source, "Static Pattern mode must be mapped through all supported modes"
+assert 'PF_ADD_POPUP("Raster Decoder",3,1,kCompositeDecoderChoices,ID_DECODER_MODE)' in source
+assert "p.demodulator=CompositeDemodulator::ConsumerNotch;" not in source, "Raster Decoder selection must not be overwritten"
+assert 'PF_ADD_FLOAT_SLIDERX("Frame Repeat Frequency"' in source
+assert 'PF_ADD_FLOAT_SLIDERX("Frame Repeat Strength"' in source
 assert 'kStaticPatternChoices[]="Dark-Field Speckles|Full-Frame Horizontal|Top Strip|Bottom-Weighted Streaks|Monochrome Streaks|Split-Band Chromatic|Static to Blackout|Dark-Field Luma Streaks|Multi-Phase Green Line|Two-Stage Angular Ribbon|Diagonal Sync Collapse|Colored Speckles|Vertical Columns"' in source, "Static pattern menu must expose the two recovered procedural particle modes"
 assert 'PF_ADD_POPUP("Pattern Type",13,2,kStaticPatternChoices,ID_PATTERN_MODE)' in source, "All static modes must be selectable in Effect Controls"
 assert 'PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Pattern Type"' not in source, "Static pattern mode selector must not be hidden from Effect Controls"
