@@ -42,7 +42,7 @@ enum ParamIndex {
     PARAM_EDGE_ENHANCE, PARAM_TAPE_FADE, PARAM_BLACK_LIFT, PARAM_TEMPORAL_GHOST,     
            
         
-    PARAM_GEOMETRY, PARAM_INTERLACE, PARAM_VERTICAL_ROLL, PARAM_EDGE_WAVE, PARAM_EDGE_WAVE_FREQUENCY, PARAM_EDGE_WAVE_SPEED, PARAM_EDGE_WAVE_DETAIL, PARAM_SCANLINES, PARAM_NTSCRS_TOPIC, PARAM_NTSCRS_LOOK, PARAM_NTSCRS_INTENSITY, PARAM_NTSCRS_PHASE_NOISE, PARAM_NTSCRS_END, PARAM_SIGNAL_END, PARAM_RINGING_TOPIC, PARAM_RINGING, PARAM_RINGING_POWER, PARAM_CRT_EQUALIZER, PARAM_RINGING_END, PARAM_GLOW_TOPIC, PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_ANALOG_GLOW, PARAM_GLOW_END, PARAM_GENERAL_TOPIC, PARAM_GRADE_CONTRAST, PARAM_GRADE_BRIGHTNESS, PARAM_GRADE_SATURATION, PARAM_VIGNETTE, PARAM_FLICKER, PARAM_GENERAL_END, PARAM_CHROMA_TOPIC, PARAM_CHROMA_SHIFT, PARAM_CHROMA_REG_RED, PARAM_CHROMA_REG_BLUE, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA, PARAM_CHROMA_DELAY, PARAM_CHROMA_LOSS, PARAM_CHROMA_FLUTTER, PARAM_YC_CROSSTALK, PARAM_COLOR_PHASE_DRIFT, PARAM_COLOR_DRIFT, PARAM_GRADE_I_GAIN, PARAM_GRADE_Q_GAIN, PARAM_GRADE_I_OFFSET, PARAM_GRADE_Q_OFFSET, PARAM_GRADE_CHROMA_QUANTIZATION, PARAM_CHROMA_EDGE_ENHANCE, PARAM_CHROMA_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
+    PARAM_GEOMETRY, PARAM_INTERLACE, PARAM_VERTICAL_ROLL, PARAM_EDGE_WAVE, PARAM_EDGE_WAVE_FREQUENCY, PARAM_EDGE_WAVE_SPEED, PARAM_EDGE_WAVE_DETAIL, PARAM_SCANLINES, PARAM_NTSCRS_TOPIC, PARAM_NTSCRS_LOOK, PARAM_NTSCRS_INTENSITY, PARAM_NTSCRS_PHASE_NOISE, PARAM_NTSCRS_END, PARAM_SIGNAL_END, PARAM_RINGING_TOPIC, PARAM_RINGING, PARAM_RINGING_POWER, PARAM_CRT_EQUALIZER, PARAM_RINGING_END, PARAM_GLOW_TOPIC, PARAM_LUMA_SMEAR, PARAM_BLOOM, PARAM_ANALOG_GLOW, PARAM_GLOW_END, PARAM_GENERAL_TOPIC, PARAM_GRADE_CONTRAST, PARAM_GRADE_BRIGHTNESS, PARAM_GRADE_SATURATION, PARAM_VIGNETTE, PARAM_FLICKER, PARAM_GENERAL_END, PARAM_CHROMA_TOPIC, PARAM_CHROMA_SHIFT, PARAM_CHROMA_REG_RED, PARAM_CHROMA_REG_GREEN, PARAM_CHROMA_REG_BLUE, PARAM_CHROMA_REG_MODE, PARAM_CHROMA_SUBSAMPLE, PARAM_VERTICAL_CHROMA, PARAM_VERTICAL_LUMA, PARAM_CHROMA_DELAY, PARAM_CHROMA_LOSS, PARAM_CHROMA_FLUTTER, PARAM_YC_CROSSTALK, PARAM_COLOR_PHASE_DRIFT, PARAM_COLOR_DRIFT, PARAM_GRADE_I_GAIN, PARAM_GRADE_Q_GAIN, PARAM_GRADE_I_OFFSET, PARAM_GRADE_Q_OFFSET, PARAM_GRADE_CHROMA_QUANTIZATION, PARAM_CHROMA_EDGE_ENHANCE, PARAM_CHROMA_END, PARAM_STATIC_TOPIC, PARAM_STATIC_AMOUNT,
     PARAM_STATIC_DENSITY, PARAM_STATIC_END, PARAM_GRAIN_TOPIC, PARAM_LUMA_NOISE, PARAM_CHROMA_NOISE, PARAM_COMPOSITE_NOISE, PARAM_NOISE_HUE, PARAM_VHS6RIFT_GRAIN, PARAM_VHS6RIFT_GRAIN_SIZE, PARAM_VHS6RIFT_NOISE_DETAIL, PARAM_VHS6RIFT_SHADOW_BIAS, PARAM_VHS6RIFT_NOISE_ENABLE, PARAM_VHS6RIFT_NOISE_SEED, PARAM_SIGNAL_HUE_NOISE, PARAM_GRAIN_END, PARAM_TRACKING_TOPIC, PARAM_TRACKING_AMOUNT,
     PARAM_TRACKING_SHAPE, PARAM_TRACKING_CENTER_X, PARAM_TRACKING_CENTER_Y,
     PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_ANGLE, PARAM_TRACKING_MOTION_X,
@@ -360,6 +360,8 @@ enum ParamDiskID {
     ID_COMPOSITE_NOISE=19,
     ID_NOISE_HUE=20,
 
+    ID_CHROMA_REG_GREEN=9056,
+    ID_CHROMA_REG_MODE=9057,
 };
 constexpr A_long kInputCheckoutID=1;
 static char kTrackingShapeChoices[]="Horizontal Band|Vertical Band|Rectangle";
@@ -373,6 +375,7 @@ static char kColorSystemChoices[]="NTSC|PAL";
 static char kTapeSpeedChoices[]="SP|LP|EP";
 static char kVhsStyleChoices[]="Custom|Clean VHS|Vintage VHS|Heavy VHS|Bad Tracking|Very Bad Tracking|Unstable VCR|Tape Damage|Static Interference|Color Bleed|Color Shift|Signal Loss|Severe Analog Glitch|Soft Transfer|Classic Transfer|Reference Analog|Crate Archive Standard|Crate Violet Transfer|Crate Signal Corruption|Crate Handheld Camcorder|Neutral Playback|Fresh Cassette|Aged Cassette|Tracking Failure|Home Video Camera|Chroma Bleed|Multi-Generation Dub|Craft Clean|Craft Sharp|Violet Glow|Green Glow|Tape Monochrome";
 static char kCameraProfileChoices[]="Off|JVC GR-C7U|JVC GR-AX220U|JVC GR-AX920U|JVC GR-SXM37US|JVC GR-SXM740U|Sony CCD-TR55|JVC GR-S55|Panasonic NV-M1|RCA CMR300|FXC6 Direct Capture|Gen 7 Reference";
+static char kRgbChannelModeChoices[]="RGB Split|Red/Cyan|Green/Magenta|Blue/Yellow";
 static char kNtscRsLookChoices[]="Custom|VHS-90 Natural NTSC|VHS-90 Home SP|VHS-90 LP Tape|VHS-90 EP Tape|VHS-90 Tracking Snow|VHS-90 Chroma Loss|VHS-90 Edge Wave|VHS-90 Field Blend|VHS-90 Composite Smear|VHS-90 Chroma Instability";
 static char kSignalModelChoices[]="Raster NTSC|Full Waveform NTSC";
 static char kCompositeDecoderChoices[]="Consumer Notch|One-Line Comb|Two-Line Comb";
@@ -393,7 +396,7 @@ struct RenderSettings {
     A_long colorSystem=1, signalModel=1, tapeSpeed=1, compositeDecoder=1, vhs43Frame=0;
     float roundedOverscan=0.0f, lensDistortion=0.0f, digitalZoom=1.0f, osdBattery=0.0f;
     float frameRepeatFrequency=0.0f, frameRepeatStrength=0.0f;
-    float tapeDetail=100.0f, trackRead=0.0f, trackMisalignment=0.0f, chromaShift=0.0f, redChannelOffset=0.0f, blueChannelOffset=0.0f;
+    float tapeDetail=100.0f, trackRead=0.0f, trackMisalignment=0.0f, chromaShift=0.0f, redChannelOffset=0.0f, greenChannelOffset=0.0f, blueChannelOffset=0.0f; A_long chromaRegMode=1;
     float chromaSubsample=0, verticalChroma=0, verticalLuma=0;
     float lumaNoise=0, chromaNoise=0, compositeNoise=0, noiseHue=0;
     float rfDrift=0, rfHum=0, rfAm=0, agcPump=0, impulseNoise=0, dropouts=0;
@@ -916,7 +919,9 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Chroma",ID_CHROMA_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift (RGB)",0,50,0,50,1.5f,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Red Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_RED);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Green Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_GREEN);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Blue Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_BLUE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("RGB Channel Mode",4,1,kRgbChannelModeChoices,ID_CHROMA_REG_MODE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Subsample / Bleed",0,100,0,100,16,1,PF_ValueDisplayFlag_PERCENT,0,ID_CHROMA_SUBSAMPLE);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Chroma Delay",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_CHROMA);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Vertical Luma Blur",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_VERTICAL_LUMA);
@@ -1226,7 +1231,7 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_TAPE_SPEED,s.tapeSpeed); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_TRACK_READ,trackRead);
     READ_FLOAT(PARAM_TRACK_MISALIGNMENT,trackMisalignment); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
-    READ_FLOAT(PARAM_CHROMA_REG_RED,redChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_BLUE,blueChannelOffset);
+    READ_FLOAT(PARAM_CHROMA_REG_RED,redChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_GREEN,greenChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_BLUE,blueChannelOffset); err=CheckoutPopup(in_data,PARAM_CHROMA_REG_MODE,s.chromaRegMode); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_CHROMA_SUBSAMPLE,chromaSubsample); READ_FLOAT(PARAM_VERTICAL_CHROMA,verticalChroma);
     READ_FLOAT(PARAM_VERTICAL_LUMA,verticalLuma);
     READ_FLOAT(PARAM_LUMA_NOISE,lumaNoise); READ_FLOAT(PARAM_CHROMA_NOISE,chromaNoise);
@@ -1433,7 +1438,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         const float masterOverdrive=std::clamp(masterDriveValue,0.0f,3.0f);
         const bool compositeStages=(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0.0f)||s.signalHueNoise>0.0f||s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.ntscRsPhaseNoise>0;
         const bool osdEnabled=s.osdAmount>0.0f;
-        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||osdEnabled;
+        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.greenChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||osdEnabled;
         if(!any||(master<=0.0f&&!osdEnabled)) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
@@ -2008,9 +2013,10 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(!processDamageRegions(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
-        if(master>0.0f&&(s.redChannelOffset!=0.0f||s.blueChannelOffset!=0.0f)) {
+        if(master>0.0f&&(s.redChannelOffset!=0.0f||s.greenChannelOffset!=0.0f||s.blueChannelOffset!=0.0f)) {
             RgbChannelRegistrationParams rp; rp.redOffsetPixels=s.redChannelOffset*master/100.0f;
-            rp.blueOffsetPixels=s.blueChannelOffset*master/100.0f; rp.premultipliedAlpha=true;
+            rp.greenOffsetPixels=s.greenChannelOffset*master/100.0f; rp.blueOffsetPixels=s.blueChannelOffset*master/100.0f;
+            rp.mode=static_cast<RgbRegistrationMode>(std::clamp<A_long>(s.chromaRegMode-1,0,3)); rp.premultipliedAlpha=true;
             ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
             if(!processRgbChannelRegistration(in,out,rp)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
@@ -2132,7 +2138,9 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.tapeVaseline=float(params[PARAM_TAPE_VASELINE]->u.fs_d.value); s.tapeSticky=float(params[PARAM_TAPE_STICKY]->u.fs_d.value); s.tapeSeed=float(params[PARAM_TAPE_SEED]->u.fs_d.value); s.backTension=float(params[PARAM_TAPE_BACK_TENSION]->u.fs_d.value);
     s.trackMisalignment=float(params[PARAM_TRACK_MISALIGNMENT]->u.fs_d.value);
     s.redChannelOffset=float(params[PARAM_CHROMA_REG_RED]->u.fs_d.value);
+    s.greenChannelOffset=float(params[PARAM_CHROMA_REG_GREEN]->u.fs_d.value);
     s.blueChannelOffset=float(params[PARAM_CHROMA_REG_BLUE]->u.fs_d.value);
+    s.chromaRegMode=params[PARAM_CHROMA_REG_MODE]->u.pd.value;
     s.chromaShift=float(params[PARAM_CHROMA_SHIFT]->u.fs_d.value);
     s.chromaSubsample=float(params[PARAM_CHROMA_SUBSAMPLE]->u.fs_d.value);
     s.verticalChroma=float(params[PARAM_VERTICAL_CHROMA]->u.fs_d.value);
