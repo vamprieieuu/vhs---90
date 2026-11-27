@@ -303,8 +303,8 @@ lost_rows = [line for line in source[lost_start:lost_end].splitlines() if line.l
 assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 complete profiles, got {len(lost_rows)}"
 assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 45 for line in lost_rows), "Every Lost Signal VHS profile must define all 45 mapped values"
 print(f"PASS: {len(active_indices)} AE parameter slots; persistent disk IDs are unique and stable across UI reordering.")
-print("PASS: legacy 32-entry VHS Style menu remains compatible; expanded menu exposes all 40 omitted recipes without changing old IDs.")
-print("PASS: all 71 source-derived VHS style recipes are selectable across the legacy and expanded menus; exact-source-value limits remain documented.")
+print("PASS: unified 72-entry VHS Style menu preserves the original 32 values and appends 40 additional recipes.")
+print("PASS: all 71 source-derived VHS style recipes are selectable from one opening menu; source-tuple and visual-parity limits remain documented.")
 print("PASS: camera profiles and NTSC-RS Signal Looks remain wired; retired Playback, Decoder, Frame, HUD and Signal Network groups are removed; Particle looks are folded into Static.")
 assert "p.mode=static_cast<StaticPatternMode>(std::clamp<A_long>(s.staticMode-1,0,12));" in source, "Static Pattern mode must be mapped through all supported modes"
 assert 'PF_ADD_POPUP("Raster Decoder",3,1,kCompositeDecoderChoices,ID_DECODER_MODE)' in source
