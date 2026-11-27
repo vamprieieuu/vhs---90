@@ -78,3 +78,36 @@ Validation:
 - Linux CTest on commit `ca98630dd8a8d8552d3681ae6a4f3bf3eee49f6b`: 34/34 passed.
 - Windows x64/MSVC build for that commit is still in progress at the time of this note.
 - Actual After Effects visual comparison remains pending; compilation and smoke tests do not close the visual-validation gate.
+
+
+## Independent Snow and Background Noise layer
+
+A dedicated procedural Snow engine was added rather than treating Snow as Grain or as Tracking Noise:
+
+- `Source/VHS90Core/VHS90SnowEngine.h`
+- `Source/VHS90Core/VHS90SnowEngine.cpp`
+- `Tests/VHS90SnowEngineSmoke.cpp`
+
+The appended `Snow & Background Noise` topic exposes Enable, Intensity, Density, Size, Distribution, Contrast, Brightness, Color, Monochrome/Colored mode, Temporal Variation, Randomness, Animation Speed and Seed. `Background Noise Intensity` is a separate control and continues to work with Snow disabled. Snow/background noise run before Tracking Noise so the tracking bands remain a distinct upper layer. Both paths preserve alpha and are deterministic/MFR-safe.
+
+## Unified Signal Noise layer
+
+The existing `VHS90AnalogNoiseEngine` was extended instead of duplicating Grain, Luma Noise, Chroma Noise, Composite Noise or Static:
+
+- New master `Signal Noise Intensity` scales the analog signal-noise components.
+- `Signal Noise Frequency` and `Signal Noise Size` set spatial cell frequency/scale.
+- `Signal Noise Density` and `Signal Noise Distribution` control sparse and clustered noise.
+- `Horizontal Line Intensity` adds independently adjustable horizontal interference.
+- `Signal Noise Animation Speed` changes signal-noise/tape-line temporal evolution.
+- Existing Grain intensity/size/detail, luma/chroma noise, hue variation, random seed and Static Amount remain separate controls; the new master does not turn off Grain.
+
+The new controls are appended to the AE parameter list and are read in both SmartFX and LegacyRender. The contract validator checks their UI visibility and parameter reads.
+
+## Source-term verification and remaining source limitation
+
+The tracking specification contains the label `Snow Inspiratory`. I did not map that phrase to `Snow Intensity` by assumption: it was not found as a parameter or symbol in the checked-in NTSC-CRT v2.3.2 source, nor in the current repo tree under an NTSC-R source. The NTSC-CRT `crt_demodulate(..., noise)` argument is a signal-domain noise amount; it is not evidence that `Snow Inspiratory` means screen-space snow. The repo tree also did not contain the requested VHS Tape AEX or Ghidra reverse-engineering files. A targeted Library search returned Dither-related prompt files, not those VHS source artifacts. This exact source mapping remains unverified.
+
+Validation at commit `3ffca52c2e76010d5d10cad3d71cde25666c19f1`:
+- Linux CTest: all 35/35 tests passed, including the new Sync Collapse, Snow and Analog Signal Noise regressions.
+- Windows x64/MSVC build and its full test run are still in progress at the time of this note.
+- After Effects visual comparisons remain pending; unit tests and a successful native build do not substitute for host-render validation.
