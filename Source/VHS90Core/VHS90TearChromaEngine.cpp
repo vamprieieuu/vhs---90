@@ -90,8 +90,13 @@ bool processTearChroma(ConstImageView src,ImageView dst,const TearChromaParams&p
                 }
             }
             const bool bandsEnabled=p.mode!=TearChromaMode::SpectralSmear;
+            std::size_t appliedBands=0;
             for(std::size_t bi=0;bandsEnabled&&bi<p.bandCount;++bi) {
                 const TearBand& band=p.bands[bi];if(!band.enabled||band.intensity<=0.0f)continue;
+                // Localized Headbleed is a single spatial defect; Multi-Band Tear
+                // and Spectral + Lower Tear deliberately process every enabled band.
+                if(p.mode==TearChromaMode::LocalizedHeadbleed&&appliedBands>0)break;
+                ++appliedBands;
                 const float cy=band.centerY+band.motionYPerSecond*t;
                 const float cx=band.centerX+band.motionXPerSecond*t;
                 const float halfH=std::max(0.0f,band.height)*.5f;
