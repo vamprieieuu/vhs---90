@@ -917,7 +917,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Flicker",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FLICKER);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_GENERAL_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Chroma",ID_CHROMA_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift (RGB)",0,50,0,50,1.5f,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
+    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma Shift",0,50,0,50,1.5f,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_SHIFT);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Red Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_RED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Green Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_GREEN);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Blue Channel Registration",-20,20,-20,20,0,1,PF_ValueDisplayFlag_NONE,0,ID_CHROMA_REG_BLUE);
