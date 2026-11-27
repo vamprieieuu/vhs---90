@@ -46,8 +46,10 @@ inline EventState evaluateEvent(const SyncCollapseLabParams& p,double time) noex
     const float eventChoice=hash(int(eventIndex),19,p.seed+0x85ebca6bu,0);
     const float brightProbability=clamp01(p.brightEventProbability);
     const float darkProbability=clamp01(p.darkEventProbability);
-    if(eventChoice>=brightProbability+darkProbability) return {};
-    const bool isBright=eventChoice<brightProbability;
+    const float totalProbability=brightProbability+darkProbability;
+    if(totalProbability<=0.0f||eventChoice>=std::min(1.0f,totalProbability)) return {};
+    const float polarityChoice=hash(int(eventIndex),23,p.seed+0xc2b2ae35u,0);
+    const bool isBright=polarityChoice<brightProbability/std::max(1.0e-6f,totalProbability);
     return isBright?EventState{envelope*clamp01(p.brightFlashIntensity),0.0f}
                    :EventState{0.0f,envelope*clamp01(p.darkCollapseIntensity)};
 }
@@ -95,7 +97,7 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
         const bool inside=coverage>0.0f&&v>=coverageTop&&v<=coverageTop+coverage;
         const float localV=inside?(v-coverageTop)/coverage:0.0f;
         const float rowNoise=hash(0,y/3,p.seed+0x68bc21ebu,tick);
-        const float rowWave=std::sin(float(time)*2.3f+float(y)*0.041f);
+        const float rowWave=std::sin(float(time)*2.3f+float(y)*0.041f)*temporal;
         const float rowShiftBase=(rowNoise-0.5f)*2.0f*displacement*tear*(0.35f+temporal*0.65f)
                                 +rowWave*displacement*tear*0.12f;
         const int bandIndex=inside?std::clamp(int(localV*float(bandCount)),0,bandCount-1):-1;
@@ -130,12 +132,16 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
             const float dropoutStrength=dropout?(dropoutType>0.58f?clamp01(p.streakBrightness):clamp01(p.darkDropoutAmount)):0.0f;
             const float rowShift=rowShiftBase*bandMask+rowTear+(dropout?(segmentRand-0.5f)*streakLength*0.65f:0.0f);
             const float sx=float(x)+rowShift;
-            const float sampleA=sample(src,sx,float(y),3);
-            float r=sample(src,sx-rgbOffset-bleed*3.0f,float(y),0);
+            const float rX=sx-rgbOffset-bleed*3.0f,bX=sx+rgbOffset+bleed*3.0f;
+            float r=sample(src,rX,float(y),0);
             float g=sample(src,sx,float(y),1);
-            float b=sample(src,sx+rgbOffset+bleed*3.0f,float(y),2);
-            if(p.premultipliedAlpha&&sampleA>1.0e-6f) { r/=sampleA;g/=sampleA;b/=sampleA; }
-            else if(p.premultipliedAlpha) r=g=b=0.0f;
+            float b=sample(src,bX,float(y),2);
+            if(p.premultipliedAlpha) {
+                const float alphaR=sample(src,rX,float(y),3),alphaG=sample(src,sx,float(y),3),alphaB=sample(src,bX,float(y),3);
+                r=alphaR>1.0e-6f?r/alphaR:0.0f;
+                g=alphaG>1.0e-6f?g/alphaG:0.0f;
+                b=alphaB>1.0e-6f?b/alphaB:0.0f;
+            }
             const float generatedBase=0.025f+0.035f*hash(x/8,y/4,p.seed+0x13198a2eu,tick);
             if(p.inputMode==SyncDamageInputMode::GeneratedSignal) r=g=b=generatedBase;
             const float sourceLuma=p.inputMode==SyncDamageInputMode::GeneratedSignal?generatedBase:luma(r,g,b);
