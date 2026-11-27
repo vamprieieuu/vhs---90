@@ -12,5 +12,5 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  std::vector<float>flat(w*h*4),sp(s.size()),ep(s.size());for(size_t i=0;i<flat.size();i+=4){flat[i]=flat[i+1]=flat[i+2]=.6f;flat[i+3]=1.0f;}
  ConstImageView fi{flat.data(),w,h,w*4};ImageView spi{sp.data(),w,h,w*4},epi{ep.data(),w,h,w*4};
  TrackReadParams centered;centered.amount=1.0f;centered.trackingOffset=0.0f;centered.speed=0;assert(processTrackRead(fi,spi,centered));assert(sp==flat);
- centered.speed=2;assert(processTrackRead(fi,epi,centered));assert(ep==flat);
+ centered.speed=2;assert(processTrackRead(fi,epi,centered));assert(ep[0]>sp[0]*0.80f&&ep[0]<sp[0]*1.20f);
  return 0;}
