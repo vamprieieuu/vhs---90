@@ -63,7 +63,8 @@ else:
     print("SMARTFX_ADVERTISED=NO (kept disabled pending AE black-frame regression test)")
 
 osd_at = render.find("if(osdEnabled)")
-composite_at = render.find("if(compositeStages)")
+composite_match = re.search(r"if\s*\(\s*compositeStages\b", render)
+composite_at = composite_match.start() if composite_match else -1
 if osd_at < 0 or composite_at < 0 or osd_at >= composite_at:
     fail("OSD must be composited before VHS/NTSC signal processing")
 if "drawDirectWriteText" not in render or "s.osdText" not in render:
