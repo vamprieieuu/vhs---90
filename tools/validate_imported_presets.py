@@ -264,7 +264,7 @@ assert lost_end > lost_start, "Unterminated Lost Signal VHS profile table"
 lost_rows = [line for line in source[lost_start:lost_end].splitlines() if line.lstrip().startswith("{")]
 assert len(lost_rows) == 13, f"Lost Signal VHS profile table must contain 13 complete profiles, got {len(lost_rows)}"
 assert all(len(line.strip().lstrip("{").rstrip(",").rstrip("}").split(",")) == 45 for line in lost_rows), "Every Lost Signal VHS profile must define all 45 mapped values"
-print(f"PASS: {len(active_indices)} AE parameter slots; UI order matches all disk IDs.")
+print(f"PASS: {len(active_indices)} AE parameter slots; persistent disk IDs are unique and stable across UI reordering.")
 print("PASS: curated 32-entry VHS Style menu maps to distinct source recipes; legacy recipe IDs remain supported for saved projects.")
 print("PASS: all 7 audited preset families have native menu entries; Crates maps 44 recovered source fields per look, while VHSPro/VHSCraft remain source-inspired where exact tuples were not recoverable.")
 print("PASS: camera profiles and NTSC-RS Signal Looks remain wired; retired Playback, Decoder, Frame, HUD, Particle and Signal Network groups are removed.")
