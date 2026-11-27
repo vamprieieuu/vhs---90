@@ -755,7 +755,15 @@ static void ApplyNtscRsVhsLook(RenderSettings& s) noexcept {
     }
 }
 static void ApplyVhsSourcePresets(RenderSettings& s) noexcept {
+    // Curated Phase-1 menu: duplicate/near-duplicate looks are removed from the UI,
+    // while each selected item maps back to an existing source-backed recipe.
+    static constexpr A_long kCuratedStyleMap[]={
+        1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,21,26,55,56,58,59,60,61,62,63,64,66,67,68,69,70,72
+    };
+    const A_long uiStyle=s.vhsStyle;
+    if(uiStyle>=1 && uiStyle<=static_cast<A_long>(std::size(kCuratedStyleMap))) s.vhsStyle=kCuratedStyleMap[uiStyle-1];
     ApplyVhs6RiftStylePreset(s);
+    s.vhsStyle=uiStyle;
     ApplyVhs6RiftCameraProfile(s);
     ApplyNtscRsVhsLook(s);
 }
