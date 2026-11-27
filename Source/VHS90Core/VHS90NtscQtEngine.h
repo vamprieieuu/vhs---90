@@ -7,6 +7,7 @@ struct NtscQtParams {
     // Source NtscQT controls: ringing alpha 0..1, seeded frequency-mask noise,
     // and Y-only pre-emphasis amount 0..8 at a 1 MHz default cutoff.
     bool spectralRingingEnabled = false;
+    float amount = 1.0f;
     float alpha = 0.65f;
     float frequencyNoiseSize = 0.0f;
     float frequencyNoiseAmplitude = 2.0f;

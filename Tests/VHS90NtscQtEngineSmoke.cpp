@@ -28,7 +28,8 @@ int main() {
     for(std::size_t k=0;k<src.size();k+=4){src[k]=0.7f;src[k+1]=0.2f;src[k+2]=0.4f;src[k+3]=(k%8==0)?0.0f:1.0f;}
     ConstImageView si{src.data(),w,h,w*4};ImageView di{dst.data(),w,h,w*4};
     NtscQtParams p;p.spectralRingingEnabled=true;p.alpha=0.4f;
-    assert(processNtscQtSignal(si,di,p));
+    p.amount=0.0f;assert(processNtscQtSignal(si,di,p));assert(dst==src);
+    p.amount=1.0f;assert(processNtscQtSignal(si,di,p));
     for(std::size_t k=3;k<src.size();k+=4)assert(dst[k]==src[k]);
     return 0;
 }

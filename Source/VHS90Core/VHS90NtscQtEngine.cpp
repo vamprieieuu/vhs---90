@@ -127,9 +127,10 @@ bool processNtscQtSignal(ConstImageView src,ImageView dst,const NtscQtParams& ra
     p.frequencyNoiseSize=clampFinite(p.frequencyNoiseSize,0.0f,1.0f,0.0f);
     p.frequencyNoiseAmplitude=clampFinite(p.frequencyNoiseAmplitude,0.0f,5.0f,2.0f);
     p.preEmphasis=clampFinite(p.preEmphasis,0.0f,8.0f,0.0f);
+    p.amount=clampFinite(p.amount,0.0f,1.0f,1.0f);
     p.preEmphasisCutoffMHz=clampFinite(p.preEmphasisCutoffMHz,0.05f,6.0f,1.0f);
     if(p.fieldMode<0||p.fieldMode>2)return false;
-    if(!p.spectralRingingEnabled && p.preEmphasis<=0.0f) {
+    if(p.amount<=0.0f || (!p.spectralRingingEnabled && p.preEmphasis<=0.0f)) {
         for(int y=0;y<src.height;++y)
             std::copy_n(src.rgba+static_cast<std::ptrdiff_t>(y)*src.rowStrideFloats,
                         src.width*4,dst.rgba+static_cast<std::ptrdiff_t>(y)*dst.rowStrideFloats);
@@ -163,7 +164,9 @@ bool processNtscQtSignal(ConstImageView src,ImageView dst,const NtscQtParams& ra
         }
         for(int row=0;row<h;++row)for(int x=0;x<w;++x) {
             const std::size_t at=static_cast<std::size_t>(row)*w+x;
-            const RGB rgb=yiqToRgb({y[at],i[at],q[at]});
+            const YIQ original=rgbToYiq({src.rgba[static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4],src.rgba[static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4+1],src.rgba[static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4+2]});
+            const YIQ result{original.y+(y[at]-original.y)*p.amount,original.i+(i[at]-original.i)*p.amount,original.q+(q[at]-original.q)*p.amount};
+            const RGB rgb=yiqToRgb(result);
             const float* original=src.rgba+static_cast<std::ptrdiff_t>(row)*src.rowStrideFloats+x*4;
             float* out=dst.rgba+static_cast<std::ptrdiff_t>(row)*dst.rowStrideFloats+x*4;
             out[3]=original[3];
