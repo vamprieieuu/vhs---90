@@ -169,9 +169,9 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
             const float finalR=p.premultipliedAlpha?outR*alpha:outR;
             const float finalG=p.premultipliedAlpha?outG*alpha:outG;
             const float finalB=p.premultipliedAlpha?outB*alpha:outB;
-            output[0]=original[0]+(finalR-original[0])*effect;
-            output[1]=original[1]+(finalG-original[1])*effect;
-            output[2]=original[2]+(finalB-original[2])*effect;
+            output[0]=effect>=1.0f?finalR:original[0]+(finalR-original[0])*effect;
+            output[1]=effect>=1.0f?finalG:original[1]+(finalG-original[1])*effect;
+            output[2]=effect>=1.0f?finalB:original[2]+(finalB-original[2])*effect;
             output[3]=alpha;
         }
     }
