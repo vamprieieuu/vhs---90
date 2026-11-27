@@ -131,7 +131,7 @@ bool processCompositeRoundTrip(ConstImageView src,ImageView dst,
             vcrProcessed.resize(count*4);
             ImageView vcrView{vcrProcessed.data(),w,h,w*4};
             for(int row=0;row<h;++row) {
-                std::vector<float> lineY(w),lineI(w),lineQ(w),lineSpacing(w,p.vcrSignal.spacingUm);
+                std::vector<float> lineY(w),lineI(w),lineQ(w),lineSpacing(w,0.0f);
                 std::vector<float> outY(w),outI(w),outQ(w);
                 for(int x=0;x<w;++x) {
                     const RGB rgb=readStraight(input,x,row,p.premultipliedAlpha);

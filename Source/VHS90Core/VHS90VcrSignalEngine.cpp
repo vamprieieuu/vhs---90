@@ -154,7 +154,7 @@ bool processVcrSignalLine(const float* y,const float* inI,const float* inQ,
         const auto de=buildVcrShelf(kEmphasisPole,kEmphasisZero);
         const auto lumaLp=buildVcrLowPass(3.0);
         const auto chromaLp=buildVcrLowPass(0.55);
-        firstOrder(y,count,em.data(),emphasis.data());
+        firstOrder(y,count,em,emphasis.data());
         double phase=kVcrTau*vcrUniform(p.seed,p.frame,p.lineIndex,0,9);
         const double dt=1.0/kVcrSampleRateMHz;
         const double cuStep=kVcrTau*(40.0/63.556)/kVcrSampleRateMHz;
