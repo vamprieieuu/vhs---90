@@ -257,6 +257,9 @@ assert 'PF_ADD_FLOAT_SLIDERX("Exposure (EV)",-3,3,-3,3,0,2,PF_ValueDisplayFlag_N
 assert "osdFont=13, osdExtraLabel=1" in source, "New OSD instances must default to the bundled Rooyin Arabic font"
 assert 'PF_ADD_POPUP("OSD Font Family",15,13,kOsdFontChoices,ID_OSD_FONT)' in source, "OSD font popup must default to bundled Rooyin while preserving legacy font choices"
 assert '"RooyinFree"' in source and '"YR Sponge Arabic"' in source, "Bundled OSD fonts must remain addressable by their DirectWrite family names"
+assert 'PF_ADD_BUTTON("OSD Text Editor","Edit Text...",0,PF_ParamFlag_SUPERVISE,ID_OSD_TEXT_EDIT)' in source, "OSD text must have a visible supervised editor button"
+assert "case PF_Cmd_USER_CHANGED_PARAM: err=UserChangedParam(in_data,params,extra); break;" in source, "OSD editor button must reach its user-change handler"
+assert "PF_ChangeFlag_CHANGED_VALUE" in source and "VHS90CreateOsdText" in source, "OSD text editor must persist edits into the arbitrary-data stream"
 style_pos=source.find('PF_ADD_TOPIC("VHS Style & Presets",ID_VHS_STYLE_TOPIC)')
 master_pos=source.find('PF_ADD_FLOAT_SLIDERX("Master Strength"')
 signal_pos=source.find('PF_ADD_TOPIC("Signal",ID_SIGNAL_TOPIC)')
