@@ -75,8 +75,6 @@ bool processPhysicalInterference(ConstImageView src, ImageView dst,
     const float erase = magneticTapeEraseFraction(p);
     const float signalGain = std::clamp(headGain * (1.0f - 0.82f * erase), 0.0f, 1.0f);
     const float loopDrive = std::clamp(std::fabs(p.groundLoopMillivolts) / 500.0f, 0.0f, 1.0f);
-    // Mains Hum is an independent control; a zero Ground Loop setting must not mute it.
-    const float humDrive = loopDrive > 0.0f ? loopDrive : 1.0f;
     const float rfDrive = std::clamp(std::fabs(p.rfFieldVPerM) / 40.0f, 0.0f, 1.0f) * rf;
 
     if (signalGain >= 0.999999f && hum <= 0.0f && rfDrive <= 0.0f) {
@@ -89,8 +87,11 @@ bool processPhysicalInterference(ConstImageView src, ImageView dst,
     const float frameTime = float(p.frame) / p.framesPerSecond;
     const float mainsHz = std::clamp(p.mainsFrequencyHz, 1.0f, 400.0f);
     const float rfCyclesPerPixel = std::clamp(p.rfCarrierMHz, 0.1f, 19.0f) * 0.03125f;
-    const float humOffset = (0.002f + 0.045f * hum) * humDrive;
-    const float humGain = 1.0f + 0.018f * hum * humDrive;
+    // Keep mains hum independent from ground-loop voltage. Ground-loop
+    // pickup contributes its own small bias/gain term without attenuating
+    // the dedicated Mains Hum control at low nonzero loop voltages.
+    const float humOffset = 0.002f * loopDrive + 0.045f * hum;
+    const float humGain = 1.0f + 0.006f * loopDrive + 0.018f * hum;
 
     for (int y = 0; y < src.height; ++y) {
         const float lineTime = frameTime + float(y) /
