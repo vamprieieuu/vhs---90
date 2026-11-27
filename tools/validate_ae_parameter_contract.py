@@ -22,12 +22,16 @@ for raw in enum_match.group(1).split(","):
         enum_items.append(match.group(1))
 if not enum_items or enum_items[0] != "PARAM_INPUT" or enum_items[-1] != "PARAM_COUNT":
     fail("ParamIndex must start with PARAM_INPUT and end with PARAM_COUNT.")
-if enum_items[-57:-54] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
+if enum_items[-73:-70] != ["PARAM_GROUND_LOOP_TOPIC", "PARAM_GROUND_LOOP", "PARAM_GROUND_LOOP_END"]:
     fail("Ground Loop parameters must remain appended after all legacy AE parameters.")
-if enum_items[-54:-43] != ["PARAM_TRACK_LAYER_MOTION_TOPIC", "PARAM_TRACK_LAYER2_ANGLE", "PARAM_TRACK_LAYER2_MOTION_X", "PARAM_TRACK_LAYER2_MOTION_Y", "PARAM_TRACK_LAYER3_ANGLE", "PARAM_TRACK_LAYER3_MOTION_X", "PARAM_TRACK_LAYER3_MOTION_Y", "PARAM_TRACK_LAYER4_ANGLE", "PARAM_TRACK_LAYER4_MOTION_X", "PARAM_TRACK_LAYER4_MOTION_Y", "PARAM_TRACK_LAYER_MOTION_END"]:
+if enum_items[-70:-59] != ["PARAM_TRACK_LAYER_MOTION_TOPIC", "PARAM_TRACK_LAYER2_ANGLE", "PARAM_TRACK_LAYER2_MOTION_X", "PARAM_TRACK_LAYER2_MOTION_Y", "PARAM_TRACK_LAYER3_ANGLE", "PARAM_TRACK_LAYER3_MOTION_X", "PARAM_TRACK_LAYER3_MOTION_Y", "PARAM_TRACK_LAYER4_ANGLE", "PARAM_TRACK_LAYER4_MOTION_X", "PARAM_TRACK_LAYER4_MOTION_Y", "PARAM_TRACK_LAYER_MOTION_END"]:
     fail("Tracking layer direction/motion parameters must remain appended after the previous AE controls.")
+expected_snow_tail = ["PARAM_SNOW_TOPIC", "PARAM_SNOW_ENABLE", "PARAM_SNOW_INTENSITY", "PARAM_SNOW_DENSITY", "PARAM_SNOW_SIZE", "PARAM_SNOW_DISTRIBUTION", "PARAM_SNOW_CONTRAST", "PARAM_SNOW_BRIGHTNESS", "PARAM_SNOW_COLOR", "PARAM_SNOW_MODE", "PARAM_SNOW_TEMPORAL_VARIATION", "PARAM_SNOW_RANDOMNESS", "PARAM_SNOW_ANIMATION_SPEED", "PARAM_SNOW_SEED", "PARAM_BACKGROUND_NOISE_INTENSITY", "PARAM_SNOW_END"]
+if enum_items[-17:-1] != expected_snow_tail:
+    fail("Snow and background-noise parameters must be appended without renumbering legacy AE parameters.")
+
 expected_sync_damage_tail = ["PARAM_SYNC_DAMAGE_TOPIC", "PARAM_SYNC_DAMAGE_ENABLE", "PARAM_SYNC_DAMAGE_TEAR_AMOUNT", "PARAM_SYNC_DAMAGE_BAND_INTENSITY", "PARAM_SYNC_DAMAGE_BAND_DENSITY", "PARAM_SYNC_DAMAGE_BAND_HEIGHT", "PARAM_SYNC_DAMAGE_BAND_IRREGULARITY", "PARAM_SYNC_DAMAGE_DISPLACEMENT", "PARAM_SYNC_DAMAGE_BOUNDARY_FRAGMENTATION", "PARAM_SYNC_DAMAGE_COVERAGE", "PARAM_SYNC_DAMAGE_LUMA_ENABLE", "PARAM_SYNC_DAMAGE_LUMA_INSTABILITY", "PARAM_SYNC_DAMAGE_BRIGHT_FLASH", "PARAM_SYNC_DAMAGE_DARK_COLLAPSE", "PARAM_SYNC_DAMAGE_EVENT_FREQUENCY", "PARAM_SYNC_DAMAGE_EVENT_DURATION", "PARAM_SYNC_DAMAGE_BRIGHT_PROBABILITY", "PARAM_SYNC_DAMAGE_DARK_PROBABILITY", "PARAM_SYNC_DAMAGE_TRANSITION_SHARPNESS", "PARAM_SYNC_DAMAGE_LOCAL_LUMA", "PARAM_SYNC_DAMAGE_MANUAL_BRIGHT", "PARAM_SYNC_DAMAGE_MANUAL_DARK", "PARAM_SYNC_DAMAGE_DROPOUTS_ENABLE", "PARAM_SYNC_DAMAGE_DROPOUT_DENSITY", "PARAM_SYNC_DAMAGE_STREAK_LENGTH", "PARAM_SYNC_DAMAGE_STREAK_BRIGHTNESS", "PARAM_SYNC_DAMAGE_DARK_DROPOUT", "PARAM_SYNC_DAMAGE_HORIZONTAL_FRAGMENTATION", "PARAM_SYNC_DAMAGE_TEMPORAL_VARIATION", "PARAM_SYNC_DAMAGE_CHROMA_ENABLE", "PARAM_SYNC_DAMAGE_CHROMA_TINT", "PARAM_SYNC_DAMAGE_MAGENTA_TINT", "PARAM_SYNC_DAMAGE_GREEN_TINT", "PARAM_SYNC_DAMAGE_RGB_OFFSET", "PARAM_SYNC_DAMAGE_CHROMA_BLEED", "PARAM_SYNC_DAMAGE_ANIMATION_MODE", "PARAM_SYNC_DAMAGE_INPUT_MODE", "PARAM_SYNC_DAMAGE_ANIMATION_SPEED", "PARAM_SYNC_DAMAGE_RANDOM_SEED", "PARAM_SYNC_DAMAGE_BLEND_INPUT", "PARAM_SYNC_DAMAGE_EFFECT_AMOUNT", "PARAM_SYNC_DAMAGE_END"]
-if enum_items[-43:-1] != expected_sync_damage_tail:
+if enum_items[-59:-17] != expected_sync_damage_tail:
     fail("Sync Collapse & Luma Dropout controls must be appended without renumbering legacy AE parameters.")
 expected_params = enum_items[1:-1]
 
@@ -112,6 +116,13 @@ for token in ("PARAM_SYNC_DAMAGE_ENABLE", "PARAM_SYNC_DAMAGE_LUMA_ENABLE", "PARA
 for token in ("PARAM_SYNC_DAMAGE_ANIMATION_MODE", "PARAM_SYNC_DAMAGE_INPUT_MODE"):
     if f"CheckoutPopup(in_data,{token}," not in SOURCE:
         fail("Sync Collapse & Luma Dropout popup is not read: " + token)
+if "CheckoutCheckbox(in_data,PARAM_SNOW_ENABLE," not in SOURCE:
+    fail("Snow Enable checkbox is not read into RenderSettings.")
+if "CheckoutPopup(in_data,PARAM_SNOW_MODE," not in SOURCE:
+    fail("Snow Color Mode popup is not read into RenderSettings.")
+for token in ("PARAM_SNOW_INTENSITY", "PARAM_SNOW_DENSITY", "PARAM_SNOW_SIZE", "PARAM_SNOW_DISTRIBUTION", "PARAM_SNOW_CONTRAST", "PARAM_SNOW_BRIGHTNESS", "PARAM_SNOW_COLOR", "PARAM_SNOW_TEMPORAL_VARIATION", "PARAM_SNOW_RANDOMNESS", "PARAM_SNOW_ANIMATION_SPEED", "PARAM_SNOW_SEED", "PARAM_BACKGROUND_NOISE_INTENSITY"):
+    if f"READ_FLOAT({token}," not in SOURCE:
+        fail("Snow/Background Noise control is not read: " + token)
 for layer in (2, 3, 4):
     for field in ("ANGLE", "MOTION_X", "MOTION_Y"):
         token = f"READ_FLOAT(PARAM_TRACK_LAYER{layer}_{field},"
@@ -177,6 +188,29 @@ for required in [
 sync_topic = topic_body("Sync Collapse & Luma Dropout")
 if "PF_PUI_NO_ECW_UI" in sync_topic:
     fail("Sync Collapse & Luma Dropout controls must remain visible in Effect Controls.")
+
+for required in [
+    'PF_ADD_TOPIC("Snow & Background Noise",ID_SNOW_TOPIC)',
+    'PF_ADD_CHECKBOX("Enable Snow","Enable",0,0,ID_SNOW_ENABLE)',
+    'PF_ADD_FLOAT_SLIDERX("Snow Intensity",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Density",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Size (px)",0.35,16',
+    'PF_ADD_FLOAT_SLIDERX("Snow Distribution",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Contrast",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Brightness",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Color",0,100',
+    'PF_ADD_POPUP("Snow Color Mode",2,1,kSnowColorChoices',
+    'PF_ADD_FLOAT_SLIDERX("Snow Temporal Variation",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Randomness",0,100',
+    'PF_ADD_FLOAT_SLIDERX("Snow Animation Speed",0,400',
+    'PF_ADD_FLOAT_SLIDERX("Snow Seed",1,32767',
+    'PF_ADD_FLOAT_SLIDERX("Background Noise Intensity",0,100',
+]:
+    if required not in setup_body:
+        fail("Missing Snow or Background Noise control: " + required)
+snow_topic = topic_body("Snow & Background Noise")
+if "PF_PUI_NO_ECW_UI" in snow_topic:
+    fail("Snow and Background Noise controls must remain visible in Effect Controls.")
 
 for required in [
     'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100',
@@ -245,7 +279,7 @@ end_map = {
     "ID_OSD_WORDS_TOPIC": "PARAM_OSD_WORDS_END", "ID_GRAIN_TOPIC": "PARAM_GRAIN_END",
     "ID_TAPE_SURFACE_DETAIL_TOPIC": "PARAM_TAPE_SURFACE_DETAIL_END",
     "ID_OSD_TEXT_EDIT_TOPIC": "PARAM_OSD_TEXT_EDIT_END",
-    "ID_PLAYBACK_TOPIC": "PARAM_PLAYBACK_END", "ID_GROUND_LOOP_TOPIC": "PARAM_GROUND_LOOP_END", "ID_TRACK_LAYER_MOTION_TOPIC": "PARAM_TRACK_LAYER_MOTION_END", "ID_SYNC_DAMAGE_TOPIC": "PARAM_SYNC_DAMAGE_END",
+    "ID_PLAYBACK_TOPIC": "PARAM_PLAYBACK_END", "ID_GROUND_LOOP_TOPIC": "PARAM_GROUND_LOOP_END", "ID_TRACK_LAYER_MOTION_TOPIC": "PARAM_TRACK_LAYER_MOTION_END", "ID_SYNC_DAMAGE_TOPIC": "PARAM_SYNC_DAMAGE_END", "ID_SNOW_TOPIC": "PARAM_SNOW_END",
     "ID_EXTENDED_VHS_PRESET_TOPIC": "PARAM_EXTENDED_VHS_PRESET_END",
 }
 aliases = {
