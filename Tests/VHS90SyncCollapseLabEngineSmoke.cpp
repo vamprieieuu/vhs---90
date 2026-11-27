@@ -51,7 +51,10 @@ int main() {
     assert(brightOnly!=darkOnly);
     eventParams.brightEventProbability=0.0f; eventParams.darkEventProbability=0.0f;
     assert(processSyncCollapseLab(input,noEventsView,eventParams));
-    assert(noEvents==src);
+    std::vector<float> noLumaEvents(src.size()); ImageView noLumaEventsView{noLumaEvents.data(),w,h,w*4};
+    SyncCollapseLabParams lumaDisabled=eventParams; lumaDisabled.lumaEnabled=false;
+    assert(processSyncCollapseLab(input,noLumaEventsView,lumaDisabled));
+    assert(noEvents==noLumaEvents);
 
     // Frozen mode must ignore composition time and produce a stable still.
     std::vector<float> frozenA(src.size()),frozenB(src.size());
