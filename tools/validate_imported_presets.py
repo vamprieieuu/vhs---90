@@ -279,11 +279,11 @@ assert all(x in source for x in ["READ_FLOAT(PARAM_TAPE_PINHOLES,tapePinholes)",
 assert "kLegacyVhsStyleRecipeMap[33]" in source and "kExtendedVhsStyleRecipeMap[41]" in source and "switch(styleRecipe)" in source, "Legacy and expanded menus must map to source recipe IDs"
 assert "p.noiseAmount*glitchBand" in sync_engine, "Sync Collapse noise must be gated by the active moving glitch band"
 assert "rgb.r*=exposure;rgb.g*=exposure;rgb.b*=exposure;" in grade_engine, "Exposure EV must be applied uniformly in RGB before YIQ grading"
-assert re.search(r"kLegacyVhsStyleRecipeMap\\[33\\]\\s*=\\s*\\{\\s*0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,\\s*55,56,58,59,60,61,63,66,67,68,69,72", source), "Legacy style mapping must preserve all prior popup values"
-extra_choices = re.search(r'kExtendedVhsStyleChoices\\[\\]\\s*=\\s*"([^"]+)"', source)
+assert re.search(r"kLegacyVhsStyleRecipeMap\[33\]\s*=\s*\{\s*0,1,2,3,4,5,6,7,9,11,12,13,15,16,18,19,26,39,42,45,52,\s*55,56,58,59,60,61,63,66,67,68,69,72", source), "Legacy style mapping must preserve all prior popup values"
+extra_choices = re.search(r'kExtendedVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
 assert extra_choices and len(extra_choices.group(1).split("|")) == 41, "Expanded VHS menu must expose Custom plus all 40 additional recipes"
 assert 'PF_ADD_POPUP("Additional VHS Style Preset",41,1,kExtendedVhsStyleChoices,ID_EXTENDED_VHS_PRESET)' in source
-extra_map = re.search(r"kExtendedVhsStyleRecipeMap\\[41\\]\\s*=\\s*\\{([^}]+)\\}", source)
+extra_map = re.search(r"kExtendedVhsStyleRecipeMap\[41\]\s*=\s*\{([^}]+)\}", source)
 assert extra_map, "Missing 40-recipe expanded menu map"
 extra_ids = [int(x.strip()) for x in extra_map.group(1).split(",")]
 assert len(extra_ids) == 41 and extra_ids[0] == 0
