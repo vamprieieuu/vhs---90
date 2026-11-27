@@ -114,8 +114,9 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
             const float rowFragment=hash(0,y/2,p.seed+0x94d049bbu,tick);
             if(rowFragment<fragmentation*0.28f) bandMask*=0.12f;
             const float brightLevel=0.58f+0.30f*bandRandom;
-            const float darkLevel=0.008f+0.075f*hash(bandIndex,13,p.seed+0x51ed270bu,tick);
-            bandLevel=(bandIndex&1)==0?brightLevel:darkLevel;
+            const float grayLevel=0.26f+0.22f*hash(bandIndex,13,p.seed+0x51ed270bu,tick);
+            const float darkLevel=0.008f+0.075f*hash(bandIndex,17,p.seed+0x94d049bbu,tick);
+            bandLevel=(bandIndex%3)==0?brightLevel:((bandIndex%3)==1?grayLevel:darkLevel);
         }
         const float localVariation=(hash(0,y/2,p.seed+0x165667b1u,tick)-0.5f)*clamp01(p.localBandLumaVariation)*0.28f;
         const float rowEventLuma=framePulse*(0.20f+0.80f*bandMask)*clamp01(p.lumaInstability);
@@ -162,11 +163,19 @@ bool processSyncCollapseLab(ConstImageView src,ImageView dst,const SyncCollapseL
                 damagedLuma=lerp(damagedLuma,target,dropoutMix);
             }
             const float chromaActivity=clamp01(bandMask*bandDrive+dropoutStrength*0.35f);
-            const float tintR=magenta*chromaActivity*0.12f-green*chromaActivity*0.025f;
-            const float tintG=green*chromaActivity*0.10f-magenta*chromaActivity*0.045f;
-            const float tintB=magenta*chromaActivity*0.12f-green*chromaActivity*0.035f;
             const float deltaLuma=damagedLuma-sourceLuma;
-            r+=deltaLuma+tintR;g+=deltaLuma+tintG;b+=deltaLuma+tintB;
+            r+=deltaLuma; g+=deltaLuma; b+=deltaLuma;
+            // The reference is predominantly monochrome; reserve color for restrained event-linked tint.
+            const float desaturation=clamp01(0.16f+bandMask*bandDrive*0.58f+(event.bright+event.dark)*0.10f);
+            r=lerp(r,damagedLuma,desaturation);
+            g=lerp(g,damagedLuma,desaturation);
+            b=lerp(b,damagedLuma,desaturation);
+            const float magentaEvent=magenta*chromaActivity*(0.15f+0.85f*event.bright);
+            const float greenEvent=green*chromaActivity*(0.15f+0.85f*event.dark);
+            const float tintR=magentaEvent*0.12f-greenEvent*0.025f;
+            const float tintG=greenEvent*0.10f-magentaEvent*0.045f;
+            const float tintB=magentaEvent*0.12f-greenEvent*0.035f;
+            r+=tintR; g+=tintG; b+=tintB;
             const float sourceR=p.premultipliedAlpha&&alpha>1.0e-6f?original[0]/alpha:original[0];
             const float sourceG=p.premultipliedAlpha&&alpha>1.0e-6f?original[1]/alpha:original[1];
             const float sourceB=p.premultipliedAlpha&&alpha>1.0e-6f?original[2]/alpha:original[2];
