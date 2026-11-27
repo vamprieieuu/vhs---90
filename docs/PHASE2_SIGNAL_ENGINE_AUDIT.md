@@ -18,6 +18,10 @@ Audit the parameter-to-engine-to-pixel path for RF Drift, RF Hum, AM Nonlinearit
 - Analog Glow and Bloom are separate post-decode stages. Glow is thresholded and spatially blurred; Bloom remains a separate multi-level path.
 - Chroma Subsample and Vertical Chroma Blend are separate stages with independent controls.
 
+## RF Hum isolation defect found and corrected
+
+The image-domain RF path also had small baseline Hum terms in its offset, ripple, interference and gain equations. As a result, enabling Drift/AM could introduce hum-like modulation even with RF Hum at 0%. Each term is now multiplied by the Hum control, making the Hum stage mathematically neutral at zero. Added exact-transfer regression checks on flat gray and white fields under Drift-only operation; the white-field case also guards against hidden AGC pumping at zero.
+
 ## Tape Material control wiring defect found and corrected
 
 The physical tape-surface engine already implemented pinhole, oxide-flake and surface-roughness behavior, but the After Effects parameter layer did not expose these controls and `makeTapeSurfaceParams` hardcoded all three values to zero. Added three new parameter slots at the end of the parameter list (preserving all existing parameter indices and disk IDs), exposed the controls in a dedicated Tape Surface Detail group, and wired both SmartFX and Legacy render-settings reads through `TapeMaterialControls` into the engine. Added mapping assertions for 75% pinholes, 60% flakes and 80% roughness.
