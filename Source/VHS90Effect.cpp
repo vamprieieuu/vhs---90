@@ -48,7 +48,7 @@ enum ParamIndex {
     PARAM_TRACKING_WIDTH, PARAM_TRACKING_HEIGHT, PARAM_TRACKING_ANGLE, PARAM_TRACKING_MOTION_X,
     PARAM_TRACKING_MOTION_Y, PARAM_TRACKING_SERVO, PARAM_TRACKING_TEAR,
     PARAM_TRACKING_END, PARAM_HEAD_TOPIC, PARAM_HEAD_AMOUNT, PARAM_HEAD_BOTTOM_Y,
-    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_SPEED, PARAM_TAPE_DETAIL, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_TAPE_BACK_TENSION, PARAM_TAPE_NOISE, PARAM_TAPE_MATERIAL_END, PARAM_PHYSICAL_TOPIC,    PARAM_MAINS_HUM,   PARAM_PHYSICAL_END,         PARAM_OSD_TOPIC, PARAM_OSD_AMOUNT, PARAM_OSD_REC, PARAM_OSD_PLAY, PARAM_OSD_TIMESTAMP, PARAM_OSD_OPACITY, PARAM_OSD_SCALE, PARAM_OSD_GLITCH, PARAM_OSD_GHOST, PARAM_OSD_REC_BLINK, PARAM_OSD_TIME_SPEED, PARAM_OSD_YEAR, PARAM_OSD_MONTH, PARAM_OSD_DAY, PARAM_OSD_HOUR, PARAM_OSD_MINUTE, PARAM_OSD_SECOND, PARAM_OSD_REC_COLOR, PARAM_OSD_END,   PARAM_GRAIN_TOPIC, PARAM_LUMA_NOISE, PARAM_CHROMA_NOISE, PARAM_COMPOSITE_NOISE, PARAM_NOISE_HUE, PARAM_VHS6RIFT_GRAIN, PARAM_VHS6RIFT_GRAIN_SIZE, PARAM_VHS6RIFT_NOISE_DETAIL, PARAM_VHS6RIFT_SHADOW_BIAS, PARAM_VHS6RIFT_NOISE_ENABLE, PARAM_VHS6RIFT_NOISE_SEED, PARAM_SIGNAL_HUE_NOISE, PARAM_GRAIN_END,               PARAM_VHS_FRAME_TOPIC, PARAM_VHS_43_FRAME, PARAM_ROUNDED_OVERSCAN, PARAM_LENS_DISTORTION, PARAM_DIGITAL_ZOOM, PARAM_VHS_FRAME_END, PARAM_CAMCORDER_HUD_TOPIC, PARAM_OSD_BATTERY, PARAM_CAMCORDER_HUD_END, PARAM_FRAME_REPEAT_TOPIC, PARAM_FRAME_REPEAT_FREQUENCY, PARAM_FRAME_REPEAT_STRENGTH, PARAM_FRAME_REPEAT_END, PARAM_TRACKING_PROFILE, PARAM_PARTICLE_TOPIC, PARAM_PARTICLE_AMOUNT, PARAM_PARTICLE_MODE, PARAM_PARTICLE_DENSITY, PARAM_PARTICLE_SIZE, PARAM_PARTICLE_LENGTH, PARAM_PARTICLE_DISTRIBUTION, PARAM_PARTICLE_CHROMA, PARAM_PARTICLE_SPEED, PARAM_PARTICLE_SEED, PARAM_PARTICLE_SOURCE_MIX, PARAM_PARTICLE_BRIGHTNESS, PARAM_PARTICLE_CONTRAST, PARAM_PARTICLE_END, PARAM_TEAR_CHROMA_TOPIC, PARAM_TEAR_CHROMA_AMOUNT, PARAM_TEAR_CHROMA_MODE, PARAM_SPECTRAL_SMEAR, PARAM_SPECTRAL_HUE_SPREAD, PARAM_CHROMA_SATURATION, PARAM_SPECTRAL_CENTER_Y, PARAM_SPECTRAL_COVERAGE, PARAM_TEAR_BAND_START_Y, PARAM_TEAR_BAND_HEIGHT, PARAM_TEAR_BAND_COUNT, PARAM_TEAR_DISPLACEMENT, PARAM_TEAR_FRAGMENTATION, PARAM_TEAR_CHROMA_SHIFT, PARAM_TEAR_SMEAR, PARAM_TEAR_DROPOUT, PARAM_TEAR_SEED, PARAM_TEAR_CHROMA_END,
+    PARAM_HEAD_HEIGHT, PARAM_HEAD_SHIFT, PARAM_HEAD_END, PARAM_HEAD_CONDITION, PARAM_TAPE_MATERIAL_TOPIC, PARAM_TAPE_SPEED, PARAM_TAPE_DETAIL, PARAM_TAPE_SURFACE, PARAM_TAPE_TRANSPORT, PARAM_TAPE_WEAR, PARAM_TAPE_DROPOUTS, PARAM_TAPE_SCRATCHES, PARAM_TAPE_CREASES, PARAM_TAPE_EDGE, PARAM_TAPE_MOLD, PARAM_TAPE_VASELINE, PARAM_TAPE_STICKY, PARAM_TAPE_SEED, PARAM_TAPE_BACK_TENSION, PARAM_TAPE_NOISE, PARAM_TAPE_MATERIAL_END, PARAM_PHYSICAL_TOPIC,    PARAM_MAINS_HUM,   PARAM_PHYSICAL_END,         PARAM_OSD_TOPIC, PARAM_OSD_AMOUNT, PARAM_OSD_REC, PARAM_OSD_PLAY, PARAM_OSD_TIMESTAMP, PARAM_OSD_OPACITY, PARAM_OSD_SCALE, PARAM_OSD_GLITCH, PARAM_OSD_GHOST, PARAM_OSD_REC_BLINK, PARAM_OSD_TIME_SPEED, PARAM_OSD_YEAR, PARAM_OSD_MONTH, PARAM_OSD_DAY, PARAM_OSD_HOUR, PARAM_OSD_MINUTE, PARAM_OSD_SECOND, PARAM_OSD_REC_COLOR, PARAM_OSD_END,   PARAM_GRAIN_TOPIC, PARAM_LUMA_NOISE, PARAM_CHROMA_NOISE, PARAM_COMPOSITE_NOISE, PARAM_NOISE_HUE, PARAM_VHS6RIFT_GRAIN, PARAM_VHS6RIFT_GRAIN_SIZE, PARAM_VHS6RIFT_NOISE_DETAIL, PARAM_VHS6RIFT_SHADOW_BIAS, PARAM_VHS6RIFT_NOISE_ENABLE, PARAM_VHS6RIFT_NOISE_SEED, PARAM_SIGNAL_HUE_NOISE, PARAM_GRAIN_END,                            PARAM_TRACKING_PROFILE,               PARAM_TEAR_CHROMA_TOPIC, PARAM_TEAR_CHROMA_AMOUNT, PARAM_TEAR_CHROMA_MODE, PARAM_SPECTRAL_SMEAR, PARAM_SPECTRAL_HUE_SPREAD, PARAM_CHROMA_SATURATION, PARAM_SPECTRAL_CENTER_Y, PARAM_SPECTRAL_COVERAGE, PARAM_TEAR_BAND_START_Y, PARAM_TEAR_BAND_HEIGHT, PARAM_TEAR_BAND_COUNT, PARAM_TEAR_DISPLACEMENT, PARAM_TEAR_FRAGMENTATION, PARAM_TEAR_CHROMA_SHIFT, PARAM_TEAR_SMEAR, PARAM_TEAR_DROPOUT, PARAM_TEAR_SEED, PARAM_TEAR_CHROMA_END,
     PARAM_TRACK_LAYER2_TOPIC, PARAM_TRACK_LAYER2_AMOUNT, PARAM_TRACK_LAYER2_PROFILE, PARAM_TRACK_LAYER2_SHAPE, PARAM_TRACK_LAYER2_X, PARAM_TRACK_LAYER2_Y, PARAM_TRACK_LAYER2_WIDTH, PARAM_TRACK_LAYER2_HEIGHT, PARAM_TRACK_LAYER2_SERVO, PARAM_TRACK_LAYER2_SHIFT, PARAM_TRACK_LAYER2_WAVE, PARAM_TRACK_LAYER2_TEAR, PARAM_TRACK_LAYER2_END,
     PARAM_TRACK_LAYER3_TOPIC, PARAM_TRACK_LAYER3_AMOUNT, PARAM_TRACK_LAYER3_PROFILE, PARAM_TRACK_LAYER3_SHAPE, PARAM_TRACK_LAYER3_X, PARAM_TRACK_LAYER3_Y, PARAM_TRACK_LAYER3_WIDTH, PARAM_TRACK_LAYER3_HEIGHT, PARAM_TRACK_LAYER3_SERVO, PARAM_TRACK_LAYER3_SHIFT, PARAM_TRACK_LAYER3_WAVE, PARAM_TRACK_LAYER3_TEAR, PARAM_TRACK_LAYER3_END,
     PARAM_TRACK_LAYER4_TOPIC, PARAM_TRACK_LAYER4_AMOUNT, PARAM_TRACK_LAYER4_PROFILE, PARAM_TRACK_LAYER4_SHAPE, PARAM_TRACK_LAYER4_X, PARAM_TRACK_LAYER4_Y, PARAM_TRACK_LAYER4_WIDTH, PARAM_TRACK_LAYER4_HEIGHT, PARAM_TRACK_LAYER4_SERVO, PARAM_TRACK_LAYER4_SHIFT, PARAM_TRACK_LAYER4_WAVE, PARAM_TRACK_LAYER4_TEAR, PARAM_TRACK_LAYER4_END, PARAM_TRACKING_PRESETS_TOPIC, PARAM_TRACKING_PRESET_BASE, PARAM_TRACKING_PRESET_2, PARAM_TRACKING_PRESET_3, PARAM_TRACKING_PRESET_4, PARAM_TRACKING_PRESETS_END, PARAM_PATTERN_TOPIC, PARAM_PATTERN_MODE, PARAM_PATTERN_ANGLE, PARAM_PATTERN_WIDTH, PARAM_PATTERN_GREEN, PARAM_PATTERN_PHASE_COUNT, PARAM_PATTERN_END,
@@ -203,30 +203,7 @@ enum ParamDiskID {
     ID_VHS6RIFT_NOISE_SEED=150,
     ID_SIGNAL_HUE_NOISE=151,
     ID_CHROMA_EDGE_ENHANCE=160,
-    ID_VHS_FRAME_TOPIC=163,
-    ID_VHS_43_FRAME=164,
-    ID_ROUNDED_OVERSCAN=165,
-    ID_LENS_DISTORTION=166,
-    ID_DIGITAL_ZOOM=167,
-    ID_CAMCORDER_HUD_TOPIC=168,
-    ID_OSD_BATTERY=169,
-    ID_FRAME_REPEAT_TOPIC=170,
-    ID_FRAME_REPEAT_FREQUENCY=171,
-    ID_FRAME_REPEAT_STRENGTH=172,
     ID_TRACKING_PROFILE=173,
-    ID_PARTICLE_TOPIC=174,
-    ID_PARTICLE_AMOUNT=175,
-    ID_PARTICLE_MODE=176,
-    ID_PARTICLE_DENSITY=177,
-    ID_PARTICLE_SIZE=178,
-    ID_PARTICLE_LENGTH=179,
-    ID_PARTICLE_DISTRIBUTION=180,
-    ID_PARTICLE_CHROMA=181,
-    ID_PARTICLE_SPEED=182,
-    ID_PARTICLE_SEED=183,
-    ID_PARTICLE_SOURCE_MIX=184,
-    ID_PARTICLE_BRIGHTNESS=185,
-    ID_PARTICLE_CONTRAST=186,
     ID_TEAR_CHROMA_TOPIC=187,
     ID_TEAR_CHROMA_AMOUNT=188,
     ID_TEAR_CHROMA_MODE=189,
@@ -428,10 +405,10 @@ struct RenderSettings {
     float tapeSurface=0, tapeTransport=0, geometry=0, interlace=0, verticalRoll=0, edgeWave=0, scanlines=0;
     float trackingAmount=0, trackingX=50, trackingY=50, trackingWidth=100, trackingHeight=8, trackingAngle=0;
     float trackingMotionX=0, trackingMotionY=0, trackingServo=4, trackingTear=3;
-    A_long trackingShape=3, trackingProfile=1, particleMode=1, particleDistribution=1, trackingPresetBase=1, trackingLayerPreset[3]={3,4,5};
+    A_long trackingShape=3, trackingProfile=1, trackingPresetBase=1, trackingLayerPreset[3]={3,4,5};
     A_long trackingLayerProfile[3]={2,3,4}, trackingLayerShape[3]={1,1,1};
     float trackingLayerAmount[3]={0,0,0}, trackingLayerX[3]={50,50,50}, trackingLayerY[3]={25,50,75}, trackingLayerWidth[3]={100,100,100}, trackingLayerHeight[3]={8,8,8}, trackingLayerServo[3]={8,12,5}, trackingLayerShift[3]={24,36,12}, trackingLayerWave[3]={4,8,2}, trackingLayerTear[3]={10,25,5};
-    float particleAmount=0, particleDensity=18, particleSize=1.5f, particleLength=7, particleChroma=0, particleSpeed=1, particleSeed=1, particleSourceMix=100, particleBrightness=85, particleContrast=100;
+    
     A_long tearChromaMode=5;
     float tearBandCount=2.0f;
     float tearChromaAmount=0, spectralSmear=75, spectralHueSpread=70, chromaSaturation=140, spectralCenterY=38, spectralCoverage=72, tearBandStartY=60, tearBandHeight=18, tearDisplacement=18, tearFragmentation=55, tearChromaShift=5, tearSmear=6, tearDropout=12, tearSeed=1;
@@ -537,7 +514,7 @@ static void ApplyCratesMasterPreset(RenderSettings& s,int preset) noexcept {
     b(s.headHeight,std::max(v[11],v[27]));b(s.headAmount,std::max(v[12],v[26]));
     b(s.headShift,std::clamp(v[13]*0.125f,0.0f,100.0f));
     b(s.impulseNoise,std::clamp((v[14]+v[15])*0.5f,0.0f,100.0f));
-    b(s.particleAmount,std::clamp(v[16]*0.5f,0.0f,100.0f));b(s.particleDensity,v[17]);
+    
     b(s.trackingAmount,std::clamp(v[18],0.0f,100.0f));
     b(s.trackingServo,std::clamp(4.0f+std::fabs(v[19])*0.1f,0.0f,100.0f));
     b(s.trackingHeight,std::clamp(std::fabs(v[20]),0.0f,100.0f));b(s.chromaLoss,v[21]);
@@ -991,34 +968,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Random Seed",1,32767,1,32767,1,0,PF_ValueDisplayFlag_NONE,0,ID_VHS6RIFT_NOISE_SEED);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Hue Noise",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_SIGNAL_HUE_NOISE);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_GRAIN_TOPIC+100);
-    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("VHS Playback Frame",ID_VHS_FRAME_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("VHS 4:3 Frame", "Enable", 0, 0, ID_VHS_43_FRAME);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Rounded Overscan",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_ROUNDED_OVERSCAN);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Lens Distortion",-100,100,-100,100,0,1,PF_ValueDisplayFlag_NONE,0,ID_LENS_DISTORTION);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Digital Zoom",1,3,1,3,1,2,PF_ValueDisplayFlag_NONE,0,ID_DIGITAL_ZOOM);
-    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_VHS_FRAME_TOPIC+100);
-    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Camcorder HUD",ID_CAMCORDER_HUD_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("OSD Battery",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_BATTERY);
-    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_CAMCORDER_HUD_TOPIC+100);
-    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Temporal Frame Repeat",ID_FRAME_REPEAT_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Frequency",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_FREQUENCY);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Frame Repeat Strength",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_FRAME_REPEAT_STRENGTH);
-    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_FRAME_REPEAT_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tracking Type",5,1,kTrackingProfileChoices,ID_TRACKING_PROFILE);
-    AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Particle Pattern",ID_PARTICLE_TOPIC);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Particle Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_AMOUNT);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Pattern",5,1,kParticleModeChoices,ID_PARTICLE_MODE);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Density",0,100,0,100,18,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_DENSITY);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Particle Size",0.25f,16,0.25f,16,1.5f,2,PF_ValueDisplayFlag_NONE,0,ID_PARTICLE_SIZE);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Streak Length",1,100,1,100,7,1,PF_ValueDisplayFlag_NONE,0,ID_PARTICLE_LENGTH);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Distribution",5,1,kParticleDistributionChoices,ID_PARTICLE_DISTRIBUTION);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Chroma",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_CHROMA);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Animation Speed",0,10,0,10,1,2,PF_ValueDisplayFlag_NONE,0,ID_PARTICLE_SPEED);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Seed",1,32767,1,32767,1,0,PF_ValueDisplayFlag_NONE,0,ID_PARTICLE_SEED);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Original Footage Mix",0,100,0,100,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_SOURCE_MIX);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Brightness",0,200,0,200,85,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_BRIGHTNESS);
-    AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Contrast",0,200,0,200,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_PARTICLE_CONTRAST);
-    AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_PARTICLE_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tear & Chroma",ID_TEAR_CHROMA_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear & Chroma Amount",0,100,0,100,0,1,PF_ValueDisplayFlag_PERCENT,0,ID_TEAR_CHROMA_AMOUNT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Tear & Chroma Mode",5,5,kTearChromaModeChoices,ID_TEAR_CHROMA_MODE);
@@ -1228,8 +1178,6 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     READ_FLOAT(PARAM_SYNC_AMOUNT,sync);
     err=CheckoutPopup(in_data,PARAM_PAL_MODE,s.colorSystem); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_SIGNAL_MODEL,s.signalModel); if(err!=PF_Err_NONE) return err;
-    err=CheckoutCheckbox(in_data,PARAM_VHS_43_FRAME,s.vhs43Frame); if(err!=PF_Err_NONE) return err;
-    READ_FLOAT(PARAM_ROUNDED_OVERSCAN,roundedOverscan); READ_FLOAT(PARAM_LENS_DISTORTION,lensDistortion); READ_FLOAT(PARAM_DIGITAL_ZOOM,digitalZoom); READ_FLOAT(PARAM_OSD_BATTERY,osdBattery); READ_FLOAT(PARAM_FRAME_REPEAT_FREQUENCY,frameRepeatFrequency); READ_FLOAT(PARAM_FRAME_REPEAT_STRENGTH,frameRepeatStrength);
     err=CheckoutPopup(in_data,PARAM_TAPE_SPEED,s.tapeSpeed); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_TRACK_READ,trackRead);
     READ_FLOAT(PARAM_TRACK_MISALIGNMENT,trackMisalignment); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
@@ -1270,13 +1218,6 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_2,s.trackingLayerPreset[0]); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_3,s.trackingLayerPreset[1]); if(err!=PF_Err_NONE) return err;
     err=CheckoutPopup(in_data,PARAM_TRACKING_PRESET_4,s.trackingLayerPreset[2]); if(err!=PF_Err_NONE) return err;
-    READ_FLOAT(PARAM_PARTICLE_AMOUNT,particleAmount); READ_FLOAT(PARAM_PARTICLE_DENSITY,particleDensity);
-    READ_FLOAT(PARAM_PARTICLE_SIZE,particleSize); READ_FLOAT(PARAM_PARTICLE_LENGTH,particleLength);
-    READ_FLOAT(PARAM_PARTICLE_CHROMA,particleChroma); READ_FLOAT(PARAM_PARTICLE_SPEED,particleSpeed);
-    READ_FLOAT(PARAM_PARTICLE_SEED,particleSeed); READ_FLOAT(PARAM_PARTICLE_SOURCE_MIX,particleSourceMix);
-    READ_FLOAT(PARAM_PARTICLE_BRIGHTNESS,particleBrightness); READ_FLOAT(PARAM_PARTICLE_CONTRAST,particleContrast);
-    err=CheckoutPopup(in_data,PARAM_PARTICLE_MODE,s.particleMode); if(err!=PF_Err_NONE) return err;
-    err=CheckoutPopup(in_data,PARAM_PARTICLE_DISTRIBUTION,s.particleDistribution); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_TEAR_CHROMA_AMOUNT,tearChromaAmount); READ_FLOAT(PARAM_SPECTRAL_SMEAR,spectralSmear);
     READ_FLOAT(PARAM_SPECTRAL_HUE_SPREAD,spectralHueSpread); READ_FLOAT(PARAM_CHROMA_SATURATION,chromaSaturation);
     READ_FLOAT(PARAM_SPECTRAL_CENTER_Y,spectralCenterY); READ_FLOAT(PARAM_SPECTRAL_COVERAGE,spectralCoverage);
@@ -1447,7 +1388,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         const float masterOverdrive=std::clamp(masterDriveValue,0.0f,3.0f);
         const bool compositeStages=(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0.0f)||s.signalHueNoise>0.0f||s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.ntscRsPhaseNoise>0;
         const bool osdEnabled=s.osdAmount>0.0f;
-        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.particleAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||osdEnabled;
+        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||osdEnabled;
         if(!any||(master<=0.0f&&!osdEnabled)) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
@@ -1913,19 +1854,6 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(!processStaticPattern(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
-        if(master>0.0f&&s.particleAmount>0.0f) {
-            ParticlePatternParams pp; pp.intensity=clamp01(s.particleAmount/100.0f*master);
-            pp.mode=static_cast<ParticlePatternMode>(std::clamp<A_long>(s.particleMode-1,0,4));
-            pp.density=clamp01(s.particleDensity/100.0f); pp.particleSizePx=s.particleSize;
-            pp.streakLengthPx=s.particleLength; pp.distribution=static_cast<ParticleDistribution>(std::clamp<A_long>(s.particleDistribution-1,0,4));
-            pp.chromaAmount=clamp01(s.particleChroma/100.0f); pp.animationSpeed=std::max(0.0f,s.particleSpeed);
-            pp.seed=static_cast<std::uint32_t>(std::clamp(std::lround(s.particleSeed),1l,32767l));
-            pp.sourceMix=clamp01(s.particleSourceMix/100.0f); pp.brightness=s.particleBrightness/100.0f; pp.contrast=s.particleContrast/100.0f;
-            pp.frame=s.frame; pp.premultipliedAlpha=true;
-            ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
-            if(!processParticlePattern(in,out,pp)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
-            working.swap(scratch);
-        }
         if(master>0.0f&&s.tearChromaAmount>0.0f) {
             TearBand bands[5]; const int bandCount=std::clamp<A_long>(static_cast<A_long>(std::lround(s.tearBandCount)),1,5);
             TearBand& baseBand=bands[0]; baseBand.centerX=0.5f;
@@ -2137,13 +2065,6 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.sync=float(params[PARAM_SYNC_AMOUNT]->u.fs_d.value);
     s.colorSystem=params[PARAM_PAL_MODE]->u.pd.value;
     s.signalModel=params[PARAM_SIGNAL_MODEL]->u.pd.value;
-    s.vhs43Frame=params[PARAM_VHS_43_FRAME]->u.bd.value?1:0;
-    s.roundedOverscan=float(params[PARAM_ROUNDED_OVERSCAN]->u.fs_d.value);
-    s.lensDistortion=float(params[PARAM_LENS_DISTORTION]->u.fs_d.value);
-    s.digitalZoom=float(params[PARAM_DIGITAL_ZOOM]->u.fs_d.value);
-    s.osdBattery=float(params[PARAM_OSD_BATTERY]->u.fs_d.value);
-    s.frameRepeatFrequency=float(params[PARAM_FRAME_REPEAT_FREQUENCY]->u.fs_d.value);
-    s.frameRepeatStrength=float(params[PARAM_FRAME_REPEAT_STRENGTH]->u.fs_d.value);
     s.tapeSpeed=params[PARAM_TAPE_SPEED]->u.pd.value;
     s.tapeDetail=float(params[PARAM_TAPE_DETAIL]->u.fs_d.value);
     s.trackRead=float(params[PARAM_TRACK_READ]->u.fs_d.value);
@@ -2229,12 +2150,6 @@ static PF_Err LegacyRender(PF_InData* in_data,PF_OutData* out_data,PF_ParamDef* 
     s.trackingProfile=params[PARAM_TRACKING_PROFILE]->u.pd.value;
     s.trackingPresetBase=params[PARAM_TRACKING_PRESET_BASE]->u.pd.value;
     s.trackingLayerPreset[0]=params[PARAM_TRACKING_PRESET_2]->u.pd.value; s.trackingLayerPreset[1]=params[PARAM_TRACKING_PRESET_3]->u.pd.value; s.trackingLayerPreset[2]=params[PARAM_TRACKING_PRESET_4]->u.pd.value;
-    s.particleAmount=float(params[PARAM_PARTICLE_AMOUNT]->u.fs_d.value); s.particleMode=params[PARAM_PARTICLE_MODE]->u.pd.value;
-    s.particleDensity=float(params[PARAM_PARTICLE_DENSITY]->u.fs_d.value); s.particleSize=float(params[PARAM_PARTICLE_SIZE]->u.fs_d.value);
-    s.particleLength=float(params[PARAM_PARTICLE_LENGTH]->u.fs_d.value); s.particleDistribution=params[PARAM_PARTICLE_DISTRIBUTION]->u.pd.value;
-    s.particleChroma=float(params[PARAM_PARTICLE_CHROMA]->u.fs_d.value); s.particleSpeed=float(params[PARAM_PARTICLE_SPEED]->u.fs_d.value);
-    s.particleSeed=float(params[PARAM_PARTICLE_SEED]->u.fs_d.value); s.particleSourceMix=float(params[PARAM_PARTICLE_SOURCE_MIX]->u.fs_d.value);
-    s.particleBrightness=float(params[PARAM_PARTICLE_BRIGHTNESS]->u.fs_d.value); s.particleContrast=float(params[PARAM_PARTICLE_CONTRAST]->u.fs_d.value);
     s.tearChromaAmount=float(params[PARAM_TEAR_CHROMA_AMOUNT]->u.fs_d.value); s.tearChromaMode=params[PARAM_TEAR_CHROMA_MODE]->u.pd.value;
     s.spectralSmear=float(params[PARAM_SPECTRAL_SMEAR]->u.fs_d.value); s.spectralHueSpread=float(params[PARAM_SPECTRAL_HUE_SPREAD]->u.fs_d.value);
     s.chromaSaturation=float(params[PARAM_CHROMA_SATURATION]->u.fs_d.value); s.spectralCenterY=float(params[PARAM_SPECTRAL_CENTER_Y]->u.fs_d.value);
