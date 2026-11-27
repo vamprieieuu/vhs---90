@@ -1445,6 +1445,14 @@ static PF_Err ReadSettings(PF_InData* in_data,RenderSettings& s) {
     err=CheckoutPopup(in_data,PARAM_SYNC_DAMAGE_INPUT_MODE,s.syncDamageInputMode); if(err!=PF_Err_NONE) return err;
     READ_FLOAT(PARAM_SYNC_DAMAGE_ANIMATION_SPEED,syncDamageAnimationSpeed); READ_FLOAT(PARAM_SYNC_DAMAGE_RANDOM_SEED,syncDamageRandomSeed);
     READ_FLOAT(PARAM_SYNC_DAMAGE_BLEND_INPUT,syncDamageBlendInput); READ_FLOAT(PARAM_SYNC_DAMAGE_EFFECT_AMOUNT,syncDamageEffectAmount);
+    err=CheckoutCheckbox(in_data,PARAM_SNOW_ENABLE,s.snowEnable); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_SNOW_INTENSITY,snowIntensity); READ_FLOAT(PARAM_SNOW_DENSITY,snowDensity);
+    READ_FLOAT(PARAM_SNOW_SIZE,snowSize); READ_FLOAT(PARAM_SNOW_DISTRIBUTION,snowDistribution);
+    READ_FLOAT(PARAM_SNOW_CONTRAST,snowContrast); READ_FLOAT(PARAM_SNOW_BRIGHTNESS,snowBrightness);
+    READ_FLOAT(PARAM_SNOW_COLOR,snowColor); err=CheckoutPopup(in_data,PARAM_SNOW_MODE,s.snowMode); if(err!=PF_Err_NONE) return err;
+    READ_FLOAT(PARAM_SNOW_TEMPORAL_VARIATION,snowTemporalVariation); READ_FLOAT(PARAM_SNOW_RANDOMNESS,snowRandomness);
+    READ_FLOAT(PARAM_SNOW_ANIMATION_SPEED,snowAnimationSpeed); READ_FLOAT(PARAM_SNOW_SEED,snowSeed);
+    READ_FLOAT(PARAM_BACKGROUND_NOISE_INTENSITY,backgroundNoiseIntensity);
     READ_FLOAT(PARAM_TAPE_DETAIL,tapeDetail); READ_FLOAT(PARAM_TRACK_READ,trackRead);
     READ_FLOAT(PARAM_TRACK_MISALIGNMENT,trackMisalignment); READ_FLOAT(PARAM_CHROMA_SHIFT,chromaShift);
     READ_FLOAT(PARAM_CHROMA_REG_RED,redChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_GREEN,greenChannelOffset); READ_FLOAT(PARAM_CHROMA_REG_BLUE,blueChannelOffset); err=CheckoutPopup(in_data,PARAM_CHROMA_REG_MODE,s.chromaRegMode); if(err!=PF_Err_NONE) return err;
