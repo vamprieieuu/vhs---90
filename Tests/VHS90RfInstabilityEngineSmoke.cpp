@@ -19,8 +19,8 @@ int main(){using namespace vhs90;constexpr int w=64,h=32;std::vector<float>s(w*h
  assert(processRfInstability(si,oneView,isolated));assert(one!=s);
  isolated={};isolated.seed=17;isolated.frame=21;isolated.amNonlinearity=.8f;
  assert(processRfInstability(si,oneView,isolated));assert(one!=s);
- // Regression: Drift alone must remain an affine luma change; AM compression
- // must not leak into the signal when its own control is zero.
+ // Regression: Drift alone must remain an affine luma change; neither AM
+ // compression nor AGC pumping may leak in while their controls are zero.
  std::vector<float> twoLevels(s.size()),driftOnly(s.size());
  for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){const auto k=(yy*w+xx)*4;const float v=xx<w/2?.20f:.95f;twoLevels[k]=twoLevels[k+1]=twoLevels[k+2]=v;twoLevels[k+3]=1.0f;}
  ConstImageView twoLevelsView{twoLevels.data(),w,h,w*4};
