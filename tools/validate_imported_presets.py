@@ -244,7 +244,8 @@ style_choices = re.search(r'kVhsStyleChoices\[\]\s*=\s*"([^"]+)"', source)
 assert style_choices and len(style_choices.group(1).split("|")) == 32, "VHS Style popup must expose the curated 32 entries"
 assert 'PF_ADD_POPUP("VHS Style Preset",32,1,kVhsStyleChoices,ID_VHS_STYLE)' in source, "VHS Style popup count must match its labels"
 assert 'PF_ADD_FLOAT_SLIDERX("Master Strength",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_MASTER)' in source, "Master Strength must exceed 100 and expose the 300% range"
-assert 'PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,300,0,300,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION)' in source, "Saturation range must match the engine's supported high-drive range"
+assert 'PF_ADD_FLOAT_SLIDERX("Grade Saturation",0,500,0,500,100,1,PF_ValueDisplayFlag_PERCENT,0,ID_GRADE_SATURATION)' in source, "Saturation must expose the requested 500% range"
+assert "std::clamp(p.saturation,0.0f,5.0f)" in grade_engine, "Image Grade engine must preserve saturation drive through 500%"
 assert 'PF_ADD_FLOAT_SLIDERX("Exposure (EV)",-3,3,-3,3,0,2,PF_ValueDisplayFlag_NONE,0,ID_GRADE_EXPOSURE)' in source, "General Adjustments must expose a real EV exposure control"
 style_pos=source.find('PF_ADD_TOPIC("VHS Style & Presets",ID_VHS_STYLE_TOPIC)')
 master_pos=source.find('PF_ADD_FLOAT_SLIDERX("Master Strength"')
