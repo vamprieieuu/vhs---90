@@ -1862,19 +1862,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             if(!processStaticPattern(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
-        if(master>0.0f&&s.particleAmount>0.0f) {
-            ParticlePatternParams pp;
-            pp.intensity=clamp01(s.particleAmount/100.0f*master);
-            pp.density=clamp01(s.particleDensity/100.0f); pp.particleSizePx=s.particleSize;
-            pp.streakLengthPx=s.particleLength;
-            pp.chromaAmount=clamp01(s.particleChroma/100.0f); pp.animationSpeed=std::max(0.0f,s.particleSpeed);
-            pp.seed=static_cast<std::uint32_t>(std::clamp(std::lround(s.particleSeed),1l,32767l));
-            pp.sourceMix=clamp01(s.particleSourceMix/100.0f); pp.brightness=s.particleBrightness/100.0f; pp.contrast=s.particleContrast/100.0f;
-            pp.frame=s.frame; pp.premultipliedAlpha=true;
-            ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
-            if(!processParticlePattern(in,out,pp)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
-            working.swap(scratch);
-        }
+        
         if(master>0.0f&&s.tearChromaAmount>0.0f) {
             TearBand bands[5]; const int bandCount=std::clamp<A_long>(static_cast<A_long>(std::lround(s.tearBandCount)),1,5);
             TearBand& baseBand=bands[0]; baseBand.centerX=0.5f;
