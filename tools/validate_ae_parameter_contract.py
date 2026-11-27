@@ -41,6 +41,18 @@ for pos in range(brace_start, len(SOURCE)):
 if brace_end is None:
     fail("ParamsSetup braces are unbalanced.")
 setup_body = SOURCE[brace_start:brace_end]
+
+# The additional Damage Lab tracking layers are intended to be independently
+# editable in Effect Controls. Hiding their registrations would leave the
+# render controls wired but inaccessible to users.
+tracking_layers_start = setup_body.find('PF_ADD_TOPIC("Tracking Layer 2"')
+tracking_layers_end = setup_body.find("PF_END_TOPIC(ID_TRACK_LAYER4_TOPIC+100)", tracking_layers_start)
+if tracking_layers_start < 0 or tracking_layers_end < 0:
+    fail("Tracking Layers 2–4 UI registration block is missing.")
+tracking_layers_ui = setup_body[tracking_layers_start:tracking_layers_end]
+if "PF_PUI_NO_ECW_UI" in tracking_layers_ui:
+    fail("Tracking Layers 2–4 controls must remain visible/editable in Effect Controls.")
+
 calls = re.findall(r"\b(PF_ADD_[A-Z0-9_]+|PF_END_TOPIC)\s*\(([^;\n]*)\)\s*;", setup_body)
 if any(macro == "PF_ADD_LAYER" for macro, _ in calls):
     fail("Do not add a second Source layer: AE already supplies PARAM_INPUT at index 0.")
