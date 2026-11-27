@@ -57,8 +57,8 @@ int main(){using namespace vhs90;constexpr int w=48,h=24;std::vector<float>s(w*h
  ImageView signalBaseView{signalBase.data(),w,h,w*4},signalFreqView{signalFreq.data(),w,h,w*4},signalSizeView{signalSize.data(),w,h,w*4},signalClusterView{signalCluster.data(),w,h,w*4};
  assert(processAnalogNoise(si,signalBaseView,signal));
  signal.signalNoiseFrequency=5.0f;assert(processAnalogNoise(si,signalFreqView,signal));assert(signalBase!=signalFreq);
- signal.signalNoiseFrequency=1.0f;signal.noiseSize=5.0f;assert(processAnalogNoise(si,signalSizeView,signal));assert(signalBase!=signalSize);
- signal.noiseSize=1.0f;signal.noiseDistribution=1.0f;assert(processAnalogNoise(si,signalClusterView,signal));assert(signalBase!=signalCluster);
+ signal.signalNoiseFrequency=1.0f;signal.noiseSize=8.0f;assert(processAnalogNoise(si,signalSizeView,signal));assert(signalBase!=signalSize);
+ signal.noiseSize=4.0f;signal.noiseDistribution=1.0f;assert(processAnalogNoise(si,signalClusterView,signal));assert(signalBase!=signalCluster);
 
  // Horizontal interference lines and signal-noise animation speed have independent effect.
  AnalogNoiseParams lines;lines.horizontalLineIntensity=.85f;lines.signalNoiseIntensity=1.0f;lines.seed=17;lines.frame=9;lines.framesPerSecond=29.97f;
