@@ -1092,10 +1092,10 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Tear Probability",0,100,0,100,5,1,PF_ValueDisplayFlag_PERCENT,0,ID_TRACK_LAYER4_TEAR);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACK_LAYER4_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Tracking Presets",ID_TRACKING_PRESETS_TOPIC);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Base Tracking Preset",8,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Layer 2 Preset",8,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Layer 3 Preset",8,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
-    AEFX_CLR_STRUCT(def); def.ui_flags |= PF_PUI_NO_ECW_UI; PF_ADD_POPUP("Layer 4 Preset",8,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Base Tracking Preset",8,1,kTrackingPresetChoices,ID_TRACKING_PRESET_BASE);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Layer 2 Preset",8,3,kTrackingPresetChoices,ID_TRACKING_PRESET_2);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Layer 3 Preset",8,4,kTrackingPresetChoices,ID_TRACKING_PRESET_3);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Layer 4 Preset",8,5,kTrackingPresetChoices,ID_TRACKING_PRESET_4);
     AEFX_CLR_STRUCT(def); PF_END_TOPIC(ID_TRACKING_PRESETS_TOPIC+100);
     AEFX_CLR_STRUCT(def); PF_ADD_TOPIC("Procedural Static Pattern",ID_PATTERN_TOPIC);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Pattern Type",13,2,kStaticPatternChoices,ID_PATTERN_MODE);
