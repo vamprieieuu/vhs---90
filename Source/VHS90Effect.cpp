@@ -1773,7 +1773,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
                 p.imageGrade.saturation=s.gradeSaturation/100.0f;
                 p.imageGrade.chromaIGain=s.chromaIGain/100.0f;p.imageGrade.chromaQGain=s.chromaQGain/100.0f;
                 p.imageGrade.chromaIOffset=s.chromaIOffset/200.0f;p.imageGrade.chromaQOffset=s.chromaQOffset/200.0f;
-                p.imageGrade.chromaQuantization=s.chromaQuantization/2000.0f;
+                p.imageGrade.chromaQuantization=s.chromaQuantization/400.0f;
                 p.imageGrade.vignette=clamp01(s.vignette/100.0f);
                 p.imageGrade.flicker=clamp01(s.flicker/100.0f);
             }
