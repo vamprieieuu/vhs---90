@@ -52,7 +52,11 @@ int main(){using namespace vhs90;constexpr int w=48,h=32;std::vector<float>s(w*h
  assert(std::fabs(ntscrtTapeAmountIn027(TapeDamageControl::Creases,1.0f)-1.0f)<1e-5f);
  assert(std::fabs(ntscrtTransportFlutterAmount(1.0f)-5.0f)<1e-5f);
  TapeMaterialControls material;material.master=100.0f;material.frame=23;material.cassetteSeed=1;material.tapeSpeed=2;material.trackingOffsetTracks=1.25f;
+ material.pinholes=75.0f;material.flakes=60.0f;material.surfaceRoughness=80.0f;
  const auto mapped=makeTapeSurfaceParams(material);
+ assert(std::fabs(mapped.pinholeAmount-.75f)<1e-5f);
+ assert(std::fabs(mapped.flakeAmount-.60f)<1e-5f);
+ assert(std::fabs(mapped.surfaceRoughness-.20f)<1e-5f);
  assert(mapped.seed==7936u&&mapped.frame==23&&mapped.tapeSpeed==2u&&std::fabs(mapped.trackingOffsetTracks-1.25f)<1e-6f);
  assert(std::fabs(mapped.oxideLoss-1.85f)<1e-5f&&std::fabs(mapped.defectDensity-3.0f)<1e-5f);
  assert(std::fabs(mapped.scratchDensity-4.0f)<1e-5f&&std::fabs(mapped.creaseStrength-5.0f)<1e-5f&&std::fabs(mapped.edgeLift-1.45f)<1e-5f);
