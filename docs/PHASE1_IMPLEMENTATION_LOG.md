@@ -12,6 +12,8 @@ Branch: `phase1-ui-signal-rebuild-2026-11-27`
 - Reorganized Grain controls next to Static/Tracking Noise, moved Luma Noise and Chroma Noise into Grain, and made those noise controls neutral by default.
 - Kept separate Chroma, Ringing, Glow, General Adjustments, Tape and Mains Hum sections.
 - Added RGB channel registration modes (RGB Split, Red/Cyan, Green/Magenta, Blue/Yellow) with independent red, green and blue offsets.
+- Added a true Exposure EV control to General Adjustments; exposure is applied uniformly in RGB before YIQ grading.
+- Moved Grain controls beside Tracking Noise and gated Sync Collapse noise to active, frame-animated sync-failure bands so it no longer lays static grain over the whole image.
 
 ## Removed or retired UI/build paths
 - Removed VHS Playback, Composite Decoder, VHS Playback Frame, Camcorder HUD, Temporal Frame, Particle Pattern, Signal Network and External Physical Interference controls.
