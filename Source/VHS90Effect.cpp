@@ -1662,7 +1662,7 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
         const float masterOverdrive=std::clamp(masterDriveValue,0.0f,3.0f);
         const bool compositeStages=(s.vhs6RiftNoiseEnable&&s.vhs6RiftGrain>0.0f)||s.signalHueNoise>0.0f||s.tapeDetail<100||s.trackRead>0||s.headCondition>0||s.chromaShift>0||s.composite>0||s.chromaSubsample>0||s.verticalChroma>0||s.verticalLuma>0||s.lumaNoise>0||s.chromaNoise>0||s.signalHueNoise>0||s.chromaLoss>0||s.compositeNoise>0||s.tapeNoise>0||s.rfDrift>0||s.rfHum>0||s.rfAm>0||s.agcPump>0||s.impulseNoise>0||s.dropouts>0||s.multipathGain>0||s.multipathEnsemble>0||s.signalGhost>0||s.chromaDelay>0||s.afcHunt>0||s.chromaFlutter>0||s.ycCrosstalk>0||s.colorPhaseDrift>0||s.colorDrift>0||s.hsyncNoise>0||s.vsyncNoise>0||s.burstNoise>0||s.edgeEnhance>0||s.tapeFade>0||s.blackLift>0||s.temporalGhost>0||s.ringing>0||s.crtEqualizer>0||s.gradeExposure!=0||s.gradeContrast!=100||s.gradeBrightness!=0||s.gradeSaturation!=100||s.vignette>0||s.flicker>0||s.lumaSmear>0||s.bloom>0||s.analogGlow>0||s.tapeSurface>0||s.tapePinholes>0||s.tapeFlakes>0||s.tapeRoughness>0||s.tapeTransport>0||(s.trackingAmount>0&&s.trackingServo>0)||s.geometry>0||s.interlace>0||s.verticalRoll>0||s.edgeWave>0||s.scanlines>0||s.vhs43Frame!=0||s.roundedOverscan>0||s.lensDistortion!=0||s.digitalZoom>1.0f||s.frameRepeatFrequency>0||s.frameRepeatStrength>0||s.magnetMoment>0||s.groundLoop>0||s.mainsHum>0||s.rfPickup>0||s.ntscRsPhaseNoise>0;
         const bool osdEnabled=s.osdAmount>0.0f;
-        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.greenChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||s.syncDamageEnable>0||osdEnabled;
+        const bool any=compositeStages||s.sync>0||s.staticAmount>0||s.tearChromaAmount>0||s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0||s.redChannelOffset!=0.0f||s.greenChannelOffset!=0.0f||s.blueChannelOffset!=0.0f||s.syncDamageEnable>0||s.snowEnable>0||s.backgroundNoiseIntensity>0||osdEnabled;
         if(!any||(master<=0.0f&&!osdEnabled)) { CopyRegion(input,output,format); return PF_Err_NONE; }
         std::vector<float> source,working,scratch;
         if(!ConvertInputWorld(input,format,source)) return PF_Err_UNRECOGNIZED_PARAM_TYPE;
@@ -2224,6 +2224,27 @@ static PF_Err RenderWorld(RenderSettings s,PF_EffectWorld* input,PF_EffectWorld*
             p.frame=s.frame; p.timeSeconds=s.timeSeconds; p.premultipliedAlpha=true;
             ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
             if(!processSyncCollapseLab(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
+            working.swap(scratch);
+        }
+        if(master>0.0f&&(s.snowEnable>0||s.backgroundNoiseIntensity>0.0f)) {
+            SnowParams p;
+            p.enabled=s.snowEnable!=0;
+            p.colored=s.snowMode==2;
+            p.intensity=clamp01(s.snowIntensity/100.0f*master);
+            p.density=clamp01(s.snowDensity/100.0f);
+            p.sizePx=std::clamp(s.snowSize,0.35f,16.0f);
+            p.distribution=clamp01(s.snowDistribution/100.0f);
+            p.contrast=clamp01(s.snowContrast/100.0f);
+            p.brightness=clamp01(s.snowBrightness/100.0f);
+            p.color=clamp01(s.snowColor/100.0f);
+            p.temporalVariation=clamp01(s.snowTemporalVariation/100.0f);
+            p.randomness=clamp01(s.snowRandomness/100.0f);
+            p.animationSpeed=std::clamp(s.snowAnimationSpeed/100.0f,0.0f,4.0f);
+            p.backgroundNoiseIntensity=clamp01(s.backgroundNoiseIntensity/100.0f*master);
+            p.seed=static_cast<std::uint32_t>(std::clamp<A_long>(static_cast<A_long>(std::lround(s.snowSeed)),1,32767));
+            p.frame=s.frame; p.timeSeconds=s.timeSeconds; p.premultipliedAlpha=true;
+            ConstImageView in{working.data(),w,h,w*4}; ImageView out{scratch.data(),w,h,w*4};
+            if(!processSnow(in,out,p)) return PF_Err_INTERNAL_STRUCT_DAMAGED;
             working.swap(scratch);
         }
         if(master>0.0f&&(s.trackingAmount>0||s.trackingLayerAmount[0]>0||s.trackingLayerAmount[1]>0||s.trackingLayerAmount[2]>0||s.headAmount>0)) {
