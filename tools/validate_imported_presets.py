@@ -46,9 +46,11 @@ assert len(registered_ids) == len(set(registered_ids)), "Duplicate registered di
 assert set(registered_ids) == set(disk_ids), "Registered UI disk IDs differ from the persistent ParamDiskID set"
 disk_values = []
 for item in enum_values("ParamDiskID"):
-    match = re.match(r"(ID_[A-Z0-9_]+)\s*=\s*(\d+)", item.strip())
-    assert match, f"ParamDiskID must use explicit stable numeric values: {item}"
-    disk_values.append(int(match.group(2)))
+    parts = item.strip().split("=", 1)
+    assert len(parts) == 2 and parts[0].startswith("ID_") and parts[1].strip().isdigit(), (
+        f"ParamDiskID must use explicit stable numeric values: {item}"
+    )
+    disk_values.append(int(parts[1].strip()))
 assert len(disk_values) == len(set(disk_values)), "Duplicate persistent ParamDiskID numeric value"
 
 # Confirm the new UI controls are read in SmartFX and legacy paths.
