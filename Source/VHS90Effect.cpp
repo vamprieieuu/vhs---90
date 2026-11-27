@@ -427,7 +427,7 @@ struct RenderSettings {
         float osdAmount=0.0f, osdRec=100.0f, osdPlay=100.0f, osdTimestamp=100.0f, osdOpacity=82.0f, osdScale=100.0f, osdGlitch=50.0f, osdGhost=35.0f, osdRecBlink=1.4f, osdTimeSpeed=1.0f;
     float osdYear=1994.0f, osdMonth=6.0f, osdDay=11.0f, osdHour=12.0f, osdMinute=0.0f, osdSecond=0.0f;
     A_long osdDeckMode=1, osdDateFormat=1;
-    A_long osdLanguage=1, osdDigits=1, osdDateLayout=1, osdClockMode=3, osdMonthStyle=1, osdClockRuns=1, osdFont=12, osdExtraLabel=1;
+    A_long osdLanguage=1, osdDigits=1, osdDateLayout=1, osdClockMode=3, osdMonthStyle=1, osdClockRuns=1, osdFont=13, osdExtraLabel=1;
     float osdExtraX=50.0f, osdExtraY=50.0f;
     A_long osdShowText=1, osdShowRecLabel=1, osdShowPlayLabel=1, osdShowPauseLabel=1, osdShowStopLabel=1, osdShowFfLabel=1, osdShowRewLabel=1, osdShowSpeedLabel=1, osdShowTapeLabel=0, osdShowErrorLabel=0, osdShowProgramLabel=0, osdShowResLabel=0, osdShowForwardLabel=0, osdTextGlow=0, osdShowDate=1;
     float osdWordsX=50.0f, osdWordsY=50.0f, osdTextSize=100.0f, osdTextGlowAmount=50.0f, osdTextSeed=1.0f, osdTextOpacity=100.0f;
@@ -1162,7 +1162,7 @@ static PF_Err ParamsSetup(PF_InData* in_data,PF_OutData* out_data) {
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Clock",3,3,kOsdClockModeChoices,ID_OSD_CLOCK_MODE);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Month Names",2,1,kOsdMonthStyleChoices,ID_OSD_MONTH_STYLE);
     AEFX_CLR_STRUCT(def); PF_ADD_CHECKBOX("Clock Runs", "Enable", 1, 0, ID_OSD_CLOCK_RUNS);
-    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("OSD Font Family",15,12,kOsdFontChoices,ID_OSD_FONT);
+    AEFX_CLR_STRUCT(def); PF_ADD_POPUP("OSD Font Family",15,13,kOsdFontChoices,ID_OSD_FONT);
     AEFX_CLR_STRUCT(def); PF_ADD_POPUP("Extra VHS Label",18,1,kOsdExtraLabelChoices,ID_OSD_EXTRA_LABEL);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Extra Label Horizontal Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_EXTRA_X);
     AEFX_CLR_STRUCT(def); PF_ADD_FLOAT_SLIDERX("Extra Label Vertical Position",0,100,0,100,50,1,PF_ValueDisplayFlag_PERCENT,0,ID_OSD_EXTRA_Y);
