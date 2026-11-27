@@ -107,8 +107,10 @@ bool processAnalogNoise(ConstImageView src,ImageView dst,const AnalogNoiseParams
     const float lNoise=(vhs6riftHash2D(lx,lyi,p.seed+std::uint32_t(frameLuma))-0.5f)*ly*0.35f*shadowWeight*noiseMask;
     rgb.r+=grainAdd+lNoise; rgb.g+=grainAdd+lNoise; rgb.b+=grainAdd+lNoise;
     if(ch>0.001f&&noiseMask>0.0f) {
-     const float nr=(vhs6riftHash2D(nx,ny,p.seed+111u+std::uint32_t(noiseFrame))-0.5f)*ch*0.35f*noiseMask;
-     const float nb=(vhs6riftHash2D(nx,ny,p.seed+222u+std::uint32_t(noiseFrame))-0.5f)*ch*0.35f*noiseMask;
+     // Preserve VHS6RIFT's original 2x1 chroma-noise sampling at default size/frequency.
+     const int chromaX=x/std::max(1,noiseCell*2),chromaY=y/noiseCell;
+     const float nr=(vhs6riftHash2D(chromaX,chromaY,p.seed+111u+std::uint32_t(noiseFrame))-0.5f)*ch*0.35f*noiseMask;
+     const float nb=(vhs6riftHash2D(chromaX,chromaY,p.seed+222u+std::uint32_t(noiseFrame))-0.5f)*ch*0.35f*noiseMask;
      const YIQ chromaNoise=rgbToYiq({nr,0.0f,nb});
      const float ni=chromaNoise.i*di-chromaNoise.q*dq,nq=chromaNoise.i*dq+chromaNoise.q*di;
      const RGB rotated=yiqToRgb({0.0f,ni,nq});
