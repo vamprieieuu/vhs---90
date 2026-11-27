@@ -16,6 +16,9 @@ int main(){using namespace vhs90;constexpr int w=64,h=32;std::vector<float>s(w*h
  color.chromaIGain=1.8f;color.chromaQGain=.45f;color.chromaIOffset=.08f;color.chromaQOffset=-.06f;color.chromaQuantization=.025f;
  assert(processImageGrade(si,colorAi,color));assert(processImageGrade(si,colorBi,color));assert(colorA==colorB&&colorA!=s);
  color.chromaQuantization=0.0f;assert(processImageGrade(si,colorBi,color));assert(colorA!=colorB);
+ ImageGradeParams saturation;saturation.saturation=5.0f;std::vector<float> sat500(s.size()),sat300(s.size());
+ ImageView sat500View{sat500.data(),w,h,w*4},sat300View{sat300.data(),w,h,w*4};
+ assert(processImageGrade(si,sat500View,saturation));saturation.saturation=3.0f;assert(processImageGrade(si,sat300View,saturation));assert(sat500!=sat300);
  ImageGradeParams off;assert(processImageGrade(si,zi,off));assert(z==s);
  ImageGradeParams exposure;exposure.exposureEV=1.0f;assert(processImageGrade(si,ai,exposure));assert(std::fabs(a[0]-.5f)<1e-5f);
  exposure.exposureEV=-1.0f;assert(processImageGrade(si,bi,exposure));assert(std::fabs(b[0]-.125f)<1e-5f);assert(a!=b);
