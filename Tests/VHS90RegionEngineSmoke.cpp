@@ -160,6 +160,23 @@ int main() {
     assert(processDamageRegions(profileInput,stackBv,stackParams));
     assert(stackA==stackB && stackA!=profileSource);
 
+    // Each independent Tracking Noise layer can rotate and move its own mask over time.
+    DamageRegion moving=full; moving.kind=RegionKind::TrackingNoise;
+    moving.shape=RegionShape::Rectangle; moving.centerX=0.25f; moving.centerY=0.55f;
+    moving.width=0.28f; moving.height=0.32f; moving.angleRadians=0.35f;
+    moving.motionXPerSecond=0.35f; moving.motionYPerSecond=-0.15f;
+    moving.maxShiftPx=0.0f; moving.waveAmplitudePx=0.0f; moving.servoDriftPx=0.0f;
+    moving.tearProbability=0.0f; moving.dropoutProbability=0.0f;
+    moving.noiseAmount=0.6f; moving.noiseDensity=1.0f; moving.chromaShiftPx=0.0f;
+    RegionEngineParams movingA; movingA.regions=&moving; movingA.regionCount=1;
+    movingA.seed=0x5511u; movingA.frame=12; movingA.timeSeconds=0.0;
+    RegionEngineParams movingB=movingA; movingB.timeSeconds=1.0;
+    std::vector<float> movingOutA(src.size(),0.0f),movingOutB(src.size(),0.0f);
+    ImageView movingViewA{movingOutA.data(),w,h,w*4},movingViewB{movingOutB.data(),w,h,w*4};
+    assert(processDamageRegions(profileInput,movingViewA,movingA));
+    assert(processDamageRegions(profileInput,movingViewB,movingB));
+    assert(movingOutA!=movingOutB);
+
     // Signed chroma displacement must work in both directions.
     std::vector<float> chromaSrc(src.size()),chromaOut(src.size(),0.0f);
     for(int y=0;y<h;++y) for(int x=0;x<w;++x) {
