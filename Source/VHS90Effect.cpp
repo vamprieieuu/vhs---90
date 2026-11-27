@@ -745,13 +745,13 @@ static void ApplyVhs6RiftCameraProfile(RenderSettings& s) noexcept {
         b(s.tapeDetail,74);b(s.composite,42);b(s.chromaSubsample,28);b(s.verticalChroma,22);b(s.chromaShift,4);
         b(s.gradeContrast,96);b(s.gradeBrightness,4);b(s.gradeSaturation,116);b(s.chromaIGain,112);b(s.chromaQGain,106);
         b(s.chromaIOffset,3);b(s.chromaQOffset,-2);b(s.lumaNoise,12);b(s.chromaNoise,16);b(s.compositeNoise,8);
-        b(s.vhs6RiftGrain,24);b(s.vhs6RiftNoiseDetail,70);b(s.vhs6RiftShadowBias,70);b(s.glow,7);b(s.flicker,3);
+        b(s.vhs6RiftGrain,24);b(s.vhs6RiftNoiseDetail,70);b(s.vhs6RiftShadowBias,70);b(s.analogGlow,7);b(s.flicker,3);
         b(s.colorPhaseDrift,6);break;
     case 8: // JVC GR-S55 — older compact VHS-C, softer detail, stronger tape texture and warm chroma.
         b(s.tapeDetail,68);b(s.composite,48);b(s.chromaSubsample,34);b(s.verticalChroma,28);b(s.chromaShift,5);
         b(s.gradeContrast,94);b(s.gradeBrightness,-1);b(s.gradeSaturation,102);b(s.chromaIGain,106);b(s.chromaQGain,100);
         b(s.lumaNoise,16);b(s.chromaNoise,18);b(s.compositeNoise,10);b(s.vhs6RiftGrain,28);b(s.vhs6RiftNoiseDetail,70);
-        b(s.vhs6RiftShadowBias,75);b(s.ringing,6);b(s.glow,3);break;
+        b(s.vhs6RiftShadowBias,75);b(s.ringing,6);b(s.analogGlow,3);break;
     case 9: // Panasonic NV-M1 — early VHS-C color, warm saturation and mild RF instability.
         b(s.tapeDetail,62);b(s.composite,52);b(s.chromaSubsample,36);b(s.verticalChroma,32);b(s.chromaShift,5.5f);
         b(s.gradeContrast,102);b(s.gradeBrightness,2);b(s.gradeSaturation,125);b(s.chromaIGain,118);b(s.chromaQGain,110);
