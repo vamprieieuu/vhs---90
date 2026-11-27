@@ -53,7 +53,8 @@ bool processTrackRead(ConstImageView src,ImageView dst,const TrackReadParams&p) 
   weights[t]=share;fm[t]=share*fmLoss;color[t]=share*chromaLoss;sum+=share;
  }
  if(sum<1e-5f){for(int y=0;y<src.height;++y)std::copy_n(src.rgba+y*src.rowStrideFloats,src.width*4,dst.rgba+y*dst.rowStrideFloats);return true;}
- // Keep absolute overlap shares: LP/EP narrow heads intentionally read less tape.
+ // Normalize overlapping track shares: crosstalk changes the recovered track mix, not picture opacity.
+ for(int t=0;t<3;++t){weights[t]/=sum;fm[t]/=sum;color[t]/=sum;}
  for(int y=0;y<src.height;++y){float*dr=dst.rgba+y*dst.rowStrideFloats;
   for(int x=0;x<src.width;++x){const float*px=src.rgba+y*src.rowStrideFloats+x*4;const float a=px[3];float*out=dr+x*4;
    if(a<=1e-6f){std::copy_n(px,4,out);continue;}

@@ -85,7 +85,7 @@ bool processSyncCollapse(ConstImageView src,ImageView dst,const SyncCollapsePara
             const float* original=src.rgba+y*src.rowStrideFloats+x*4;
             float* out=dst.rgba+y*dst.rowStrideFloats+x*4;
             if(alpha<=0.0f) { out[0]=original[0]; out[1]=original[1]; out[2]=original[2]; out[3]=alpha; continue; }
-            const float lineNoise=(hash01(std::uint32_t(x/6),std::uint32_t(y),p.seed,p.frame)-0.5f)*p.noiseAmount;
+            const float lineNoise=(hash01(std::uint32_t(x/6),std::uint32_t(y),p.seed,p.frame)-0.5f)*p.noiseAmount*glitchBand;
             const float trackingPulse=trackingBand*std::sin(time*17.0f)*p.trackingLineStrength;
             const float sx=float(x)+rowShift+trackingPulse;
             // A vertical sync roll is a raster wrap, not a clamped edge smear.

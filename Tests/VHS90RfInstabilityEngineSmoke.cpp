@@ -14,9 +14,11 @@ int main(){using namespace vhs90;constexpr int w=64,h=32;std::vector<float>s(w*h
  std::vector<float> one(s.size());
  ImageView oneView{one.data(),w,h,w*4};
  isolated.drift=.8f;assert(processRfInstability(si,oneView,isolated));assert(one!=s);
+ for(size_t k=0;k<one.size();k+=4){assert(one[k]>0.0f&&one[k]<1.0f);assert(one[k+1]>0.0f&&one[k+1]<1.0f);assert(one[k+2]>0.0f&&one[k+2]<1.0f);}
  isolated={};isolated.seed=17;isolated.frame=21;isolated.hum=.8f;
  assert(processRfInstability(si,oneView,isolated));assert(one!=s);
  isolated={};isolated.seed=17;isolated.frame=21;isolated.amNonlinearity=.8f;
+ assert(processRfInstability(si,oneView,isolated));assert(one!=s);
  std::vector<float> levelPattern(s.size());
  for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){const auto k=(yy*w+xx)*4;const float v=xx<w/2?.18f:.96f;levelPattern[k]=levelPattern[k+1]=levelPattern[k+2]=v;levelPattern[k+3]=1.0f;}
  ConstImageView levelView{levelPattern.data(),w,h,w*4};
